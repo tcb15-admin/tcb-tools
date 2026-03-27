@@ -1,0 +1,11 @@
+{
+  "_comment": "東海中央ボーイズ 道具割振りツール 設定ファイル",
+  "TEAM_NAME": "東海中央ボーイズ 16期",
+  "TEAM_SHORT_NAME": "東海中央ボーイズ16期",
+  "TEAM_SLOGAN": "不屈不撓の精神で全員野球",
+  "INITIAL_PW": "tcb16",
+  "LS_PREFIX": "tcb16",
+  "GITHUB_MASTER_URL": "https://raw.githubusercontent.com/tcb15-admin/tcb-tools/main/boys16/master.json",
+  "TOOL_VERSION": "1.3",
+  "OUTPUT_PATH": "boys16/index.html"
+}
