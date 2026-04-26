@@ -1,0 +1,108 @@
+
+
+東海中央ボーイズ 15期
+道具割振りツール
+GitHub Pages 運用手順書
+
+文書番号	TCB-OPS-001
+版	1.4
+作成日	2026年3月27日
+作成者	15期管理担当
+最終更新	2026年4月26日
+
+改訂履歴
+版	改訂日	改訂内容	改訂者
+1.0	2026年3月15日	初版作成	15期管理担当
+1.1	2026年3月15日	master.json自動同期フロー追加	15期管理担当
+1.2	2026年3月21日	GitHubアカウント情報確定・ドキュメント管理方法追加	15期管理担当
+1.3	2026年3月27日	マルチ世代テンプレート方式・build.py運用・16期追加手順	15期管理担当
+1.4	2026年4月26日	PASTは実施確定後のみ反映（仕様変更）・配布ファイル名修正・master_defaults_boys16・tcb-print-pdf.js・履歴PDF運用を追記	15期管理担当
+
+1. アカウント・リポジトリ情報
+項目	内容
+GitHubユーザー名	tcb15-admin
+リポジトリ名	tcb-tools
+15期ツールURL	https://tcb15-admin.github.io/tcb-tools/boys15/
+16期ツールURL	https://tcb15-admin.github.io/tcb-tools/boys16/
+GitHubリポジトリ	https://github.com/tcb15-admin/tcb-tools
+認証情報管理	Googleドライブ（TCB-ACC-001参照）
+
+2. リポジトリ構成
+パス	内容
+template/tool_template.html	共通テンプレート（プレースホルダ付き。機能の正はここ）
+template/config_boys15.json	15期固有設定（チーム名・PW・URL・バージョン等）
+template/config_boys16.json	16期固有設定
+template/master_defaults_boys16.json	16期ビルド時のみ参照。テンプレ内 DEFAULT マスタブロックを JSON から埋め込む（15期はテンプレ内蔵のまま）
+template/build.py	ビルドスクリプト（Python 3）。template + config → 各 index.html 生成
+template/tcb-print-pdf.js	印刷プレビューから PDF Blob を生成（html2pdf.js 利用）。ビルドで boys15/・boys16/ にコピーされる
+boys15/index.html	15期ツール本体（ビルドで自動生成。GitHub へはこのファイル名で配置）
+boys15/tcb-print-pdf.js	上記と同じくビルド成果物。index.html と必ず同じタイミングでデプロイすること
+boys15/master.json	15期マスタデータ（全端末同期の基準ファイル）
+boys15/images/	15期道具写真（任意。フォルダが無ければ GitHub 上で作成してアップロード）
+boys15/docs/	15期ドキュメント類（本書の保管先の一つ）
+boys16/index.html	16期ツール本体
+boys16/tcb-print-pdf.js	16期用（同上）
+boys16/master.json	16期マスタデータ
+boys16/images/	16期道具写真（任意）
+
+3. 日常の更新フロー
+
+3-1 マスタデータの更新（最重要）
+過去担当回数（PAST）は、ツール画面上の「この内容で実施確定（PAST に反映）」実行後にのみ更新されます。「割振りを実行」だけでは PAST は変わりません。確定後は従来どおり「保存」で master.json をダウンロードし、GitHub にアップロードして全端末へ同期してください。
+手順	操作
+1	活動日で割振りを実行し、必要なら担当を手直ししたうえで「この内容で実施確定（PAST に反映）」を実行（またはマスタ設定を変更）
+2	「保存」をタップ → master.json が自動ダウンロード
+3	GitHub の boys15/ または boys16/ を開き「Add file」→「Upload files」
+4	master.json をアップロード → 「Commit changes」
+5	全端末が次回アクセス時に自動で最新マスタを取得
+
+3-2 共通機能の改修（テンプレート更新）
+ツールの機能改修は tool_template.html（および必要なら tcb-print-pdf.js）を更新し、全世代をビルドしてください。
+手順	操作
+1	Claude 等に修正依頼 → tool_template.html（必要なら tcb-print-pdf.js）を更新
+2	GitHub の template/ にアップロード
+3	template/config_boys15.json および config_boys16.json の TOOL_VERSION を更新（例：1.4→1.5）
+4	build.py を実行 → boys15/index.html・boys16/index.html・各 tcb-print-pdf.js が生成される
+5	boys15/ と boys16/ に、index.html と tcb-print-pdf.js の両方をアップロード（片方だけだと PDF 共有等が壊れる可能性あり）
+
+3-3 世代固有の設定変更
+template/config_boys15.json または config_boys16.json を編集
+build.py を実行し、当該世代の index.html（と tcb-print-pdf.js）を GitHub にアップロード
+
+3-4 16期の初期マスタ埋め込みを変える場合
+template/master_defaults_boys16.json を編集し build.py を再実行（boys16/index.html 再生成）
+
+3-5 道具写真の追加
+boys15/images/ または boys16/images/ に画像をアップロード（フォルダが無ければ作成）
+マスタ設定 → 道具の説明・写真 → 画像 URL 欄に例として以下を入力：
+https://raw.githubusercontent.com/tcb15-admin/tcb-tools/main/boys15/images/【ファイル名】
+「保存」→ master.json を GitHub にアップロード
+
+4. ドキュメントの管理
+ドキュメント類は GitHub リポジトリの boys15/docs/ フォルダおよびローカル（iCloud 等）で管理します。アカウント管理台帳のみ Google ドライブ（機密）。
+ファイル名	最新版	保管場所
+TCB-SPEC-001 仕様書	v1.4	boys15/docs/ ＋ ローカル
+TCB-MAN-001 ユーザーマニュアル	v1.4	boys15/docs/ ＋ ローカル
+TCB-OPS-001 GitHub運用手順書	v1.4	boys15/docs/ ＋ ローカル
+TCB-ACC-001 アカウント管理台帳	v1.0	Google ドライブのみ（機密）
+
+5. 複数期の管理
+項目	15期	16期
+ツール URL	boys15/index.html	boys16/index.html
+マスタ JSON	boys15/master.json	boys16/master.json
+初期パスワード	tcb15	tcb16
+GitHub アップロード	15期管理担当	15期管理担当（代行）または 16期担当（運用ルールに従う）
+マスタ設定	各世代担当が端末上で編集
+
+6. トラブルシューティング
+症状	対処方法
+URL にアクセスできない	GitHub Pages 有効化後 5〜10 分待つ。Public リポジトリか確認
+最新マスタが反映されない	master.json を GitHub にアップロードしたか確認。スマホはページを再読み込み
+PAST が想定と違う	「実施確定」を押した日付・担当が最終状態か確認。試行の「割振りを実行」だけでは PAST は増えない
+PDF が出ない・共有できない	index.html と同じフォルダに tcb-print-pdf.js があるか確認。ブラウザが html2pdf.js（CDN）をブロックしていないか確認
+パスワードを忘れた	マスタ設定の JSON をエクスポートして管理者に相談
+写真が表示されない	raw.githubusercontent.com の URL が正しいか確認
+HTML を差し替えたが変わらない	ブラウザのキャッシュをクリア
+16期ツールが動かない	boys16/master.json がリポジトリに存在するか確認
+
+最終更新：2026年4月26日
