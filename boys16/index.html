@@ -194,6 +194,23 @@ html.theme-b16 .print-actions{background:#f1f5f9;border-bottom:1px solid #e2e8f0
 .hist-dtl-table tr.rB td{border-left:3px solid var(--tb);}
 .hist-dtl-person{width:36%;min-width:100px;font-weight:700;line-height:1.45;}
 .hist-dtl-tools{color:var(--txt);line-height:1.55;font-size:13px;}
+.tcb-hist-mo-openbtn{padding:10px 14px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;font-family:inherit;}
+.tcb-hist-mo-openbtn:active{opacity:.92;}
+.modal.tcb-hist-mo-modal{max-width:min(96vw,1280px)!important;width:100%;}
+.tcb-hist-mo-note{margin:0 0 10px;font-size:12px;color:var(--txt2);line-height:1.55;}
+.tcb-hist-mo-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.tcb-hist-mo-tb{padding:10px 14px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;min-height:44px;}
+.tcb-hist-mo-tb-pdf{background:var(--blue);color:#fff;}
+.tcb-hist-mo-tb-print{background:#546e7a;color:#fff;}
+.tcb-hist-mo-scroll{overflow:auto;max-height:calc(88vh - 220px);border:1px solid var(--bdr);border-radius:8px;background:#fff;}
+.tcb-hist-mo-table{width:100%;border-collapse:collapse;font-size:11px;min-width:520px;}
+.tcb-hist-mo-table th,.tcb-hist-mo-table td{border:1px solid var(--bdr);padding:4px 5px;vertical-align:middle;}
+.tcb-hist-mo-table th{background:var(--navy);color:#fff;font-weight:700;text-align:center;}
+.tcb-hist-mo-table th.tcb-hist-mo-th-tool{background:#37474f;text-align:left;min-width:100px;position:sticky;left:0;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,.08);}
+.tcb-hist-mo-table td.tcb-hist-mo-td-tool{text-align:left;font-weight:700;background:#fafafa;position:sticky;left:0;z-index:1;font-size:11px;box-shadow:2px 0 4px rgba(0,0,0,.06);}
+.tcb-hist-mo-col-date{white-space:pre-line;line-height:1.25;font-size:10px;max-width:76px;}
+.tcb-hist-mo-pt{font-size:9px;font-weight:600;opacity:.95;}
+.tcb-hist-mo-cell{font-size:10px;line-height:1.25;word-break:break-word;text-align:center;color:var(--txt);}
 .master-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .master-hdr-btns{display:flex;gap:8px;}
 .master-section{margin-bottom:20px;}
@@ -476,6 +493,10 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="mclose" id="hist-modal-close">&#10005;</button>
     <h2>&#128336; 割振り履歴</h2>
     <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">活動日をタップすると詳細を表示。チェックで選択削除できます。</div>
+    <div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <button type="button" id="hist-month-btn" class="tcb-hist-mo-openbtn">&#128197; 直近1ヶ月（活動日）：一覧・PDF</button>
+      <span style="font-size:11px;color:var(--txt2);line-height:1.45;">活動日が今日から<strong>過去30日以内</strong>のデータを、道具ごとの担当の並びで表示します（保護者向けPDF用）。</span>
+    </div>
     <div id="hist-list"></div>
     <div id="hist-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
       <button id="hist-export-btn" style="flex:1;min-width:120px;padding:10px;background:var(--grn);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">&#11015; JSONで書出</button>
@@ -498,6 +519,21 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="mclose" id="hist-detail-close">&#10005;</button>
     <h2 id="hist-detail-title"></h2>
     <div id="hist-detail-body"></div>
+  </div>
+</div>
+
+<!-- 直近1ヶ月（活動日）割振り一覧 -->
+<div class="overlay" id="hist-month-overlay">
+  <div class="modal tcb-hist-mo-modal">
+    <button class="mclose" id="hist-month-close" type="button">&#10005;</button>
+    <h2>&#128197; 直近1ヶ月（活動日）割振り一覧</h2>
+    <p class="tcb-hist-mo-note" id="hist-month-range"></p>
+    <div class="tcb-hist-mo-toolbar">
+      <button type="button" class="tcb-hist-mo-tb tcb-hist-mo-tb-pdf" id="hist-month-pdf">&#128196; PDF（横1枚）</button>
+      <button type="button" class="tcb-hist-mo-tb tcb-hist-mo-tb-print" id="hist-month-print">&#128424; 印刷 / PDF保存</button>
+    </div>
+    <p class="tcb-hist-mo-note" style="font-size:11px;">PDFは「PDF（横1枚）」でダウンロードするか、印刷ダイアログの送り先で<strong>PDFに保存</strong>してください。表が幅広のときは印刷設定の<strong>縮小</strong>で1枚に収められます。</p>
+    <div class="tcb-hist-mo-scroll" id="hist-month-body"></div>
   </div>
 </div>
 
@@ -553,6 +589,13 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="ct">道具の一時除外</div>
       <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">この日だけ割振り対象から外す道具をタップ。</div>
       <div class="mgrid" id="skipgrid"></div>
+    </div>
+    <div class="card p2-seed-prev-card" id="p2-seed-prev-card">
+      <div class="ct">前回ベースの割振り</div>
+      <label class="p2-seed-prev-lbl" for="chk-seed-prev" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:12px;color:var(--txt2);line-height:1.5;">
+        <input type="checkbox" id="chk-seed-prev" autocomplete="off" style="margin-top:3px;flex-shrink:0;">
+        <span><strong>前回の割振りを出発点にする</strong>（STEP1の「&#128336; 前回」で見られる直近の保存内容）。この画面で選んだ<strong>欠席・お茶当番・グループ</strong>を反映し、対象外になった担当の道具<strong>だけ</strong>自動で振り直します。活動パターン（片方試合／両方試合／練習・場所分離）が前回と違う場合は使えません。</span>
+      </label>
     </div>
     <div class="card" id="tcard" style="display:none;">
       <div class="ct" id="tcard-hd">グループ振り分け</div>
@@ -1166,6 +1209,132 @@ function loadPrevAssignMap(){
     return (snap.map&&typeof snap.map==='object')?snap.map:null;
   }catch(e){return null;}
 }
+function loadPrevSnapForSeed(){
+  try{
+    var raw=_ls.get(LS_PREV);
+    if(!raw)return null;
+    return JSON.parse(raw);
+  }catch(e){return null;}
+}
+function memberNameSet(memberArr){
+  var o={};
+  (memberArr||[]).forEach(function(m){o[m.name]=1;});
+  return o;
+}
+/* 割振り実行の前提（欠席・お茶反映済みのメンバー・道具リスト）を組み立て。alert 時は null */
+function buildAssignmentContext(){
+  var ex=exSet();
+  var la=tnA||'試合組', lb=tnB||'練習組';
+  if(pat==='kata'){
+    var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
+    var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
+    if(!mA.length){alert(la+'グループに1名以上タップしてください。');return null;}
+    if(!mB.length){alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
+    var tA=TL.filter(function(t){return t.kata===1&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
+    var tB=TL.filter(function(t){return t.kata===0&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
+    var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
+    return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
+  }
+  if(pat==='renshu'&&!renshuSplit){
+    var members=MB.filter(function(m){return !ex[m.name];});
+    if(!members.length){alert('対象メンバーが0名です。');return null;}
+    var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
+    return {ex:ex,la:la,lb:lb,mode:'single',mA:null,mB:null,tA:null,tB:null,tools:tools,members:members,allTools:null};
+  }
+  if(pat==='renshu'&&renshuSplit){
+    var mA2=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
+    var mB2=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
+    if(!mA2.length){alert(la+'グループに1名以上タップしてください。');return null;}
+    if(!mB2.length){alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
+    var tA2=TL.filter(function(t){return effectivePracticeGroup(t)==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
+    var tB2=TL.filter(function(t){return effectivePracticeGroup(t)==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
+    var mg2=mergeTeamToolListsForFixed(tA2,tB2,mA2,mB2); tA2=mg2.tA; tB2=mg2.tB;
+    return {ex:ex,la:la,lb:lb,mode:'team',mA:mA2,mB:mB2,tA:tA2,tB:tB2,tools:null,members:null,allTools:tA2.concat(tB2)};
+  }
+  var mA3=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
+  var mB3=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
+  if(!mA3.length){alert(la+'グループに1名以上タップしてください。');return null;}
+  if(!mB3.length){alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
+  var tA3=TL.filter(function(t){return t.ryo==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
+  var tB3=TL.filter(function(t){return t.ryo==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
+  var mg3=mergeTeamToolListsForFixed(tA3,tB3,mA3,mB3); tA3=mg3.tA; tB3=mg3.tB;
+  return {ex:ex,la:la,lb:lb,mode:'team',mA:mA3,mB:mB3,tA:tA3,tB:tB3,tools:null,members:null,allTools:tA3.concat(tB3)};
+}
+function isPrevSnapCompatibleWithCtx(snap, ctx){
+  if(!snap||typeof snap.map!=='object'||snap.map===null)return false;
+  if(snap.pat!==pat)return false;
+  if((snap.mode||'')!==ctx.mode)return false;
+  var rsNow=(pat==='renshu'&&renshuSplit)?1:0;
+  var rsSn=(snap.renshuSplit===1||snap.renshuSplit===true)?1:0;
+  if(rsSn!==rsNow)return false;
+  return true;
+}
+/* LS_PREV の map をベースに R を組み立て。差分道具は snap.map を前回担当として assignPoolFair に渡す */
+function runAlgoApplyPrevSeed(snap, ctx){
+  var ex=ctx.ex;
+  var prevMap=snap.map;
+  if(ctx.mode==='team'){
+    var nA=memberNameSet(ctx.mA), nB=memberNameSet(ctx.mB);
+    var baseMap={}, poolSet={};
+    function placeTeamTool(t){
+      var tm=t.team||'';
+      var mem=(tm==='A')?nA:nB;
+      if(!mem)return;
+      var p=snap.map[t.name];
+      if(t.fixed&&t.note){
+        if(mem[t.note]&&!ex[t.note]){baseMap[t.name]=t.note;return;}
+        poolSet[t.name]=1;return;
+      }
+      if(p&&!ex[p]&&mem[p])baseMap[t.name]=p;
+      else poolSet[t.name]=1;
+    }
+    ctx.tA.forEach(placeTeamTool);
+    ctx.tB.forEach(placeTeamTool);
+    R={mode:'team',tA:ctx.tA,tB:ctx.tB,mA:ctx.mA,mB:ctx.mB,allTools:ctx.allTools,map:{},ex:ex,la:ctx.la,lb:ctx.lb,sA:{},sB:{},state:{}};
+    Object.assign(R.map, baseMap);
+    var poolA=ctx.tA.filter(function(t){return poolSet[t.name];});
+    var poolB=ctx.tB.filter(function(t){return poolSet[t.name];});
+    var poA={}, poB={};
+    poolA.forEach(function(t){poA[t.name]=1;});
+    poolB.forEach(function(t){poB[t.name]=1;});
+    if(poolA.length){
+      var fA=buildStateExcludingPool(R.mA, poA, 'A');
+      assignPoolFair(poolA, fA, prevMap);
+      ctx.mA.forEach(function(m){R.sA[m.name]=fA[m.name];});
+    }else R.sA=buildStateExcludingPool(R.mA, {}, 'A');
+    if(poolB.length){
+      var fB=buildStateExcludingPool(R.mB, poB, 'B');
+      assignPoolFair(poolB, fB, prevMap);
+      ctx.mB.forEach(function(m){R.sB[m.name]=fB[m.name];});
+    }else R.sB=buildStateExcludingPool(R.mB, {}, 'B');
+    R.map=Object.assign({},mkMap(R.sA),mkMap(R.sB));
+    R.state=Object.assign({},R.sA,R.sB);
+  }else{
+    var mem=memberNameSet(ctx.members);
+    var baseM={}, poolS={};
+    ctx.tools.forEach(function(t){
+      var p=snap.map[t.name];
+      if(t.fixed&&t.note){
+        if(mem[t.note]&&!ex[t.note]){baseM[t.name]=t.note;return;}
+        poolS[t.name]=1;return;
+      }
+      if(p&&!ex[p]&&mem[p])baseM[t.name]=p;
+      else poolS[t.name]=1;
+    });
+    R={mode:'single',tools:ctx.tools,members:ctx.members,map:{},state:{},ex:ex};
+    Object.assign(R.map, baseM);
+    var poolList=ctx.tools.filter(function(t){return poolS[t.name];});
+    var po={};
+    poolList.forEach(function(t){po[t.name]=1;});
+    if(poolList.length){
+      var f=buildStateExcludingPool(ctx.members, po, null);
+      assignPoolFair(poolList, f, prevMap);
+      ctx.members.forEach(function(m){R.state[m.name]=f[m.name];});
+    }else R.state=buildStateExcludingPool(ctx.members, {}, null);
+    R.map=mkMap(R.state);
+  }
+  return true;
+}
 function prio(s){return s.past*WA+s.score*WB+s.cnt*WC;}
 
 /* ========== アルゴリズム ========== */
@@ -1775,57 +1944,33 @@ function showInfo(name){
 
 /* ========== 割振り実行 ========== */
 function runAlgo(){
-  var ex=exSet();
-  var prevAssignMap=loadPrevAssignMap();
-  var la=tnA||'試合組', lb=tnB||'練習組';
   var mapSnapBeforeRun=(R&&R.map)?cloneAssignMap(R.map):null;
-  if(pat==='kata'){
-    var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
-    var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
-    if(!mA.length){alert(la+'グループに1名以上タップしてください。');return;}
-    if(!mB.length){alert(lb+'グループが0名です。欠席者を確認してください。');return;}
-    var tA=TL.filter(function(t){return t.kata===1&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
-    var tB=TL.filter(function(t){return t.kata===0&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
-    var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
-    var sA=doAssign(tA,initSt(mA),prevAssignMap);
-    var sB=doAssign(tB,initSt(mB),prevAssignMap);
-    R={mode:'team',tA:tA,tB:tB,sA:sA,sB:sB,mA:mA,mB:mB,
-       allTools:tA.concat(tB),map:Object.assign({},mkMap(sA),mkMap(sB)),
-       state:Object.assign({},sA,sB),ex:ex,la:la,lb:lb};
-  }else if(pat==='renshu'&&!renshuSplit){
-    var members=MB.filter(function(m){return !ex[m.name];});
-    if(!members.length){alert('対象メンバーが0名です。');return;}
-    var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
-    var state=doAssign(tools,initSt(members),prevAssignMap);
-    R={mode:'single',tools:tools,map:mkMap(state),state:state,members:members,ex:ex};
-  }else if(pat==='renshu'&&renshuSplit){
-    /* 両方練習・場所分離：会場 indoor/outdoor または未設定時は試合の ryo でA/B分割 */
-    var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
-    var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
-    if(!mA.length){alert(la+'グループに1名以上タップしてください。');return;}
-    if(!mB.length){alert(lb+'グループが0名です。欠席者を確認してください。');return;}
-    var tA=TL.filter(function(t){return effectivePracticeGroup(t)==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
-    var tB=TL.filter(function(t){return effectivePracticeGroup(t)==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
-    var mg2=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg2.tA; tB=mg2.tB;
-    var sA=doAssign(tA,initSt(mA),prevAssignMap);
-    var sB=doAssign(tB,initSt(mB),prevAssignMap);
-    R={mode:'team',tA:tA,tB:tB,sA:sA,sB:sB,mA:mA,mB:mB,
-       allTools:tA.concat(tB),map:Object.assign({},mkMap(sA),mkMap(sB)),
-       state:Object.assign({},sA,sB),ex:ex,la:la,lb:lb};
+  var ctx=buildAssignmentContext();
+  if(!ctx)return;
+  var chk=document.getElementById('chk-seed-prev');
+  if(chk&&chk.checked){
+    var seedSnap=loadPrevSnapForSeed();
+    if(!seedSnap||typeof seedSnap.map!=='object'||seedSnap.map===null){
+      alert('「前回の割振り結果」の保存がありません。\nSTEP1の「前回」で内容を確認するか、チェックを外して通常の割振りを行ってください。');
+      return;
+    }
+    if(!isPrevSnapCompatibleWithCtx(seedSnap, ctx)){
+      alert('保存された前回と、いまの活動パターン（片方試合／両方試合／練習・場所分離）またはチーム／単一の組み合わせが一致しません。\nSTEP1を前回と同じ設定にするか、チェックを外してください。');
+      return;
+    }
+    runAlgoApplyPrevSeed(seedSnap, ctx);
   }else{
-    /* 両方試合：道具は ryo でA/B分割 */
-    var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
-    var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
-    if(!mA.length){alert(la+'グループに1名以上タップしてください。');return;}
-    if(!mB.length){alert(lb+'グループが0名です。欠席者を確認してください。');return;}
-    var tA=TL.filter(function(t){return t.ryo==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
-    var tB=TL.filter(function(t){return t.ryo==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
-    var mg3=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg3.tA; tB=mg3.tB;
-    var sA=doAssign(tA,initSt(mA),prevAssignMap);
-    var sB=doAssign(tB,initSt(mB),prevAssignMap);
-    R={mode:'team',tA:tA,tB:tB,sA:sA,sB:sB,mA:mA,mB:mB,
-       allTools:tA.concat(tB),map:Object.assign({},mkMap(sA),mkMap(sB)),
-       state:Object.assign({},sA,sB),ex:ex,la:la,lb:lb};
+    var prevAssignMap=loadPrevAssignMap();
+    if(ctx.mode==='team'){
+      var sA=doAssign(ctx.tA,initSt(ctx.mA),prevAssignMap);
+      var sB=doAssign(ctx.tB,initSt(ctx.mB),prevAssignMap);
+      R={mode:'team',tA:ctx.tA,tB:ctx.tB,sA:sA,sB:sB,mA:ctx.mA,mB:ctx.mB,
+         allTools:ctx.allTools,map:Object.assign({},mkMap(sA),mkMap(sB)),
+         state:Object.assign({},sA,sB),ex:ctx.ex,la:ctx.la,lb:ctx.lb};
+    }else{
+      var state=doAssign(ctx.tools,initSt(ctx.members),prevAssignMap);
+      R={mode:'single',tools:ctx.tools,map:mkMap(state),state:state,members:ctx.members,ex:ctx.ex};
+    }
   }
   rebalanceMark={};
   if(mapSnapBeforeRun){
@@ -2640,13 +2785,215 @@ function showHistDetail(snap){
   openModal('hist-detail-modal');
 }
 
+/* ----- 直近1ヶ月（活動日）道具×日付一覧・PDF ----- */
+var _histMonthPdfTitle='割振り履歴_直近1ヶ月｜東海中央ボーイズ16期';
+var _histMonthCache=[];
+function parseActivityDayMs(dv){
+  if(dv===undefined||dv===null||dv==='')return NaN;
+  var s=String(dv);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+    var p=s.split('-');
+    return new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10),12,0,0).getTime();
+  }
+  var t=new Date(dv).getTime();
+  return isNaN(t)?NaN:t;
+}
+function getHistFilteredLast30Days(){
+  var raw=_ls.get(LS_HIST);
+  if(!raw)return [];
+  var hist;
+  try{hist=JSON.parse(raw);}catch(e){return [];}
+  if(!Array.isArray(hist))return [];
+  var end=new Date();
+  end.setHours(23,59,59,999);
+  var start=new Date(end.getTime());
+  start.setDate(start.getDate()-30);
+  start.setHours(0,0,0,0);
+  var out=[];
+  for(var i=0;i<hist.length;i++){
+    var h=hist[i];
+    if(!h||!h.date)continue;
+    var t=parseActivityDayMs(h.date);
+    if(isNaN(t))continue;
+    if(t<start.getTime()||t>end.getTime())continue;
+    if(!h.map||typeof h.map!=='object')continue;
+    out.push(h);
+  }
+  out.sort(function(a,b){return parseActivityDayMs(a.date)-parseActivityDayMs(b.date);});
+  return out;
+}
+function collectHistToolNameUnion(snaps){
+  var u={};
+  snaps.forEach(function(s){
+    if(s.map&&typeof s.map==='object')Object.keys(s.map).forEach(function(k){if(k)u[k]=1;});
+    if(s.tools&&Array.isArray(s.tools))s.tools.forEach(function(t){if(t&&t.name)u[t.name]=1;});
+  });
+  return u;
+}
+function orderedToolNamesFromHistUnion(unionObj){
+  var ordered=[];
+  TL.forEach(function(t){if(t&&t.name&&unionObj[t.name])ordered.push(t.name);});
+  var rest=[];
+  Object.keys(unionObj).forEach(function(nm){
+    if(ordered.indexOf(nm)===-1)rest.push(nm);
+  });
+  rest.sort(function(a,b){return String(a).localeCompare(String(b),'ja',{numeric:true});});
+  return ordered.concat(rest);
+}
+function histColHeaderHtml(snap){
+  var line1='', line2='';
+  if(snap&&snap.date){
+    var s=String(snap.date);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+      var p=s.split('-');
+      line1=String(parseInt(p[1],10))+'/'+String(parseInt(p[2],10));
+    }else line1=s;
+  }
+  line2=(patLabel(snap.pat,!!snap.renshuSplit)||snap.pat||'').slice(0,10);
+  return '<span class="tcb-hist-mo-col-date">'+esc(line1)+'<br><span class="tcb-hist-mo-pt">'+esc(line2)+'</span></span>';
+}
+function histAssigneeShortForPdf(displayName){
+  var s=formatHistAssigneeCell(displayName);
+  if(s.length<=14)return esc(s);
+  return esc(s.slice(0,13))+'…';
+}
+function buildHistMonthTableHtml(snaps,isPdf){
+  if(!snaps.length)return '<p class="al alw">該当データがありません。</p>';
+  var union=collectHistToolNameUnion(snaps);
+  var tools=orderedToolNamesFromHistUnion(union);
+  var h='<table class="tcb-hist-mo-table'+(isPdf?' tcb-hist-mo-table-pdf':'')+'"><thead><tr>';
+  h+='<th class="tcb-hist-mo-th-tool">道具</th>';
+  snaps.forEach(function(s){h+='<th>'+histColHeaderHtml(s)+'</th>';});
+  h+='</tr></thead><tbody>';
+  tools.forEach(function(tn){
+    h+='<tr><td class="tcb-hist-mo-td-tool">'+esc(tn)+'</td>';
+    snaps.forEach(function(s){
+      var v=s.map&&Object.prototype.hasOwnProperty.call(s.map,tn)?s.map[tn]:undefined;
+      if(v===undefined||v===null||v===''){
+        h+='<td class="tcb-hist-mo-cell">―</td>';
+      }else if(isPdf){
+        h+='<td class="tcb-hist-mo-cell">'+histAssigneeShortForPdf(v)+'</td>';
+      }else{
+        h+='<td class="tcb-hist-mo-cell">'+esc(formatHistAssigneeCell(String(v)))+'</td>';
+      }
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  return h;
+}
+function buildHistMonthPdfDocument(snaps){
+  var rangeTxt='';
+  if(snaps.length){
+    rangeTxt='活動日 '+String(snaps[0].date)+' ～ '+String(snaps[snaps.length-1].date)+'（全'+String(snaps.length)+'日・試行保存）';
+  }
+  var tbl=buildHistMonthTableHtml(snaps,true);
+  var teamShort='東海中央ボーイズ16期';
+  var css=[
+    '*{box-sizing:border-box;}',
+    'html,body{margin:0;padding:2px;font-family:Meiryo,MS PGothic,sans-serif;color:#111;}',
+    '.page{box-sizing:border-box;}',
+    '.tcb-hist-mo-pdf-title{font-size:10pt;font-weight:900;margin:0 0 2px;color:#122050;}',
+    '.tcb-hist-mo-pdf-sub{font-size:7pt;color:#455a64;margin:0 0 3px;line-height:1.35;}',
+    '.tcb-hist-mo-table{width:100%;border-collapse:collapse;table-layout:fixed;}',
+    '.tcb-hist-mo-table th,.tcb-hist-mo-table td{border:1px solid #90a4ae;padding:1px 2px;vertical-align:middle;}',
+    '.tcb-hist-mo-table th{background:#1a237e;color:#fff;font-size:6pt;font-weight:700;}',
+    '.tcb-hist-mo-table th.tcb-hist-mo-th-tool{background:#263238;text-align:left;width:22mm;font-size:6pt;}',
+    '.tcb-hist-mo-table td.tcb-hist-mo-td-tool{background:#f5f5f5;font-size:6pt;font-weight:700;text-align:left;word-break:break-all;}',
+    '.tcb-hist-mo-table td.tcb-hist-mo-cell{font-size:5.5pt;word-break:break-all;text-align:center;}',
+    '.tcb-hist-mo-col-date{font-size:6pt;line-height:1.12;}',
+    '.tcb-hist-mo-pt{font-size:5pt;}',
+    '.tcb-hist-mo-foot{font-size:6pt;color:#546e7a;margin-top:3px;line-height:1.3;}'
+  ].join('');
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<title>'+esc(teamShort+' 割振り履歴')+'</title>'
+    +'<style>'+css+'</style></head><body>'
+    +'<div class="page">'
+    +'<div class="tcb-hist-mo-pdf-title">【'+esc(teamShort)+'】道具持帰り 担当履歴（直近1ヶ月・活動日）</div>'
+    +'<div class="tcb-hist-mo-pdf-sub">'+esc(rangeTxt)+'</div>'
+    +tbl
+    +'<p class="tcb-hist-mo-foot">※「割振りを実行」時にこの端末へ保存された試行結果です。実施確定（PAST）とは別の場合があります。</p>'
+    +'</div></body></html>';
+}
+function openHistMonthView(){
+  var snaps=getHistFilteredLast30Days();
+  if(!snaps.length){
+    alert('直近30日間（活動日）に該当する履歴がありません。\n「割振りを実行」後にこの端末へ保存されたデータが対象です。');
+    return;
+  }
+  _histMonthCache=snaps;
+  var rs=String(snaps[0].date)+' ～ '+String(snaps[snaps.length-1].date);
+  document.getElementById('hist-month-range').textContent='対象：活動日 '+rs+'（'+snaps.length+'日分）';
+  document.getElementById('hist-month-body').innerHTML=buildHistMonthTableHtml(snaps,false);
+  openModal('hist-month-overlay');
+}
+function execHistMonthPrint(){
+  if(!_histMonthCache.length){
+    alert('先に「直近1ヶ月（活動日）：一覧・PDF」を開いてください。');
+    return;
+  }
+  var html=buildHistMonthPdfDocument(_histMonthCache);
+  var w=window.open('','_blank');
+  if(w){
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    setTimeout(function(){
+      try{
+        w.document.title=_histMonthPdfTitle;
+        w.focus();
+        w.print();
+      }catch(e){}
+    },350);
+  }else{
+    alert('ポップアップがブロックされました。ブラウザの設定で許可してから再度お試しください。');
+  }
+}
+function execHistMonthPdf(){
+  if(!_histMonthCache.length){
+    alert('先に「直近1ヶ月（活動日）：一覧・PDF」を開いてください。');
+    return;
+  }
+  var gen=typeof TCB_generateLandscapePdfBlob==='function'?TCB_generateLandscapePdfBlob:(typeof TCB_generateAssignPdfBlob==='function'?TCB_generateAssignPdfBlob:null);
+  if(!gen){
+    alert('PDFモジュールが読み込まれていません。ページを再読み込みするか、「印刷 / PDF保存」からPDFに保存してください。');
+    return;
+  }
+  var btn=document.getElementById('hist-month-pdf');
+  var orig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='作成中…';}
+  var html=buildHistMonthPdfDocument(_histMonthCache);
+  gen(html).then(function(blob){
+    if(!(blob instanceof Blob)||blob.size===0)throw new Error('empty');
+    var base=(_histMonthPdfTitle||'割振り履歴').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,' ').trim().slice(0,120);
+    var fname=(base||'割振り履歴')+'.pdf';
+    var url=URL.createObjectURL(blob);
+    try{
+      var a=document.createElement('a');
+      a.href=url;
+      a.download=fname;
+      a.rel='noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }finally{
+      setTimeout(function(){URL.revokeObjectURL(url);},5000);
+    }
+  }).catch(function(err){
+    console.error(err);
+    alert('PDFの作成に失敗しました。「印刷 / PDF保存」からPDFに保存するか、時間をおいて再度お試しください。');
+  }).finally(function(){
+    if(btn){btn.disabled=false;btn.textContent=orig;}
+  });
+}
+
 document.addEventListener('DOMContentLoaded',function(){
   loadMaster();
   initPw();
   document.getElementById('adate').value=new Date().toISOString().split('T')[0];
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.3';
+  if(vEl)vEl.textContent='v1.4';
   MB.forEach(function(m){tmMap[m.name]='B';});
   updDesc(); buildAGrid(); buildOGrid(); buildSkipGrid();
 
@@ -2712,9 +3059,14 @@ document.addEventListener('DOMContentLoaded',function(){
   /* マスタ */
   document.getElementById('btn-master').addEventListener('click',function(){goMaster();});
   document.getElementById('btn-history').addEventListener('click',function(){showHistory();});
+  document.getElementById('hist-month-btn').addEventListener('click',function(e){e.stopPropagation();openHistMonthView();});
   /* 履歴モーダル */
   document.getElementById('hist-modal-close').addEventListener('click',function(){closeModal('hist-modal');});
   document.getElementById('hist-modal').addEventListener('click',function(e){if(e.target===this)closeModal('hist-modal');});
+  document.getElementById('hist-month-close').addEventListener('click',function(){closeModal('hist-month-overlay');});
+  document.getElementById('hist-month-overlay').addEventListener('click',function(e){if(e.target===this)closeModal('hist-month-overlay');});
+  document.getElementById('hist-month-print').addEventListener('click',function(){execHistMonthPrint();});
+  document.getElementById('hist-month-pdf').addEventListener('click',function(){execHistMonthPdf();});
   document.getElementById('hist-detail-close').addEventListener('click',function(){closeModal('hist-detail-modal');});
   document.getElementById('hist-detail-modal').addEventListener('click',function(e){if(e.target===this)closeModal('hist-detail-modal');});
   document.getElementById('hist-export-btn').addEventListener('click',function(){
