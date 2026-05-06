@@ -1,15 +1,8 @@
 {
   "MB": [
     {
-      "name": "18：秋田",
-      "v": "M",
-      "fix": null,
-      "rest": 1,
-      "coach": 0
-    },
-    {
-      "name": "86：池田",
-      "v": "M",
+      "name": "1：遠藤",
+      "v": "L",
       "fix": null,
       "rest": 0,
       "coach": 0
@@ -22,22 +15,29 @@
       "coach": 0
     },
     {
-      "name": "9：石川",
+      "name": "6：大脇",
       "v": "S",
       "fix": null,
       "rest": 0,
       "coach": 0
     },
     {
-      "name": "21：伊藤（櫂）",
-      "v": "LL",
+      "name": "7：八重",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 1
+    },
+    {
+      "name": "8：本山",
+      "v": "S",
       "fix": null,
       "rest": 0,
       "coach": 0
     },
     {
-      "name": "33：伊藤（魁）",
-      "v": "M",
+      "name": "9：石川",
+      "v": "S",
       "fix": null,
       "rest": 0,
       "coach": 0
@@ -50,50 +50,8 @@
       "coach": 0
     },
     {
-      "name": "77：伊奈",
-      "v": "M",
-      "fix": null,
-      "rest": 0,
-      "coach": 0
-    },
-    {
       "name": "11：植松",
       "v": "S",
-      "fix": null,
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "35：鵜飼",
-      "v": "M",
-      "fix": "キャッチャー道具①",
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "78：榎本",
-      "v": "L",
-      "fix": null,
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "1：遠藤",
-      "v": "L",
-      "fix": null,
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "6：大脇",
-      "v": "SS",
-      "fix": null,
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "25：岡村",
-      "v": "L",
       "fix": null,
       "rest": 0,
       "coach": 0
@@ -106,22 +64,8 @@
       "coach": 0
     },
     {
-      "name": "48：柴",
-      "v": "M",
-      "fix": null,
-      "rest": 0,
-      "coach": 1
-    },
-    {
-      "name": "17：柴田",
-      "v": "S",
-      "fix": null,
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "16：清水",
-      "v": "M",
+      "name": "14：増田",
+      "v": "L",
       "fix": null,
       "rest": 0,
       "coach": 0
@@ -134,36 +78,36 @@
       "coach": 0
     },
     {
-      "name": "27：高橋（龍）",
-      "v": "M",
-      "fix": "キャッチャー道具⑤",
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "44：ディグ",
+      "name": "16：清水",
       "v": "M",
       "fix": null,
       "rest": 0,
       "coach": 0
     },
     {
-      "name": "24：長坂",
+      "name": "17：柴田",
+      "v": "S",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "18：秋田",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "19：松原",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "21：伊藤（櫂）",
       "v": "LL",
-      "fix": null,
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "51：西本",
-      "v": "M",
-      "fix": null,
-      "rest": 0,
-      "coach": 1
-    },
-    {
-      "name": "55：濱田",
-      "v": "M",
       "fix": null,
       "rest": 0,
       "coach": 0
@@ -183,21 +127,14 @@
       "coach": 0
     },
     {
-      "name": "29：藤川",
-      "v": "M",
+      "name": "24：長坂",
+      "v": "LL",
       "fix": null,
-      "rest": 1,
+      "rest": 0,
       "coach": 0
     },
     {
-      "name": "38：二村",
-      "v": "M",
-      "fix": null,
-      "rest": 0,
-      "coach": 1
-    },
-    {
-      "name": "14：増田",
+      "name": "25：岡村",
       "v": "L",
       "fix": null,
       "rest": 0,
@@ -211,23 +148,23 @@
       "coach": 0
     },
     {
-      "name": "19：松原",
+      "name": "27：高橋（龍）",
+      "v": "M",
+      "fix": "キャッチャー道具⑤",
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "29：藤川",
       "v": "M",
       "fix": null,
-      "rest": 0,
+      "rest": 1,
       "coach": 0
     },
     {
       "name": "31：丸井",
       "v": "S",
       "fix": "キャッチャー道具④",
-      "rest": 0,
-      "coach": 0
-    },
-    {
-      "name": "43：三浦",
-      "v": "M",
-      "fix": null,
       "rest": 0,
       "coach": 0
     },
@@ -239,214 +176,84 @@
       "coach": 0
     },
     {
-      "name": "8：本山",
-      "v": "SS",
+      "name": "33：伊藤（魁）",
+      "v": "M",
       "fix": null,
       "rest": 0,
       "coach": 0
     },
     {
-      "name": "7：八重",
+      "name": "35：鵜飼",
+      "v": "M",
+      "fix": "キャッチャー道具①",
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "38：二村",
       "v": "M",
       "fix": null,
       "rest": 0,
       "coach": 1
+    },
+    {
+      "name": "43：三浦",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "44：ディグ",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "48：柴",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 1
+    },
+    {
+      "name": "51：西本",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 1
+    },
+    {
+      "name": "55：濱田",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "77：伊奈",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "78：榎本",
+      "v": "L",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
+    },
+    {
+      "name": "86：池田",
+      "v": "M",
+      "fix": null,
+      "rest": 0,
+      "coach": 0
     }
   ],
   "TL": [
-    {
-      "id": 1,
-      "name": "練習用ボール①",
-      "sz": "M",
-      "wt": "Heavy",
-      "kata": 1,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 2,
-      "name": "練習用ボール②",
-      "sz": "M",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 3,
-      "name": "練習用ボール③",
-      "sz": "M",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 5,
-      "name": "練習用ボール⑤",
-      "sz": "M",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 4,
-      "name": "練習用ボール④",
-      "sz": "M",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 6,
-      "name": "練習用ボール⑥",
-      "sz": "M",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 7,
-      "name": "トレーニング道具",
-      "sz": "M",
-      "wt": "Light",
-      "kata": 0,
-      "ryo": "B",
-      "note": null,
-      "fixed": 0
-    },
-    {
-      "id": 8,
-      "name": "タープ①",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 1,
-      "ryo": "A",
-      "note": null,
-      "fixed": 0
-    },
-    {
-      "id": 9,
-      "name": "タープ②",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 1,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 10,
-      "name": "タープ③",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 1,
-      "ryo": "A",
-      "note": null,
-      "broken": 1
-    },
-    {
-      "id": 11,
-      "name": "タープ④",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 1,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 12,
-      "name": "タープ⑤",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 1,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 13,
-      "name": "タープ⑥",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 1,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 14,
-      "name": "タープ⑦",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 15,
-      "name": "タープ⑧",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 16,
-      "name": "タープ⑨",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 17,
-      "name": "タープ⑩",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 18,
-      "name": "タープ⑪",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 19,
-      "name": "タープ⑫",
-      "sz": "LL",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "B",
-      "note": null
-    },
-    {
-      "id": 28,
-      "name": "長尺＆短尺バット",
-      "sz": "L",
-      "wt": "Heavy",
-      "kata": 0,
-      "ryo": "A",
-      "note": null
-    },
-    {
-      "id": 24,
-      "name": "キャッチャー道具⑤",
-      "sz": "M",
-      "wt": "Medium",
-      "kata": 1,
-      "ryo": "A",
-      "note": "27：高橋（龍）",
-      "fixed": 1
-    },
     {
       "id": 20,
       "name": "キャッチャー道具①",
@@ -464,8 +271,8 @@
       "wt": "Medium",
       "kata": 1,
       "ryo": "B",
-      "note": "2：伊郷",
-      "fixed": 1
+      "note": null,
+      "fixed": 0
     },
     {
       "id": 23,
@@ -473,25 +280,166 @@
       "sz": "M",
       "wt": "Medium",
       "kata": 1,
-      "ryo": "A",
+      "ryo": "B",
       "note": "31：丸井",
       "fixed": 1
     },
     {
-      "id": 25,
-      "name": "審判道具①",
+      "id": 24,
+      "name": "キャッチャー道具⑤",
       "sz": "M",
+      "wt": "Medium",
+      "kata": 1,
+      "ryo": "A",
+      "note": "27：高橋（龍）",
+      "fixed": 1
+    },
+    {
+      "id": 35,
+      "name": "ストレッチポール①",
+      "sz": "SL",
       "wt": "Light",
+      "kata": 1,
+      "ryo": "A",
+      "note": null,
+      "fixed": 0,
+      "broken": 0
+    },
+    {
+      "id": 8,
+      "name": "タープ①",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 1,
+      "ryo": "A",
+      "note": null,
+      "fixed": 0
+    },
+    {
+      "id": 9,
+      "name": "タープ②",
+      "sz": "SL",
+      "wt": "Heavy",
       "kata": 1,
       "ryo": "A",
       "note": null
     },
     {
-      "id": 26,
-      "name": "審判道具②",
+      "id": 10,
+      "name": "タープ③",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 1,
+      "ryo": "A",
+      "note": null,
+      "broken": 1
+    },
+    {
+      "id": 11,
+      "name": "タープ④",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 1,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 12,
+      "name": "タープ⑤",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 1,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 13,
+      "name": "タープ⑥",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 1,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 14,
+      "name": "タープ⑦",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": null
+    },
+    {
+      "id": 15,
+      "name": "タープ⑧",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": null
+    },
+    {
+      "id": 16,
+      "name": "タープ⑨",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": null
+    },
+    {
+      "id": 17,
+      "name": "タープ⑩",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": null
+    },
+    {
+      "id": 18,
+      "name": "タープ⑪",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": null
+    },
+    {
+      "id": 19,
+      "name": "タープ⑫",
+      "sz": "SL",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": null
+    },
+    {
+      "id": 7,
+      "name": "トレーニング道具",
       "sz": "M",
       "wt": "Light",
       "kata": 0,
+      "ryo": "B",
+      "note": null,
+      "fixed": 0
+    },
+    {
+      "id": 27,
+      "name": "ベース一式",
+      "sz": "L",
+      "wt": "Very heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": "noMul"
+    },
+    {
+      "id": 33,
+      "name": "外野用ノックボール",
+      "sz": "M",
+      "wt": "Medium",
+      "kata": 1,
       "ryo": "B",
       "note": null
     },
@@ -514,13 +462,40 @@
       "note": null
     },
     {
-      "id": 27,
-      "name": "ベース一式",
-      "sz": "L",
-      "wt": "Very heavy",
+      "id": 34,
+      "name": "試合用バットケース",
+      "sz": "S",
+      "wt": "Very light",
+      "kata": 1,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 25,
+      "name": "審判道具①",
+      "sz": "M",
+      "wt": "Light",
+      "kata": 1,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 26,
+      "name": "審判道具②",
+      "sz": "M",
+      "wt": "Light",
       "kata": 0,
       "ryo": "B",
-      "note": "noMul"
+      "note": null
+    },
+    {
+      "id": 28,
+      "name": "長尺＆短尺バット",
+      "sz": "L",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "A",
+      "note": null
     },
     {
       "id": 31,
@@ -549,37 +524,62 @@
       "sz": "M",
       "wt": "Light",
       "kata": 1,
-      "ryo": "B",
+      "ryo": "A",
       "note": null
     },
     {
-      "id": 33,
-      "name": "外野用ノックボール",
+      "id": 1,
+      "name": "練習用ボール①",
       "sz": "M",
-      "wt": "Medium",
+      "wt": "Heavy",
       "kata": 1,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 2,
+      "name": "練習用ボール②",
+      "sz": "M",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 3,
+      "name": "練習用ボール③",
+      "sz": "M",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "A",
+      "note": null
+    },
+    {
+      "id": 4,
+      "name": "練習用ボール④",
+      "sz": "M",
+      "wt": "Heavy",
+      "kata": 0,
       "ryo": "B",
       "note": null
     },
     {
-      "id": 34,
-      "name": "試合用バットケース",
-      "sz": "S",
-      "wt": "Very light",
-      "kata": 1,
-      "ryo": "A",
+      "id": 5,
+      "name": "練習用ボール⑤",
+      "sz": "M",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
       "note": null
     },
     {
-      "id": 35,
-      "name": "ストレッチポール①",
-      "sz": "LL",
-      "wt": "Light",
-      "kata": 1,
-      "ryo": "A",
-      "note": null,
-      "fixed": 0,
-      "broken": 0
+      "id": 6,
+      "name": "練習用ボール⑥",
+      "sz": "M",
+      "wt": "Heavy",
+      "kata": 0,
+      "ryo": "B",
+      "note": null
     }
   ],
   "DESCS": {
@@ -707,10 +707,6 @@
       "text": "アルミパイプ",
       "img": ""
     },
-    "ストレッチポール②": {
-      "text": "アルミパイプ",
-      "img": ""
-    },
     "投手用ボール①": {
       "text": "ボール12球、ロジン、ホームベース×1、メジャー×1",
       "img": ""
@@ -723,19 +719,71 @@
       "text": "チーム所有タープ（緑）",
       "img": ""
     },
-    "タープ⑬": {
-      "text": "",
-      "img": ""
-    },
-    "タープ⑭": {
-      "text": "",
-      "img": ""
-    },
     "トレーニング道具": {
-      "text": "脳を騙すバット×7本、穴あきボール20個×3袋、テニスボール満杯×1袋、カラーボール満杯×2袋、保護メガネ2つ×1袋",
+      "text": "脳を騙すバット×7本（長×4、短×3）、穴あきボール20個×6袋＋13個、テニスボール×40個、カラーボール50個×6袋＋26個、保護メガネ2つ×1袋",
       "img": ""
     }
   },
-  "PAST": {},
+  "PAST": {
+    "ディグ": 13,
+    "三浦": 10,
+    "丸井": 10,
+    "伊奈": 27,
+    "伊藤（天）": 11,
+    "伊藤（櫂）": 16,
+    "伊藤（魁）": 13,
+    "伊郷": 10,
+    "別所": 14,
+    "半田": 11,
+    "増田": 9,
+    "大脇": 12,
+    "岡村": 13,
+    "本山": 12,
+    "松原": 11,
+    "林": 12,
+    "柴田": 10,
+    "植松": 11,
+    "榎本": 12,
+    "池田": 12,
+    "清水": 11,
+    "石川": 10,
+    "神野": 11,
+    "秋田": 10,
+    "見並": 12,
+    "遠藤": 12,
+    "長坂": 13,
+    "高橋（龍）": 10,
+    "鮫島": 12,
+    "鵜飼": 13,
+    "17：柴田": 8,
+    "28：別所": 6,
+    "14：増田": 7,
+    "19：松原": 8,
+    "43：三浦": 8,
+    "32：見並": 8,
+    "18：秋田": 7,
+    "86：池田": 9,
+    "21：伊藤（櫂）": 8,
+    "33：伊藤（魁）": 8,
+    "78：榎本": 7,
+    "1：遠藤": 9,
+    "25：岡村": 7,
+    "16：清水": 7,
+    "15：神野": 8,
+    "11：植松": 8,
+    "44：ディグ": 6,
+    "24：長坂": 7,
+    "35：鵜飼": 9,
+    "2：伊郷": 8,
+    "31：丸井": 8,
+    "8：本山": 9,
+    "9：石川": 8,
+    "6：大脇": 8,
+    "55：濱田": 7,
+    "23：半田": 8,
+    "13：鮫島": 4,
+    "27：高橋（龍）": 5,
+    "10：伊藤（天）": 1
+  },
   "DEF_TM": null
 }
