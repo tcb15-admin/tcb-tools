@@ -9,8 +9,8 @@
   "INITIAL_PW": "tcb15",
   "LS_PREFIX": "tcb15",
   "GITHUB_MASTER_URL": "https://raw.githubusercontent.com/tcb15-admin/tcb-tools/main/boys15/master.json",
-  "SYNC_API_BASE_URL": "",
-  "SYNC_API_TOKEN": "",
+  "SYNC_API_BASE_URL": "https://tcb-tools-sync.kazoo-matsu.workers.dev",
+  "SYNC_API_TOKEN": "tokaicentralboys 2012",
   "TOOL_VERSION": "1.4",
   "OUTPUT_PATH": "boys15/index.html"
 }
