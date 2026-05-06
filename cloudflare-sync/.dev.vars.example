@@ -1,0 +1,2 @@
+# wrangler dev 用。コピーして .dev.vars にリネーム（.gitignore 済み）
+SYNC_API_TOKEN=local-dev-token-change-me

@@ -7,6 +7,5 @@ binding = "DB"
 database_name = "tcb-tools-sync"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 
-[vars]
-# 共有トークン（本番では wrangler secret put SYNC_API_TOKEN 推奨）
-SYNC_API_TOKEN = "REPLACE_WITH_STRONG_SHARED_TOKEN"
+# トークンはコミットしないこと。本番: wrangler secret put SYNC_API_TOKEN
+# ローカル検証: このディレクトリに .dev.vars を置く（例: SYNC_API_TOKEN=dev-only-...）

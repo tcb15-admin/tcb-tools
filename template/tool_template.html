@@ -277,6 +277,10 @@ html.theme-b16 .print-actions{background:#f1f5f9;border-bottom:1px solid #e2e8f0
 .p3-rebalance-btn:active{opacity:.92;}
 .p3-rebal-chk-input{width:18px;height:18px;cursor:pointer;accent-color:var(--ui-accent);flex-shrink:0;}
 .p3-rebal-th{font-size:11px;font-weight:700;color:var(--txt2);white-space:nowrap;}
+/* 当日前提の案内（既存セレクタと分離） */
+.tcb-sameday-hint-p1{margin-top:12px;font-size:12px;line-height:1.6;color:var(--ink-info);}
+.tcb-sameday-hint-p2-card{margin-bottom:14px;border:1px solid var(--ui-accent-bd);background:var(--ui-accent-bg);}
+.tcb-sameday-hint-p2-txt{font-size:12px;color:var(--ink-info);line-height:1.6;margin:0;padding:0 2px 2px 0;}
 /* 期別表示（15期・16期の取り違え防止）— セレクタは tcb-cohort-* で既存と分離 */
 .tcb-cohort-chip{
   flex-shrink:0;
@@ -555,6 +559,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
         <button class="tb2"    id="btn-ryoho">両方試合</button>
       </div>
       <div id="pdesc" class="desc-bar"></div>
+      <div id="tcb-sameday-hint-p1" class="al ali tcb-sameday-hint-p1" style="display:none;" role="note"></div>
       <div id="renshu-split-wrap" class="p1-renshu-split-wrap" style="display:none;">
         <label class="p1-renshu-split-lbl" for="chk-renshu-split"><input type="checkbox" id="chk-renshu-split" autocomplete="off">練習場所が分かれる（2グループで会場ごとに割り振る。会場は室内／屋外で指定。未選択の道具は試合用A/B列に従います）</label>
       </div>
@@ -590,16 +595,20 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">この日だけ割振り対象から外す道具をタップ。</div>
       <div class="mgrid" id="skipgrid"></div>
     </div>
+    <div class="card tcb-sameday-hint-p2-card">
+      <div class="ct">&#128197; 当日前提で割り振る</div>
+      <p class="tcb-sameday-hint-p2-txt">担当は<strong>その日</strong>の活動日・欠席・お茶当番・グループの2分け（片方／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）だけを見て決まります。<strong>次回の予定や過去の日とは無関係</strong>です。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。</p>
+    </div>
     <div class="card p2-seed-prev-card" id="p2-seed-prev-card">
       <div class="ct">前回ベースの割振り</div>
       <label class="p2-seed-prev-lbl" for="chk-seed-prev" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:12px;color:var(--txt2);line-height:1.5;">
         <input type="checkbox" id="chk-seed-prev" autocomplete="off" style="margin-top:3px;flex-shrink:0;">
-        <span><strong>前回の割振りを出発点にする</strong>（STEP1の「&#128336; 前回」で見られる直近の保存内容）。この画面で選んだ<strong>欠席・お茶当番・グループ</strong>を反映し、対象外になった担当の道具<strong>だけ</strong>自動で振り直します。活動パターン（片方試合／両方試合／練習・場所分離）が前回と違う場合は使えません。</span>
+        <span><strong>前回の割振りを出発点にする</strong>（STEP1の「&#128336; 前回」で見られる直近の保存内容）。この画面で選んだ<strong>欠席・お茶当番・グループ</strong>を反映し、対象外になった担当の道具<strong>だけ</strong>自動で振り直します。活動パターン（片方試合／両方試合／練習・場所分離）が前回と違う場合は使えません。<strong>会場・メンバー配置が前回と同じ前提のときのみ</strong>有効にするのが安全です。</span>
       </label>
     </div>
     <div class="card" id="tcard" style="display:none;">
       <div class="ct" id="tcard-hd">グループ振り分け</div>
-      <div class="al ali" style="margin-bottom:10px;">タップで青（グループ1）&#8596;紫（グループ2）を切替。全員が最初はグループ2です。</div>
+      <div class="al ali tcb-sameday-hint-tcard-line" style="margin-bottom:10px;">タップで青（グループ1）&#8596;紫（グループ2）を切替。全員が最初はグループ2です。会場や試合の並びが変わる日は<strong>当日の2分け</strong>に合わせて並べ替えてから進め、「デフォルト読込」は<strong>盲信しない</strong>でください。</div>
       <div class="tcrow">
         <div class="tcb A" id="cntA">-</div>
         <div class="tcb B" id="cntB">-</div>
@@ -689,6 +698,11 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
         </div>
         <div style="font-size:11px;color:#546e7a;margin-top:6px;">初期パスワード：{{INITIAL_PW}}</div>
       </div>
+    </div>
+    <div class="card tcb-past-reset-wrap" style="margin-top:10px;border:1px solid var(--bdr);">
+      <div class="ct" style="margin-bottom:8px;">&#128200; 過去担当回数（累計・PAST）</div>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:10px;">公平割振りに使う累計を<strong>全員ゼロ</strong>に戻します。端末に保存された<strong>実施確定の記録</strong>も消えます（次の実施確定から再カウント）。続けて<strong>保存</strong>でファイル／クラウドへ反映してください。</p>
+      <button type="button" class="nb nbs" id="btn-past-reset" style="font-size:13px;">PAST をゼロにリセット</button>
     </div>
     <div class="card">
       <div class="master-section">
@@ -1273,6 +1287,19 @@ function persistPastToMaster(){
     }
   }catch(e){}
 }
+/* 累計（PAST）をゼロに戻し、端末の実施確定メタも消す。あとで「保存」が必要 */
+function resetPastToZero(){
+  if(!confirm('過去担当回数（PAST）をすべてゼロにします。\n端末に保存された実施確定の記録も消します。\n続けて「保存」で master.json（またはクラウド同期）へ反映してください。よろしいですか？'))return;
+  PAST={};
+  try{_ls.remove(LS_CARRYOUT_CONFIRMED);}catch(e){}
+  try{
+    var defTmRaw=_ls.get(LS_DEF_TM);
+    var defTmData=defTmRaw?JSON.parse(defTmRaw):null;
+    _ls.set(LS_KEY,JSON.stringify({MB:MB,TL:TL,DESCS:DESCS,PAST:{},DEF_TM:defTmData}));
+  }catch(e){}
+  showMasterAlert('PASTをゼロにしました。「保存」を実行してください。','als');
+  if(R)renderAll();
+}
 /* 保護者展開後の実績のみ PAST に反映。活動日ごとに1スナップショット（再確定で差し替え） */
 function confirmCarryOutResult(){
   if(!R){alert('割振り結果がありません。先に割振りを実行してください。');return;}
@@ -1288,6 +1315,7 @@ function confirmCarryOutResult(){
     }).then(function(res){
       if(res&&res.past&&typeof res.past==='object')PAST=res.past;
       if(res&&res.version!==undefined)MASTER_VERSION=(res.version|0);
+      persistPastToMaster();
       renderAll();
       var aa2=document.getElementById('aalert');
       if(aa2){
@@ -1361,6 +1389,12 @@ function showPrevResult(){
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+/* 割振り同点時のタイブレーク（実行ごとに runSeed を変える） */
+function tieBreakName(n, seed){
+  var s = String(n || ''), h = (seed | 0) || 0;
+  for (var i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0;
+  return h;
+}
 function exSet(){
   var s={};
   MB.forEach(function(m){if(m.rest||m.coach||absS[m.name]||ochS[m.name])s[m.name]=1;});
@@ -1374,7 +1408,17 @@ function initSt(members){
   });
   return s;
 }
-function loadPrevAssignMap(){
+/* 直前の「割振りを実行」結果（試行）。毎回更新されるためローテーションの基準にする */
+function loadPrevTrialMap(){
+  try{
+    var raw=_ls.get(LS_PREV);
+    if(!raw)return null;
+    var snap=JSON.parse(raw);
+    return (snap.map&&typeof snap.map==='object')?snap.map:null;
+  }catch(e){return null;}
+}
+/* 実施確定で記録した最終 map。noMul の「前回と同じ人に避ける」用 */
+function loadCarryoutPrevMap(){
   try{
     var cr=_ls.get(LS_CARRYOUT_CONFIRMED);
     if(cr){
@@ -1382,12 +1426,13 @@ function loadPrevAssignMap(){
       if(co.lastMap&&typeof co.lastMap==='object')return co.lastMap;
     }
   }catch(e){}
-  try{
-    var raw=_ls.get(LS_PREV);
-    if(!raw)return null;
-    var snap=JSON.parse(raw);
-    return (snap.map&&typeof snap.map==='object')?snap.map:null;
-  }catch(e){return null;}
+  return null;
+}
+/* 互換名：試行マップを優先（実施確定だけが残ると毎回同じ割振りになりやすい問題の修正） */
+function loadPrevAssignMap(){
+  var tr=loadPrevTrialMap();
+  if(tr)return tr;
+  return loadCarryoutPrevMap();
 }
 function loadPrevSnapForSeed(){
   try{
@@ -1479,12 +1524,12 @@ function runAlgoApplyPrevSeed(snap, ctx){
     poolB.forEach(function(t){poB[t.name]=1;});
     if(poolA.length){
       var fA=buildStateExcludingPool(R.mA, poA, 'A');
-      assignPoolFair(poolA, fA, prevMap);
+      assignPoolFair(poolA, fA, prevMap, Date.now());
       ctx.mA.forEach(function(m){R.sA[m.name]=fA[m.name];});
     }else R.sA=buildStateExcludingPool(R.mA, {}, 'A');
     if(poolB.length){
       var fB=buildStateExcludingPool(R.mB, poB, 'B');
-      assignPoolFair(poolB, fB, prevMap);
+      assignPoolFair(poolB, fB, prevMap, Date.now());
       ctx.mB.forEach(function(m){R.sB[m.name]=fB[m.name];});
     }else R.sB=buildStateExcludingPool(R.mB, {}, 'B');
     R.map=Object.assign({},mkMap(R.sA),mkMap(R.sB));
@@ -1508,7 +1553,7 @@ function runAlgoApplyPrevSeed(snap, ctx){
     poolList.forEach(function(t){po[t.name]=1;});
     if(poolList.length){
       var f=buildStateExcludingPool(ctx.members, po, null);
-      assignPoolFair(poolList, f, prevMap);
+      assignPoolFair(poolList, f, prevMap, Date.now());
       ctx.members.forEach(function(m){R.state[m.name]=f[m.name];});
     }else R.state=buildStateExcludingPool(ctx.members, {}, null);
     R.map=mkMap(R.state);
@@ -1550,8 +1595,10 @@ function applyAssignToolToState(s,t){
   if(t.note==='noMul')s.exclusiveRecv=1;
 }
 
-function doAssign(toolList,state,prevAssignMap){
+function doAssign(toolList,state,prevAssignMap,runSeed){
   var prevMap=prevAssignMap||null;
+  var carryMap=loadCarryoutPrevMap();
+  var seed=(runSeed|0)||0;
   var defer=[];
   toolList.forEach(function(t){
     if(t.fixed&&t.note&&state[t.note])applyAssignToolToState(state[t.note],t);
@@ -1575,37 +1622,47 @@ function doAssign(toolList,state,prevAssignMap){
     var isSL=(t.sz==='SL');
     var isLlen=(t.sz==='L');
     var noMul=(t.note==='noMul');
+    var prevTrialPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
     var sorted=Object.keys(state).map(function(n){return [n,state[n]];});
-    sorted.sort(function(a,b){return prio(a[1])-prio(b[1]);});
+    sorted.sort(function(a,b){
+      var p=prio(a[1])-prio(b[1]);
+      if(p!==0)return p;
+      return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
+    });
     var ok=false;
-    for(var i=0;i<sorted.length;i++){
-      var n=sorted[i][0], s=sorted[i][1], vv=s.v;
-      if(s.exclusiveRecv)continue;
-      if(isSL&&s.sl>=capSL(vv))continue;
-      if(isLlen&&s.lc>=capLlen(vv))continue;
-      if(isHv&&s.hv>=capHv(vv))continue;
-      if(noMul&&s.cnt>0)continue;
-      if(noMul&&prevMap&&prevMap[t.name]===n)continue;
-      s.tools.push(t.name); s.score+=t.ls;
-      if(isHv)s.hv++;
-      if(isSL)s.sl++;
-      if(isLlen)s.lc++;
-      s.cnt++;
-      if(noMul)s.exclusiveRecv=1;
-      ok=true; break;
+    for(var relax=0;relax<=1&&!ok;relax++){
+      for(var i=0;i<sorted.length;i++){
+        var n=sorted[i][0], s=sorted[i][1], vv=s.v;
+        if(s.exclusiveRecv)continue;
+        if(isSL&&s.sl>=capSL(vv))continue;
+        if(isLlen&&s.lc>=capLlen(vv))continue;
+        if(isHv&&s.hv>=capHv(vv))continue;
+        if(noMul&&s.cnt>0)continue;
+        if(noMul&&carryMap&&carryMap[t.name]===n)continue;
+        if(!relax&&prevTrialPerson&&prevTrialPerson===n)continue;
+        s.tools.push(t.name); s.score+=t.ls;
+        if(isHv)s.hv++;
+        if(isSL)s.sl++;
+        if(isLlen)s.lc++;
+        s.cnt++;
+        if(noMul)s.exclusiveRecv=1;
+        ok=true; break;
+      }
     }
     if(!ok&&sorted.length>0){
       if(noMul){
         var byCnt=sorted.slice().sort(function(a,b){
           if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
-          return prio(a[1])-prio(b[1]);
+          var p=prio(a[1])-prio(b[1]);
+          if(p!==0)return p;
+          return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
         });
         var tryAssign=function(skipPrevCooldown){
           for(var j=0;j<byCnt.length;j++){
             var sJ=byCnt[j][1], vv=sJ.v;
             if(sJ.exclusiveRecv)continue;
             if(sJ.cnt>0)continue;
-            if(!skipPrevCooldown&&prevMap&&prevMap[t.name]===byCnt[j][0])continue;
+            if(!skipPrevCooldown&&carryMap&&carryMap[t.name]===byCnt[j][0])continue;
             if(isSL&&sJ.sl>=capSL(vv))continue;
             if(isLlen&&sJ.lc>=capLlen(vv))continue;
             if(isHv&&sJ.hv>=capHv(vv))continue;
@@ -1629,7 +1686,13 @@ function doAssign(toolList,state,prevAssignMap){
       }else{
         var pick=null;
         for(var ii=0;ii<sorted.length;ii++){
+          if(prevTrialPerson&&sorted[ii][0]===prevTrialPerson)continue;
           if(!sorted[ii][1].exclusiveRecv){ pick=sorted[ii][1]; break; }
+        }
+        if(!pick&&prevTrialPerson){
+          for(var iii=0;iii<sorted.length;iii++){
+            if(!sorted[iii][1].exclusiveRecv){ pick=sorted[iii][1]; break; }
+          }
         }
         if(!pick)pick=sorted[0][1];
         pick.tools.push(t.name); pick.score+=t.ls;
@@ -1700,8 +1763,10 @@ function syncAssignStateFromMap(){
   }
 }
 /* 担当件数が少ない層を優先しつつ doAssign と同様の制約でプール道具を割当 */
-function assignPoolFair(poolToolObjs, fullState, prevAssignMap){
+function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed){
   var prevMap=prevAssignMap||null;
+  var carryMap=loadCarryoutPrevMap();
+  var seed=(runSeed|0)||0;
   var keys=Object.keys(fullState);
   if(!keys.length)return;
   var defer=poolToolObjs.slice().sort(function(a,b){
@@ -1715,6 +1780,7 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap){
     var isLlen=(t.sz==='L');
     var noMul=(t.note==='noMul');
     var tls=t.ls!=null?t.ls:lscore(t);
+    /* 試行間ローテーション：直前試行の担当者。実施確定ベースは carryMap（noMul のみ） */
     var prevPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
     var placed=false;
     var maxAdd=keys.length+poolToolObjs.length+8;
@@ -1724,7 +1790,11 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap){
         var maxAllow=minC+add;
         var cands=keys.filter(function(k){return fullState[k].cnt<=maxAllow;})
           .map(function(k){return [k,fullState[k]];})
-          .sort(function(a,b){return prio(a[1])-prio(b[1]);});
+          .sort(function(a,b){
+            var p=prio(a[1])-prio(b[1]);
+            if(p!==0)return p;
+            return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
+          });
         for(var i=0;i<cands.length;i++){
           var n=cands[i][0], s=cands[i][1], vv=s.v;
           if(s.exclusiveRecv)continue;
@@ -1732,7 +1802,8 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap){
           if(isLlen&&s.lc>=capLlen(vv))continue;
           if(isHv&&s.hv>=capHv(vv))continue;
           if(noMul&&s.cnt>0)continue;
-          /* ローテーション優先：まず前回担当者を避ける */
+          if(noMul&&carryMap&&carryMap[t.name]===n)continue;
+          /* ローテーション優先：まず直前試行の担当者を避ける */
           if(!relaxPrev&&prevPerson&&prevPerson===n)continue;
           s.tools.push(t.name); s.score+=tls;
           if(isHv)s.hv++;
@@ -1745,18 +1816,24 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap){
       }
     }
     if(!placed&&keys.length>0){
-      var sorted=keys.map(function(n){return [n,fullState[n]];}).sort(function(a,b){return prio(a[1])-prio(b[1]);});
+      var sorted=keys.map(function(n){return [n,fullState[n]];}).sort(function(a,b){
+        var p=prio(a[1])-prio(b[1]);
+        if(p!==0)return p;
+        return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
+      });
       if(noMul){
         var byCnt=sorted.slice().sort(function(a,b){
           if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
-          return prio(a[1])-prio(b[1]);
+          var p=prio(a[1])-prio(b[1]);
+          if(p!==0)return p;
+          return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
         });
         var tryAssign=function(skipPrevCooldown){
           for(var j=0;j<byCnt.length;j++){
             var sJ=byCnt[j][1], vv=sJ.v;
             if(sJ.exclusiveRecv)continue;
             if(sJ.cnt>0)continue;
-            if(!skipPrevCooldown&&prevMap&&prevMap[t.name]===byCnt[j][0])continue;
+            if(!skipPrevCooldown&&carryMap&&carryMap[t.name]===byCnt[j][0])continue;
             if(isSL&&sJ.sl>=capSL(vv))continue;
             if(isLlen&&sJ.lc>=capLlen(vv))continue;
             if(isHv&&sJ.hv>=capHv(vv))continue;
@@ -1800,6 +1877,7 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap){
 }
 function runRebalanceFair(){
   if(!R){alert('割振り結果がありません。');return;}
+  var runSeed=Date.now();
   var prevMap=loadPrevAssignMap();
   var poolSet={};
   var allT=(R.mode==='team')?R.allTools:R.tools;
@@ -1821,7 +1899,7 @@ function runRebalanceFair(){
     });
     if(!poolTools.length)return;
     var fullSt=buildStateExcludingPool(memberList, poolSet, teamFilter);
-    assignPoolFair(poolTools, fullSt, prevMap);
+    assignPoolFair(poolTools, fullSt, prevMap, runSeed);
     memberList.forEach(function(m){
       if(fullSt[m.name]){
         if(R.mode==='team'){
@@ -1914,6 +1992,22 @@ function updDesc(){
         'renshu': '全道具を全メンバーで分担'
       };
       el.textContent=msgs[pat];
+    }
+  }
+  var h1=document.getElementById('tcb-sameday-hint-p1');
+  if(h1){
+    if(pat==='kata'||pat==='ryoho'){
+      h1.style.display='';
+      h1.innerHTML='割り振りは<strong>当日</strong>の活動日・STEP2のグループ2分け・マスタの道具（試合用A/B・片方チェック）だけを前提にします。<strong>次回の予定とは無関係</strong>なので、会場や対戦でメンバーの側が変わる日は、グループ振り分けを<strong>その日用に組み直して</strong>から実行してください。';
+    }else if(pat==='renshu'&&renshuSplit){
+      h1.style.display='';
+      h1.innerHTML='会場（室内／屋外）は<strong>当日</strong>の練習配置です。<strong>次回の練習予定とは切り離して</strong>、この日の会場に合わせてマスタの会場列とグループを確認してください。';
+    }else if(pat==='renshu'){
+      h1.style.display='';
+      h1.innerHTML='割り振りは<strong>当日</strong>の参加メンバーと道具リストだけを前提にします。';
+    }else{
+      h1.style.display='none';
+      h1.textContent='';
     }
   }
   var tc=document.getElementById('tcard');
@@ -2137,6 +2231,7 @@ function runAlgo(){
   var mapSnapBeforeRun=(R&&R.map)?cloneAssignMap(R.map):null;
   var ctx=buildAssignmentContext();
   if(!ctx)return;
+  var runSeed=Date.now();
   var chk=document.getElementById('chk-seed-prev');
   if(chk&&chk.checked){
     var seedSnap=loadPrevSnapForSeed();
@@ -2152,13 +2247,13 @@ function runAlgo(){
   }else{
     var prevAssignMap=loadPrevAssignMap();
     if(ctx.mode==='team'){
-      var sA=doAssign(ctx.tA,initSt(ctx.mA),prevAssignMap);
-      var sB=doAssign(ctx.tB,initSt(ctx.mB),prevAssignMap);
+      var sA=doAssign(ctx.tA,initSt(ctx.mA),prevAssignMap,runSeed);
+      var sB=doAssign(ctx.tB,initSt(ctx.mB),prevAssignMap,runSeed);
       R={mode:'team',tA:ctx.tA,tB:ctx.tB,sA:sA,sB:sB,mA:ctx.mA,mB:ctx.mB,
          allTools:ctx.allTools,map:Object.assign({},mkMap(sA),mkMap(sB)),
          state:Object.assign({},sA,sB),ex:ctx.ex,la:ctx.la,lb:ctx.lb};
     }else{
-      var state=doAssign(ctx.tools,initSt(ctx.members),prevAssignMap);
+      var state=doAssign(ctx.tools,initSt(ctx.members),prevAssignMap,runSeed);
       R={mode:'single',tools:ctx.tools,map:mkMap(state),state:state,members:ctx.members,ex:ctx.ex};
     }
   }
@@ -3326,6 +3421,8 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('btn-master-back').addEventListener('click',function(){goStep(1);});
   document.getElementById('btn-master-save').addEventListener('click',function(){saveMaster();});
   document.getElementById('btn-master-save2').addEventListener('click',function(){saveMaster();});
+  var btnPastReset=document.getElementById('btn-past-reset');
+  if(btnPastReset)btnPastReset.addEventListener('click',function(){resetPastToZero();});
   document.getElementById('btn-add-mbr').addEventListener('click',function(){
     MB.push({name:'新メンバー',v:'M',fix:null,rest:0,coach:0}); buildMasterMembers();
   });
