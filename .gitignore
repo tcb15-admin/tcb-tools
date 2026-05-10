@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# 一時アーカイブ（配布は index.html + *.js）
+**/index.zip
