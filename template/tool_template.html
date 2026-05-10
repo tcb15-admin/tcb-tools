@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" class="{{HTML_THEME_CLASS}}" data-cohort="{{COHORT_KEY}}">
+<html lang="ja" class="{{HTML_BODY_CLASS}}" data-cohort="{{COHORT_KEY}}">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -111,7 +111,7 @@ tr.rA td{border-left:3px solid var(--ta);}
 tr.rB td{border-left:3px solid var(--tb);}
 .asel{font-family:inherit;font-size:13px;font-weight:700;color:var(--navy);border:2px solid var(--bdr);border-radius:7px;padding:6px 4px;background:#f8f9fa;cursor:pointer;width:100%;min-height:var(--tap);}
 .tag{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;margin-left:3px;}
-.tsl{background:#ffccbc;color:#bf360c;}.tlen{background:#e1f5fe;color:#0277bd;}.thv{background:#fce4ec;color:#880e4f;}
+.tll{background:#ffccbc;color:#bf360c;}.tlen{background:#e1f5fe;color:#0277bd;}.thv{background:#fce4ec;color:#880e4f;}
 .tfx{background:#e8f5e9;color:#1b5e20;}.tbr{background:#ffd54f;color:#5d4037;}
 .p3-carryout-card{margin-top:12px;padding:12px;border-radius:10px;border:1px solid #c5e1a5;background:#f1f8e9;}
 .p3-carryout-ct{font-weight:900;font-size:13px;color:#33691e;margin-bottom:6px;}
@@ -323,6 +323,8 @@ html[data-cohort="16"] .tcb-pw-cohort-banner{
   border-bottom:3px solid #c0000a;
   box-shadow:0 4px 16px rgba(18,32,80,.25);
 }
+/* 15期シンプルUI（build で html に tcb-ui-simple）：上級機能ブロックを非表示 */
+html.tcb-ui-simple .tcb-ui-advanced{display:none!important;}
 /* ログインオーバーレイ・補助ボタン */
 #pw-screen{
   position:fixed;inset:0;z-index:9999;
@@ -418,6 +420,80 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   border-top:3px solid #c0000a;
   box-shadow:0 12px 40px rgba(18,32,80,.14);
 }
+
+/* スマホ：割振り（STEP3 中心）・親指操作しやすいタップ領域 */
+@media (max-width:520px){
+  :root{ --tap:50px; }
+  .wrap{
+    padding:12px 10px calc(72px + env(safe-area-inset-bottom,0px));
+  }
+  #p3 .asel,
+  #p2 .date-inp{
+    font-size:16px; /* iOS フォーカス時の自動ズーム抑制 */
+  }
+  #p3 table th,
+  #p3 table td{
+    padding:11px 10px;
+  }
+  #p3 table td:nth-child(2){
+    font-size:13px;
+  }
+  .p3-rh-actions{
+    width:100%;
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+  }
+  .p3-rh-actions .nb{
+    width:100%;
+    justify-content:center;
+    box-sizing:border-box;
+  }
+  .tabrow{
+    gap:4px;
+    margin-bottom:10px;
+  }
+  .tabbtn{
+    flex:1;
+    min-width:0;
+    text-align:center;
+    font-size:14px;
+    padding:11px 8px;
+  }
+  .p3-carryout-btn{
+    font-size:16px;
+    padding:14px 12px;
+    min-height:52px;
+  }
+  .p3-carryout-card{
+    padding:14px 12px;
+  }
+  #p3 .ibtn{
+    min-height:32px;
+    padding:5px 10px;
+    font-size:12px;
+  }
+  .hbtn{
+    padding:10px 14px;
+    font-size:13px;
+  }
+  .sgrid{
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:10px;
+  }
+  .mc,
+  .tc2{
+    padding:10px 10px;
+  }
+  .nav{
+    flex-direction:column;
+    gap:8px;
+  }
+  .nav .nb{
+    width:100%;
+    box-sizing:border-box;
+  }
+}
 </style>
 </head>
 <body>
@@ -497,7 +573,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="mclose" id="hist-modal-close">&#10005;</button>
     <h2>&#128336; 割振り履歴</h2>
     <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">活動日をタップすると詳細を表示。チェックで選択削除できます。</div>
-    <div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+    <div class="tcb-ui-advanced" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <button type="button" id="hist-month-btn" class="tcb-hist-mo-openbtn">&#128197; 直近1年（活動日）：一覧・PDF</button>
       <span style="font-size:11px;color:var(--txt2);line-height:1.45;">活動日が今日から<strong>過去1年以内</strong>のデータを、道具ごとの担当の並びで表示します（保護者向けPDF用）。</span>
     </div>
@@ -527,7 +603,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
 </div>
 
 <!-- 直近1年（活動日）割振り一覧 -->
-<div class="overlay" id="hist-month-overlay">
+<div class="overlay tcb-ui-advanced" id="hist-month-overlay">
   <div class="modal tcb-hist-mo-modal">
     <button class="mclose" id="hist-month-close" type="button">&#10005;</button>
     <h2>&#128197; 直近1年（活動日）割振り一覧</h2>
@@ -587,7 +663,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     </div>
     <div class="card">
       <div class="ct">お茶当番（翌活動日分）</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">当番は道具割振り対象外になります。</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">ここで選ぶのは<strong>翌活動日分</strong>の当番です。次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>メンバーになるので、通常の道具割振りの対象外にします。</div>
       <div class="mgrid" id="ogrid"></div>
     </div>
     <div class="card" id="skip-tools-card">
@@ -597,23 +673,23 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     </div>
     <div class="card tcb-sameday-hint-p2-card">
       <div class="ct">&#128197; 当日前提で割り振る</div>
-      <p class="tcb-sameday-hint-p2-txt">担当は<strong>その日</strong>の活動日・欠席・お茶当番・グループの2分け（片方／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）だけを見て決まります。<strong>次回の予定や過去の日とは無関係</strong>です。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。</p>
+      <p id="tcb-sameday-hint-p2-txt" class="tcb-sameday-hint-p2-txt">担当は<strong>その日</strong>の活動日・欠席・グループの2分け（片方試合／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。</p>
     </div>
-    <div class="card p2-seed-prev-card" id="p2-seed-prev-card">
+    <div class="card p2-seed-prev-card tcb-ui-advanced" id="p2-seed-prev-card">
       <div class="ct">前回ベースの割振り</div>
       <label class="p2-seed-prev-lbl" for="chk-seed-prev" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:12px;color:var(--txt2);line-height:1.5;">
         <input type="checkbox" id="chk-seed-prev" autocomplete="off" style="margin-top:3px;flex-shrink:0;">
-        <span><strong>前回の割振りを出発点にする</strong>（STEP1の「&#128336; 前回」で見られる直近の保存内容）。この画面で選んだ<strong>欠席・お茶当番・グループ</strong>を反映し、対象外になった担当の道具<strong>だけ</strong>自動で振り直します。活動パターン（片方試合／両方試合／練習・場所分離）が前回と違う場合は使えません。<strong>会場・メンバー配置が前回と同じ前提のときのみ</strong>有効にするのが安全です。</span>
+        <span><strong>前回の割振りを出発点にする</strong>（STEP1の「&#128336; 前回」で見られる直近の保存内容）。この画面で選んだ<strong>欠席・お茶当番（翌活動日分）・グループ</strong>を反映し、対象外になった担当の道具<strong>だけ</strong>自動で振り直します。活動パターン（片方試合／両方試合／練習・場所分離）が前回と違う場合は使えません。<strong>会場・メンバー配置が前回と同じ前提のときのみ</strong>有効にするのが安全です。</span>
       </label>
     </div>
     <div class="card" id="tcard" style="display:none;">
       <div class="ct" id="tcard-hd">グループ振り分け</div>
-      <div class="al ali tcb-sameday-hint-tcard-line" style="margin-bottom:10px;">タップで青（グループ1）&#8596;紫（グループ2）を切替。全員が最初はグループ2です。会場や試合の並びが変わる日は<strong>当日の2分け</strong>に合わせて並べ替えてから進め、「デフォルト読込」は<strong>盲信しない</strong>でください。</div>
+      <div id="tcb-sameday-hint-tcard-line" class="al ali tcb-sameday-hint-tcard-line" style="margin-bottom:10px;">タップで青（グループ1）&#8596;紫（グループ2）を切替。全員が最初はグループ2です。会場や試合の並びが変わる日は<strong>当日の2分け</strong>に合わせて並べ替えてから進め、「デフォルト読込」は<strong>盲信しない</strong>でください。</div>
       <div class="tcrow">
         <div class="tcb A" id="cntA">-</div>
         <div class="tcb B" id="cntB">-</div>
       </div>
-      <div class="dfrow">
+      <div class="dfrow tcb-ui-advanced">
         <button class="dfbtn" id="btn-df-save">&#128190; デフォルト保存</button>
         <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
       </div>
@@ -636,14 +712,14 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
         </div>
       </div>
       <div id="aalert"></div>
-      <div class="p3-rebalance-bar" id="p3-rebalance-bar" style="display:none;">
+      <div class="p3-rebalance-bar tcb-ui-advanced" id="p3-rebalance-bar" style="display:none;">
         <div class="p3-rebalance-t"><strong>公平に再分配</strong>：チェックした道具と、担当が<strong>未割当</strong>の道具をまとめて対象にします。いま<strong>担当0件</strong>の人を優先し、足りなければ<strong>最も少ない人</strong>へ順に割り当てます（割振り実行と同じ負荷・上限ルール）。<strong>固定担当</strong>の道具は対象外です。</div>
         <button type="button" class="p3-rebalance-btn" id="btn-rebalance-fair">&#9889; 公平に再分配</button>
       </div>
       <div class="p3-carryout-card">
         <div class="p3-carryout-ct">&#9989; 実施確定（過去回数 PAST への反映）</div>
         <div class="p3-carryout-status" id="p3-carryout-status" style="font-size:12px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.55;">「割振りを実行」だけでは試行錯誤・LINE 下書き用のため、<strong>過去回数は増えません</strong>。保護者へ連絡した<strong>実際の持ち帰り結果</strong>になったら、下のボタンで確定してください。同じ活動日で担当を直した場合は、もう一度押すとその日のカウントを差し替えます。</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.55;">「割振りを実行」だけでは試行錯誤・LINE 下書き用のため、<strong>過去回数は増えません</strong>。保護者へ連絡した<strong>実際の持ち帰り結果</strong>になったら、下のボタンで確定してください。同じ活動日で担当を直した場合は、もう一度押すとその日のカウントを差し替えます。<strong>実施確定後は「履歴」にもその活動日の確定担当が記録</strong>されます（道具の破損・紛失などの照会に使えます）。</div>
         <button type="button" class="p3-carryout-btn" id="btn-confirm-carryout">この内容で実施確定（PAST に反映）</button>
       </div>
     </div>
@@ -656,7 +732,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="tbl-wrap">
         <table><thead><tr>
           <th>#</th><th>道具名</th>
-          <th class="p3-rebal-th">再配</th>
+          <th class="p3-rebal-th tcb-ui-advanced">再配</th>
           <th id="thteam" style="display:none;">班</th>
           <th>担当者</th>
         </tr></thead><tbody id="tbody"></tbody></table>
@@ -729,7 +805,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
           </span>
         </h3>
         <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示順：まず<strong>丸数字（①…）より前の同じ名前</strong>ごとにまとめ、その中で<strong>①→②→③…</strong>の順です。丸数字が無い行は同じグループ内では後ろになります。グループ同士は辞書順、同順位は道具ID（id）です。</div>
-        <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、SL＝スーパーロング。</div>
+        <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
         <div class="master-tl-venue-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;"><strong>会場</strong>列は<strong>両方練習・場所分離</strong>のときだけ使います。<strong>室内＝左グループ（A）</strong>、<strong>屋外＝右グループ（B）</strong>です。<strong>未選択</strong>の道具は、左の<strong>試合用A/B</strong>列の区分に従います（両方試合の割振りは試合A/Bのみで、会場列は使いません）。</div>
         <div id="m-tools"></div>
         <button class="madd" id="btn-add-tool">&#65291; 道具追加</button>
@@ -803,37 +879,44 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
 
 /* ========== デフォルトマスタ ========== */
 /*DEFAULT_MASTER_BLOCK*/
+/* 15期名簿の実体は boys15/master.json。ビルド時は boys15 が master から DEFAULT_* を注入 */
 var DEFAULT_MB=[
-  {name:'秋田',v:'M',fix:null,rest:0,coach:0},
-  {name:'池田',v:'M',fix:null,rest:0,coach:0},
-  {name:'伊郷',v:'L',fix:'キャッチャー道具③',rest:0,coach:0},
-  {name:'石川',v:'S',fix:null,rest:0,coach:0},
-  {name:'伊藤（櫂）',v:'LL',fix:null,rest:0,coach:0},
-  {name:'伊藤（魁）',v:'M',fix:null,rest:0,coach:0},
-  {name:'伊藤（天）',v:'L',fix:null,rest:0,coach:0},
-  {name:'伊奈',v:'M',fix:null,rest:0,coach:0},
-  {name:'植松',v:'S',fix:null,rest:0,coach:0},
-  {name:'鵜飼',v:'M',fix:'キャッチャー道具①',rest:0,coach:0},
-  {name:'榎本',v:'L',fix:null,rest:0,coach:0},
-  {name:'遠藤',v:'L',fix:null,rest:0,coach:0},
-  {name:'大脇',v:'S',fix:null,rest:0,coach:0},
-  {name:'岡村',v:'L',fix:null,rest:0,coach:0},
-  {name:'鮫島',v:'M',fix:null,rest:0,coach:0},
-  {name:'柴田',v:'S',fix:null,rest:0,coach:0},
-  {name:'清水',v:'M',fix:null,rest:0,coach:0},
-  {name:'神野',v:'LL',fix:null,rest:0,coach:0},
-  {name:'高橋（龍）',v:'M',fix:'キャッチャー道具⑤',rest:0,coach:0},
-  {name:'ディグ',v:'M',fix:null,rest:0,coach:0},
-  {name:'長坂',v:'LL',fix:null,rest:0,coach:0},
-  {name:'林',v:'L',fix:null,rest:0,coach:0},
-  {name:'半田',v:'L',fix:null,rest:0,coach:0},
-  {name:'別所',v:'M',fix:null,rest:0,coach:0},
-  {name:'増田',v:'L',fix:null,rest:0,coach:0},
-  {name:'松原',v:'M',fix:null,rest:0,coach:0},
-  {name:'丸井',v:'S',fix:'キャッチャー道具④',rest:0,coach:0},
-  {name:'三浦',v:'M',fix:null,rest:0,coach:0},
-  {name:'見並',v:'M',fix:null,rest:0,coach:0},
-  {name:'本山',v:'S',fix:null,rest:0,coach:0}
+  {name:"1：遠藤",v:"L",fix:null,rest:0,coach:0},
+  {name:"2：伊郷",v:"L",fix:"キャッチャー道具③",rest:0,coach:0},
+  {name:"6：大脇",v:"S",fix:null,rest:0,coach:0},
+  {name:"7：八重",v:"M",fix:null,rest:0,coach:1},
+  {name:"8：本山",v:"S",fix:null,rest:0,coach:0},
+  {name:"9：石川",v:"S",fix:null,rest:0,coach:0},
+  {name:"10：伊藤（天）",v:"L",fix:null,rest:0,coach:0},
+  {name:"11：植松",v:"S",fix:null,rest:0,coach:0},
+  {name:"13：鮫島",v:"M",fix:null,rest:0,coach:0},
+  {name:"14：増田",v:"L",fix:null,rest:0,coach:0},
+  {name:"15：神野",v:"LL",fix:null,rest:0,coach:0},
+  {name:"16：清水",v:"M",fix:null,rest:0,coach:0},
+  {name:"17：柴田",v:"S",fix:null,rest:0,coach:0},
+  {name:"18：秋田",v:"M",fix:null,rest:0,coach:0},
+  {name:"19：松原",v:"M",fix:null,rest:0,coach:0},
+  {name:"21：伊藤（櫂）",v:"LL",fix:null,rest:0,coach:0},
+  {name:"22：林",v:"L",fix:null,rest:0,coach:0},
+  {name:"23：半田",v:"L",fix:null,rest:0,coach:0},
+  {name:"24：長坂",v:"LL",fix:null,rest:0,coach:0},
+  {name:"25：岡村",v:"L",fix:null,rest:0,coach:0},
+  {name:"26：松永",v:"M",fix:null,rest:1,coach:0},
+  {name:"27：高橋（龍）",v:"M",fix:"キャッチャー道具⑤",rest:0,coach:0},
+  {name:"29：藤川",v:"M",fix:null,rest:1,coach:0},
+  {name:"31：丸井",v:"S",fix:"キャッチャー道具④",rest:0,coach:0},
+  {name:"32：見並",v:"M",fix:null,rest:0,coach:0},
+  {name:"33：伊藤（魁）",v:"M",fix:null,rest:0,coach:0},
+  {name:"35：鵜飼",v:"M",fix:"キャッチャー道具①",rest:0,coach:0},
+  {name:"38：二村",v:"M",fix:null,rest:0,coach:1},
+  {name:"43：三浦",v:"M",fix:null,rest:0,coach:0},
+  {name:"44：ディグ",v:"M",fix:null,rest:0,coach:0},
+  {name:"48：柴",v:"M",fix:null,rest:0,coach:1},
+  {name:"51：西本",v:"M",fix:null,rest:0,coach:1},
+  {name:"55：濱田",v:"M",fix:null,rest:0,coach:0},
+  {name:"77：伊奈",v:"M",fix:null,rest:0,coach:0},
+  {name:"78：榎本",v:"L",fix:null,rest:0,coach:0},
+  {name:"86：池田",v:"M",fix:null,rest:0,coach:0},
 ];
 
 var DEFAULT_TL=[
@@ -844,17 +927,17 @@ var DEFAULT_TL=[
   {id:5, name:'練習用ボール⑤',  sz:'M', wt:'Heavy',     kata:0,ryo:'B',note:null},
   {id:6, name:'練習用ボール⑥',  sz:'M', wt:'Heavy',     kata:0,ryo:'B',note:null},
   {id:7, name:'トレーニング道具①',sz:'M',wt:'Light',    kata:0,ryo:'B',note:null},
-  {id:8, name:'タープ①',        sz:'SL',wt:'Heavy',     kata:1,ryo:'A',note:null},
-  {id:9, name:'タープ②',        sz:'SL',wt:'Heavy',     kata:1,ryo:'A',note:null},
-  {id:10,name:'タープ③',        sz:'SL',wt:'Heavy',     kata:1,ryo:'A',note:null,broken:1},
-  {id:11,name:'タープ④',        sz:'SL',wt:'Heavy',     kata:1,ryo:'A',note:null},
-  {id:12,name:'タープ⑤',        sz:'SL',wt:'Heavy',     kata:1,ryo:'A',note:null},
-  {id:13,name:'タープ⑥',        sz:'SL',wt:'Heavy',     kata:1,ryo:'A',note:null},
-  {id:14,name:'タープ⑦',        sz:'SL',wt:'Heavy',     kata:0,ryo:'B',note:null},
-  {id:15,name:'タープ⑧',        sz:'SL',wt:'Heavy',     kata:0,ryo:'B',note:null},
-  {id:16,name:'タープ⑨',        sz:'SL',wt:'Heavy',     kata:0,ryo:'B',note:null},
-  {id:17,name:'タープ⑩',        sz:'SL',wt:'Heavy',     kata:0,ryo:'B',note:null},
-  {id:18,name:'タープ⑪',        sz:'SL',wt:'Heavy',     kata:0,ryo:'B',note:null},
+  {id:8, name:'タープ①',        sz:'LL',wt:'Heavy',     kata:1,ryo:'A',note:null},
+  {id:9, name:'タープ②',        sz:'LL',wt:'Heavy',     kata:1,ryo:'A',note:null},
+  {id:10,name:'タープ③',        sz:'LL',wt:'Heavy',     kata:1,ryo:'A',note:null,broken:1},
+  {id:11,name:'タープ④',        sz:'LL',wt:'Heavy',     kata:1,ryo:'A',note:null},
+  {id:12,name:'タープ⑤',        sz:'LL',wt:'Heavy',     kata:1,ryo:'A',note:null},
+  {id:13,name:'タープ⑥',        sz:'LL',wt:'Heavy',     kata:1,ryo:'A',note:null},
+  {id:14,name:'タープ⑦',        sz:'LL',wt:'Heavy',     kata:0,ryo:'B',note:null},
+  {id:15,name:'タープ⑧',        sz:'LL',wt:'Heavy',     kata:0,ryo:'B',note:null},
+  {id:16,name:'タープ⑨',        sz:'LL',wt:'Heavy',     kata:0,ryo:'B',note:null},
+  {id:17,name:'タープ⑩',        sz:'LL',wt:'Heavy',     kata:0,ryo:'B',note:null},
+  {id:18,name:'タープ⑪',        sz:'LL',wt:'Heavy',     kata:0,ryo:'B',note:null},
   {id:19,name:'タープ⑫',        sz:'L', wt:'Heavy',     kata:0,ryo:'B',note:null},
   {id:20,name:'キャッチャー道具①',sz:'M',wt:'Medium',   kata:1,ryo:'B',note:'鵜飼',  fixed:1},
   {id:22,name:'キャッチャー道具③',sz:'M',wt:'Medium',   kata:1,ryo:'A',note:'伊郷',  fixed:1},
@@ -909,10 +992,8 @@ var SYNC_HISTORY_DAYS=365;
 var SYNC_CLIENT=null;
 var MASTER_VERSION=0;
 var MB,TL,DESCS,PAST;
-/* 道具の長さ（負荷指数用）：ショート→スーパーロング */
-var SZ={S:0,M:1,L:2,SL:3};
-var WT={'Very light':0,'Light':1,'Medium':2,'Heavy':3,'Very heavy':4};
-/* 車両vごとの上限：SL＝スーパーロング本数（S軽は0＝不可） */
+/* 負荷比較は lscore（極重最上位・重さ優先・長さ副次）。スーパーロングは sz=LL（旧SLは正規化でLL） */
+/* 車両vごとの上限：LL＝スーパーロング本数（S軽は0＝不可） */
 var SLX={S:0,M:1,L:2,LL:3};
 /* L＝ロング長さの道具の本数（同一担当への複数Lを抑える） */
 var LX={S:1,M:2,L:3,LL:4};
@@ -929,6 +1010,21 @@ var rebalanceMark={};
 var assignUndoStack=[], assignRedoStack=[], ASSIGN_UNDO_MAX=50;
 function cloneAssignMap(src){
   return Object.assign({},src||{});
+}
+/* 道具別タブのプルダウン表示を正として R.map に反映（確定時に試行時点の map が残るのを防ぐ） */
+function syncAssignMapFromToolTableDom(){
+  if(!R)return;
+  var tb=document.getElementById('tbody');
+  if(!tb)return;
+  var sels=tb.querySelectorAll('select.asel[data-tcb-assign-tool]');
+  for(var i=0;i<sels.length;i++){
+    var sel=sels[i];
+    var tn=sel.getAttribute('data-tcb-assign-tool');
+    if(!tn)continue;
+    var v=String(sel.value||'').trim();
+    if(v)R.map[tn]=v;
+    else delete R.map[tn];
+  }
 }
 function clearAssignHistory(){
   assignUndoStack=[]; assignRedoStack=[];
@@ -1020,16 +1116,41 @@ function refreshHistoryFromServer(){
 }
 
 /* ========== マスタ ========== */
+/* API／保存JSONで 0/1 が文字列になる場合でも判定がブレないよう数値に統一 */
+function normFlag01(v){
+  return (v==1||v==='1'||v===true)?1:0;
+}
+function parseMasterVersion(v){
+  if(v==null||v==='')return 0;
+  var n=Number(v);
+  if(!isFinite(n)||n<0)return 0;
+  return Math.floor(n);
+}
+function normalizePastObj(rawP){
+  var out={};
+  if(!rawP||typeof rawP!=='object'||Array.isArray(rawP))return out;
+  Object.keys(rawP).forEach(function(pk){
+    var vv=rawP[pk];
+    var nn=parseInt(String(vv),10);
+    out[pk]=isNaN(nn)?0:Math.max(0,nn);
+  });
+  return out;
+}
 function normalizeMemberVehicle(v){
   if(v==='SS'||v==='ss')return 'S';
   if(v==='S'||v==='M'||v==='L'||v==='LL')return v;
   return 'M';
 }
 function normalizeToolLength(sz){
-  if(sz==='LL'||sz==='ll')return 'SL';
+  if(sz==='LL'||sz==='ll'||sz==='SL'||sz==='sl')return 'LL';
   if(sz==='SS'||sz==='ss')return 'S';
-  if(sz==='S'||sz==='M'||sz==='L'||sz==='SL')return sz;
+  if(sz==='S'||sz==='M'||sz==='L')return sz;
   return 'M';
+}
+/* スーパーロング（LL）。旧マスタの SL も真とする */
+function isSuperLongToolSize(sz){
+  var u=String(sz||'').toUpperCase();
+  return u==='LL'||u==='SL';
 }
 /* 両方練習・場所分離：practiceVenue が indoor/outdoor のとき A/B に割当。未設定は試合の ryo */
 function normalizePracticeVenue(v){
@@ -1053,15 +1174,30 @@ function effectivePracticeGroup(t){
   return t.ryo;
 }
 function applyMasterObj(obj){
-  MB   =obj.MB   ||JSON.parse(JSON.stringify(DEFAULT_MB));
-  TL   =obj.TL   ||JSON.parse(JSON.stringify(DEFAULT_TL));
-  DESCS=obj.DESCS||JSON.parse(JSON.stringify(DEFAULT_DESCS));
-  PAST =obj.PAST ||JSON.parse(JSON.stringify(DEFAULT_PAST));
+  if(!obj||typeof obj!=='object'||Array.isArray(obj))obj={};
+  /* 空配列 [] は JS では truthy のため || だけだと初期マスタが潰れる（Cloudflare 新規 DB 等） */
+  var rawM=obj.MB, rawT=obj.TL;
+  MB   =(Array.isArray(rawM)&&rawM.length)?JSON.parse(JSON.stringify(rawM)):JSON.parse(JSON.stringify(DEFAULT_MB));
+  TL   =(Array.isArray(rawT)&&rawT.length)?JSON.parse(JSON.stringify(rawT)):JSON.parse(JSON.stringify(DEFAULT_TL));
+  /* 空オブジェクト {} も truthy のため、説明（DESCS）が丸ごと消えるのを防ぐ */
+  var rawD=obj.DESCS;
+  DESCS=(rawD&&typeof rawD==='object'&&Object.keys(rawD).length)
+    ?JSON.parse(JSON.stringify(rawD))
+    :JSON.parse(JSON.stringify(DEFAULT_DESCS));
+  PAST=normalizePastObj(obj.PAST);
   MB.forEach(function(m){
     if(m.coach===undefined)m.coach=0;
+    m.rest=normFlag01(m.rest);
+    m.coach=normFlag01(m.coach);
     m.v=normalizeMemberVehicle(m.v);
   });
-  TL.forEach(function(t){ t.sz=normalizeToolLength(t.sz); });
+  TL.forEach(function(t){
+    t.sz=normalizeToolLength(t.sz);
+    t.kata=normFlag01(t.kata);
+    if('fixed' in t)t.fixed=normFlag01(t.fixed);
+    if('broken' in t)t.broken=normFlag01(t.broken);
+    if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
+  });
   TL.forEach(applyPracticeVenueField);
   /* デフォルト振り分けもmaster.jsonから復元 */
   if(obj.DEF_TM){
@@ -1123,16 +1259,14 @@ function loadMaster(){
       TL=JSON.parse(JSON.stringify(DEFAULT_TL));
       DESCS=JSON.parse(JSON.stringify(DEFAULT_DESCS));
       PAST=JSON.parse(JSON.stringify(DEFAULT_PAST));
-      sortMasterMembers();
-      sortMasterTools();
+      applyMasterObj({MB:MB,TL:TL,DESCS:DESCS,PAST:PAST});
     }
   }catch(e){
     MB=JSON.parse(JSON.stringify(DEFAULT_MB));
     TL=JSON.parse(JSON.stringify(DEFAULT_TL));
     DESCS=JSON.parse(JSON.stringify(DEFAULT_DESCS));
     PAST=JSON.parse(JSON.stringify(DEFAULT_PAST));
-    sortMasterMembers();
-    sortMasterTools();
+    applyMasterObj({MB:MB,TL:TL,DESCS:DESCS,PAST:PAST});
   }
   /* Cloudflare同期が有効ならサーバ状態を優先して上書き */
   if(syncEnabled()){
@@ -1140,7 +1274,7 @@ function loadMaster(){
       .then(function(obj){
         if(obj&&obj.master){
           applyMasterObj(obj.master);
-          MASTER_VERSION=(obj.version|0)||0;
+          MASTER_VERSION=parseMasterVersion(obj.version);
           try{ _ls.set(LS_KEY,JSON.stringify({MB:MB,TL:TL,DESCS:DESCS,PAST:PAST,DEF_TM:obj.master.DEF_TM||null})); }catch(e){}
           return refreshHistoryFromServer();
         }
@@ -1156,18 +1290,16 @@ function loadMaster(){
       });
     return;
   }
-  /* GitHubのURLが設定されていればフェッチして上書き */
+  /* クラウド同期を使わないときのみ：任意の JSON URL からマスタを取り込む（Private 運用では空にする） */
   if(GITHUB_MASTER_URL){
     fetch(GITHUB_MASTER_URL+'?t='+Date.now())
       .then(function(r){ return r.json(); })
       .then(function(obj){
         applyMasterObj(obj);
-        /* localStorageにも保存しておく（オフライン時のフォールバック用） */
         try{ _ls.set(LS_KEY,JSON.stringify({MB:MB,TL:TL,DESCS:DESCS,PAST:PAST})); }catch(e){}
-        /* 画面を再描画 */
         buildAGrid(); buildOGrid();
         if(document.getElementById('p-master').className.indexOf('on')>=0) buildMasterUI();
-        showMasterAlert('GitHubからマスタを読み込みました。','als');
+        showMasterAlert('マスタURLから読み込みました。','als');
       })
       .catch(function(){
         /* フェッチ失敗時はlocalStorageのデータを使用（オフライン時も動く） */
@@ -1187,7 +1319,7 @@ function saveMaster(){
   if(syncEnabled()){
     SYNC_CLIENT.saveMaster(data,MASTER_VERSION)
       .then(function(res){
-        MASTER_VERSION=(res&&res.version|0)||MASTER_VERSION+1;
+        MASTER_VERSION=parseMasterVersion(res&&res.version)||MASTER_VERSION+1;
         showMasterAlert('クラウド同期に保存しました。PC/スマホで共通化されています。','als');
       })
       .catch(function(err){
@@ -1204,7 +1336,7 @@ function saveMaster(){
     a.download='master.json';
     document.body.appendChild(a); a.click();
     setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},100);
-    showMasterAlert('master.jsonをダウンロードしました。GitHubのboys15/フォルダにアップロードしてください。','als');
+    showMasterAlert('master.jsonをダウンロードしました。マスタの正はクラウド同期のため、通常は「保存」で Worker に上げてください。このファイルはバックアップや初回投入用です。','als');
   }catch(e){
     showMasterAlert('保存しました（ダウンロードは利用できない環境です）。','als');
   }
@@ -1248,6 +1380,51 @@ function savePrevResult(){
       .catch(function(err){console.error(err);});
   }
   /* PAST（過去担当回数）は「実施確定」ボタンでのみ更新（試行・再実行では増えない） */
+}
+/* 実施確定時：同じ活動日の履歴の map を確定後の担当に差し替え（試行のまま残さない） */
+function applyConfirmedMapToHistory(activityDate, mapForCarryout){
+  if(!activityDate||!mapForCarryout||typeof mapForCarryout!=='object')return;
+  if(!R)return;
+  var mapCopy=JSON.parse(JSON.stringify(mapForCarryout));
+  var nowIso=new Date().toISOString();
+  var hist=getHistoryCache().slice();
+  var idx=-1;
+  for(var i=0;i<hist.length;i++){
+    if(hist[i]&&hist[i].date===activityDate){idx=i;break;}
+  }
+  var snap;
+  if(idx>=0){
+    snap=hist[idx];
+    snap.map=mapCopy;
+    snap.confirmedAt=nowIso;
+    snap.tools=(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools));
+    snap.mode=R.mode;
+    snap.pat=pat;
+    snap.la=R.la||tnA;
+    snap.lb=R.lb||tnB;
+    snap.renshuSplit=(pat==='renshu'&&renshuSplit)?1:0;
+  }else{
+    snap={
+      date:activityDate,
+      savedAt:nowIso,
+      confirmedAt:nowIso,
+      pat:pat, la:R.la||tnA, lb:R.lb||tnB,
+      renshuSplit:(pat==='renshu'&&renshuSplit)?1:0,
+      mode:R.mode, map:mapCopy,
+      tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools))
+    };
+    hist.unshift(snap);
+    while(hist.length>50)hist.pop();
+  }
+  try{ _ls.set(LS_HIST,JSON.stringify(hist)); }catch(e){console.error(e);return;}
+  if(syncEnabled()){
+    SYNC_CLIENT.appendHistory(snap)
+      .then(function(res){
+        var nh=(res&&res.history&&Array.isArray(res.history))?res.history:null;
+        if(nh)setHistoryCache(nh);
+      })
+      .catch(function(err){console.error(err);});
+  }
 }
 function loadCarryoutMeta(){
   try{
@@ -1306,22 +1483,26 @@ function confirmCarryOutResult(){
   var d=document.getElementById('adate').value;
   if(!d){alert('活動日を設定してください（STEP 1）。');return;}
   if(!confirm('表示中の担当割当を、実際の持ち帰り結果として記録します。\n過去回数（PAST）に反映し、次回以降の割振り・ベース担当の直前回避に使います。よろしいですか？'))return;
+  syncAssignMapFromToolTableDom();
+  syncAssignStateFromMap();
+  var mapForCarryout=cloneAssignMap(R.map);
   if(syncEnabled()){
     var allTools=(R.mode==='team')?R.allTools:R.tools;
     SYNC_CLIENT.confirmCarryout({
       activityDate:d,
-      map:R.map,
+      map:mapForCarryout,
       tools:allTools
     }).then(function(res){
-      if(res&&res.past&&typeof res.past==='object')PAST=res.past;
-      if(res&&res.version!==undefined)MASTER_VERSION=(res.version|0);
+      if(res&&res.past&&typeof res.past==='object'&&!Array.isArray(res.past))PAST=normalizePastObj(res.past);
+      if(res&&res.version!==undefined)MASTER_VERSION=parseMasterVersion(res.version);
       persistPastToMaster();
+      applyConfirmedMapToHistory(d, mapForCarryout);
       renderAll();
       var aa2=document.getElementById('aalert');
       if(aa2){
         var ok2=document.createElement('div');
         ok2.className='al als';
-        ok2.textContent='実施確定をクラウドへ記録しました（PAST 反映済み）。';
+        ok2.textContent='実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。';
         aa2.insertBefore(ok2,aa2.firstChild);
       }
     }).catch(function(err){
@@ -1334,16 +1515,17 @@ function confirmCarryOutResult(){
   var prev=meta.byDate[d];
   if(prev&&prev.map) revertPastFromMap(prev.map);
   applyPastFromCurrentR();
-  meta.byDate[d]={map:JSON.parse(JSON.stringify(R.map))};
-  meta.lastMap=JSON.parse(JSON.stringify(R.map));
+  meta.byDate[d]={map:JSON.parse(JSON.stringify(mapForCarryout))};
+  meta.lastMap=JSON.parse(JSON.stringify(mapForCarryout));
   saveCarryoutMeta(meta);
   persistPastToMaster();
+  applyConfirmedMapToHistory(d, mapForCarryout);
   renderAll();
   var aa=document.getElementById('aalert');
   if(aa){
     var ok=document.createElement('div');
     ok.className='al als';
-    ok.textContent='実施確定を記録しました（PAST 反映済み）。マスタを GitHub 等へ同期する場合はマスタ画面の「保存」も実行してください。';
+    ok.textContent='実施確定を記録しました（PAST・履歴に反映済み）。マスタを GitHub 等へ同期する場合はマスタ画面の「保存」も実行してください。';
     aa.insertBefore(ok,aa.firstChild);
   }
 }
@@ -1400,7 +1582,68 @@ function exSet(){
   MB.forEach(function(m){if(m.rest||m.coach||absS[m.name]||ochS[m.name])s[m.name]=1;});
   return s;
 }
-function lscore(t){return (SZ[t.sz]||2)+(WT[t.wt]||2);}
+/* 割当順の負荷指数：極重は長さに関係なく最上位。次に「重」×長さ（LL＝スーパーロング→L→M→S）。重さを常に優先 */
+function weightLoadRankForLscore(wt){
+  var w=String(wt||'');
+  if(w==='Very heavy')return 5;
+  if(w==='Heavy')return 4;
+  if(w==='Medium')return 3;
+  if(w==='Light')return 2;
+  if(w==='Very light')return 1;
+  return 3;
+}
+function lengthLoadRankForLscore(sz){
+  var z=String(sz||'').toUpperCase();
+  if(z==='LL'||z==='SL')return 3;
+  if(z==='L')return 2;
+  if(z==='M')return 1;
+  return 0;
+}
+function lscore(t){
+  if(!t)return 0;
+  return weightLoadRankForLscore(t.wt)*10+lengthLoadRankForLscore(t.sz);
+}
+/* 持ち帰り負荷が高い道具：他道具と同一担当にしない（マスタの noMul と同等扱い） */
+function toolSoloExclusiveByName(name){
+  var n=String(name||'');
+  return n==='ベース一式'||n==='長尺バット'||n==='短尺バット'||n==='長尺＆短尺バット';
+}
+function toolSoloExclusiveByRow(t){
+  if(!t)return false;
+  if(t.note==='noMul')return true;
+  return toolSoloExclusiveByName(t.name);
+}
+/* 同乗向けの軽負荷：サイズ×重量で判定（名前に依存しない）。S+極軽が最軽、次に M+極軽 */
+function normToolSz(sz){
+  var u=String(sz||'').toUpperCase();
+  if(u==='SL')return 'LL';
+  if(u==='SS')return 'S';
+  return u;
+}
+function normToolWt(wt){
+  return String(wt||'');
+}
+/* 0=通常 1=M+Very light 2=S+Very light（数が大きいほど後から割当＝他担当の同乗に載せやすい） */
+function toolBundleAnchorTier(t){
+  if(!t||toolSoloExclusiveByRow(t))return 0;
+  var sz=normToolSz(t.sz), wt=normToolWt(t.wt);
+  if(sz==='S'&&wt==='Very light')return 2;
+  if(sz==='M'&&wt==='Very light')return 1;
+  return 0;
+}
+function toolBundleAnchorByRow(t){
+  return toolBundleAnchorTier(t)>0;
+}
+function sortToolsForDefer(toolList){
+  return toolList.slice().sort(function(a,b){
+    if(!!a.fixed!==!!b.fixed)return a.fixed?-1:1;
+    var AS=toolSoloExclusiveByRow(a), BS=toolSoloExclusiveByRow(b);
+    if(AS!==BS)return AS?-1:1;
+    var ta=toolBundleAnchorTier(a), tb=toolBundleAnchorTier(b);
+    if(ta!==tb)return ta-tb;
+    return (b.ls||lscore(b))-(a.ls||lscore(a));
+  });
+}
 function initSt(members){
   var s={};
   members.forEach(function(m){
@@ -1589,10 +1832,10 @@ function applyAssignToolToState(s,t){
   var ls=t.ls!=null?t.ls:lscore(t);
   s.tools.push(t.name); s.score+=ls;
   if(t.wt==='Heavy'||t.wt==='Very heavy')s.hv++;
-  if(t.sz==='SL')s.sl++;
+  if(isSuperLongToolSize(t.sz))s.sl++;
   if(t.sz==='L')s.lc++;
   s.cnt++;
-  if(t.note==='noMul')s.exclusiveRecv=1;
+  if(toolSoloExclusiveByRow(t))s.exclusiveRecv=1;
 }
 
 function doAssign(toolList,state,prevAssignMap,runSeed){
@@ -1604,24 +1847,18 @@ function doAssign(toolList,state,prevAssignMap,runSeed){
     if(t.fixed&&t.note&&state[t.note])applyAssignToolToState(state[t.note],t);
     else defer.push(t);
   });
-  /* 固定→noMul→負荷の順で defer を処理（固定は必ず指定者へ） */
-  defer.sort(function(a,b){
-    var af=a.fixed?0:1, bf=b.fixed?0:1;
-    if(af!==bf)return af-bf;
-    var am=(a.note==='noMul')?0:1;
-    var bm=(b.note==='noMul')?0:1;
-    if(am!==bm)return am-bm;
-    return b.ls-a.ls;
-  });
+  /* 固定→高負荷単独→重い順→軽い同乗用アンカーを最後（固定は必ず指定者へ） */
+  defer=sortToolsForDefer(defer);
   defer.forEach(function(t){
     if(t.fixed&&t.note&&state[t.note]){
       applyAssignToolToState(state[t.note],t);
       return;
     }
     var isHv=(t.wt==='Heavy'||t.wt==='Very heavy');
-    var isSL=(t.sz==='SL');
+    var isSuperLong=isSuperLongToolSize(t.sz);
     var isLlen=(t.sz==='L');
-    var noMul=(t.note==='noMul');
+    var soloEx=toolSoloExclusiveByRow(t);
+    var bundleA=toolBundleAnchorByRow(t);
     var prevTrialPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
     var sorted=Object.keys(state).map(function(n){return [n,state[n]];});
     sorted.sort(function(a,b){
@@ -1630,27 +1867,32 @@ function doAssign(toolList,state,prevAssignMap,runSeed){
       return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
     });
     var ok=false;
-    for(var relax=0;relax<=1&&!ok;relax++){
-      for(var i=0;i<sorted.length;i++){
-        var n=sorted[i][0], s=sorted[i][1], vv=s.v;
-        if(s.exclusiveRecv)continue;
-        if(isSL&&s.sl>=capSL(vv))continue;
-        if(isLlen&&s.lc>=capLlen(vv))continue;
-        if(isHv&&s.hv>=capHv(vv))continue;
-        if(noMul&&s.cnt>0)continue;
-        if(noMul&&carryMap&&carryMap[t.name]===n)continue;
-        if(!relax&&prevTrialPerson&&prevTrialPerson===n)continue;
-        s.tools.push(t.name); s.score+=t.ls;
-        if(isHv)s.hv++;
-        if(isSL)s.sl++;
-        if(isLlen)s.lc++;
-        s.cnt++;
-        if(noMul)s.exclusiveRecv=1;
-        ok=true; break;
+    var attachPasses=bundleA?[1,0]:[0];
+    for(var ap=0;ap<attachPasses.length&&!ok;ap++){
+      var requireOther=(attachPasses[ap]===1);
+      for(var relax=0;relax<=1&&!ok;relax++){
+        for(var i=0;i<sorted.length;i++){
+          var n=sorted[i][0], s=sorted[i][1], vv=s.v;
+          if(s.exclusiveRecv)continue;
+          if(requireOther&&s.cnt<1)continue;
+          if(isSuperLong&&s.sl>=capSL(vv))continue;
+          if(isLlen&&s.lc>=capLlen(vv))continue;
+          if(isHv&&s.hv>=capHv(vv))continue;
+          if(soloEx&&s.cnt>0)continue;
+          if(soloEx&&carryMap&&carryMap[t.name]===n)continue;
+          if(!relax&&prevTrialPerson&&prevTrialPerson===n)continue;
+          s.tools.push(t.name); s.score+=t.ls;
+          if(isHv)s.hv++;
+          if(isSuperLong)s.sl++;
+          if(isLlen)s.lc++;
+          s.cnt++;
+          if(soloEx)s.exclusiveRecv=1;
+          ok=true; break;
+        }
       }
     }
     if(!ok&&sorted.length>0){
-      if(noMul){
+      if(soloEx){
         var byCnt=sorted.slice().sort(function(a,b){
           if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
           var p=prio(a[1])-prio(b[1]);
@@ -1663,12 +1905,12 @@ function doAssign(toolList,state,prevAssignMap,runSeed){
             if(sJ.exclusiveRecv)continue;
             if(sJ.cnt>0)continue;
             if(!skipPrevCooldown&&carryMap&&carryMap[t.name]===byCnt[j][0])continue;
-            if(isSL&&sJ.sl>=capSL(vv))continue;
+            if(isSuperLong&&sJ.sl>=capSL(vv))continue;
             if(isLlen&&sJ.lc>=capLlen(vv))continue;
             if(isHv&&sJ.hv>=capHv(vv))continue;
             sJ.tools.push(t.name); sJ.score+=t.ls;
             if(isHv)sJ.hv++;
-            if(isSL)sJ.sl++;
+            if(isSuperLong)sJ.sl++;
             if(isLlen)sJ.lc++;
             sJ.cnt++; sJ.exclusiveRecv=1;
             return true;
@@ -1679,7 +1921,7 @@ function doAssign(toolList,state,prevAssignMap,runSeed){
           var s2=byCnt[0][1];
           s2.tools.push(t.name); s2.score+=t.ls;
           if(isHv)s2.hv++;
-          if(isSL)s2.sl++;
+          if(isSuperLong)s2.sl++;
           if(isLlen)s2.lc++;
           s2.cnt++; s2.exclusiveRecv=1;
         }
@@ -1697,7 +1939,7 @@ function doAssign(toolList,state,prevAssignMap,runSeed){
         if(!pick)pick=sorted[0][1];
         pick.tools.push(t.name); pick.score+=t.ls;
         if(isHv)pick.hv++;
-        if(isSL)pick.sl++;
+        if(isSuperLong)pick.sl++;
         if(isLlen)pick.lc++;
         pick.cnt++;
       }
@@ -1722,7 +1964,7 @@ function recomputeExclusiveRecvFlags(state, allT){
     var has=0;
     for(var j=0;j<s.tools.length;j++){
       var t=byName[s.tools[j]];
-      if(t&&t.note==='noMul'){has=1;break;}
+      if(t&&toolSoloExclusiveByRow(t)){has=1;break;}
     }
     s.exclusiveRecv=has;
   });
@@ -1742,7 +1984,7 @@ function buildStateExcludingPool(memberList, poolSet, teamFilter){
     s.tools.push(t.name);
     s.score+=ls;
     if(t.wt==='Heavy'||t.wt==='Very heavy')s.hv++;
-    if(t.sz==='SL')s.sl++;
+    if(isSuperLongToolSize(t.sz))s.sl++;
     if(t.sz==='L')s.lc++;
     s.cnt++;
   });
@@ -1769,49 +2011,49 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed){
   var seed=(runSeed|0)||0;
   var keys=Object.keys(fullState);
   if(!keys.length)return;
-  var defer=poolToolObjs.slice().sort(function(a,b){
-    var am=(a.note==='noMul')?0:1, bm=(b.note==='noMul')?0:1;
-    if(am!==bm)return am-bm;
-    return (b.ls||lscore(b))-(a.ls||lscore(a));
-  });
+  var defer=sortToolsForDefer(poolToolObjs);
   defer.forEach(function(t){
     var isHv=(t.wt==='Heavy'||t.wt==='Very heavy');
-    var isSL=(t.sz==='SL');
+    var isSuperLong=isSuperLongToolSize(t.sz);
     var isLlen=(t.sz==='L');
-    var noMul=(t.note==='noMul');
+    var soloEx=toolSoloExclusiveByRow(t);
+    var bundleA=toolBundleAnchorByRow(t);
     var tls=t.ls!=null?t.ls:lscore(t);
-    /* 試行間ローテーション：直前試行の担当者。実施確定ベースは carryMap（noMul のみ） */
     var prevPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
     var placed=false;
     var maxAdd=keys.length+poolToolObjs.length+8;
-    for(var relaxPrev=0;relaxPrev<=1&&!placed;relaxPrev++){
-      for(var add=0;add<maxAdd&&!placed;add++){
-        var minC=Math.min.apply(null,keys.map(function(k){return fullState[k].cnt;}));
-        var maxAllow=minC+add;
-        var cands=keys.filter(function(k){return fullState[k].cnt<=maxAllow;})
-          .map(function(k){return [k,fullState[k]];})
-          .sort(function(a,b){
-            var p=prio(a[1])-prio(b[1]);
-            if(p!==0)return p;
-            return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
-          });
-        for(var i=0;i<cands.length;i++){
-          var n=cands[i][0], s=cands[i][1], vv=s.v;
-          if(s.exclusiveRecv)continue;
-          if(isSL&&s.sl>=capSL(vv))continue;
-          if(isLlen&&s.lc>=capLlen(vv))continue;
-          if(isHv&&s.hv>=capHv(vv))continue;
-          if(noMul&&s.cnt>0)continue;
-          if(noMul&&carryMap&&carryMap[t.name]===n)continue;
-          /* ローテーション優先：まず直前試行の担当者を避ける */
-          if(!relaxPrev&&prevPerson&&prevPerson===n)continue;
-          s.tools.push(t.name); s.score+=tls;
-          if(isHv)s.hv++;
-          if(isSL)s.sl++;
-          if(isLlen)s.lc++;
-          s.cnt++;
-          if(noMul)s.exclusiveRecv=1;
-          placed=true;break;
+    var attachPasses=bundleA?[1,0]:[0];
+    for(var ap=0;ap<attachPasses.length&&!placed;ap++){
+      var requireOther=(attachPasses[ap]===1);
+      for(var relaxPrev=0;relaxPrev<=1&&!placed;relaxPrev++){
+        for(var add=0;add<maxAdd&&!placed;add++){
+          var minC=Math.min.apply(null,keys.map(function(k){return fullState[k].cnt;}));
+          var maxAllow=minC+add;
+          var cands=keys.filter(function(k){return fullState[k].cnt<=maxAllow;})
+            .map(function(k){return [k,fullState[k]];})
+            .sort(function(a,b){
+              var p=prio(a[1])-prio(b[1]);
+              if(p!==0)return p;
+              return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
+            });
+          for(var i=0;i<cands.length;i++){
+            var n=cands[i][0], s=cands[i][1], vv=s.v;
+            if(s.exclusiveRecv)continue;
+            if(requireOther&&s.cnt<1)continue;
+            if(isSuperLong&&s.sl>=capSL(vv))continue;
+            if(isLlen&&s.lc>=capLlen(vv))continue;
+            if(isHv&&s.hv>=capHv(vv))continue;
+            if(soloEx&&s.cnt>0)continue;
+            if(soloEx&&carryMap&&carryMap[t.name]===n)continue;
+            if(!relaxPrev&&prevPerson&&prevPerson===n)continue;
+            s.tools.push(t.name); s.score+=tls;
+            if(isHv)s.hv++;
+            if(isSuperLong)s.sl++;
+            if(isLlen)s.lc++;
+            s.cnt++;
+            if(soloEx)s.exclusiveRecv=1;
+            placed=true;break;
+          }
         }
       }
     }
@@ -1821,7 +2063,7 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed){
         if(p!==0)return p;
         return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
       });
-      if(noMul){
+      if(soloEx){
         var byCnt=sorted.slice().sort(function(a,b){
           if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
           var p=prio(a[1])-prio(b[1]);
@@ -1834,12 +2076,12 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed){
             if(sJ.exclusiveRecv)continue;
             if(sJ.cnt>0)continue;
             if(!skipPrevCooldown&&carryMap&&carryMap[t.name]===byCnt[j][0])continue;
-            if(isSL&&sJ.sl>=capSL(vv))continue;
+            if(isSuperLong&&sJ.sl>=capSL(vv))continue;
             if(isLlen&&sJ.lc>=capLlen(vv))continue;
             if(isHv&&sJ.hv>=capHv(vv))continue;
             sJ.tools.push(t.name); sJ.score+=tls;
             if(isHv)sJ.hv++;
-            if(isSL)sJ.sl++;
+            if(isSuperLong)sJ.sl++;
             if(isLlen)sJ.lc++;
             sJ.cnt++; sJ.exclusiveRecv=1;
             return true;
@@ -1850,7 +2092,7 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed){
           var s2=byCnt[0][1];
           s2.tools.push(t.name); s2.score+=tls;
           if(isHv)s2.hv++;
-          if(isSL)s2.sl++;
+          if(isSuperLong)s2.sl++;
           if(isLlen)s2.lc++;
           s2.cnt++; s2.exclusiveRecv=1;
         }
@@ -1868,7 +2110,7 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed){
         if(!pick)pick=sorted[0][1];
         pick.tools.push(t.name); pick.score+=tls;
         if(isHv)pick.hv++;
-        if(isSL)pick.sl++;
+        if(isSuperLong)pick.sl++;
         if(isLlen)pick.lc++;
         pick.cnt++;
       }
@@ -1998,13 +2240,13 @@ function updDesc(){
   if(h1){
     if(pat==='kata'||pat==='ryoho'){
       h1.style.display='';
-      h1.innerHTML='割り振りは<strong>当日</strong>の活動日・STEP2のグループ2分け・マスタの道具（試合用A/B・片方チェック）だけを前提にします。<strong>次回の予定とは無関係</strong>なので、会場や対戦でメンバーの側が変わる日は、グループ振り分けを<strong>その日用に組み直して</strong>から実行してください。';
+      h1.innerHTML='割り振りは<strong>当日</strong>の活動日・STEP2のグループ2分け・マスタの道具（試合用A/B・片方チェック）を前提にします。お茶当番は<strong>翌活動日分</strong>としてSTEP2で指定し、次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は割振り対象外です。<strong>対戦の組み合わせなど、その日以外の情報を自動では参照しません</strong>。会場や対戦でメンバーの側が変わる日は、グループ振り分けを<strong>その日用に組み直して</strong>から実行してください。';
     }else if(pat==='renshu'&&renshuSplit){
       h1.style.display='';
-      h1.innerHTML='会場（室内／屋外）は<strong>当日</strong>の練習配置です。<strong>次回の練習予定とは切り離して</strong>、この日の会場に合わせてマスタの会場列とグループを確認してください。';
+      h1.innerHTML='会場（室内／屋外）は<strong>当日</strong>の練習配置に合わせてください（<strong>次回の練習会場が決まっているからといって、この日の会場をねじ曲げない</strong>）。マスタの会場列とグループを確認してください。お茶当番は<strong>翌活動日分</strong>としてSTEP2で指定し、次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は割振り対象外です。';
     }else if(pat==='renshu'){
       h1.style.display='';
-      h1.innerHTML='割り振りは<strong>当日</strong>の参加メンバーと道具リストだけを前提にします。';
+      h1.innerHTML='割り振りは<strong>当日</strong>の参加メンバーと道具リストを前提にします。お茶当番は<strong>翌活動日分</strong>としてSTEP2で指定し、次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は割振り対象外です。';
     }else{
       h1.style.display='none';
       h1.textContent='';
@@ -2012,6 +2254,24 @@ function updDesc(){
   }
   var tc=document.getElementById('tcard');
   if(tc)tc.style.display=needsTeamUI()?'':'none';
+  var h2=document.getElementById('tcb-sameday-hint-p2-txt');
+  if(h2){
+    if(pat==='kata'||pat==='ryoho'){
+      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席・グループの2分け（片方試合／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。';
+    }else if(pat==='renshu'&&renshuSplit){
+      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席・練習の2グループ（室内／屋外）の並びと、マスタの道具（会場列・未設定の道具は試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場やグループの並びが変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。';
+    }else{
+      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります（全員で道具を分担します）。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。欠席・当番やマスタが変わった日は、STEP2の内容を確認してから「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使ってください。';
+    }
+  }
+  var ht=document.getElementById('tcb-sameday-hint-tcard-line');
+  if(ht){
+    if(pat==='renshu'&&renshuSplit){
+      ht.innerHTML='タップで青（グループ1）&#8596;紫（グループ2）を切替。全員が最初はグループ2です。会場や<strong>練習の配置</strong>が変わる日は<strong>当日の2分け</strong>に合わせて並べ替えてから進め、「デフォルト読込」は<strong>盲信しない</strong>でください。';
+    }else{
+      ht.innerHTML='タップで青（グループ1）&#8596;紫（グループ2）を切替。全員が最初はグループ2です。会場や試合の並びが変わる日は<strong>当日の2分け</strong>に合わせて並べ替えてから進め、「デフォルト読込」は<strong>盲信しない</strong>でください。';
+    }
+  }
 }
 function applyRenshuSplit(on){
   renshuSplit=!!on;
@@ -2293,7 +2553,7 @@ function renderAll(){
   }
   if(exNames.length){
     var dv2=document.createElement('div'); dv2.className='al alw';
-    dv2.textContent='除外（欠席・お茶当番）：'+exNames.map(function(n){return n;}).join('、');
+    dv2.textContent='除外（欠席・お茶当番＝翌活動日分）：'+exNames.map(function(n){return n;}).join('、');
     aa.appendChild(dv2);
   }
   if(R.mode==='team'){
@@ -2331,7 +2591,7 @@ function buildTbl(){
     var tm=t.team||'';
     var tLabel=tm?(tm==='A'?(R.la||'A'):(R.lb||'B')):'';
     var tags='';
-    if(t.sz==='SL')tags+='<span class="tag tsl">SL</span>';
+    if(isSuperLongToolSize(t.sz))tags+='<span class="tag tll">LL</span>';
     if(t.sz==='L')tags+='<span class="tag tlen">L</span>';
     if(t.wt==='Heavy'||t.wt==='Very heavy')tags+='<span class="tag thv">重</span>';
     if(t.fixed)tags+='<span class="tag tfx">固定</span>';
@@ -2344,7 +2604,7 @@ function buildTbl(){
     cands(tm).forEach(function(n){
       opts+='<option value="'+esc(n)+'"'+(n===rawAsgn?' selected':'')+'>'+esc(n)+'</option>';
     });
-    var sel=document.createElement('select'); sel.className='asel'; sel.innerHTML=opts;
+    var sel=document.createElement('select'); sel.className='asel'; sel.setAttribute('data-tcb-assign-tool',t.name); sel.innerHTML=opts;
     (function(tn,el2){el2.addEventListener('change',function(){chAssign(tn,el2.value);});})(t.name,sel);
 
     var allT3=(R.mode==='team')?R.allTools:R.tools;
@@ -2361,6 +2621,7 @@ function buildTbl(){
     td2.style.cssText='font-weight:700;font-size:12px;';
     td2.innerHTML=esc(t.name)+tags+ibtn;
     var tdRb=document.createElement('td');
+    tdRb.className='tcb-ui-advanced';
     tdRb.style.cssText='text-align:center;vertical-align:middle;';
     var rbc=document.createElement('input');
     rbc.type='checkbox';
@@ -2404,6 +2665,31 @@ function buildTbl(){
 
 function chAssign(toolName,newName){
   if(!R)return;
+  if(newName){
+    var allT=(R.mode==='team')?R.allTools:R.tools;
+    var tRow=null;
+    for(var ti=0;ti<allT.length;ti++){if(allT[ti].name===toolName){tRow=allT[ti];break;}}
+    if(tRow){
+      var soloNew=toolSoloExclusiveByRow(tRow);
+      var existing=[];
+      for(var ej=0;ej<allT.length;ej++){
+        var tt=allT[ej];
+        if(tt.name===toolName)continue;
+        if((R.map[tt.name]||'')!==newName)continue;
+        existing.push(tt);
+      }
+      if(soloNew&&existing.length){
+        alert('「'+toolName+'」は単独持ち帰りの道具のため、他の道具と同じ担当にできません。別のメンバーを選んでください。');
+        return;
+      }
+      for(var ek=0;ek<existing.length;ek++){
+        if(toolSoloExclusiveByRow(existing[ek])){
+          alert('「'+existing[ek].name+'」は単独持ち帰りのため、そこに別の道具を追加できません。');
+          return;
+        }
+      }
+    }
+  }
   pushAssignHistory();
   if(newName)R.map[toolName]=newName;
   else delete R.map[toolName];
@@ -2718,7 +3004,7 @@ function buildMasterTools(){
     var ctlRow=document.createElement('div'); ctlRow.className='master-tl-ctl-row';
     /* 長さ（積載尺） */
     var ss=document.createElement('select'); ss.className='msel';
-    ['S','M','L','SL'].forEach(function(v){
+    ['S','M','L','LL'].forEach(function(v){
       var o=document.createElement('option'); o.value=v; o.textContent=v;
       if(v===t.sz)o.selected=true; ss.appendChild(o);
     });
@@ -2967,7 +3253,7 @@ function buildHistList(){
   var list=document.getElementById('hist-list');
   var selDelBtn=document.getElementById('hist-sel-del-btn');
   if(!raw||JSON.parse(raw).length===0){
-    list.innerHTML='<div class="al alw">履歴がまだありません。割振りを実行すると自動的に保存されます。</div>';
+    list.innerHTML='<div class="al alw">履歴がまだありません。「割振りを実行」で試行が保存され、「実施確定」でその活動日の確定担当が記録されます。</div>';
     if(selDelBtn)selDelBtn.style.display='none';
     return;
   }
@@ -2977,6 +3263,16 @@ function buildHistList(){
     var dd=h.date?new Date(h.date).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}):'日付不明';
     var pl=patLabel(h.pat,!!h.renshuSplit)||h.pat||'';
     var saved=h.savedAt?new Date(h.savedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    var confirmed=h.confirmedAt?new Date(h.confirmedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    var metaLine;
+    if(h.confirmedAt){
+      metaLine='確定日時：'+esc(confirmed);
+      if(h.savedAt&&h.savedAt!==h.confirmedAt&&saved){
+        metaLine+=' <span style="color:var(--txt2);font-size:11px">（試行：'+esc(saved)+'）</span>';
+      }
+    }else{
+      metaLine='保存日時：'+esc(saved||'—');
+    }
     var div=document.createElement('div');
     div.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--bdr);';
     var cb=document.createElement('input'); cb.type='checkbox';
@@ -2984,7 +3280,7 @@ function buildHistList(){
     cb.addEventListener('click',function(e){e.stopPropagation();updSelDelBtn();});
     var txt=document.createElement('div'); txt.style.flex='1'; txt.style.cursor='pointer';
     txt.innerHTML='<div class="hist-date">'+esc(dd)+'<span class="hist-badge">'+esc(pl)+'</span></div>'
-      +'<div class="hist-meta">保存日時：'+esc(saved)+'</div>';
+      +'<div class="hist-meta">'+metaLine+'</div>';
     div.appendChild(cb); div.appendChild(txt);
     (function(snap){txt.addEventListener('click',function(){showHistDetail(snap);});})(h);
     list.appendChild(div);
@@ -3059,6 +3355,9 @@ function showHistDetail(snap){
   var body=document.getElementById('hist-detail-body');
   var la=snap.la||'A', lb=snap.lb||'B';
   var html='';
+  if(snap.confirmedAt){
+    html+='<p class="tcb-hist-dtl-confirmed" style="font-size:12px;color:var(--grn);margin:0 0 10px 0;line-height:1.45">実施確定済み（'+esc(new Date(snap.confirmedAt).toLocaleString('ja-JP'))+'）</p>';
+  }
   if(snap.mode==='team'){
     html+='<div class="shd2 A" style="margin-top:0;">'+esc(la)+'グループ</div>';
     html+='<table class="hist-dtl-table"><thead><tr><th>担当者</th><th>道具</th></tr></thead><tbody>';
@@ -3174,7 +3473,7 @@ function buildHistMonthTableHtml(snaps,isPdf){
 function buildHistMonthPdfDocument(snaps){
   var rangeTxt='';
   if(snaps.length){
-    rangeTxt='活動日 '+String(snaps[0].date)+' ～ '+String(snaps[snaps.length-1].date)+'（全'+String(snaps.length)+'日・試行保存）';
+    rangeTxt='活動日 '+String(snaps[0].date)+' ～ '+String(snaps[snaps.length-1].date)+'（全'+String(snaps.length)+'日・実施確定済みは確定担当）';
   }
   var tbl=buildHistMonthTableHtml(snaps,true);
   var teamShort='{{TEAM_SHORT_NAME}}';
@@ -3201,13 +3500,13 @@ function buildHistMonthPdfDocument(snaps){
     +'<div class="tcb-hist-mo-pdf-title">【'+esc(teamShort)+'】道具持帰り 担当履歴（直近1年・活動日）</div>'
     +'<div class="tcb-hist-mo-pdf-sub">'+esc(rangeTxt)+'</div>'
     +tbl
-    +'<p class="tcb-hist-mo-foot">※「割振りを実行」時にこの端末へ保存された試行結果です。実施確定（PAST）とは別の場合があります。</p>'
+    +'<p class="tcb-hist-mo-foot">※「実施確定」後の担当が記録されている活動日は確定版です。未確定の日は「割振りを実行」直後の試行が表示されます。</p>'
     +'</div></body></html>';
 }
 function openHistMonthView(){
   var snaps=getHistFilteredLast30Days();
   if(!snaps.length){
-    alert('直近1年（活動日）に該当する履歴がありません。\n「割振りを実行」後にこの端末へ保存されたデータが対象です。');
+    alert('直近1年（活動日）に該当する履歴がありません。\n「割振りを実行」または「実施確定」で記録されたデータが対象です。');
     return;
   }
   _histMonthCache=snaps;
@@ -3440,6 +3739,8 @@ document.addEventListener('DOMContentLoaded',function(){
       if(!Array.isArray(data)){alert('メンバーデータの形式が正しくありません。');return;}
       data.forEach(function(m){
         if(m.coach===undefined)m.coach=0;
+        m.rest=normFlag01(m.rest);
+        m.coach=normFlag01(m.coach);
         m.v=normalizeMemberVehicle(m.v);
       });
       MB=data; buildMasterMembers();
@@ -3452,6 +3753,10 @@ document.addEventListener('DOMContentLoaded',function(){
       if(!Array.isArray(data)){alert('道具データの形式が正しくありません。');return;}
       data.forEach(function(t){
         t.sz=normalizeToolLength(t.sz);
+        t.kata=normFlag01(t.kata);
+        if('fixed' in t)t.fixed=normFlag01(t.fixed);
+        if('broken' in t)t.broken=normFlag01(t.broken);
+        if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
         applyPracticeVenueField(t);
       });
       TL=data; buildMasterTools(); buildMasterDescs();

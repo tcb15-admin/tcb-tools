@@ -7,6 +7,12 @@
 - Cloudflare アカウント（無料枠で可）
 - Node 18+（`npx wrangler` 用）
 
+### 構成の前提（推奨）
+
+- **マスタの正**: Cloudflare Worker + D1（この README の API）。保存・読込はここを経由する。
+- **ツール（HTML）の配布**: GitHub（Pages やリポジトリの静的ホストなど）。HTML だけが公開されてもよい。
+- **Private リポジトリ**では `raw.githubusercontent.com/.../master.json` は **未認証では取得できない**ため、マスタ配布用の `GITHUB_MASTER_URL` は **空にし、同期 API のみでマスタを扱う**運用にすると一貫する。
+
 初回のみログイン:
 
 ```bash
@@ -66,13 +72,15 @@ npx wrangler deploy
 
 1. `template/config_boys15.json` と `template/config_boys16.json` の次を埋める:
    - `SYNC_API_BASE_URL`: 上記 Worker のオリジン（末尾スラッシュなし）
-   - `SYNC_API_TOKEN`: 手順 5 と同じ文字列
-2. リポジトリルートで:
+   - `SYNC_API_TOKEN`: 手順 5 と同じ文字列（**Git にコミットしない運用を推奨**。ローカル専用ファイルや CI シークレットでビルドする）
+   - `GITHUB_MASTER_URL`: **マスタの正を Cloudflare に置く場合は空文字 `""` のまま**。同期をオフにした端末だけ、任意の公開 JSON URL を一時的に指定する用途向け。
+2. リポジトリルートで（`build.py` は `template/` 相対パスで読むため **ルートが cwd**）:
 
 ```bash
-cd template
-python3 build.py
+python3 template/build.py
 ```
+
+特定世代だけなら `python3 template/build.py boys15 boys16`。
 
 `boys15/index.html` / `boys16/index.html` と `tcb-sync-api.js` が再生成・コピーされる。トークンを Git に載せたくない場合は、ビルド済み HTML をデプロイ対象から外すか、別経路で注入する運用にする。
 

@@ -1,6 +1,8 @@
 {
-  "_comment": "東海中央ボーイズ 道具割振りツール 設定ファイル",
+  "_comment": "東海中央ボーイズ 道具割振りツール 設定ファイル。マスタの正は Cloudflare 同期（D1）。HTML は GitHub 配布。GITHUB_MASTER_URL は空でよい。SYNC_API_TOKEN は Git に載せないこと。",
   "HTML_THEME_CLASS": "theme-b16",
+  "UI_SIMPLE": true,
+  "GITHUB_FOLDER_NAME": "boys16",
   "COHORT_KEY": "16",
   "COHORT_LABEL": "16期",
   "TEAM_NAME": "東海中央ボーイズ 16期",
@@ -8,7 +10,7 @@
   "TEAM_SLOGAN": "不屈不撓の精神で全員野球",
   "INITIAL_PW": "tcb16",
   "LS_PREFIX": "tcb16",
-  "GITHUB_MASTER_URL": "https://raw.githubusercontent.com/tcb15-admin/tcb-tools/main/boys16/master.json",
+  "GITHUB_MASTER_URL": "",
   "SYNC_API_BASE_URL": "https://tcb-tools-sync.kazoo-matsu.workers.dev",
   "SYNC_API_TOKEN": "tokaicentralboys 2012",
   "TOOL_VERSION": "1.4",

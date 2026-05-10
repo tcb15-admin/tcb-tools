@@ -23,6 +23,18 @@ CONFIGS = {
     'boys16': 'template/config_boys16.json',
 }
 
+
+def html_body_class(config):
+    """html 要素の class。テーマ（16期）と 15期シンプルUI（tcb-ui-simple）を合成。"""
+    parts = []
+    tc = str(config.get('HTML_THEME_CLASS', '') or '').strip()
+    if tc:
+        parts.append(tc)
+    simple = str(config.get('UI_SIMPLE', '') or '').strip().lower()
+    if simple in ('1', 'true', 'yes', 'on'):
+        parts.append('tcb-ui-simple')
+    return ' '.join(parts)
+
 def apply_default_master_block(html, target, config_path):
     """テンプレ内の DEFAULT_MB / TL / DESCS を世代別に差し替え（マーカーは boys15 では除去のみ）。"""
     s = html.find(MASTER_BLOCK_START)
@@ -51,7 +63,27 @@ def apply_default_master_block(html, target, config_path):
         )
         return html[:s] + body + html[e_end:]
 
-    # boys15 など: マーカー行だけ削除
+    if target == 'boys15':
+        master_path = os.path.normpath(
+            os.path.join(os.path.dirname(config_path), '..', 'boys15', 'master.json')
+        )
+        if not os.path.exists(master_path):
+            print(f'[ERROR] boys15: {master_path} がありません')
+            return html
+        with open(master_path, encoding='utf-8') as f:
+            md = json.load(f)
+        for key in ('MB', 'TL', 'DESCS'):
+            if key not in md:
+                print(f'[ERROR] boys15: master.json に {key} がありません')
+                return html
+        body = (
+            'var DEFAULT_MB=' + json.dumps(md['MB'], ensure_ascii=False) + ';\n'
+            'var DEFAULT_TL=' + json.dumps(md['TL'], ensure_ascii=False) + ';\n'
+            'var DEFAULT_DESCS=' + json.dumps(md['DESCS'], ensure_ascii=False) + ';'
+        )
+        return html[:s] + body + html[e_end:]
+
+    # その他ターゲット: マーカー間のテンプレ本文をそのまま使用
     return html[:s] + inner + html[e_end:]
 
 
@@ -79,10 +111,12 @@ def build(target):
 
     html = apply_default_master_block(html, target, config_path)
 
+    html = html.replace('{{HTML_BODY_CLASS}}', html_body_class(config))
+
     # プレースホルダを置換
     placeholders = [
         'TEAM_NAME', 'TEAM_SHORT_NAME', 'TEAM_SLOGAN',
-        'INITIAL_PW', 'LS_PREFIX', 'GITHUB_MASTER_URL',
+        'INITIAL_PW', 'LS_PREFIX', 'GITHUB_MASTER_URL', 'GITHUB_FOLDER_NAME',
         'TOOL_VERSION', 'HTML_THEME_CLASS',
         'COHORT_KEY', 'COHORT_LABEL',
         'SYNC_API_BASE_URL', 'SYNC_API_TOKEN',
