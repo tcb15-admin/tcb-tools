@@ -106,6 +106,12 @@ def build(target):
     with open(config_path, encoding='utf-8') as f:
         config = json.load(f)
 
+    # Public リポジトリ対策: SYNC_API_TOKEN は Git に載せず、ビルド時のみ環境変数で渡す
+    # 例: SYNC_API_TOKEN='（新トークン）' python3 template/build.py boys15 boys16
+    _tok = os.environ.get('SYNC_API_TOKEN', '').strip()
+    if _tok:
+        config['SYNC_API_TOKEN'] = _tok
+
     with open(TEMPLATE_FILE, encoding='utf-8') as f:
         html = f.read()
 
