@@ -1070,7 +1070,11 @@ function applyMasterObj(obj){
   var rawM=obj.MB, rawT=obj.TL;
   MB   =(Array.isArray(rawM)&&rawM.length)?JSON.parse(JSON.stringify(rawM)):JSON.parse(JSON.stringify(DEFAULT_MB));
   TL   =(Array.isArray(rawT)&&rawT.length)?JSON.parse(JSON.stringify(rawT)):JSON.parse(JSON.stringify(DEFAULT_TL));
-  DESCS=obj.DESCS||JSON.parse(JSON.stringify(DEFAULT_DESCS));
+  /* 空オブジェクト {} も truthy のため、説明（DESCS）が丸ごと消えるのを防ぐ */
+  var rawD=obj.DESCS;
+  DESCS=(rawD&&typeof rawD==='object'&&Object.keys(rawD).length)
+    ?JSON.parse(JSON.stringify(rawD))
+    :JSON.parse(JSON.stringify(DEFAULT_DESCS));
   PAST =obj.PAST ||JSON.parse(JSON.stringify(DEFAULT_PAST));
   MB.forEach(function(m){
     if(m.coach===undefined)m.coach=0;
