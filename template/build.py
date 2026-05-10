@@ -16,10 +16,44 @@ import json, os, sys, re, shutil
 
 # ===== 設定 =====
 TEMPLATE_FILE = 'template/tool_template.html'
+MASTER_BLOCK_START = '/*DEFAULT_MASTER_BLOCK*/'
+MASTER_BLOCK_END = '/*END_DEFAULT_MASTER_BLOCK*/'
 CONFIGS = {
     'boys15': 'template/config_boys15.json',
     'boys16': 'template/config_boys16.json',
 }
+
+def apply_default_master_block(html, target, config_path):
+    """テンプレ内の DEFAULT_MB / TL / DESCS を世代別に差し替え（マーカーは boys15 では除去のみ）。"""
+    s = html.find(MASTER_BLOCK_START)
+    e = html.find(MASTER_BLOCK_END)
+    if s < 0 or e < 0:
+        print(f'[WARN] {target}: DEFAULT_MASTER_BLOCK マーカーがテンプレートにありません')
+        return html
+    e_end = e + len(MASTER_BLOCK_END)
+    inner_start = s + len(MASTER_BLOCK_START)
+    if inner_start < len(html) and html[inner_start] == '\n':
+        inner_start += 1
+    inner = html[inner_start:e].strip()
+
+    if target == 'boys16':
+        cfg_dir = os.path.dirname(config_path)
+        defaults_path = os.path.join(cfg_dir, 'master_defaults_boys16.json')
+        if not os.path.exists(defaults_path):
+            print(f'[ERROR] boys16: {defaults_path} がありません')
+            return html
+        with open(defaults_path, encoding='utf-8') as f:
+            md = json.load(f)
+        body = (
+            'var DEFAULT_MB=' + json.dumps(md['MB'], ensure_ascii=False) + ';\n'
+            'var DEFAULT_TL=' + json.dumps(md['TL'], ensure_ascii=False) + ';\n'
+            'var DEFAULT_DESCS=' + json.dumps(md['DESCS'], ensure_ascii=False) + ';'
+        )
+        return html[:s] + body + html[e_end:]
+
+    # boys15 など: マーカー行だけ削除
+    return html[:s] + inner + html[e_end:]
+
 
 def build(target):
     """指定世代のHTMLを生成"""
@@ -43,18 +77,23 @@ def build(target):
     with open(TEMPLATE_FILE, encoding='utf-8') as f:
         html = f.read()
 
+    html = apply_default_master_block(html, target, config_path)
+
     # プレースホルダを置換
     placeholders = [
         'TEAM_NAME', 'TEAM_SHORT_NAME', 'TEAM_SLOGAN',
         'INITIAL_PW', 'LS_PREFIX', 'GITHUB_MASTER_URL',
-        'TOOL_VERSION',
+        'TOOL_VERSION', 'HTML_THEME_CLASS',
+        'COHORT_KEY', 'COHORT_LABEL',
+        'SYNC_API_BASE_URL', 'SYNC_API_TOKEN',
     ]
 
     for key in placeholders:
         if key not in config:
             print(f'[WARN] {target}: config.jsonに {key} がありません')
             continue
-        html = html.replace('{{' + key + '}}', config[key])
+        html = html.replace('{{' + key + '}}', str(config[key]))
+    html = html.replace(' class=""', '')
 
     # 未置換のプレースホルダをチェック
     remaining = re.findall(r'\{\{[^}]+\}\}', html)
@@ -69,6 +108,12 @@ def build(target):
 
     with open(out_path, 'w', encoding='utf-8') as f:
         f.write(html)
+
+    out_dir = os.path.dirname(out_path) or '.'
+    for asset in ('tcb-print-pdf.js', 'tcb-sync-api.js'):
+        src_asset = os.path.join(os.path.dirname(TEMPLATE_FILE), asset)
+        if os.path.isfile(src_asset):
+            shutil.copy2(src_asset, os.path.join(out_dir, asset))
 
     print(f'[OK] {target} → {out_path}  (v{config.get("TOOL_VERSION","?")})')
     return True
