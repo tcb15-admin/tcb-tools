@@ -146,7 +146,9 @@ tr.rB td{border-left:3px solid var(--tb);}
 .modal{background:#fff;border-radius:16px 16px 0 0;padding:20px 16px;width:100%;max-width:640px;position:relative;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .mclose{display:flex;align-items:center;justify-content:center;width:44px;height:44px;position:absolute;top:10px;right:10px;background:var(--bdr);border:none;border-radius:50%;font-size:18px;cursor:pointer;color:var(--txt2);z-index:1;}
 .modal h2{font-size:16px;font-weight:900;color:var(--navy);margin-bottom:12px;padding-right:48px;}
-.modal-img{width:100%;border-radius:10px;margin-bottom:12px;max-height:220px;object-fit:cover;display:block;}
+.modal-img{display:block;}
+/* 道具写真モーダル（tcb-desc-*：他セレクタとの衝突回避） */
+#modal-img.tcb-desc-modal-img{width:100%;max-width:100%;border-radius:10px;margin:0 auto 12px;max-height:min(55vh,420px);height:auto;object-fit:contain;object-position:center top;background:#f2f4f7;}
 .modal p{font-size:14px;color:var(--txt);line-height:1.8;}
 #print-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;flex-direction:column;}
 #print-overlay.open{display:flex;}
@@ -213,6 +215,10 @@ html.theme-b16 .print-actions{background:#f1f5f9;border-bottom:1px solid #e2e8f0
 .tcb-hist-mo-cell{font-size:10px;line-height:1.25;word-break:break-word;text-align:center;color:var(--txt);}
 .master-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .master-hdr-btns{display:flex;gap:8px;}
+.tcb-master-restore-card{border:1px solid var(--bdr);}
+.tcb-master-restore-note{font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:10px;}
+.tcb-master-restore-btns{display:flex;flex-wrap:wrap;gap:8px;}
+.tcb-master-revert-danger{border-color:var(--red);color:var(--red);}
 .master-section{margin-bottom:20px;}
 .master-section h3{font-size:14px;font-weight:900;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
 .mrow{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
@@ -535,7 +541,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   <div class="modal">
     <button class="mclose" id="modal-close">&#10005;</button>
     <h2 id="modal-title"></h2>
-    <img id="modal-img" class="modal-img" src="" alt="" style="display:none;">
+    <img id="modal-img" class="modal-img tcb-desc-modal-img" src="" alt="" decoding="async" style="display:none;">
     <p id="modal-body"></p>
   </div>
 </div>
@@ -758,6 +764,15 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
         </div>
       </div>
       <div id="master-alert" style="display:none;"></div>
+      <div class="card tcb-master-restore-card" style="margin-top:10px;">
+        <div class="ct" style="margin-bottom:8px;">&#128260; マスタの元に戻す</div>
+        <p class="tcb-master-restore-note">誤編集・誤削除のときに使います。<strong>「開いた時点に戻す」</strong>は、今回マスタ画面を開いてから<strong>まだ保存していない内容</strong>に戻します。<strong>「端末の保存を読み直す」</strong>は、直近で<strong>保存ボタンを押したとき</strong>にこの端末へ書き込まれたマスタで上書きします（クラウド同期時は同期成功後の内容と一致することが多いです）。<strong>「初期マスタに戻す」</strong>は、このツールに同梱の初期データへ置き換えます。いずれも<strong>「保存」するまでクラウドやファイルには反映されません</strong>。</p>
+        <div class="tcb-master-restore-btns">
+          <button type="button" class="nb nbs" id="btn-master-revert-session">&#8630; 開いた時点に戻す</button>
+          <button type="button" class="nb nbs" id="btn-master-reload-ls">&#128190; 端末の保存を読み直す</button>
+          <button type="button" class="nb nbs tcb-master-revert-danger" id="btn-master-revert-default">&#9888; 初期マスタに戻す</button>
+        </div>
+      </div>
       <div style="margin-top:10px;padding:12px;background:#fff8e1;border-left:4px solid #f5a623;border-radius:8px;">
         <div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:8px;">&#128274; パスワード変更</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -895,6 +910,8 @@ var COHORT_KEY='16';
 var SYNC_HISTORY_DAYS=365;
 var SYNC_CLIENT=null;
 var MASTER_VERSION=0;
+/* マスタ画面を開いた直後の状態（未保存確認・「開いた時点に戻す」用） */
+var _masterSnapAtOpen='';
 var MB,TL,DESCS,PAST;
 /* 負荷比較は lscore（極重最上位・重さ優先・長さ副次）。スーパーロングは sz=LL（旧SLは正規化でLL） */
 /* 車両vごとの上限：LL＝スーパーロング本数（S軽は0＝不可） */
@@ -1103,9 +1120,12 @@ function applyMasterObj(obj){
     if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
   });
   TL.forEach(applyPracticeVenueField);
-  /* デフォルト振り分けもmaster.jsonから復元 */
-  if(obj.DEF_TM){
-    try{ _ls.set(LS_DEF_TM,JSON.stringify(obj.DEF_TM)); }catch(e){}
+  /* デフォルト振り分け（キーがあるときのみ更新。null は削除） */
+  if(Object.prototype.hasOwnProperty.call(obj,'DEF_TM')){
+    try{
+      if(obj.DEF_TM==null)_ls.remove(LS_DEF_TM);
+      else _ls.set(LS_DEF_TM,JSON.stringify(obj.DEF_TM));
+    }catch(e){}
   }
   sortMasterMembers();
   sortMasterTools();
@@ -1152,6 +1172,73 @@ function pruneDescsOrphans(){
   var set={};
   TL.forEach(function(t){ if(t&&t.name!=null&&t.name!=='')set[String(t.name)]=1; });
   Object.keys(DESCS).forEach(function(k){ if(!set[k])delete DESCS[k]; });
+}
+function getDefTmForMasterSnapshot(){
+  var defTmRaw=_ls.get(LS_DEF_TM);
+  if(!defTmRaw)return null;
+  try{return JSON.parse(defTmRaw);}catch(e){return null;}
+}
+function captureMasterSnapshotForDirty(){
+  return JSON.stringify({
+    MB:MB,TL:TL,DESCS:DESCS,PAST:PAST,
+    DEF_TM:getDefTmForMasterSnapshot()
+  });
+}
+function isMasterDirty(){
+  return _masterSnapAtOpen!==''&&captureMasterSnapshotForDirty()!==_masterSnapAtOpen;
+}
+function markMasterSnapshotClean(){
+  _masterSnapAtOpen=captureMasterSnapshotForDirty();
+}
+/* マスタ画面を開いた直後の内容へ戻す（保存前の誤操作取り消し） */
+function revertMasterToSessionOpen(){
+  if(!_masterSnapAtOpen){alert('取り消し用のデータがありません。');return;}
+  if(!isMasterDirty()){
+    showMasterAlert('開いた時点から変更されていません。','als');
+    return;
+  }
+  if(!confirm('マスタ画面を開いた時点のメンバー・道具・説明・PAST（およびデフォルト振り分け）に戻します。よろしいですか？'))return;
+  var o;
+  try{o=JSON.parse(_masterSnapAtOpen);}catch(e){
+    alert('取り消しデータが壊れているため元に戻せませんでした。');
+    return;
+  }
+  var payload={MB:o.MB,TL:o.TL,DESCS:o.DESCS,PAST:o.PAST};
+  if(Object.prototype.hasOwnProperty.call(o,'DEF_TM'))payload.DEF_TM=o.DEF_TM;
+  applyMasterObj(payload);
+  buildMasterUI();
+  markMasterSnapshotClean();
+  showMasterAlert('開いた時点の内容に戻しました。','als');
+}
+/* 端末 localStorage の直近保存を再適用（保存後に編集をやり直したい場合など） */
+function reloadMasterFromDeviceStorage(){
+  var raw;
+  try{raw=_ls.get(LS_KEY);}catch(e){raw=null;}
+  if(!raw){alert('この端末に保存されたマスタがありません。');return;}
+  if(!confirm('この端末に保存されているマスタ（「保存」実行時に書き込まれた内容）で、いまの編集を上書きしますか？'))return;
+  try{
+    var obj=JSON.parse(raw);
+    applyMasterObj(obj);
+    buildMasterUI();
+    markMasterSnapshotClean();
+    showMasterAlert('端末の保存を読み直しました。','als');
+  }catch(e){
+    alert('保存データの形式が壊れているため読み込めませんでした。');
+  }
+}
+/* 同梱の DEFAULT_* に置き換え（DEF_TM もクリア） */
+function revertMasterToBundledDefaults(){
+  if(!confirm('メンバー・道具・説明・PASTを、このツールに同梱されている初期マスタに置き換えます。\n\n今の内容は失われます（「保存」済みのバックアップからの自動復元はありません）。\n\n本当に実行しますか？'))return;
+  applyMasterObj({
+    MB:JSON.parse(JSON.stringify(DEFAULT_MB)),
+    TL:JSON.parse(JSON.stringify(DEFAULT_TL)),
+    DESCS:JSON.parse(JSON.stringify(DEFAULT_DESCS)),
+    PAST:JSON.parse(JSON.stringify(DEFAULT_PAST)),
+    DEF_TM:null
+  });
+  buildMasterUI();
+  markMasterSnapshotClean();
+  showMasterAlert('初期マスタに戻しました。クラウド等へ反映するには「保存」を押してください。','als');
 }
 function loadMaster(){
   /* まずlocalStorageから読み込む */
@@ -1224,6 +1311,7 @@ function saveMaster(){
     SYNC_CLIENT.saveMaster(data,MASTER_VERSION)
       .then(function(res){
         MASTER_VERSION=parseMasterVersion(res&&res.version)||MASTER_VERSION+1;
+        markMasterSnapshotClean();
         showMasterAlert('クラウド同期に保存しました。PC/スマホで共通化されています。','als');
       })
       .catch(function(err){
@@ -1232,6 +1320,7 @@ function saveMaster(){
       });
     return;
   }
+  markMasterSnapshotClean();
   /* master.json としてダウンロード */
   try{
     var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -1538,6 +1627,26 @@ function toolBundleAnchorTier(t){
 function toolBundleAnchorByRow(t){
   return toolBundleAnchorTier(t)>0;
 }
+/* 担当0の人がいるとき、雑カゴ・試合用バットケースは単独割当可（同乗しない） */
+function toolSoloFillForUnassignedByName(name){
+  var n=String(name||'');
+  return /^雑カゴ/.test(n)||n==='試合用バットケース';
+}
+function stateHasMemberWithCnt(state, cnt){
+  var keys=Object.keys(state);
+  for(var i=0;i<keys.length;i++){
+    if((state[keys[i]].cnt|0)===cnt)return true;
+  }
+  return false;
+}
+function soloFillOnlyForUnassigned(t, state){
+  return toolSoloFillForUnassignedByName(t.name)&&stateHasMemberWithCnt(state,0);
+}
+function bundleAttachPassesForTool(t, state){
+  if(!toolBundleAnchorByRow(t))return [0];
+  if(toolSoloFillForUnassignedByName(t.name)&&stateHasMemberWithCnt(state,0))return [0];
+  return [1,0];
+}
 function sortToolsForDefer(toolList){
   return toolList.slice().sort(function(a,b){
     if(!!a.fixed!==!!b.fixed)return a.fixed?-1:1;
@@ -1742,6 +1851,128 @@ function applyAssignToolToState(s,t){
   if(toolSoloExclusiveByRow(t))s.exclusiveRecv=1;
 }
 
+/* 1道具を state へ割当（担当件数の少ない人を優先。雑カゴ等は未担当者への単独可） */
+function assignOneToolToState(t, state, prevMap, carryMap, runSeed){
+  var keys=Object.keys(state);
+  if(!keys.length)return false;
+  var seed=(runSeed|0)||0;
+  var isHv=(t.wt==='Heavy'||t.wt==='Very heavy');
+  var isSuperLong=isSuperLongToolSize(t.sz);
+  var isLlen=(t.sz==='L');
+  var soloEx=toolSoloExclusiveByRow(t);
+  var tls=t.ls!=null?t.ls:lscore(t);
+  var soloFillOnly=soloFillOnlyForUnassigned(t, state);
+  var attachPasses=bundleAttachPassesForTool(t, state);
+  var prevPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
+  var placed=false;
+  var maxAdd=keys.length+8;
+  for(var ap=0;ap<attachPasses.length&&!placed;ap++){
+    var requireOther=(attachPasses[ap]===1);
+    for(var relaxPrev=0;relaxPrev<=1&&!placed;relaxPrev++){
+      for(var add=0;add<maxAdd&&!placed;add++){
+        var minC=Math.min.apply(null,keys.map(function(k){return state[k].cnt;}));
+        var maxAllow=minC+add;
+        var cands=keys.filter(function(k){return state[k].cnt<=maxAllow;})
+          .map(function(k){return [k,state[k]];})
+          .sort(function(a,b){
+            var p=prio(a[1])-prio(b[1]);
+            if(p!==0)return p;
+            return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
+          });
+        for(var i=0;i<cands.length;i++){
+          var n=cands[i][0], s=cands[i][1], vv=s.v;
+          if(s.exclusiveRecv)continue;
+          if(soloFillOnly&&s.cnt>0)continue;
+          if(requireOther&&s.cnt<1)continue;
+          if(isSuperLong&&s.sl>=capSL(vv))continue;
+          if(isLlen&&s.lc>=capLlen(vv))continue;
+          if(isHv&&s.hv>=capHv(vv))continue;
+          if(soloEx&&s.cnt>0)continue;
+          if(soloEx&&carryMap&&carryMap[t.name]===n)continue;
+          if(!relaxPrev&&prevPerson&&prevPerson===n)continue;
+          s.tools.push(t.name); s.score+=tls;
+          if(isHv)s.hv++;
+          if(isSuperLong)s.sl++;
+          if(isLlen)s.lc++;
+          s.cnt++;
+          if(soloEx)s.exclusiveRecv=1;
+          placed=true;break;
+        }
+      }
+    }
+  }
+  if(!placed){
+    var sorted=keys.map(function(n){return [n,state[n]];}).sort(function(a,b){
+      var p=prio(a[1])-prio(b[1]);
+      if(p!==0)return p;
+      return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
+    });
+    if(soloEx){
+      var byCnt=sorted.slice().sort(function(a,b){
+        if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
+        var p=prio(a[1])-prio(b[1]);
+        if(p!==0)return p;
+        return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
+      });
+      var tryAssign=function(skipPrevCooldown){
+        for(var j=0;j<byCnt.length;j++){
+          var sJ=byCnt[j][1], vv=sJ.v;
+          if(sJ.exclusiveRecv)continue;
+          if(soloFillOnly&&sJ.cnt>0)continue;
+          if(sJ.cnt>0)continue;
+          if(!skipPrevCooldown&&carryMap&&carryMap[t.name]===byCnt[j][0])continue;
+          if(isSuperLong&&sJ.sl>=capSL(vv))continue;
+          if(isLlen&&sJ.lc>=capLlen(vv))continue;
+          if(isHv&&sJ.hv>=capHv(vv))continue;
+          sJ.tools.push(t.name); sJ.score+=tls;
+          if(isHv)sJ.hv++;
+          if(isSuperLong)sJ.sl++;
+          if(isLlen)sJ.lc++;
+          sJ.cnt++; sJ.exclusiveRecv=1;
+          return true;
+        }
+        return false;
+      };
+      if(!tryAssign(false)&&!tryAssign(true)&&byCnt.length){
+        var s2=byCnt[0][1];
+        s2.tools.push(t.name); s2.score+=tls;
+        if(isHv)s2.hv++;
+        if(isSuperLong)s2.sl++;
+        if(isLlen)s2.lc++;
+        s2.cnt++; s2.exclusiveRecv=1;
+        placed=true;
+      }
+    }else{
+      var pick=null;
+      for(var ii=0;ii<sorted.length;ii++){
+        if(soloFillOnly&&sorted[ii][1].cnt>0)continue;
+        if(prevPerson&&sorted[ii][0]===prevPerson)continue;
+        if(!sorted[ii][1].exclusiveRecv){ pick=sorted[ii][1]; break; }
+      }
+      if(!pick&&prevPerson){
+        for(var iii=0;iii<sorted.length;iii++){
+          if(soloFillOnly&&sorted[iii][1].cnt>0)continue;
+          if(!sorted[iii][1].exclusiveRecv){ pick=sorted[iii][1]; break; }
+        }
+      }
+      if(!pick){
+        for(var iv=0;iv<sorted.length;iv++){
+          if(soloFillOnly&&sorted[iv][1].cnt>0)continue;
+          pick=sorted[iv][1]; break;
+        }
+      }
+      if(pick){
+        pick.tools.push(t.name); pick.score+=tls;
+        if(isHv)pick.hv++;
+        if(isSuperLong)pick.sl++;
+        if(isLlen)pick.lc++;
+        pick.cnt++;
+        placed=true;
+      }
+    }
+  }
+  return placed;
+}
 function doAssign(toolList,state,prevAssignMap,runSeed){
   var prevMap=prevAssignMap||null;
   var carryMap=loadCarryoutPrevMap();
@@ -1758,96 +1989,7 @@ function doAssign(toolList,state,prevAssignMap,runSeed){
       applyAssignToolToState(state[t.note],t);
       return;
     }
-    var isHv=(t.wt==='Heavy'||t.wt==='Very heavy');
-    var isSuperLong=isSuperLongToolSize(t.sz);
-    var isLlen=(t.sz==='L');
-    var soloEx=toolSoloExclusiveByRow(t);
-    var bundleA=toolBundleAnchorByRow(t);
-    var prevTrialPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
-    var sorted=Object.keys(state).map(function(n){return [n,state[n]];});
-    sorted.sort(function(a,b){
-      var p=prio(a[1])-prio(b[1]);
-      if(p!==0)return p;
-      return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
-    });
-    var ok=false;
-    var attachPasses=bundleA?[1,0]:[0];
-    for(var ap=0;ap<attachPasses.length&&!ok;ap++){
-      var requireOther=(attachPasses[ap]===1);
-      for(var relax=0;relax<=1&&!ok;relax++){
-        for(var i=0;i<sorted.length;i++){
-          var n=sorted[i][0], s=sorted[i][1], vv=s.v;
-          if(s.exclusiveRecv)continue;
-          if(requireOther&&s.cnt<1)continue;
-          if(isSuperLong&&s.sl>=capSL(vv))continue;
-          if(isLlen&&s.lc>=capLlen(vv))continue;
-          if(isHv&&s.hv>=capHv(vv))continue;
-          if(soloEx&&s.cnt>0)continue;
-          if(soloEx&&carryMap&&carryMap[t.name]===n)continue;
-          if(!relax&&prevTrialPerson&&prevTrialPerson===n)continue;
-          s.tools.push(t.name); s.score+=t.ls;
-          if(isHv)s.hv++;
-          if(isSuperLong)s.sl++;
-          if(isLlen)s.lc++;
-          s.cnt++;
-          if(soloEx)s.exclusiveRecv=1;
-          ok=true; break;
-        }
-      }
-    }
-    if(!ok&&sorted.length>0){
-      if(soloEx){
-        var byCnt=sorted.slice().sort(function(a,b){
-          if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
-          var p=prio(a[1])-prio(b[1]);
-          if(p!==0)return p;
-          return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
-        });
-        var tryAssign=function(skipPrevCooldown){
-          for(var j=0;j<byCnt.length;j++){
-            var sJ=byCnt[j][1], vv=sJ.v;
-            if(sJ.exclusiveRecv)continue;
-            if(sJ.cnt>0)continue;
-            if(!skipPrevCooldown&&carryMap&&carryMap[t.name]===byCnt[j][0])continue;
-            if(isSuperLong&&sJ.sl>=capSL(vv))continue;
-            if(isLlen&&sJ.lc>=capLlen(vv))continue;
-            if(isHv&&sJ.hv>=capHv(vv))continue;
-            sJ.tools.push(t.name); sJ.score+=t.ls;
-            if(isHv)sJ.hv++;
-            if(isSuperLong)sJ.sl++;
-            if(isLlen)sJ.lc++;
-            sJ.cnt++; sJ.exclusiveRecv=1;
-            return true;
-          }
-          return false;
-        };
-        if(!tryAssign(false)&&!tryAssign(true)&&byCnt.length){
-          var s2=byCnt[0][1];
-          s2.tools.push(t.name); s2.score+=t.ls;
-          if(isHv)s2.hv++;
-          if(isSuperLong)s2.sl++;
-          if(isLlen)s2.lc++;
-          s2.cnt++; s2.exclusiveRecv=1;
-        }
-      }else{
-        var pick=null;
-        for(var ii=0;ii<sorted.length;ii++){
-          if(prevTrialPerson&&sorted[ii][0]===prevTrialPerson)continue;
-          if(!sorted[ii][1].exclusiveRecv){ pick=sorted[ii][1]; break; }
-        }
-        if(!pick&&prevTrialPerson){
-          for(var iii=0;iii<sorted.length;iii++){
-            if(!sorted[iii][1].exclusiveRecv){ pick=sorted[iii][1]; break; }
-          }
-        }
-        if(!pick)pick=sorted[0][1];
-        pick.tools.push(t.name); pick.score+=t.ls;
-        if(isHv)pick.hv++;
-        if(isSuperLong)pick.sl++;
-        if(isLlen)pick.lc++;
-        pick.cnt++;
-      }
-    }
+    assignOneToolToState(t, state, prevMap, carryMap, seed);
   });
   return state;
 }
@@ -1910,115 +2052,13 @@ function syncAssignStateFromMap(){
 }
 /* 担当件数が少ない層を優先しつつ doAssign と同様の制約でプール道具を割当 */
 function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed){
+  if(!Object.keys(fullState).length)return;
   var prevMap=prevAssignMap||null;
   var carryMap=loadCarryoutPrevMap();
   var seed=(runSeed|0)||0;
-  var keys=Object.keys(fullState);
-  if(!keys.length)return;
   var defer=sortToolsForDefer(poolToolObjs);
   defer.forEach(function(t){
-    var isHv=(t.wt==='Heavy'||t.wt==='Very heavy');
-    var isSuperLong=isSuperLongToolSize(t.sz);
-    var isLlen=(t.sz==='L');
-    var soloEx=toolSoloExclusiveByRow(t);
-    var bundleA=toolBundleAnchorByRow(t);
-    var tls=t.ls!=null?t.ls:lscore(t);
-    var prevPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
-    var placed=false;
-    var maxAdd=keys.length+poolToolObjs.length+8;
-    var attachPasses=bundleA?[1,0]:[0];
-    for(var ap=0;ap<attachPasses.length&&!placed;ap++){
-      var requireOther=(attachPasses[ap]===1);
-      for(var relaxPrev=0;relaxPrev<=1&&!placed;relaxPrev++){
-        for(var add=0;add<maxAdd&&!placed;add++){
-          var minC=Math.min.apply(null,keys.map(function(k){return fullState[k].cnt;}));
-          var maxAllow=minC+add;
-          var cands=keys.filter(function(k){return fullState[k].cnt<=maxAllow;})
-            .map(function(k){return [k,fullState[k]];})
-            .sort(function(a,b){
-              var p=prio(a[1])-prio(b[1]);
-              if(p!==0)return p;
-              return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
-            });
-          for(var i=0;i<cands.length;i++){
-            var n=cands[i][0], s=cands[i][1], vv=s.v;
-            if(s.exclusiveRecv)continue;
-            if(requireOther&&s.cnt<1)continue;
-            if(isSuperLong&&s.sl>=capSL(vv))continue;
-            if(isLlen&&s.lc>=capLlen(vv))continue;
-            if(isHv&&s.hv>=capHv(vv))continue;
-            if(soloEx&&s.cnt>0)continue;
-            if(soloEx&&carryMap&&carryMap[t.name]===n)continue;
-            if(!relaxPrev&&prevPerson&&prevPerson===n)continue;
-            s.tools.push(t.name); s.score+=tls;
-            if(isHv)s.hv++;
-            if(isSuperLong)s.sl++;
-            if(isLlen)s.lc++;
-            s.cnt++;
-            if(soloEx)s.exclusiveRecv=1;
-            placed=true;break;
-          }
-        }
-      }
-    }
-    if(!placed&&keys.length>0){
-      var sorted=keys.map(function(n){return [n,fullState[n]];}).sort(function(a,b){
-        var p=prio(a[1])-prio(b[1]);
-        if(p!==0)return p;
-        return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
-      });
-      if(soloEx){
-        var byCnt=sorted.slice().sort(function(a,b){
-          if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
-          var p=prio(a[1])-prio(b[1]);
-          if(p!==0)return p;
-          return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
-        });
-        var tryAssign=function(skipPrevCooldown){
-          for(var j=0;j<byCnt.length;j++){
-            var sJ=byCnt[j][1], vv=sJ.v;
-            if(sJ.exclusiveRecv)continue;
-            if(sJ.cnt>0)continue;
-            if(!skipPrevCooldown&&carryMap&&carryMap[t.name]===byCnt[j][0])continue;
-            if(isSuperLong&&sJ.sl>=capSL(vv))continue;
-            if(isLlen&&sJ.lc>=capLlen(vv))continue;
-            if(isHv&&sJ.hv>=capHv(vv))continue;
-            sJ.tools.push(t.name); sJ.score+=tls;
-            if(isHv)sJ.hv++;
-            if(isSuperLong)sJ.sl++;
-            if(isLlen)sJ.lc++;
-            sJ.cnt++; sJ.exclusiveRecv=1;
-            return true;
-          }
-          return false;
-        };
-        if(!tryAssign(false)&&!tryAssign(true)&&byCnt.length){
-          var s2=byCnt[0][1];
-          s2.tools.push(t.name); s2.score+=tls;
-          if(isHv)s2.hv++;
-          if(isSuperLong)s2.sl++;
-          if(isLlen)s2.lc++;
-          s2.cnt++; s2.exclusiveRecv=1;
-        }
-      }else{
-        var pick=null;
-        for(var ii=0;ii<sorted.length;ii++){
-          if(prevPerson&&sorted[ii][0]===prevPerson)continue;
-          if(!sorted[ii][1].exclusiveRecv){ pick=sorted[ii][1]; break; }
-        }
-        if(!pick&&prevPerson){
-          for(var iii=0;iii<sorted.length;iii++){
-            if(!sorted[iii][1].exclusiveRecv){ pick=sorted[iii][1]; break; }
-          }
-        }
-        if(!pick)pick=sorted[0][1];
-        pick.tools.push(t.name); pick.score+=tls;
-        if(isHv)pick.hv++;
-        if(isSuperLong)pick.sl++;
-        if(isLlen)pick.lc++;
-        pick.cnt++;
-      }
-    }
+    assignOneToolToState(t, fullState, prevMap, carryMap, seed);
   });
 }
 function runRebalanceFair(){
@@ -2196,6 +2236,13 @@ function applyRenshuSplit(on){
 
 /* ========== ナビ ========== */
 function goStep(n){
+  var pm0=document.getElementById('p-master');
+  var onMaster0=pm0&&pm0.className.indexOf('on')>=0;
+  if(onMaster0&&(n===1||n===2||n===3)){
+    if(isMasterDirty()){
+      if(!confirm('マスタの内容がまだ「保存」されていません。このままSTEPの別画面に移りますか？\n\n※ この端末上では編集した内容がそのまま使われます。ほかの端末やバックアップへ残すには、マスタに戻って「保存」してください。'))return;
+    }
+  }
   ['p1','p2','p3','p-master'].forEach(function(id){
     var el=document.getElementById(id); if(el)el.className='pnl';
   });
@@ -2226,6 +2273,7 @@ function goMaster(){
   document.getElementById('p-master').className='pnl on';
   window.scrollTo(0,0);
   buildMasterUI();
+  markMasterSnapshotClean();
 }
 
 /* ========== タブ ========== */
@@ -2379,14 +2427,35 @@ function loadDefault(){
   }catch(e){alert('読み込みに失敗しました。');}
 }
 
+/* 道具写真URL：http(s) または data:image/* のみ（javascript: 等を拒否） */
+function isSafeDescImgUrl(u){
+  if(!u||typeof u!=='string')return false;
+  var s=u.trim();
+  if(!s||s.length>8000)return false;
+  if(/[\u0000-\u001f\u007f]/.test(s))return false;
+  if(/^javascript:/i.test(s))return false;
+  if(/^data:/i.test(s))return /^data:image\//i.test(s)&&s.length<=250000;
+  return /^https?:\/\//i.test(s);
+}
 /* ========== 道具詳細 ========== */
 function showInfo(name){
   var d=DESCS[name]||{text:'説明が登録されていません。',img:''};
   document.getElementById('modal-title').textContent=name;
   document.getElementById('modal-body').textContent=d.text||'説明が登録されていません。';
   var img=document.getElementById('modal-img');
-  if(d.img){img.src=d.img;img.style.display='block';}
-  else{img.src='';img.style.display='none';}
+  var raw=(d.img&&String(d.img).trim())||'';
+  if(raw&&isSafeDescImgUrl(raw)){
+    img.onload=function(){img.style.display='block';};
+    img.onerror=function(){img.style.display='none';img.src='';};
+    img.style.display='none';
+    img.removeAttribute('src');
+    img.src=raw;
+  }else{
+    img.onload=null;
+    img.onerror=null;
+    img.removeAttribute('src');
+    img.style.display='none';
+  }
   openModal('info-modal');
 }
 
@@ -2998,13 +3067,14 @@ function buildMasterTools(){
 
 function buildMasterDescs(){
   var el=document.getElementById('m-descs'); el.innerHTML='';
-  /* GitHub画像URL説明 */
+  /* 画像URL説明（軽量URLでスマホ閲覧が滑らかに） */
   var hint=document.createElement('div');
   hint.className='al ali';
   hint.style.marginBottom='10px';
-  hint.innerHTML='<strong>写真の登録方法：</strong>GitHubの images/ フォルダに写真をアップロードし、そのURLを貼り付けてください。<br>'
+  hint.innerHTML='<strong>写真の登録方法：</strong>画像を <strong>Web 上に置いた URL</strong> を貼ります（GitHub の <code>images/</code> の raw URL や、別のホストでも可）。<br>'
+    +'<strong>スマホ向けのコツ：</strong>元ファイルを <strong>横800〜1200px・JPEG/WebP・1枚200〜400KB程度</strong> に圧縮してからアップロードすると読み込みが速くなります。<code>data:image/...</code> の長文貼り付けは重くなるため避けてください。<br>'
     +'例：<code style="font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">'
-    +'https://raw.githubusercontent.com/【ユーザー名】/【リポジトリ名】/main/images/tarp1.jpg</code>';
+    +'https://raw.githubusercontent.com/【ユーザー名】/【リポジトリ名】/main/boys15/images/tarp1.jpg</code>';
   el.appendChild(hint);
 
   TL.forEach(function(t){
@@ -3024,40 +3094,51 @@ function buildMasterDescs(){
     var urlRow=document.createElement('div');
     urlRow.style.cssText='display:flex;gap:6px;align-items:center;';
     var urlInp=document.createElement('input'); urlInp.className='minp';
-    urlInp.value=d.img||''; urlInp.placeholder='画像URL（GitHubのraw URLを貼り付け）';
+    urlInp.value=d.img||''; urlInp.placeholder='画像URL（https… を貼り付け。プレビューで確認）';
     urlInp.style.fontSize='12px';
+    urlInp.setAttribute('inputmode','url');
+    urlInp.setAttribute('autocomplete','off');
     /* プレビュー */
     var preview=document.createElement('div');
     preview.style.cssText='flex-shrink:0;width:48px;height:36px;border-radius:5px;border:1px solid var(--bdr);overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:18px;';
-    if(d.img){
-      var pimg=document.createElement('img');
-      pimg.src=d.img; pimg.style.cssText='width:100%;height:100%;object-fit:cover;';
-      pimg.onerror=function(){preview.textContent='\u26a0\ufe0f';};
-      preview.appendChild(pimg);
-    } else {
-      preview.textContent='📷';
+    function fillDescPreview(pvEl,urlStr){
+      pvEl.innerHTML='';
+      var u=(urlStr||'').trim();
+      if(!u){pvEl.textContent='\ud83d\udcf7';return;}
+      if(!isSafeDescImgUrl(u)){pvEl.textContent='\u26a0\ufe0f';return;}
+      var ni=document.createElement('img');
+      ni.src=u;
+      ni.alt='';
+      ni.loading='lazy';
+      ni.decoding='async';
+      ni.width=48;
+      ni.height=36;
+      ni.style.cssText='width:100%;height:100%;object-fit:cover;';
+      ni.onerror=function(){pvEl.innerHTML=''; pvEl.textContent='\u26a0\ufe0f';};
+      pvEl.appendChild(ni);
     }
+    fillDescPreview(preview,d.img||'');
     urlRow.appendChild(urlInp); urlRow.appendChild(preview);
     row.appendChild(urlRow); el.appendChild(row);
     /* イベント */
     (function(tn,tw,tu,pv){
+      var urlTimer=null;
       tw.addEventListener('change',function(){
         if(!DESCS[tn])DESCS[tn]={text:'',img:''};
         DESCS[tn].text=tw.value;
       });
+      function syncPreviewFromInput(){
+        fillDescPreview(pv,tu.value.trim());
+      }
       tu.addEventListener('change',function(){
+        clearTimeout(urlTimer);
         if(!DESCS[tn])DESCS[tn]={text:'',img:''};
         DESCS[tn].img=tu.value.trim();
-        /* プレビュー更新 */
-        pv.innerHTML='';
-        if(tu.value.trim()){
-          var ni=document.createElement('img');
-          ni.src=tu.value.trim(); ni.style.cssText='width:100%;height:100%;object-fit:cover;';
-          ni.onerror=function(){pv.innerHTML=''; pv.textContent='\u26a0\ufe0f';};
-          pv.appendChild(ni);
-        } else {
-          pv.textContent='📷';
-        }
+        fillDescPreview(pv,tu.value.trim());
+      });
+      tu.addEventListener('input',function(){
+        clearTimeout(urlTimer);
+        urlTimer=setTimeout(syncPreviewFromInput,400);
       });
     })(t.name,txtInp,urlInp,preview);
   });
@@ -3622,6 +3703,9 @@ document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('hist-confirm-bar').style.display='none';
   });
   document.getElementById('btn-master-back').addEventListener('click',function(){goStep(1);});
+  document.getElementById('btn-master-revert-session').addEventListener('click',function(){revertMasterToSessionOpen();});
+  document.getElementById('btn-master-reload-ls').addEventListener('click',function(){reloadMasterFromDeviceStorage();});
+  document.getElementById('btn-master-revert-default').addEventListener('click',function(){revertMasterToBundledDefaults();});
   document.getElementById('btn-master-save').addEventListener('click',function(){saveMaster();});
   document.getElementById('btn-master-save2').addEventListener('click',function(){saveMaster();});
   var btnPastReset=document.getElementById('btn-past-reset');
