@@ -2734,31 +2734,7 @@ function buildTbl(){
 
 function chAssign(toolName,newName){
   if(!R)return;
-  if(newName){
-    var allT=(R.mode==='team')?R.allTools:R.tools;
-    var tRow=null;
-    for(var ti=0;ti<allT.length;ti++){if(allT[ti].name===toolName){tRow=allT[ti];break;}}
-    if(tRow){
-      var soloNew=toolSoloExclusiveByRow(tRow);
-      var existing=[];
-      for(var ej=0;ej<allT.length;ej++){
-        var tt=allT[ej];
-        if(tt.name===toolName)continue;
-        if((R.map[tt.name]||'')!==newName)continue;
-        existing.push(tt);
-      }
-      if(soloNew&&existing.length){
-        alert('「'+toolName+'」は単独持ち帰りの道具のため、他の道具と同じ担当にできません。別のメンバーを選んでください。');
-        return;
-      }
-      for(var ek=0;ek<existing.length;ek++){
-        if(toolSoloExclusiveByRow(existing[ek])){
-          alert('「'+existing[ek].name+'」は単独持ち帰りのため、そこに別の道具を追加できません。');
-          return;
-        }
-      }
-    }
-  }
+  /* 単独持ち帰り（noMul・極重・ベース一式等）は自動割振りのみ制約。STEP3の担当変更は手動で上書き可 */
   pushAssignHistory();
   if(newName)R.map[toolName]=newName;
   else delete R.map[toolName];
