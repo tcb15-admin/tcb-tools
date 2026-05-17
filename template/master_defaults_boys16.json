@@ -676,10 +676,6 @@
       "text": "球審用グッズ一式（マスク×2・プロテクター・レガース・ボールバッグ）、ボールカウンター×1、折りたたみイス×1",
       "img": ""
     }
-<<<<<<<< HEAD:template/master_defaults_boys16.json
-  }
-}
-========
   },
   "PAST": {
     "安江": 1,
@@ -728,4 +724,3 @@
   },
   "DEF_TM": null
 }
->>>>>>>> 3e9610b8ff99d76b6103d0ca6aa8d2772a37a3ed:boys16/master.json
