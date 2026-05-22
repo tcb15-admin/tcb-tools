@@ -11,7 +11,7 @@
 | **TCB-MAN-016_…v1.5.pdf** | PDF | **正本**（配布・印刷・ブックマーク） |
 | [TCB-MAN-016_…v1.5.md](./TCB-MAN-016_道具割り振りツール_操作マニュアル_v1.5.md) | Markdown | 編集用ソース |
 | TCB-MAN-016_…v1.5.docx | Word | 任意（PDFを優先） |
-| [images/](./images/) | PNG | スクショ（**メンバー名はぼかし済み**） |
+| [images/](./images/) | PNG | スクショ（実機画面） |
 
 **ツール本体:** https://tcb15-admin.github.io/tcb-tools/boys16/
 
@@ -24,7 +24,6 @@ python3 -m http.server 8765 --bind 127.0.0.1
 # 2. スクショ → 名前ぼかし → PDF / Word
 cd boys16/docs/scripts && npm install
 node capture-screenshots.mjs    # 省略可（既存 images を使う場合）
-python3 blur-images.py
 node build-pdf.mjs
 node build-docx.mjs
 ```

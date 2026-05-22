@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""マニュアル用スクショのメンバー名などをぼかす。"""
+"""マニュアル用スクショのメンバー名などをぼかす（任意・通常は未使用）。
+
+16期マニュアルは実機表示のまま掲載する運用のため、再取得後は本スクリプトを実行しないこと。
+"""
 from pathlib import Path
 from PIL import Image, ImageFilter
 
