@@ -1,5 +1,8 @@
 # macOS
 .DS_Store
 
+# マニュアル用スクリプト（ローカル npm）
+**/node_modules/
+
 # 一時アーカイブ（配布は index.html + *.js）
 **/index.zip
