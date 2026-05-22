@@ -150,6 +150,10 @@ tr.rB td{border-left:3px solid var(--tb);}
 /* 道具写真モーダル（tcb-desc-*：他セレクタとの衝突回避） */
 #modal-img.tcb-desc-modal-img{width:100%;max-width:100%;border-radius:10px;margin:0 auto 12px;max-height:min(55vh,420px);height:auto;object-fit:contain;object-position:center top;background:#f2f4f7;}
 .modal p{font-size:14px;color:var(--txt);line-height:1.8;}
+.tcb-prev-modal-actions{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;}
+.tcb-seed-mode-banner{display:none;margin-bottom:10px;padding:10px 12px;background:#e8f4fd;border-left:4px solid var(--blue);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.55;}
+.tcb-seed-mode-banner.on{display:block;}
+.tcb-seed-mode-banner-btns{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;}
 #print-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;flex-direction:column;}
 #print-overlay.open{display:flex;}
 .print-header{
@@ -552,6 +556,10 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="mclose" id="prev-modal-close">&#10005;</button>
     <h2 id="prev-modal-title">前回の割振り結果</h2>
     <div id="prev-modal-body"></div>
+    <div class="tcb-prev-modal-actions" id="prev-modal-actions" style="display:none;">
+      <button type="button" class="rbtn" id="btn-prev-start-reedit">この結果を元に割り振りを直す</button>
+      <button type="button" class="nb nbs" id="btn-prev-modal-close2">閉じる</button>
+    </div>
   </div>
 </div>
 
@@ -647,6 +655,12 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       </div>
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
+      <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
+        <strong>前回の割り振りを基準に修正中</strong>です。STEP2で欠席・お茶当番を直し、「割振りを実行」で変更分だけ自動で振り直します。
+        <div class="tcb-seed-mode-banner-btns">
+          <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">基準モードをやめる</button>
+        </div>
+      </div>
       <div id="tnarea" style="display:block;">
         <div class="ct" style="margin-bottom:8px;margin-top:14px;">&#127991; グループ名（名称変更可）</div>
         <div class="tnrow">
@@ -677,16 +691,15 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">この日だけ割振り対象から外す道具をタップ。</div>
       <div class="mgrid" id="skipgrid"></div>
     </div>
+    <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
+      <strong>前回の割り振りを基準に修正中</strong>です。欠席・お茶当番（翌活動日分）を直してから「割振りを実行」してください。活動パターンが基準と違う場合は全道具を振り直します。
+      <div class="tcb-seed-mode-banner-btns">
+        <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">基準モードをやめる</button>
+      </div>
+    </div>
     <div class="card tcb-sameday-hint-p2-card">
       <div class="ct">&#128197; 当日前提で割り振る</div>
-      <p id="tcb-sameday-hint-p2-txt" class="tcb-sameday-hint-p2-txt">担当は<strong>その日</strong>の活動日・欠席・グループの2分け（片方試合／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。</p>
-    </div>
-    <div class="card p2-seed-prev-card tcb-ui-advanced" id="p2-seed-prev-card">
-      <div class="ct">前回ベースの割振り</div>
-      <label class="p2-seed-prev-lbl" for="chk-seed-prev" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:12px;color:var(--txt2);line-height:1.5;">
-        <input type="checkbox" id="chk-seed-prev" autocomplete="off" style="margin-top:3px;flex-shrink:0;">
-        <span><strong>前回の割振りを出発点にする</strong>（STEP1の「&#128336; 前回」で見られる直近の保存内容）。この画面で選んだ<strong>欠席・お茶当番（翌活動日分）・グループ</strong>を反映し、対象外になった担当の道具<strong>だけ</strong>自動で振り直します。活動パターン（片方試合／両方試合／練習・場所分離）が前回と違う場合は使えません。<strong>会場・メンバー配置が前回と同じ前提のときのみ</strong>有効にするのが安全です。</span>
-      </label>
+      <p id="tcb-sameday-hint-p2-txt" class="tcb-sameday-hint-p2-txt">担当は<strong>その日</strong>の活動日・欠席・グループの2分け（片方試合／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。STEP1の「前回」または STEP3 の「元に再編集」で、保存した割り振りを基準に欠席・当番の変更分だけ直せます。</p>
     </div>
     <div class="card" id="tcard" style="display:none;">
       <div class="ct" id="tcard-hd">グループ振り分け</div>
@@ -715,9 +728,13 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
           <button type="button" class="nb nbs" id="btn-assign-undo" disabled style="font-size:13px;">&#8630; 元に戻す</button>
           <button type="button" class="nb nbs" id="btn-assign-redo" disabled style="font-size:13px;">&#8631; 先に進む</button>
           <button type="button" class="nb nbs" id="btn-reset" style="font-size:13px;">&#9664; 再設定</button>
+          <button type="button" class="nb nbs" id="btn-reedit-from-prev" style="font-size:13px;">&#128336; 元に再編集</button>
         </div>
       </div>
       <div id="aalert"></div>
+      <div class="al ali" id="p3-reedit-hint" style="display:none;margin-bottom:10px;font-size:12px;line-height:1.55;">
+        表示中の割り振りは端末に自動保存されています。欠席・お茶当番だけ直すときは<strong>「元に再編集」</strong>から STEP2 へ進んでください。
+      </div>
       <div class="p3-rebalance-bar tcb-ui-advanced" id="p3-rebalance-bar" style="display:none;">
         <div class="p3-rebalance-t"><strong>公平に再分配</strong>：チェックした道具と、担当が<strong>未割当</strong>の道具をまとめて対象にします。いま<strong>担当0件</strong>の人を優先し、足りなければ<strong>最も少ない人</strong>へ順に割り当てます（割振り実行と同じ負荷・上限ルール）。<strong>固定担当</strong>の道具は対象外です。</div>
         <button type="button" class="p3-rebalance-btn" id="btn-rebalance-fair">&#9889; 公平に再分配</button>
@@ -925,6 +942,9 @@ function capLlen(vv){var n=LX[vv];return(n===undefined||n===null)?99:n;}
 function capHv(vv){var n=HVX[vv];return(n===undefined||n===null)?1:n;}
 var WA=3,WB=1,WC=6;
 var pat='kata', absS={}, ochS={}, skipS={}, tmMap={}, R=null;
+/* 前回 map を基準に差分だけ再割当（STEP1前回／STEP3元に再編集で開始） */
+var seedFromPrev=false, seedBaseSnap=null;
+var _persistAllocTimer=null;
 /* STEP3：公平再分配で対象に含める道具（道具名→1） */
 var rebalanceMark={};
 /* 担当変更の元に戻す／先に進む */
@@ -1341,25 +1361,38 @@ function showMasterAlert(msg,cls){
   clearTimeout(el._t); el._t=setTimeout(function(){el.style.display='none';},3000);
 }
 
-/* ========== 前回結果 ========== */
-function savePrevResult(){
-  if(!R)return;
-  var snap={
-    date:document.getElementById('adate').value,
+/* ========== 前回結果・端末保存 ========== */
+function clonePlainObj(o){
+  if(!o||typeof o!=='object')return {};
+  return JSON.parse(JSON.stringify(o));
+}
+function buildAllocationSnapshot(){
+  if(!R)return null;
+  var ad=document.getElementById('adate');
+  return {
+    date:ad?ad.value:'',
     savedAt:new Date().toISOString(),
     pat:pat, la:R.la||tnA, lb:R.lb||tnB,
     renshuSplit:(pat==='renshu'&&renshuSplit)?1:0,
-    mode:R.mode, map:R.map,
-    tools:(R.mode==='team')?R.allTools:R.tools
+    mode:R.mode,
+    map:cloneAssignMap(R.map),
+    tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools)),
+    absS:clonePlainObj(absS),
+    ochS:clonePlainObj(ochS),
+    skipS:clonePlainObj(skipS),
+    tmMap:clonePlainObj(tmMap)
   };
-  /* 前回結果（1件）を保存 */
+}
+/* LS_PREV へ保存（ツールを閉じたあとも STEP1「前回」・再編集で使う） */
+function persistAllocationSnapshot(snap,opts){
+  if(!snap||typeof snap.map!=='object')return;
+  opts=opts||{};
   try{ _ls.set(LS_PREV,JSON.stringify(snap)); }catch(e){}
-  /* 履歴（最大50件）に追記 */
+  if(!opts.appendHistory)return;
   try{
     var hist=[];
     var raw=_ls.get(LS_HIST);
     if(raw)hist=JSON.parse(raw);
-    /* 同じ活動日のデータは上書き */
     hist=hist.filter(function(h){return h.date!==snap.date;});
     hist.unshift(snap);
     _ls.set(LS_HIST,JSON.stringify(hist));
@@ -1372,6 +1405,100 @@ function savePrevResult(){
       })
       .catch(function(err){console.error(err);});
   }
+}
+function loadStoredAllocationSnap(){
+  try{
+    var raw=_ls.get(LS_PREV);
+    if(!raw)return null;
+    var snap=JSON.parse(raw);
+    return (snap&&typeof snap.map==='object')?snap:null;
+  }catch(e){return null;}
+}
+function schedulePersistCurrentAllocation(){
+  if(_persistAllocTimer)clearTimeout(_persistAllocTimer);
+  _persistAllocTimer=setTimeout(function(){
+    _persistAllocTimer=null;
+    if(!R)return;
+    var tb=document.getElementById('tbody');
+    if(tb&&tb.querySelectorAll('select.asel[data-tcb-assign-tool]').length)syncAssignMapFromToolTableDom();
+    var snap=buildAllocationSnapshot();
+    if(snap)persistAllocationSnapshot(snap);
+  },280);
+}
+function clearSeedFromPrevMode(){
+  seedFromPrev=false;
+  seedBaseSnap=null;
+  updateSeedModeBanners();
+}
+function updateSeedModeBanners(){
+  var on=!!(seedFromPrev&&seedBaseSnap);
+  ['p1-seed-mode-banner','p2-seed-mode-banner'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.className='tcb-seed-mode-banner'+(on?' on':'');
+  });
+  var hint=document.getElementById('p3-reedit-hint');
+  if(hint)hint.style.display=(R&&!on)?'block':'none';
+}
+function applySnapToActivityUI(snap){
+  if(!snap)return;
+  if(snap.pat)setPat(snap.pat);
+  if(snap.pat==='renshu'){
+    var rs=(snap.renshuSplit===1||snap.renshuSplit===true);
+    applyRenshuSplit(rs);
+    var chkx=document.getElementById('chk-renshu-split');
+    if(chkx)chkx.checked=rs;
+  }
+  var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
+  if(inpA&&snap.la!=null){inpA.value=snap.la;tnA=snap.la;}
+  if(inpB&&snap.lb!=null){inpB.value=snap.lb;tnB=snap.lb;}
+  updDesc();
+}
+function restoreExclusionStateFromSnap(snap){
+  absS=(snap&&snap.absS)?clonePlainObj(snap.absS):{};
+  ochS=(snap&&snap.ochS)?clonePlainObj(snap.ochS):{};
+  skipS=(snap&&snap.skipS)?clonePlainObj(snap.skipS):{};
+  if(snap&&snap.tmMap&&typeof snap.tmMap==='object'){
+    tmMap=clonePlainObj(snap.tmMap);
+  }else{
+    MB.forEach(function(m){if(!tmMap[m.name])tmMap[m.name]='B';});
+  }
+  buildAGrid(); buildOGrid(); buildSkipGrid();
+  if(needsTeamUI())buildTGrid();
+}
+function beginReeditFromSnap(snap){
+  if(!snap||typeof snap.map!=='object'){
+    alert('保存された割り振り結果がありません。\n先に「割振りを実行」するか、STEP3で結果を保存してからお試しください。');
+    return false;
+  }
+  seedBaseSnap=clonePlainObj(snap);
+  seedFromPrev=true;
+  applySnapToActivityUI(snap);
+  restoreExclusionStateFromSnap(snap);
+  updateSeedModeBanners();
+  closeModal('prev-modal');
+  goStep(2);
+  return true;
+}
+function beginReeditFromStoredPrev(){
+  return beginReeditFromSnap(loadStoredAllocationSnap());
+}
+function beginReeditFromCurrentResult(){
+  if(!R){
+    alert('割振り結果がありません。先に割振りを実行してください。');
+    return false;
+  }
+  syncAssignMapFromToolTableDom();
+  syncAssignStateFromMap();
+  var snap=buildAllocationSnapshot();
+  if(!snap)return false;
+  persistAllocationSnapshot(snap);
+  return beginReeditFromSnap(snap);
+}
+function savePrevResult(){
+  if(!R)return;
+  var snap=buildAllocationSnapshot();
+  if(!snap)return;
+  persistAllocationSnapshot(snap,{appendHistory:true});
   /* PAST（過去担当回数）は「実施確定」ボタンでのみ更新（試行・再実行では増えない） */
 }
 /* 実施確定時：同じ活動日の履歴の map を確定後の担当に差し替え（試行のまま残さない） */
@@ -1490,6 +1617,8 @@ function confirmCarryOutResult(){
       if(res&&res.version!==undefined)MASTER_VERSION=parseMasterVersion(res.version);
       persistPastToMaster();
       applyConfirmedMapToHistory(d, mapForCarryout);
+      var snapAfter=buildAllocationSnapshot();
+      if(snapAfter)persistAllocationSnapshot(snapAfter);
       renderAll();
       var aa2=document.getElementById('aalert');
       if(aa2){
@@ -1513,6 +1642,8 @@ function confirmCarryOutResult(){
   saveCarryoutMeta(meta);
   persistPastToMaster();
   applyConfirmedMapToHistory(d, mapForCarryout);
+  var snapAfter=buildAllocationSnapshot();
+  if(snapAfter)persistAllocationSnapshot(snapAfter);
   renderAll();
   var aa=document.getElementById('aalert');
   if(aa){
@@ -1523,14 +1654,16 @@ function confirmCarryOutResult(){
   }
 }
 function showPrevResult(){
-  var raw=_ls.get(LS_PREV);
+  var snap=loadStoredAllocationSnap();
   var body=document.getElementById('prev-modal-body');
   var title=document.getElementById('prev-modal-title');
-  if(!raw){
-    body.innerHTML='<div class="al alw">前回の割振り結果が保存されていません。</div>';
+  var act=document.getElementById('prev-modal-actions');
+  if(!snap){
+    body.innerHTML='<div class="al alw">保存された割り振り結果がありません。<br>「割振りを実行」後、または STEP3 の結果は端末に自動保存されます。</div>';
+    if(act)act.style.display='none';
     openModal('prev-modal'); return;
   }
-  var snap=JSON.parse(raw);
+  if(act)act.style.display='flex';
   var dd=snap.date?new Date(snap.date).toLocaleDateString('ja-JP'):'';
   var pl=patLabel(snap.pat,!!snap.renshuSplit);
   title.textContent='前回（'+dd+' / '+pl+'）';
@@ -1691,11 +1824,8 @@ function loadPrevAssignMap(){
   return loadCarryoutPrevMap();
 }
 function loadPrevSnapForSeed(){
-  try{
-    var raw=_ls.get(LS_PREV);
-    if(!raw)return null;
-    return JSON.parse(raw);
-  }catch(e){return null;}
+  if(seedBaseSnap&&typeof seedBaseSnap.map==='object')return seedBaseSnap;
+  return loadStoredAllocationSnap();
 }
 function memberNameSet(memberArr){
   var o={};
@@ -2201,11 +2331,11 @@ function updDesc(){
   var h2=document.getElementById('tcb-sameday-hint-p2-txt');
   if(h2){
     if(pat==='kata'||pat==='ryoho'){
-      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席・グループの2分け（片方試合／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。';
+      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席・グループの2分け（片方試合／両方試合）と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場や対戦でメンバーの側が変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。';
     }else if(pat==='renshu'&&renshuSplit){
-      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席・練習の2グループ（室内／屋外）の並びと、マスタの道具（会場列・未設定の道具は試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場やグループの並びが変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使い、会場が変わる日はチェックを外すのが安全です。';
+      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席・練習の2グループ（室内／屋外）の並びと、マスタの道具（会場列・未設定の道具は試合用A/B・片方チェックなど）を見て決まります。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。会場やグループの並びが変わる日は、下の<strong>グループ振り分けをその日用に組み直して</strong>から「割振りを実行」してください。';
     }else{
-      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります（全員で道具を分担します）。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。欠席・当番やマスタが変わった日は、STEP2の内容を確認してから「割振りを実行」してください。「前回ベースの割振り」は前回と<strong>同じ活動パターン・同じ前提</strong>のときだけ使ってください。';
+      h2.innerHTML='担当は<strong>その日</strong>の活動日・欠席と、マスタの道具（試合用A/B・片方チェックなど）を見て決まります（全員で道具を分担します）。<strong>お茶当番は翌活動日分</strong>として上で指定してください（次回の準備のため<strong>当日に当番道具を多く持ち帰る</strong>担当は通常の割振りから外します）。過去の活動の記録や、未入力の将来予定を<strong>自動では参照しません</strong>。欠席・当番を直すときは STEP1「前回」または STEP3「元に再編集」を使えます。';
     }
   }
   var ht=document.getElementById('tcb-sameday-hint-tcard-line');
@@ -2265,6 +2395,7 @@ function goStep(n){
     if(p3rb)p3rb.style.display='block';
     buildTbl();
   }
+  updateSeedModeBanners();
 }
 function goMaster(){
   ['p1','p2','p3','p-master'].forEach(function(id){
@@ -2465,19 +2596,25 @@ function runAlgo(){
   var ctx=buildAssignmentContext();
   if(!ctx)return;
   var runSeed=Date.now();
-  var chk=document.getElementById('chk-seed-prev');
-  if(chk&&chk.checked){
+  var usedPrevSeed=false;
+  if(seedFromPrev){
     var seedSnap=loadPrevSnapForSeed();
     if(!seedSnap||typeof seedSnap.map!=='object'||seedSnap.map===null){
-      alert('「前回の割振り結果」の保存がありません。\nSTEP1の「前回」で内容を確認するか、チェックを外して通常の割振りを行ってください。');
+      alert('基準となる割り振り結果がありません。\nSTEP1の「前回」で確認するか、通常の割振りを行ってください。');
       return;
     }
     if(!isPrevSnapCompatibleWithCtx(seedSnap, ctx)){
-      alert('保存された前回と、いまの活動パターン（片方試合／両方試合／練習・場所分離）またはチーム／単一の組み合わせが一致しません。\nSTEP1を前回と同じ設定にするか、チェックを外してください。');
-      return;
+      if(!confirm('活動パターン（片方試合／両方試合／練習・場所分離）またはチーム割りが、基準の結果と一致しません。\nこのまま全道具を最初から割り振り直しますか？\n\nキャンセル＝STEP1の設定を基準に合わせてから再実行')){
+        return;
+      }
+      clearSeedFromPrevMode();
+    }else{
+      runAlgoApplyPrevSeed(seedSnap, ctx);
+      usedPrevSeed=true;
+      clearSeedFromPrevMode();
     }
-    runAlgoApplyPrevSeed(seedSnap, ctx);
-  }else{
+  }
+  if(!usedPrevSeed){
     var prevAssignMap=loadPrevAssignMap();
     if(ctx.mode==='team'){
       var sA=doAssign(ctx.tA,initSt(ctx.mA),prevAssignMap,runSeed);
@@ -2551,6 +2688,8 @@ function renderAll(){
   }
 
   buildTbl();
+  updateSeedModeBanners();
+  schedulePersistCurrentAllocation();
 }
 
 function buildTbl(){
@@ -2634,6 +2773,7 @@ function buildTbl(){
   });
   buildMem();
   updateAssignUndoUi();
+  schedulePersistCurrentAllocation();
 }
 
 function chAssign(toolName,newName){
@@ -3603,8 +3743,27 @@ document.addEventListener('DOMContentLoaded',function(){
 
   /* 前回モーダル */
   document.getElementById('prev-modal-close').addEventListener('click',function(){closeModal('prev-modal');});
+  var btnPrevClose2=document.getElementById('btn-prev-modal-close2');
+  if(btnPrevClose2)btnPrevClose2.addEventListener('click',function(){closeModal('prev-modal');});
+  var btnPrevStart=document.getElementById('btn-prev-start-reedit');
+  if(btnPrevStart)btnPrevStart.addEventListener('click',function(){beginReeditFromStoredPrev();});
   document.getElementById('prev-modal').addEventListener('click',function(e){
     if(e.target===this)closeModal('prev-modal');
+  });
+  var btnReedit=document.getElementById('btn-reedit-from-prev');
+  if(btnReedit)btnReedit.addEventListener('click',function(){beginReeditFromCurrentResult();});
+  ['btn-seed-mode-cancel-p1','btn-seed-mode-cancel-p2'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('click',function(){
+      if(confirm('基準モードをやめます。次の「割振りを実行」は通常の全割振りになります。よろしいですか？'))clearSeedFromPrevMode();
+    });
+  });
+  window.addEventListener('pagehide',function(){
+    if(!R)return;
+    var tb=document.getElementById('tbody');
+    if(tb&&tb.querySelectorAll('select.asel[data-tcb-assign-tool]').length)syncAssignMapFromToolTableDom();
+    var snap=buildAllocationSnapshot();
+    if(snap)persistAllocationSnapshot(snap);
   });
 
   /* 印刷モーダル */
