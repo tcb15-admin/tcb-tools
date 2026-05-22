@@ -24,13 +24,20 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
-function stripMd(s) {
-  return esc(
-    s
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-  );
+/** Markdown インライン（** / ` / リンク）を HTML に。タグはエスケープしない */
+function inlineMd(s) {
+  const re = /\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\)/g;
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    out += esc(s.slice(last, m.index));
+    if (m[1] !== undefined) out += `<strong>${esc(m[1])}</strong>`;
+    else if (m[2] !== undefined) out += `<code>${esc(m[2])}</code>`;
+    else out += `<a href="${esc(m[4])}">${esc(m[3])}</a>`;
+    last = re.lastIndex;
+  }
+  return out + esc(s.slice(last));
 }
 
 function mdToHtml(md) {
@@ -61,7 +68,7 @@ function mdToHtml(md) {
           const cells = lines[i]
             .split('|')
             .slice(1, -1)
-            .map((c) => `<td>${stripMd(c.trim())}</td>`)
+            .map((c) => `<td>${inlineMd(c.trim())}</td>`)
             .join('');
           html += `<tr>${cells}</tr>`;
         }
@@ -79,41 +86,41 @@ function mdToHtml(md) {
         cap = lines[i + 1].replace(/^\*|\*$/g, '');
         i += 2;
       } else i++;
-      html += `<figure><img src="${esc(rel)}" alt="${esc(img[1])}"/><figcaption>${stripMd(cap)}</figcaption></figure>`;
+      html += `<figure><img src="${esc(rel)}" alt="${esc(img[1])}"/><figcaption>${inlineMd(cap)}</figcaption></figure>`;
       continue;
     }
     if (line.startsWith('# ')) {
-      html += `<h1>${stripMd(line.slice(2))}</h1>`;
+      html += `<h1>${inlineMd(line.slice(2))}</h1>`;
       i++;
       continue;
     }
     if (line.startsWith('## ')) {
-      html += `<h2>${stripMd(line.slice(3))}</h2>`;
+      html += `<h2>${inlineMd(line.slice(3))}</h2>`;
       i++;
       continue;
     }
     if (line.startsWith('### ')) {
-      html += `<h3>${stripMd(line.slice(4))}</h3>`;
+      html += `<h3>${inlineMd(line.slice(4))}</h3>`;
       i++;
       continue;
     }
     if (line.startsWith('> ')) {
-      html += `<blockquote>${stripMd(line.slice(2))}</blockquote>`;
+      html += `<blockquote>${inlineMd(line.slice(2))}</blockquote>`;
       i++;
       continue;
     }
     if (line.match(/^- \[ \]/)) {
-      html += `<p class="chk">☐ ${stripMd(line.replace(/^- \[ \]\s*/, ''))}</p>`;
+      html += `<p class="chk">☐ ${inlineMd(line.replace(/^- \[ \]\s*/, ''))}</p>`;
       i++;
       continue;
     }
     if (line.startsWith('- ')) {
-      html += `<li>${stripMd(line.slice(2))}</li>`;
+      html += `<li>${inlineMd(line.slice(2))}</li>`;
       i++;
       continue;
     }
     if (/^\d+\.\s/.test(line)) {
-      html += `<p class="num">${stripMd(line)}</p>`;
+      html += `<p class="num">${inlineMd(line)}</p>`;
       i++;
       continue;
     }
@@ -122,7 +129,7 @@ function mdToHtml(md) {
       i++;
       continue;
     }
-    html += `<p>${stripMd(line)}</p>`;
+    html += `<p>${inlineMd(line)}</p>`;
     i++;
   }
   return html;
