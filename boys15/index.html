@@ -150,7 +150,9 @@ tr.rB td{border-left:3px solid var(--tb);}
 /* 道具写真モーダル（tcb-desc-*：他セレクタとの衝突回避） */
 #modal-img.tcb-desc-modal-img{width:100%;max-width:100%;border-radius:10px;margin:0 auto 12px;max-height:min(55vh,420px);height:auto;object-fit:contain;object-position:center top;background:#f2f4f7;}
 .modal p{font-size:14px;color:var(--txt);line-height:1.8;}
-.tcb-prev-modal-actions{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;}
+.tcb-prev-modal-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.tcb-prev-modal-cond{margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6;}
+.tcb-prev-modal-cond strong{color:var(--navy);}
 .tcb-seed-mode-banner{display:none;margin-bottom:10px;padding:10px 12px;background:#e8f4fd;border-left:4px solid var(--blue);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.55;}
 .tcb-seed-mode-banner.on{display:block;}
 .tcb-seed-mode-banner-btns{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;}
@@ -555,11 +557,12 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   <div class="modal">
     <button class="mclose" id="prev-modal-close">&#10005;</button>
     <h2 id="prev-modal-title">前回の割振り結果</h2>
-    <div id="prev-modal-body"></div>
     <div class="tcb-prev-modal-actions" id="prev-modal-actions" style="display:none;">
       <button type="button" class="rbtn" id="btn-prev-start-reedit">この結果を元に割り振りを直す</button>
       <button type="button" class="nb nbs" id="btn-prev-modal-close2">閉じる</button>
     </div>
+    <div class="tcb-prev-modal-cond" id="prev-modal-cond" style="display:none;"></div>
+    <div id="prev-modal-body"></div>
   </div>
 </div>
 
@@ -656,7 +659,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong>前回の割り振りを基準に修正中</strong>です。STEP2で欠席・お茶当番を直し、「割振りを実行」で変更分だけ自動で振り直します。
+        <strong>前回の割り振りを基準に修正中</strong>です。保存時の活動設定・欠席・お茶当番・グループ分けを復元済みです。直してから「割振りを実行」してください。
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">基準モードをやめる</button>
         </div>
@@ -692,7 +695,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="mgrid" id="skipgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong>前回の割り振りを基準に修正中</strong>です。欠席・お茶当番（翌活動日分）を直してから「割振りを実行」してください。活動パターンが基準と違う場合は全道具を振り直します。
+      <strong>前回の割り振りを基準に修正中</strong>です。保存時の欠席・お茶当番・グループ分けを復元済みです。直してから「割振りを実行」してください（活動パターンが違う場合は全道具を振り直します）。
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">基準モードをやめる</button>
       </div>
@@ -1406,13 +1409,84 @@ function persistAllocationSnapshot(snap,opts){
       .catch(function(err){console.error(err);});
   }
 }
+function inferTmMapFromSnap(snap){
+  var out={};
+  MB.forEach(function(m){out[m.name]='B';});
+  if(!snap||!snap.map||!snap.tools||!snap.tools.length)return out;
+  var byName={};
+  snap.tools.forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+  Object.keys(snap.map).forEach(function(tn){
+    var p=snap.map[tn], t=byName[tn];
+    if(p&&t&&(t.team==='A'||t.team==='B'))out[p]=t.team;
+  });
+  return out;
+}
+function enrichStoredSnap(snap){
+  if(!snap||typeof snap.map!=='object')return null;
+  var out=clonePlainObj(snap);
+  var needTm=!Object.prototype.hasOwnProperty.call(out,'tmMap')||typeof out.tmMap!=='object'||!Object.keys(out.tmMap).length;
+  var needAbs=!Object.prototype.hasOwnProperty.call(out,'absS');
+  var needOch=!Object.prototype.hasOwnProperty.call(out,'ochS');
+  var needSkip=!Object.prototype.hasOwnProperty.call(out,'skipS');
+  if(needAbs||needOch||needSkip||needTm){
+    try{
+      var raw=_ls.get(LS_HIST);
+      if(raw){
+        var hist=JSON.parse(raw);
+        for(var i=0;i<hist.length;i++){
+          var h=hist[i];
+          if(!h||h.date!==out.date)continue;
+          if(needAbs&&h.absS)out.absS=clonePlainObj(h.absS);
+          if(needOch&&h.ochS)out.ochS=clonePlainObj(h.ochS);
+          if(needSkip&&h.skipS)out.skipS=clonePlainObj(h.skipS);
+          if(needTm&&h.tmMap)out.tmMap=clonePlainObj(h.tmMap);
+          break;
+        }
+      }
+    }catch(e){}
+  }
+  if(!out.absS||typeof out.absS!=='object')out.absS={};
+  if(!out.ochS||typeof out.ochS!=='object')out.ochS={};
+  if(!out.skipS||typeof out.skipS!=='object')out.skipS={};
+  if(!out.tmMap||typeof out.tmMap!=='object'||!Object.keys(out.tmMap).length){
+    out.tmMap=inferTmMapFromSnap(out);
+  }
+  return out;
+}
 function loadStoredAllocationSnap(){
   try{
     var raw=_ls.get(LS_PREV);
     if(!raw)return null;
-    var snap=JSON.parse(raw);
-    return (snap&&typeof snap.map==='object')?snap:null;
+    return enrichStoredSnap(JSON.parse(raw));
   }catch(e){return null;}
+}
+function formatSnapConditionsHtml(snap){
+  if(!snap)return '';
+  var abs=Object.keys(snap.absS||{}).filter(function(k){return snap.absS[k];});
+  var och=Object.keys(snap.ochS||{}).filter(function(k){return snap.ochS[k];});
+  var skip=Object.keys(snap.skipS||{}).filter(function(k){return snap.skipS[k];});
+  var la=snap.la||'A', lb=snap.lb||'B';
+  var aList=[], bList=[];
+  MB.forEach(function(m){
+    if(m.rest||m.coach)return;
+    if((snap.tmMap||{})[m.name]==='A')aList.push(m.name);
+    else if((snap.tmMap||{})[m.name]==='B')bList.push(m.name);
+  });
+  var html='<strong>保存時の設定</strong>（「直す」で STEP1・2 に復元されます）<br>';
+  html+='活動日：'+(snap.date?esc(new Date(snap.date).toLocaleDateString('ja-JP')):'未設定')+'<br>';
+  html+='欠席：'+(abs.length?esc(abs.join('、')):'なし')+'<br>';
+  html+='お茶当番：'+(och.length?esc(och.join('、')):'なし')+'<br>';
+  html+='道具の一時除外：'+(skip.length?esc(skip.join('、')):'なし')+'<br>';
+  if(snap.pat==='kata'||snap.pat==='ryoho'){
+    html+=esc(la)+'：'+(aList.length?esc(aList.join('、')):'なし')+'<br>';
+    html+=esc(lb)+'：'+(bList.length?esc(bList.join('、')):'なし');
+  }else if(snap.pat==='renshu'&&snap.renshuSplit){
+    html+='室内（'+esc(la)+'）：'+(aList.length?esc(aList.join('、')):'なし')+'<br>';
+    html+='屋外（'+esc(lb)+'）：'+(bList.length?esc(bList.join('、')):'なし');
+  }else{
+    html+='グループ分け：なし（全員で分担）';
+  }
+  return html;
 }
 function schedulePersistCurrentAllocation(){
   if(_persistAllocTimer)clearTimeout(_persistAllocTimer);
@@ -1441,6 +1515,8 @@ function updateSeedModeBanners(){
 }
 function applySnapToActivityUI(snap){
   if(!snap)return;
+  var adEl=document.getElementById('adate');
+  if(adEl&&snap.date)adEl.value=snap.date;
   if(snap.pat)setPat(snap.pat);
   if(snap.pat==='renshu'){
     var rs=(snap.renshuSplit===1||snap.renshuSplit===true);
@@ -1454,14 +1530,17 @@ function applySnapToActivityUI(snap){
   updDesc();
 }
 function restoreExclusionStateFromSnap(snap){
-  absS=(snap&&snap.absS)?clonePlainObj(snap.absS):{};
-  ochS=(snap&&snap.ochS)?clonePlainObj(snap.ochS):{};
-  skipS=(snap&&snap.skipS)?clonePlainObj(snap.skipS):{};
-  if(snap&&snap.tmMap&&typeof snap.tmMap==='object'){
-    tmMap=clonePlainObj(snap.tmMap);
-  }else{
-    MB.forEach(function(m){if(!tmMap[m.name])tmMap[m.name]='B';});
-  }
+  var s=enrichStoredSnap(snap)||{};
+  absS=clonePlainObj(s.absS||{});
+  ochS=clonePlainObj(s.ochS||{});
+  skipS=clonePlainObj(s.skipS||{});
+  tmMap={};
+  MB.forEach(function(m){
+    if(m.rest||m.coach)return;
+    if(s.tmMap&&s.tmMap[m.name]==='A')tmMap[m.name]='A';
+    else if(s.tmMap&&s.tmMap[m.name]==='B')tmMap[m.name]='B';
+    else tmMap[m.name]='B';
+  });
   buildAGrid(); buildOGrid(); buildSkipGrid();
   if(needsTeamUI())buildTGrid();
 }
@@ -1470,10 +1549,12 @@ function beginReeditFromSnap(snap){
     alert('保存された割り振り結果がありません。\n先に「割振りを実行」するか、STEP3で結果を保存してからお試しください。');
     return false;
   }
-  seedBaseSnap=clonePlainObj(snap);
+  var enriched=enrichStoredSnap(snap);
+  if(!enriched)return false;
+  seedBaseSnap=clonePlainObj(enriched);
   seedFromPrev=true;
-  applySnapToActivityUI(snap);
-  restoreExclusionStateFromSnap(snap);
+  applySnapToActivityUI(enriched);
+  restoreExclusionStateFromSnap(enriched);
   updateSeedModeBanners();
   closeModal('prev-modal');
   goStep(2);
@@ -1523,6 +1604,10 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
     snap.la=R.la||tnA;
     snap.lb=R.lb||tnB;
     snap.renshuSplit=(pat==='renshu'&&renshuSplit)?1:0;
+    snap.absS=clonePlainObj(absS);
+    snap.ochS=clonePlainObj(ochS);
+    snap.skipS=clonePlainObj(skipS);
+    snap.tmMap=clonePlainObj(tmMap);
   }else{
     snap={
       date:activityDate,
@@ -1531,7 +1616,11 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
       pat:pat, la:R.la||tnA, lb:R.lb||tnB,
       renshuSplit:(pat==='renshu'&&renshuSplit)?1:0,
       mode:R.mode, map:mapCopy,
-      tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools))
+      tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools)),
+      absS:clonePlainObj(absS),
+      ochS:clonePlainObj(ochS),
+      skipS:clonePlainObj(skipS),
+      tmMap:clonePlainObj(tmMap)
     };
     hist.unshift(snap);
     while(hist.length>50)hist.pop();
@@ -1658,12 +1747,18 @@ function showPrevResult(){
   var body=document.getElementById('prev-modal-body');
   var title=document.getElementById('prev-modal-title');
   var act=document.getElementById('prev-modal-actions');
+  var condEl=document.getElementById('prev-modal-cond');
   if(!snap){
     body.innerHTML='<div class="al alw">保存された割り振り結果がありません。<br>「割振りを実行」後、または STEP3 の結果は端末に自動保存されます。</div>';
     if(act)act.style.display='none';
+    if(condEl)condEl.style.display='none';
     openModal('prev-modal'); return;
   }
   if(act)act.style.display='flex';
+  if(condEl){
+    condEl.innerHTML=formatSnapConditionsHtml(snap);
+    condEl.style.display='block';
+  }
   var dd=snap.date?new Date(snap.date).toLocaleDateString('ja-JP'):'';
   var pl=patLabel(snap.pat,!!snap.renshuSplit);
   title.textContent='前回（'+dd+' / '+pl+'）';
