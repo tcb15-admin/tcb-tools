@@ -3220,6 +3220,7 @@ function buildPrintHTML(){
     +'</div></body></html>';
 }
 var _pdfTitle='道具割振り';
+var SHARE_PDF_MESSAGE='お疲れ様です。本日のチーム道具の割り振りを展開します。ご確認ならびにご対応よろしくお願いします。';
 function openPrint(){
   if(!R){alert('先に割振りを実行してください。');return;}
   var mainLogo=document.querySelector('header img.logo');
@@ -3274,7 +3275,7 @@ function execShare(){
     alert('先に割振りを実行してください。');
     return;
   }
-  if(typeof TCB_generateAssignPdfBlob!=='function'){
+  if(typeof TCB_generateAssignPdfBlob!=='function'&&typeof TCB_generateAssignPdfBlobFromFrame!=='function'){
     alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
     return;
   }
@@ -3298,13 +3299,15 @@ function execShare(){
   }
   var baseName=(_pdfTitle||'道具割振り').replace(/[\\/:*?"<>]/g,'_').replace(/\s+/g,' ').trim().slice(0,120);
   var safeName=(baseName||'道具割振り')+'.pdf';
-  TCB_generateAssignPdfBlob(html).then(function(blob){
+  var gen=typeof TCB_generateAssignPdfBlobFromFrame==='function'?TCB_generateAssignPdfBlobFromFrame:TCB_generateAssignPdfBlob;
+  var pdfPromise=(frame&&frame.contentDocument&&frame.contentDocument.body)?gen(frame):TCB_generateAssignPdfBlob(html);
+  pdfPromise.then(function(blob){
     if(!(blob instanceof Blob)||blob.size===0){
       throw new Error('empty pdf');
     }
     var file=new File([blob],safeName,{type:'application/pdf'});
     var title=_pdfTitle||'道具割振り';
-    var text='道具持帰り担当表（PDF）';
+    var text=SHARE_PDF_MESSAGE;
     var withFiles={files:[file],title:title,text:text};
     if(navigator.canShare&&navigator.canShare(withFiles)){
       return navigator.share(withFiles);
