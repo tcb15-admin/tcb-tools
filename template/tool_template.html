@@ -174,9 +174,11 @@ tr.rB td{border-left:3px solid var(--tb);}
 .tcb-print-hdr-title{font-size:15px;font-weight:900;color:#fff;line-height:1.3;}
 .tcb-print-hdr-sub{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;line-height:1.3;}
 .print-close-btn{margin-left:auto;flex-shrink:0;padding:8px 16px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
-.print-actions{background:var(--navy2);padding:8px 14px;display:flex;gap:8px;flex-shrink:0;}
-.print-act-btn{flex:1;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
+.print-actions{background:var(--navy2);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0;align-items:center;}
+.print-act-btn{flex:1;min-width:140px;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
 .print-act-btn.sub{background:#546e7a;}
+.tcb-print-line-note{flex:1 1 100%;margin:0;font-size:11px;color:rgba(255,255,255,.88);line-height:1.55;}
+.tcb-print-line-note strong{font-weight:700;color:#fff;}
 html.theme-b16 .print-header{
   background:#fff;
   border-bottom:3px solid #c0000a;
@@ -190,6 +192,8 @@ html.theme-b16 .print-close-btn{
   color:#122050;
 }
 html.theme-b16 .print-actions{background:#f1f5f9;border-bottom:1px solid #e2e8f0;}
+html.theme-b16 .tcb-print-line-note{color:#475569;}
+html.theme-b16 .tcb-print-line-note strong{color:#122050;}
 .p3-rh-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center;}
 .p3-rh-actions .nb:disabled{opacity:.45;cursor:not-allowed;}
 #print-frame{flex:1;border:none;background:#fff;}
@@ -585,7 +589,8 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   </div>
   <div class="print-actions">
     <button type="button" class="print-act-btn" id="print-exec">&#128424; 印刷 / PDF保存</button>
-    <button type="button" class="print-act-btn sub" id="print-share" style="display:none;">&#8679; PDFで共有</button>
+    <button type="button" class="print-act-btn sub" id="print-copy-share">&#128203; 共有用メッセージをコピー</button>
+    <p class="tcb-print-line-note">PDFは<strong>「印刷 / PDF保存」</strong>から保存してください（スマホは印刷画面で<strong>PDFに保存</strong>）。LINE共有も同じPDFをファイルアプリから添付します。</p>
   </div>
   <iframe id="print-frame"></iframe>
 </div>
@@ -3198,13 +3203,7 @@ function buildPrintHTML(){
     '.tool-desc{font-weight:400;color:#78909c;line-height:1.35;white-space:normal;word-break:break-word;overflow-wrap:anywhere;width:100%;}',
     'p.pex{font-size:9px;color:#c62828;margin-top:4px;flex-shrink:0;}',
     '.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
-    '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}',
-    /* PDF共有（html2canvas）用：frグリッドをautoに（キャプチャ空白・潰れ防止） */
-    'html.tcb-pdf-export,html.tcb-pdf-export body{width:210mm;height:auto;overflow:visible;}',
-    'html.tcb-pdf-export .page{height:auto;min-height:0;max-height:none;overflow:visible;padding:0;}',
-    'html.tcb-pdf-export .tcb-print-team-stack,html.tcb-pdf-export .tcb-print-team-section{flex:none;min-height:0;overflow:visible;}',
-    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{flex:none;grid-auto-rows:auto;min-height:0;overflow:visible;}',
-    'html.tcb-pdf-export .card-body,html.tcb-pdf-export .tool-list{overflow:visible;}'
+    '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
   ].join('');
   /* mmdd形式のファイル名生成 */
   var fnDate='';
@@ -3228,6 +3227,30 @@ function buildPrintHTML(){
 }
 var _pdfTitle='道具割振り';
 var SHARE_PDF_MESSAGE='お疲れ様です。本日のチーム道具の割り振りを展開します。ご確認ならびにご対応よろしくお願いします。';
+function copyAssignShareMessage(){
+  var text=SHARE_PDF_MESSAGE;
+  function done(ok){
+    if(ok){
+      alert('共有用メッセージをコピーしました。PDFを保存したあと、LINEに貼り付けてください。');
+      return;
+    }
+    prompt('以下をコピーしてLINEに貼り付けてください',text);
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){done(true);}).catch(function(){done(false);});
+    return;
+  }
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.setAttribute('readonly','');
+  ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';
+  document.body.appendChild(ta);
+  ta.select();
+  var ok=false;
+  try{ok=document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  done(ok);
+}
 function getAssignPdfBaseName(){
   return _pdfTitle||'道具割振り';
 }
@@ -3254,58 +3277,6 @@ function syncAssignPdfPreview(frame){
   if(frame)frame.srcdoc=out.html;
   return out;
 }
-function ensurePrintFrameReady(frame){
-  return new Promise(function(resolve,reject){
-    if(!frame){reject(new Error('no frame'));return;}
-    function ready(){
-      setTimeout(function(){resolve(frame);},120);
-    }
-    function hasPage(){
-      try{
-        return !!(frame.contentDocument&&frame.contentDocument.querySelector('.page'));
-      }catch(e){return false;}
-    }
-    if(hasPage()){ready();return;}
-    frame.onload=function(){
-      if(hasPage())ready();
-      else reject(new Error('preview not ready'));
-    };
-  });
-}
-/** PDF Blob の配布（共有 or ダウンロード）。ファイル名は印刷保存と同一 */
-function deliverAssignPdfBlob(blob,opts){
-  opts=opts||{};
-  if(!(blob instanceof Blob)||blob.size===0){
-    return Promise.reject(new Error('empty pdf'));
-  }
-  var fileName=opts.fileName||getAssignPdfFileName();
-  var baseName=opts.baseName||getAssignPdfBaseName();
-  var shareText=opts.shareText||SHARE_PDF_MESSAGE;
-  var preferShare=opts.preferShare!==false;
-  var file=new File([blob],fileName,{type:'application/pdf'});
-  if(preferShare&&typeof navigator.share==='function'){
-    var withFiles={files:[file],title:baseName,text:shareText};
-    if(navigator.canShare&&navigator.canShare(withFiles)){
-      return navigator.share(withFiles);
-    }
-  }
-  var url=URL.createObjectURL(blob);
-  try{
-    var a=document.createElement('a');
-    a.href=url;
-    a.download=fileName;
-    a.rel='noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }finally{
-    setTimeout(function(){URL.revokeObjectURL(url);},4000);
-  }
-  if(preferShare){
-    return Promise.reject(new Error('share_unavailable'));
-  }
-  return Promise.resolve();
-}
 function openPrint(){
   if(!R){alert('先に割振りを実行してください。');return;}
   var mainLogo=document.querySelector('header img.logo');
@@ -3322,10 +3293,6 @@ function openPrint(){
     try{applyAssignPdfTitles(frame.contentDocument);}catch(e){}
   };
   overlay.classList.add('open');
-  var shareBtn=document.getElementById('print-share');
-  if(shareBtn){
-    shareBtn.style.display=(typeof navigator.share==='function')?'':'none';
-  }
 }
 function closePrint(){
   document.getElementById('print-overlay').classList.remove('open');
@@ -3351,57 +3318,6 @@ function execPrint(){
     }
   }
   setTimeout(function(){ document.title=origTitle; }, 1000);
-}
-function execShare(){
-  if(!R){
-    alert('先に割振りを実行してください。');
-    return;
-  }
-  if(typeof TCB_generateAssignPdfBlob!=='function'&&typeof TCB_generateAssignPdfBlobFromFrame!=='function'){
-    alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
-    return;
-  }
-  var shareBtn=document.getElementById('print-share');
-  var origLabel=shareBtn?shareBtn.textContent:'';
-  function restoreBtn(){
-    if(shareBtn){
-      shareBtn.disabled=false;
-      shareBtn.textContent=origLabel;
-    }
-  }
-  if(shareBtn){
-    shareBtn.disabled=true;
-    shareBtn.textContent='PDF作成中…';
-  }
-  var frame=document.getElementById('print-frame');
-  var out=syncAssignPdfPreview(frame);
-  if(!out){
-    restoreBtn();
-    return;
-  }
-  ensurePrintFrameReady(frame).then(function(){
-    if(typeof TCB_generateAssignPdfBlobFromFrame==='function'){
-      return TCB_generateAssignPdfBlobFromFrame(frame);
-    }
-    return TCB_generateAssignPdfBlob(out.html);
-  }).then(function(blob){
-    return deliverAssignPdfBlob(blob,{
-      fileName:out.fileName,
-      baseName:out.baseName,
-      shareText:SHARE_PDF_MESSAGE,
-      preferShare:true
-    });
-  }).then(function(){
-    /* 共有成功 */
-  }).catch(function(err){
-    if(err&&err.name==='AbortError')return;
-    if(err&&err.message==='share_unavailable'){
-      alert('この端末ではPDFを共有に添付できませんでした。ダウンロードしたファイル（'+out.fileName+'）をファイルアプリからLINEへ添付できます。');
-      return;
-    }
-    console.error(err);
-    alert('PDFの作成に失敗しました。時間をおいて再度お試しください。');
-  }).finally(restoreBtn);
 }
 
 /* ========== マスタUI ========== */
@@ -4135,7 +4051,7 @@ document.addEventListener('DOMContentLoaded',function(){
   /* 印刷モーダル */
   document.getElementById('print-close').addEventListener('click',function(){closePrint();});
   document.getElementById('print-exec').addEventListener('click',function(){execPrint();});
-  document.getElementById('print-share').addEventListener('click',function(){execShare();});
+  document.getElementById('print-copy-share').addEventListener('click',function(){copyAssignShareMessage();});
 
   /* マスタ */
   document.getElementById('btn-master').addEventListener('click',function(){goMaster();});
