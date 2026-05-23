@@ -7,39 +7,6 @@
 
   var A4_W_MM = 210;
   var A4_H_MM = 297;
-  var ASSIGN_PAGE_MARGIN_MM = 6;
-
-  function mmToPx(mm) {
-    return Math.round((mm / 25.4) * 96);
-  }
-
-  function prepareAssignPortraitDocument(doc) {
-    doc.documentElement.style.height = '100%';
-    doc.documentElement.style.overflow = 'hidden';
-    doc.body.style.height = '100%';
-    doc.body.style.overflow = 'hidden';
-    doc.body.style.margin = '0';
-    doc.body.style.padding = '0';
-    var pageEl = doc.querySelector('.page');
-    if (pageEl) {
-      pageEl.style.height = '100%';
-      pageEl.style.overflow = 'hidden';
-    }
-    doc.querySelectorAll('.tcb-print-team-stack, .tool-list, .cards').forEach(function (el) {
-      el.style.overflow = 'visible';
-    });
-  }
-
-  function prepareLandscapeDocument(doc, pageEl) {
-    pageEl.style.height = 'auto';
-    pageEl.style.minHeight = 'auto';
-    pageEl.style.maxHeight = 'none';
-    pageEl.style.overflow = 'visible';
-    doc.documentElement.style.height = 'auto';
-    doc.documentElement.style.overflow = 'visible';
-    doc.body.style.height = 'auto';
-    doc.body.style.overflow = 'visible';
-  }
 
   /**
    * @param {string} htmlFullDocument 完全な HTML 文字列（<!DOCTYPE> 〜）
@@ -50,13 +17,8 @@
     opts = opts || {};
     var orientation = opts.orientation === 'landscape' ? 'landscape' : 'portrait';
     var isAssignPortrait = orientation === 'portrait';
-    var marginMm = isAssignPortrait ? ASSIGN_PAGE_MARGIN_MM : 4;
-    var contentWmm = A4_W_MM - marginMm * 2;
-    var contentHmm = A4_H_MM - marginMm * 2;
-    var iframeW = (isAssignPortrait ? contentWmm : A4_H_MM) + 'mm';
-    var iframeH = (isAssignPortrait ? contentHmm : A4_W_MM) + 'mm';
-    var canvasW = mmToPx(isAssignPortrait ? contentWmm : A4_H_MM);
-    var canvasH = mmToPx(isAssignPortrait ? contentHmm : A4_W_MM);
+    var iframeW = (isAssignPortrait ? A4_W_MM : A4_H_MM) + 'mm';
+    var iframeH = (isAssignPortrait ? A4_H_MM : A4_W_MM) + 'mm';
 
     return new Promise(function (resolve, reject) {
       if (typeof html2pdf === 'undefined') {
@@ -92,31 +54,28 @@
             return;
           }
           var pageEl = doc.querySelector('.page') || doc.body;
-          if (isAssignPortrait) {
-            prepareAssignPortraitDocument(doc);
-          } else {
-            prepareLandscapeDocument(doc, pageEl);
-          }
-
-          var html2canvasOpt = {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-            scrollX: 0,
-            scrollY: 0
-          };
-          if (isAssignPortrait) {
-            html2canvasOpt.width = canvasW;
-            html2canvasOpt.height = canvasH;
-            html2canvasOpt.windowWidth = canvasW;
-            html2canvasOpt.windowHeight = canvasH;
+          if (!isAssignPortrait) {
+            pageEl.style.height = 'auto';
+            pageEl.style.minHeight = 'auto';
+            pageEl.style.maxHeight = 'none';
+            pageEl.style.overflow = 'visible';
+            doc.documentElement.style.height = 'auto';
+            doc.documentElement.style.overflow = 'visible';
+            doc.body.style.height = 'auto';
+            doc.body.style.overflow = 'visible';
           }
 
           var opt = {
-            margin: [marginMm, marginMm, marginMm, marginMm],
+            margin: isAssignPortrait ? [0, 0, 0, 0] : [4, 4, 4, 4],
             image: { type: 'jpeg', quality: 0.92 },
-            html2canvas: html2canvasOpt,
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              scrollX: 0,
+              scrollY: 0
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: orientation },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
           };
@@ -138,9 +97,9 @@
         }
       }
       iframe.onload = function () {
-        requestAnimationFrame(function () {
+        setTimeout(function () {
           requestAnimationFrame(runCapture);
-        });
+        }, 80);
       };
       iframe.onerror = function () {
         cleanup();

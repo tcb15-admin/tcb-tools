@@ -174,9 +174,17 @@ tr.rB td{border-left:3px solid var(--tb);}
 .tcb-print-hdr-title{font-size:15px;font-weight:900;color:#fff;line-height:1.3;}
 .tcb-print-hdr-sub{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;line-height:1.3;}
 .print-close-btn{margin-left:auto;flex-shrink:0;padding:8px 16px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
-.print-actions{background:var(--navy2);padding:8px 14px;display:flex;gap:8px;flex-shrink:0;}
-.print-act-btn{flex:1;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
+.print-actions{background:var(--navy2);padding:8px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+.tcb-print-actions-row{display:flex;gap:8px;width:100%;}
+.tcb-print-actions-row .print-act-btn{flex:1;}
+.print-act-btn{padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
 .print-act-btn.sub{background:#546e7a;}
+.tcb-print-btn-caption{display:block;font-size:10px;font-weight:400;color:var(--h1-sub);margin-top:4px;line-height:1.35;text-align:center;}
+.tcb-print-output-hint{margin:0;font-size:11px;color:var(--h1-sub);line-height:1.45;}
+.tcb-print-filename-note{margin:0;font-size:11px;color:#fff;line-height:1.45;}
+.tcb-print-filename-note strong{font-weight:700;word-break:break-all;}
+html.theme-b16 .tcb-print-filename-note{color:#475569;}
+html.theme-b16 .tcb-print-btn-caption{color:#64748b;}
 html.theme-b16 .print-header{
   background:#fff;
   border-bottom:3px solid #c0000a;
@@ -584,8 +592,18 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="print-close-btn" id="print-close">&#10005; 閉じる</button>
   </div>
   <div class="print-actions">
-    <button class="print-act-btn" id="print-exec">&#128424; 印刷 / PDF保存</button>
-    <button type="button" class="print-act-btn sub" id="print-share" style="display:none;">&#8679; PDFで共有</button>
+    <div class="tcb-print-actions-row">
+      <div style="flex:1;min-width:0;">
+        <button type="button" class="print-act-btn" id="print-exec">&#128424; 印刷 / PDF保存</button>
+        <span class="tcb-print-btn-caption">PCなど（LINEなし）：印刷ダイアログでフォルダへ保存</span>
+      </div>
+      <div id="print-share-wrap" style="flex:1;min-width:0;display:none;">
+        <button type="button" class="print-act-btn sub" id="print-share">&#8679; PDFで共有</button>
+        <span class="tcb-print-btn-caption">スマホなど：そのままLINEへ送る</span>
+      </div>
+    </div>
+    <p class="tcb-print-output-hint">どちらも同じ内容・同じファイル名のPDFです。保存先や共有先だけ異なります。</p>
+    <p class="tcb-print-filename-note">出力ファイル名：<strong id="print-filename-preview"></strong></p>
   </div>
   <iframe id="print-frame"></iframe>
 </div>
@@ -3078,6 +3096,9 @@ function buildPrintHTML(){
     '*{box-sizing:border-box;margin:0;padding:0;}',
     '@page{size:A4 portrait;margin:6mm;}',
     'html,body{height:100%;font-family:sans-serif;background:#fff;}',
+    '@media screen{html,body{width:210mm;height:297mm;margin:0;overflow:hidden;}',
+    '.page{padding:6mm;box-sizing:border-box;}}',
+    '@media print{.page{padding:0;}}',
     '.page{height:100%;display:flex;flex-direction:column;overflow:hidden;}',
     '.header{background:'+_ph+';color:#fff;border-radius:5px;padding:6px 12px;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-shrink:0;}',
     '.header-logo{width:30px;height:30px;border-radius:5px;object-fit:cover;flex-shrink:0;}',
@@ -3125,6 +3146,68 @@ function buildPrintHTML(){
 }
 var _pdfTitle='道具割振り';
 var SHARE_PDF_MESSAGE='お疲れ様です。本日のチーム道具の割り振りを展開します。ご確認ならびにご対応よろしくお願いします。';
+function getAssignPdfBaseName(){
+  return _pdfTitle||'道具割振り';
+}
+function getAssignPdfFileName(){
+  return getAssignPdfBaseName()+'.pdf';
+}
+function applyAssignPdfTitles(doc){
+  var name=getAssignPdfBaseName();
+  if(doc&&doc.title!==undefined)doc.title=name;
+}
+/** 印刷HTML・ファイル名を最新化してプレビューiframeへ反映 */
+function prepareAssignPdfOutput(){
+  var html=buildPrintHTML();
+  if(!html)return null;
+  return{
+    html:html,
+    baseName:getAssignPdfBaseName(),
+    fileName:getAssignPdfFileName()
+  };
+}
+function syncAssignPdfPreview(frame){
+  var out=prepareAssignPdfOutput();
+  if(!out)return null;
+  if(frame)frame.srcdoc=out.html;
+  var nameEl=document.getElementById('print-filename-preview');
+  if(nameEl)nameEl.textContent=out.fileName;
+  return out;
+}
+/** PDF Blob の配布（共有 or ダウンロード）。ファイル名は印刷保存と同一 */
+function deliverAssignPdfBlob(blob,opts){
+  opts=opts||{};
+  if(!(blob instanceof Blob)||blob.size===0){
+    return Promise.reject(new Error('empty pdf'));
+  }
+  var fileName=opts.fileName||getAssignPdfFileName();
+  var baseName=opts.baseName||getAssignPdfBaseName();
+  var shareText=opts.shareText||SHARE_PDF_MESSAGE;
+  var preferShare=opts.preferShare!==false;
+  var file=new File([blob],fileName,{type:'application/pdf'});
+  if(preferShare&&typeof navigator.share==='function'){
+    var withFiles={files:[file],title:baseName,text:shareText};
+    if(navigator.canShare&&navigator.canShare(withFiles)){
+      return navigator.share(withFiles);
+    }
+  }
+  var url=URL.createObjectURL(blob);
+  try{
+    var a=document.createElement('a');
+    a.href=url;
+    a.download=fileName;
+    a.rel='noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }finally{
+    setTimeout(function(){URL.revokeObjectURL(url);},4000);
+  }
+  if(preferShare){
+    return Promise.reject(new Error('share_unavailable'));
+  }
+  return Promise.resolve();
+}
 function openPrint(){
   if(!R){alert('先に割振りを実行してください。');return;}
   var mainLogo=document.querySelector('header img.logo');
@@ -3133,53 +3216,50 @@ function openPrint(){
     phLogo.src=mainLogo.currentSrc||mainLogo.src;
     phLogo.style.display='';
   }
-  var content=buildPrintHTML();
-  if(!content)return;
-  var overlay=document.getElementById('print-overlay');
   var frame=document.getElementById('print-frame');
-  frame.srcdoc=content;
-  /* iframe読込完了後にtitleを確実に設定 */
+  var out=syncAssignPdfPreview(frame);
+  if(!out)return;
+  var overlay=document.getElementById('print-overlay');
   frame.onload=function(){
-    try{
-      frame.contentDocument.title=_pdfTitle;
-    }catch(e){}
+    try{applyAssignPdfTitles(frame.contentDocument);}catch(e){}
   };
   overlay.classList.add('open');
-  /* スマホ共有ボタン */
-  var shareBtn=document.getElementById('print-share');
-  if(navigator.share){shareBtn.style.display='';}else{shareBtn.style.display='none';}
+  var shareWrap=document.getElementById('print-share-wrap');
+  if(shareWrap){
+    shareWrap.style.display=(typeof navigator.share==='function')?'':'none';
+  }
 }
 function closePrint(){
   document.getElementById('print-overlay').classList.remove('open');
 }
 function execPrint(){
+  if(!R){alert('先に割振りを実行してください。');return;}
   var frame=document.getElementById('print-frame');
-  /* 印刷ファイル名のために親ページのタイトルを一時変更 */
+  var out=syncAssignPdfPreview(frame);
+  if(!out)return;
   var origTitle=document.title;
-  document.title=_pdfTitle;
+  document.title=out.baseName;
   try{
-    /* iframeのtitleも設定 */
-    try{ frame.contentDocument.title=_pdfTitle; }catch(e2){}
+    try{applyAssignPdfTitles(frame.contentDocument);}catch(e2){}
     frame.contentWindow.focus();
     frame.contentWindow.print();
   }catch(e){
-    /* iframeのprintが効かない環境では新しいウィンドウで開く */
     var w=window.open('','_blank');
-    if(w){w.document.write(buildPrintHTML());w.document.close();w.print();}
+    if(w){
+      w.document.write(out.html);
+      w.document.close();
+      applyAssignPdfTitles(w.document);
+      w.print();
+    }
   }
-  /* 印刷ダイアログが閉じた後にタイトルを元に戻す */
   setTimeout(function(){ document.title=origTitle; }, 1000);
 }
 function execShare(){
-  if(!navigator.share){
-    alert('この環境では共有APIを利用できません。');
-    return;
-  }
   if(!R){
     alert('先に割振りを実行してください。');
     return;
   }
-  if(typeof TCB_generateAssignPdfBlob!=='function'&&typeof TCB_generateAssignPdfBlobFromFrame!=='function'){
+  if(typeof TCB_generateAssignPdfBlob!=='function'){
     alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
     return;
   }
@@ -3196,43 +3276,28 @@ function execShare(){
     shareBtn.textContent='PDF作成中…';
   }
   var frame=document.getElementById('print-frame');
-  var html=(frame&&frame.srcdoc)?frame.srcdoc:buildPrintHTML();
-  if(!html){
+  var out=syncAssignPdfPreview(frame);
+  if(!out){
     restoreBtn();
     return;
   }
-  var baseName=(_pdfTitle||'道具割振り').replace(/[\\/:*?"<>]/g,'_').replace(/\s+/g,' ').trim().slice(0,120);
-  var safeName=(baseName||'道具割振り')+'.pdf';
-  var gen=typeof TCB_generateAssignPdfBlobFromFrame==='function'?TCB_generateAssignPdfBlobFromFrame:TCB_generateAssignPdfBlob;
-  var pdfPromise=(frame&&frame.contentDocument&&frame.contentDocument.body)?gen(frame):TCB_generateAssignPdfBlob(html);
-  pdfPromise.then(function(blob){
-    if(!(blob instanceof Blob)||blob.size===0){
-      throw new Error('empty pdf');
-    }
-    var file=new File([blob],safeName,{type:'application/pdf'});
-    var title=_pdfTitle||'道具割振り';
-    var text=SHARE_PDF_MESSAGE;
-    var withFiles={files:[file],title:title,text:text};
-    if(navigator.canShare&&navigator.canShare(withFiles)){
-      return navigator.share(withFiles);
-    }
-    var url=URL.createObjectURL(blob);
-    try{
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=safeName;
-      a.rel='noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }finally{
-      setTimeout(function(){URL.revokeObjectURL(url);},4000);
-    }
-    alert('この端末ではPDFを共有に添付できませんでした。PDFをダウンロードしました。ファイルアプリからLINEへ添付できます。');
+  TCB_generateAssignPdfBlob(out.html).then(function(blob){
+    return deliverAssignPdfBlob(blob,{
+      fileName:out.fileName,
+      baseName:out.baseName,
+      shareText:SHARE_PDF_MESSAGE,
+      preferShare:true
+    });
+  }).then(function(){
+    /* 共有成功 */
   }).catch(function(err){
     if(err&&err.name==='AbortError')return;
+    if(err&&err.message==='share_unavailable'){
+      alert('この端末ではPDFを共有に添付できませんでした。ダウンロードしたファイル（'+out.fileName+'）をファイルアプリからLINEへ添付できます。');
+      return;
+    }
     console.error(err);
-    alert('PDFの作成に失敗しました。時間をおいて再度お試しか、「印刷 / PDF保存」から保存してください。');
+    alert('PDFの作成に失敗しました。時間をおいて再度お試しください。');
   }).finally(restoreBtn);
 }
 
