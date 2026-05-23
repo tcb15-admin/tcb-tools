@@ -3102,7 +3102,13 @@ function buildPrintHTML(){
     '.tool-desc{font-weight:400;color:#78909c;line-height:1.35;white-space:normal;word-break:break-word;overflow-wrap:anywhere;width:100%;}',
     'p.pex{font-size:9px;color:#c62828;margin-top:4px;flex-shrink:0;}',
     '.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
-    '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
+    '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}',
+    /* PDF共有（html2canvas）用：frグリッドをautoに（キャプチャ空白・潰れ防止） */
+    'html.tcb-pdf-export,html.tcb-pdf-export body{width:210mm;height:auto;overflow:visible;}',
+    'html.tcb-pdf-export .page{height:auto;min-height:0;max-height:none;overflow:visible;padding:0;}',
+    'html.tcb-pdf-export .tcb-print-team-stack,html.tcb-pdf-export .tcb-print-team-section{flex:none;min-height:0;overflow:visible;}',
+    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{flex:none;grid-auto-rows:auto;min-height:0;overflow:visible;}',
+    'html.tcb-pdf-export .card-body,html.tcb-pdf-export .tool-list{overflow:visible;}'
   ].join('');
   /* mmdd形式のファイル名生成 */
   var fnDate='';
