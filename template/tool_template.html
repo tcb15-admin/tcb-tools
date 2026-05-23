@@ -174,17 +174,9 @@ tr.rB td{border-left:3px solid var(--tb);}
 .tcb-print-hdr-title{font-size:15px;font-weight:900;color:#fff;line-height:1.3;}
 .tcb-print-hdr-sub{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;line-height:1.3;}
 .print-close-btn{margin-left:auto;flex-shrink:0;padding:8px 16px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
-.print-actions{background:var(--navy2);padding:8px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
-.tcb-print-actions-row{display:flex;gap:8px;width:100%;}
-.tcb-print-actions-row .print-act-btn{flex:1;}
-.print-act-btn{padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
+.print-actions{background:var(--navy2);padding:8px 14px;display:flex;gap:8px;flex-shrink:0;}
+.print-act-btn{flex:1;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
 .print-act-btn.sub{background:#546e7a;}
-.tcb-print-btn-caption{display:block;font-size:10px;font-weight:400;color:var(--h1-sub);margin-top:4px;line-height:1.35;text-align:center;}
-.tcb-print-output-hint{margin:0;font-size:11px;color:var(--h1-sub);line-height:1.45;}
-.tcb-print-filename-note{margin:0;font-size:11px;color:#fff;line-height:1.45;}
-.tcb-print-filename-note strong{font-weight:700;word-break:break-all;}
-html.theme-b16 .tcb-print-filename-note{color:#475569;}
-html.theme-b16 .tcb-print-btn-caption{color:#64748b;}
 html.theme-b16 .print-header{
   background:#fff;
   border-bottom:3px solid #c0000a;
@@ -592,18 +584,8 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="print-close-btn" id="print-close">&#10005; 閉じる</button>
   </div>
   <div class="print-actions">
-    <div class="tcb-print-actions-row">
-      <div style="flex:1;min-width:0;">
-        <button type="button" class="print-act-btn" id="print-exec">&#128424; 印刷 / PDF保存</button>
-        <span class="tcb-print-btn-caption">PCなど（LINEなし）：印刷ダイアログでフォルダへ保存</span>
-      </div>
-      <div id="print-share-wrap" style="flex:1;min-width:0;display:none;">
-        <button type="button" class="print-act-btn sub" id="print-share">&#8679; PDFで共有</button>
-        <span class="tcb-print-btn-caption">スマホなど：そのままLINEへ送る</span>
-      </div>
-    </div>
-    <p class="tcb-print-output-hint">どちらも同じ内容・同じファイル名のPDFです。保存先や共有先だけ異なります。</p>
-    <p class="tcb-print-filename-note">出力ファイル名：<strong id="print-filename-preview"></strong></p>
+    <button type="button" class="print-act-btn" id="print-exec">&#128424; 印刷 / PDF保存</button>
+    <button type="button" class="print-act-btn sub" id="print-share" style="display:none;">&#8679; PDFで共有</button>
   </div>
   <iframe id="print-frame"></iframe>
 </div>
@@ -3191,11 +3173,9 @@ function buildPrintHTML(){
   var css=[
     '*{box-sizing:border-box;margin:0;padding:0;}',
     '@page{size:A4 portrait;margin:6mm;}',
-    'html,body{height:100%;font-family:sans-serif;background:#fff;}',
-    '@media screen{html,body{width:210mm;height:297mm;margin:0;overflow:hidden;}',
-    '.page{padding:6mm;box-sizing:border-box;}}',
+    'html,body{width:210mm;height:297mm;margin:0;overflow:hidden;font-family:sans-serif;background:#fff;}',
     '@media print{.page{padding:0;}}',
-    '.page{height:100%;display:flex;flex-direction:column;overflow:hidden;}',
+    '.page{height:100%;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;}',
     '.header{background:'+_ph+';color:#fff;border-radius:5px;padding:6px 12px;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-shrink:0;}',
     '.header-logo{width:30px;height:30px;border-radius:5px;object-fit:cover;flex-shrink:0;}',
     '.header-text{flex:1;}',
@@ -3204,15 +3184,15 @@ function buildPrintHTML(){
     '.gh{font-size:10px;font-weight:900;padding:3px 10px;border-radius:4px;margin:4px 0 3px;flex-shrink:0;}',
     '.ghA{background:'+_plb+';color:'+_pl+';border-left:3px solid '+_pl+';}',
     '.ghB{background:#f3e5f5;color:#6a1b9a;border-left:3px solid #6a1b9a;}',
-    '.tcb-print-team-stack{display:flex;flex:1;flex-direction:column;min-height:0;gap:12px;width:100%;overflow:auto;}',
-    '.tcb-print-team-section{display:flex;flex-direction:column;width:100%;flex-shrink:0;}',
-    '.tcb-print-team-cards{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;grid-auto-rows:auto;min-height:0;}',
+    '.tcb-print-team-stack{display:flex;flex:1;flex-direction:column;min-height:0;gap:8px;width:100%;overflow:hidden;}',
+    '.tcb-print-team-section{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;width:100%;}',
+    '.tcb-print-team-cards{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;grid-auto-rows:minmax(0,1fr);min-height:0;overflow:hidden;}',
     '.cards{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;grid-auto-rows:minmax(0,1fr);min-height:0;}',
     '.card{background:#fff;border-radius:4px;overflow:hidden;border:1px solid #e0e0e0;border-left:3px solid #cfd8dc;display:flex;flex-direction:column;min-height:0;}',
     '.card-body{padding:4px 6px;flex:1;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;}',
     '.prA{border-left-color:'+_pl+';}.prB{border-left-color:#6a1b9a;}',
     '.person-name{font-size:14px;font-weight:900;color:#1a2e45;line-height:1.3;margin-bottom:3px;border-bottom:1px solid #e0e0e0;padding-bottom:3px;flex-shrink:0;}',
-    '.tool-list{flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:3px;overflow:auto;min-height:0;}',
+    '.tool-list{flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:3px;overflow:hidden;min-height:0;}',
     '.tool-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.25;min-width:0;width:100%;}',
     '.tool-name{font-weight:700;color:'+_pl+';word-break:break-word;}',
     '.tool-desc{font-weight:400;color:#78909c;line-height:1.35;white-space:normal;word-break:break-word;overflow-wrap:anywhere;width:100%;}',
@@ -3266,9 +3246,25 @@ function syncAssignPdfPreview(frame){
   var out=prepareAssignPdfOutput();
   if(!out)return null;
   if(frame)frame.srcdoc=out.html;
-  var nameEl=document.getElementById('print-filename-preview');
-  if(nameEl)nameEl.textContent=out.fileName;
   return out;
+}
+function ensurePrintFrameReady(frame){
+  return new Promise(function(resolve,reject){
+    if(!frame){reject(new Error('no frame'));return;}
+    function ready(){
+      setTimeout(function(){resolve(frame);},120);
+    }
+    function hasPage(){
+      try{
+        return !!(frame.contentDocument&&frame.contentDocument.querySelector('.page'));
+      }catch(e){return false;}
+    }
+    if(hasPage()){ready();return;}
+    frame.onload=function(){
+      if(hasPage())ready();
+      else reject(new Error('preview not ready'));
+    };
+  });
 }
 /** PDF Blob の配布（共有 or ダウンロード）。ファイル名は印刷保存と同一 */
 function deliverAssignPdfBlob(blob,opts){
@@ -3320,9 +3316,9 @@ function openPrint(){
     try{applyAssignPdfTitles(frame.contentDocument);}catch(e){}
   };
   overlay.classList.add('open');
-  var shareWrap=document.getElementById('print-share-wrap');
-  if(shareWrap){
-    shareWrap.style.display=(typeof navigator.share==='function')?'':'none';
+  var shareBtn=document.getElementById('print-share');
+  if(shareBtn){
+    shareBtn.style.display=(typeof navigator.share==='function')?'':'none';
   }
 }
 function closePrint(){
@@ -3355,7 +3351,7 @@ function execShare(){
     alert('先に割振りを実行してください。');
     return;
   }
-  if(typeof TCB_generateAssignPdfBlob!=='function'){
+  if(typeof TCB_generateAssignPdfBlob!=='function'&&typeof TCB_generateAssignPdfBlobFromFrame!=='function'){
     alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
     return;
   }
@@ -3377,7 +3373,12 @@ function execShare(){
     restoreBtn();
     return;
   }
-  TCB_generateAssignPdfBlob(out.html).then(function(blob){
+  ensurePrintFrameReady(frame).then(function(){
+    if(typeof TCB_generateAssignPdfBlobFromFrame==='function'){
+      return TCB_generateAssignPdfBlobFromFrame(frame);
+    }
+    return TCB_generateAssignPdfBlob(out.html);
+  }).then(function(blob){
     return deliverAssignPdfBlob(blob,{
       fileName:out.fileName,
       baseName:out.baseName,

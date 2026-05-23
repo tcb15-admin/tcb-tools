@@ -8,6 +8,50 @@
   var A4_W_MM = 210;
   var A4_H_MM = 297;
 
+  /** 担当表（縦A4）を印刷と同じ1ページに収める */
+  function prepareAssignPortraitPage(doc, pageEl) {
+    if (!doc || !pageEl) return;
+    doc.documentElement.style.width = A4_W_MM + 'mm';
+    doc.documentElement.style.height = A4_H_MM + 'mm';
+    doc.documentElement.style.overflow = 'hidden';
+    doc.body.style.width = A4_W_MM + 'mm';
+    doc.body.style.height = A4_H_MM + 'mm';
+    doc.body.style.overflow = 'hidden';
+    pageEl.style.height = '100%';
+    pageEl.style.maxHeight = '100%';
+    pageEl.style.padding = '0';
+    pageEl.style.overflow = 'hidden';
+    pageEl.style.boxSizing = 'border-box';
+
+    var stack = doc.querySelector('.tcb-print-team-stack');
+    if (stack) {
+      stack.style.overflow = 'hidden';
+      stack.style.flex = '1';
+      stack.style.minHeight = '0';
+    }
+    doc.querySelectorAll('.tcb-print-team-section').forEach(function (sec) {
+      sec.style.flex = '1';
+      sec.style.minHeight = '0';
+      sec.style.overflow = 'hidden';
+    });
+    doc.querySelectorAll('.tcb-print-team-cards').forEach(function (grid) {
+      grid.style.flex = '1';
+      grid.style.gridAutoRows = 'minmax(0, 1fr)';
+      grid.style.minHeight = '0';
+      grid.style.overflow = 'hidden';
+    });
+    var cards = doc.querySelector('.cards');
+    if (cards) {
+      cards.style.flex = '1';
+      cards.style.gridAutoRows = 'minmax(0, 1fr)';
+      cards.style.minHeight = '0';
+      cards.style.overflow = 'hidden';
+    }
+    doc.querySelectorAll('.tool-list').forEach(function (tl) {
+      tl.style.overflow = 'hidden';
+    });
+  }
+
   /**
    * @param {string} htmlFullDocument 完全な HTML 文字列（<!DOCTYPE> 〜）
    * @param {{ orientation?: 'portrait'|'landscape' }} [opts]
@@ -54,7 +98,9 @@
             return;
           }
           var pageEl = doc.querySelector('.page') || doc.body;
-          if (!isAssignPortrait) {
+          if (isAssignPortrait) {
+            prepareAssignPortraitPage(doc, pageEl);
+          } else {
             pageEl.style.height = 'auto';
             pageEl.style.minHeight = 'auto';
             pageEl.style.maxHeight = 'none';
@@ -65,8 +111,10 @@
             doc.body.style.overflow = 'visible';
           }
 
+          var capW = pageEl.offsetWidth || iframe.clientWidth;
+          var capH = pageEl.offsetHeight || iframe.clientHeight;
           var opt = {
-            margin: isAssignPortrait ? [0, 0, 0, 0] : [4, 4, 4, 4],
+            margin: isAssignPortrait ? [6, 6, 6, 6] : [4, 4, 4, 4],
             image: { type: 'jpeg', quality: 0.92 },
             html2canvas: {
               scale: 2,
@@ -74,10 +122,14 @@
               allowTaint: true,
               logging: false,
               scrollX: 0,
-              scrollY: 0
+              scrollY: 0,
+              width: capW,
+              height: capH,
+              windowWidth: capW,
+              windowHeight: capH
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: orientation },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            pagebreak: { mode: isAssignPortrait ? ['avoid-all'] : ['avoid-all', 'css', 'legacy'] }
           };
           html2pdf()
             .set(opt)
@@ -99,7 +151,7 @@
       iframe.onload = function () {
         setTimeout(function () {
           requestAnimationFrame(runCapture);
-        }, 80);
+        }, 120);
       };
       iframe.onerror = function () {
         cleanup();
