@@ -3100,6 +3100,7 @@ function buildPrintHTML(){
     '.tool-name{font-weight:700;color:'+_pl+';word-break:break-word;}',
     '.tool-desc{font-weight:400;color:#78909c;line-height:1.35;white-space:normal;word-break:break-word;overflow-wrap:anywhere;width:100%;}',
     'p.pex{font-size:9px;color:#c62828;margin-top:4px;flex-shrink:0;}',
+    '.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
     '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
   ].join('');
   /* mmdd形式のファイル名生成 */
@@ -3110,7 +3111,7 @@ function buildPrintHTML(){
     var dd2=String(dt.getDate()).padStart(2,'0');
     fnDate=mm+dd2+'_';
   }
-  var pdfTitle=fnDate+'道具割振り｜東海中央ボーイズ16期';
+  var pdfTitle=fnDate+'道具割振り｜東海中央16期';
   _pdfTitle=pdfTitle;
   var headerSub=hideTeam?ddFmt:(ddFmt+'（'+pl+'）');
   return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
@@ -3193,12 +3194,13 @@ function execShare(){
     shareBtn.disabled=true;
     shareBtn.textContent='PDF作成中…';
   }
-  var html=buildPrintHTML();
+  var frame=document.getElementById('print-frame');
+  var html=(frame&&frame.srcdoc)?frame.srcdoc:buildPrintHTML();
   if(!html){
     restoreBtn();
     return;
   }
-  var baseName=(_pdfTitle||'道具割振り').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,' ').trim().slice(0,120);
+  var baseName=(_pdfTitle||'道具割振り').replace(/[\\/:*?"<>]/g,'_').replace(/\s+/g,' ').trim().slice(0,120);
   var safeName=(baseName||'道具割振り')+'.pdf';
   TCB_generateAssignPdfBlob(html).then(function(blob){
     if(!(blob instanceof Blob)||blob.size===0){
