@@ -157,6 +157,9 @@ tr.rB td{border-left:3px solid var(--tb);}
 #modal-img.tcb-desc-modal-img{width:100%;max-width:100%;border-radius:10px;margin:0 auto 12px;max-height:min(55vh,420px);height:auto;object-fit:contain;object-position:center top;background:#f2f4f7;}
 .modal p{font-size:14px;color:var(--txt);line-height:1.8;}
 .tcb-prev-modal-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.tcb-hist-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.tcb-hist-detail-cond{margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6;}
+.tcb-hist-detail-cond strong{color:var(--navy);}
 .tcb-prev-modal-cond{margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6;}
 .tcb-prev-modal-cond strong{color:var(--navy);}
 .tcb-seed-mode-banner{display:none;margin-bottom:10px;padding:10px 12px;background:#e8f4fd;border-left:4px solid var(--blue);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.55;}
@@ -600,7 +603,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   <div class="modal">
     <button class="mclose" id="hist-modal-close">&#10005;</button>
     <h2>&#128336; 割振り履歴</h2>
-    <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">活動日をタップすると詳細を表示。チェックで選択削除できます。</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">活動日をタップすると詳細を表示します。詳細から<strong>この結果を元に割り振りを直す</strong>こともできます（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
     <div class="tcb-ui-advanced" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <button type="button" id="hist-month-btn" class="tcb-hist-mo-openbtn">&#128197; 直近1年（活動日）：一覧・PDF</button>
       <span style="font-size:11px;color:var(--txt2);line-height:1.45;">活動日が今日から<strong>過去1年以内</strong>のデータを、道具ごとの担当の並びで表示します（保護者向けPDF用）。</span>
@@ -626,8 +629,13 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   <div class="modal">
     <button class="mclose" id="hist-detail-close">&#10005;</button>
     <h2 id="hist-detail-title"></h2>
+    <div class="tcb-hist-detail-actions" id="hist-detail-actions">
+      <button type="button" class="rbtn" id="btn-hist-start-reedit">この結果を元に割り振りを直す</button>
+      <button type="button" class="nb nbs" id="btn-hist-detail-close2">閉じる</button>
+    </div>
+    <div class="tcb-hist-detail-cond" id="hist-detail-cond"></div>
     <div id="hist-detail-body"></div>
-  </div>
+</div>
 </div>
 
 <!-- 直近1年（活動日）割振り一覧 -->
@@ -1728,11 +1736,17 @@ function beginReeditFromSnap(snap){
   restoreExclusionStateFromSnap(enriched);
   updateSeedModeBanners();
   closeModal('prev-modal');
+  closeModal('hist-detail-modal');
+  closeModal('hist-modal');
+  persistAllocationSnapshot(enriched);
   goStep(2);
   return true;
 }
 function beginReeditFromStoredPrev(){
   return beginReeditFromSnap(loadStoredAllocationSnap());
+}
+function beginReeditFromHistDetail(){
+  return beginReeditFromSnap(_histDetailSnap);
 }
 function beginReeditFromCurrentResult(){
   if(!R){
@@ -3852,9 +3866,15 @@ function buildHistDetailByPersonRows(tools,snap,trClass){
 }
 
 function showHistDetail(snap){
+  _histDetailSnap=snap;
   var dd=snap.date?new Date(snap.date).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}):'';
   var pl=patLabel(snap.pat,!!snap.renshuSplit)||snap.pat||'';
   document.getElementById('hist-detail-title').textContent=dd+'（'+pl+'）';
+  var condEl=document.getElementById('hist-detail-cond');
+  if(condEl){
+    condEl.innerHTML=formatSnapConditionsHtml(snap);
+    condEl.style.display='block';
+  }
   var body=document.getElementById('hist-detail-body');
   var la=snap.la||'A', lb=snap.lb||'B';
   var html='';
@@ -3882,6 +3902,7 @@ function showHistDetail(snap){
 /* ----- 直近1年（活動日）道具×日付一覧・PDF ----- */
 var _histMonthPdfTitle='割振り履歴_直近1年｜{{TEAM_SHORT_NAME}}';
 var _histMonthCache=[];
+var _histDetailSnap=null;
 function parseActivityDayMs(dv){
   if(dv===undefined||dv===null||dv==='')return NaN;
   var s=String(dv);
@@ -4195,6 +4216,10 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('hist-month-pdf').addEventListener('click',function(){execHistMonthPdf();});
   document.getElementById('hist-detail-close').addEventListener('click',function(){closeModal('hist-detail-modal');});
   document.getElementById('hist-detail-modal').addEventListener('click',function(e){if(e.target===this)closeModal('hist-detail-modal');});
+  var btnHistReedit=document.getElementById('btn-hist-start-reedit');
+  if(btnHistReedit)btnHistReedit.addEventListener('click',function(){beginReeditFromHistDetail();});
+  var btnHistClose2=document.getElementById('btn-hist-detail-close2');
+  if(btnHistClose2)btnHistClose2.addEventListener('click',function(){closeModal('hist-detail-modal');});
   document.getElementById('hist-export-btn').addEventListener('click',function(){
     var hist=getHistoryCache();
     if(!hist.length){alert('履歴がありません。');return;}
