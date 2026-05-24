@@ -590,7 +590,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   <div class="print-actions">
     <button type="button" class="print-act-btn" id="print-exec">&#128424; 印刷 / PDF保存</button>
     <button type="button" class="print-act-btn sub" id="print-copy-share">&#128203; LINE用メッセージをコピー</button>
-    <p class="tcb-print-line-note">PDFは<strong>「印刷 / PDF保存」</strong>から保存してください（スマホは印刷画面で<strong>PDFに保存</strong>）。「PDFで共有」ボタンは廃止しました。表示が古い場合はページを再読み込みしてください。</p>
+    <p class="tcb-print-line-note">PDFは<strong>「印刷 / PDF保存」</strong>から保存してください。スマホは<strong>mmdd_道具割振り｜…</strong>のファイル名でPDFを作成します（iPhoneは共有シートから<strong>ファイルに保存</strong>を選んでください）。PCは印刷ダイアログからPDF保存できます。</p>
   </div>
   <iframe id="print-frame"></iframe>
 </div>
@@ -957,6 +957,8 @@ var WA=3,WB=1,WC=6;
 var pat='kata', absS={}, ochS={}, skipS={}, tmMap={}, R=null;
 /* 前回 map を基準に差分だけ再割当（STEP1前回／STEP3元に再編集で開始） */
 var seedFromPrev=false, seedBaseSnap=null;
+/* 前回ベース再割当後の PDF ファイル名は活動日ではなく当日日付 */
+var pdfFileNameUseTodayDate=false;
 var _persistAllocTimer=null;
 /* STEP3：公平再分配で対象に含める道具（道具名→1） */
 var rebalanceMark={};
@@ -1625,6 +1627,7 @@ function beginReeditFromSnap(snap){
   if(!enriched)return false;
   seedBaseSnap=clonePlainObj(enriched);
   seedFromPrev=true;
+  pdfFileNameUseTodayDate=true;
   applySnapToActivityUI(enriched);
   restoreExclusionStateFromSnap(enriched);
   updateSeedModeBanners();
@@ -2784,13 +2787,16 @@ function runAlgo(){
         return;
       }
       clearSeedFromPrevMode();
+      pdfFileNameUseTodayDate=false;
     }else{
       runAlgoApplyPrevSeed(seedSnap, ctx, runSeed);
       usedPrevSeed=true;
+      pdfFileNameUseTodayDate=true;
       clearSeedFromPrevMode();
     }
   }
   if(!usedPrevSeed){
+    pdfFileNameUseTodayDate=false;
     var prevAssignMap=loadPrevAssignMap();
     if(ctx.mode==='team'){
       var sA=doAssign(ctx.tA,initSt(ctx.mA),prevAssignMap,runSeed);
@@ -3151,13 +3157,14 @@ function buildPrintHTML(){
     '.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
     '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
   ].join('');
-  /* mmdd形式のファイル名生成 */
+  /* mmdd形式のファイル名生成（前回ベース再割当時は当日日付・ローカル日付） */
   var fnDate='';
-  if(dv){
-    var dt=new Date(dv);
-    var mm=String(dt.getMonth()+1).padStart(2,'0');
-    var dd2=String(dt.getDate()).padStart(2,'0');
-    fnDate=mm+dd2+'_';
+  if(pdfFileNameUseTodayDate){
+    var now=new Date();
+    fnDate=formatMmddFilePrefix(now.getFullYear(),now.getMonth()+1,now.getDate());
+  }else{
+    var nameParts=parseIsoDateLocal(dv);
+    if(nameParts)fnDate=formatMmddFilePrefix(nameParts.y,nameParts.m,nameParts.d);
   }
   var pdfTitle=fnDate+'道具割振り｜東海中央15期';
   _pdfTitle=pdfTitle;
@@ -3197,6 +3204,18 @@ function copyAssignShareMessage(){
   document.body.removeChild(ta);
   done(ok);
 }
+function localIsoDateFromDate(d){
+  d=d||new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function parseIsoDateLocal(str){
+  var m=String(str||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return null;
+  return {y:+m[1],m:+m[2],d:+m[3]};
+}
+function formatMmddFilePrefix(y,m,d){
+  return String(m).padStart(2,'0')+String(d).padStart(2,'0')+'_';
+}
 function getAssignPdfBaseName(){
   return _pdfTitle||'道具割振り';
 }
@@ -3206,6 +3225,67 @@ function getAssignPdfFileName(){
 function applyAssignPdfTitles(doc){
   var name=getAssignPdfBaseName();
   if(doc&&doc.title!==undefined)doc.title=name;
+}
+/** スマホは print() ではファイル名を指定できないため Blob 保存に切り替える */
+function preferAssignPdfBlobSave(){
+  var ua=navigator.userAgent||'';
+  if(/Android|iPhone|iPad|iPod|Mobile/i.test(ua))return true;
+  if(navigator.maxTouchPoints>0&&window.matchMedia('(pointer:coarse)').matches)return true;
+  return false;
+}
+function isIosLikeBrowser(){
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+}
+/** PDF Blob の保存（Android=ダウンロード、iOS=共有シート経由でファイル名を維持） */
+function deliverAssignPdfBlob(blob,opts){
+  opts=opts||{};
+  if(!(blob instanceof Blob)||!blob.size){
+    return Promise.reject(new Error('empty pdf'));
+  }
+  var fileName=opts.fileName||getAssignPdfFileName();
+  var baseName=opts.baseName||getAssignPdfBaseName();
+  var file=new File([blob],fileName,{type:'application/pdf'});
+  if(opts.useShareFirst&&typeof navigator.share==='function'){
+    var payload={files:[file],title:baseName};
+    if(!navigator.canShare||navigator.canShare(payload)){
+      return navigator.share(payload);
+    }
+  }
+  var url=URL.createObjectURL(blob);
+  try{
+    var a=document.createElement('a');
+    a.href=url;
+    a.download=fileName;
+    a.rel='noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }finally{
+    setTimeout(function(){URL.revokeObjectURL(url);},4000);
+  }
+  return Promise.resolve();
+}
+function execAssignPdfBlobSave(out){
+  if(typeof TCB_generateAssignPdfBlob!=='function'){
+    alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
+    return;
+  }
+  var btn=document.getElementById('print-exec');
+  var orig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='PDF作成中…';}
+  TCB_generateAssignPdfBlob(out.html).then(function(blob){
+    return deliverAssignPdfBlob(blob,{
+      fileName:out.fileName,
+      baseName:out.baseName,
+      useShareFirst:isIosLikeBrowser()
+    });
+  }).catch(function(err){
+    if(err&&err.name==='AbortError')return;
+    console.error(err);
+    alert('PDFの作成に失敗しました。時間をおいて再度お試しください。');
+  }).finally(function(){
+    if(btn){btn.disabled=false;btn.textContent=orig;}
+  });
 }
 /** 印刷HTML・ファイル名を最新化してプレビューiframeへ反映 */
 function prepareAssignPdfOutput(){
@@ -3248,6 +3328,10 @@ function execPrint(){
   var frame=document.getElementById('print-frame');
   var out=syncAssignPdfPreview(frame);
   if(!out)return;
+  if(preferAssignPdfBlobSave()){
+    execAssignPdfBlobSave(out);
+    return;
+  }
   var origTitle=document.title;
   document.title=out.baseName;
   try{
@@ -3908,10 +3992,10 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   loadMaster();
   initPw();
-  document.getElementById('adate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.5.1';
+  if(vEl)vEl.textContent='v1.5.3';
   MB.forEach(function(m){tmMap[m.name]='B';});
   updDesc(); buildAGrid(); buildOGrid(); buildSkipGrid();
   updateMemUnpublishedWrap();
@@ -3983,7 +4067,10 @@ document.addEventListener('DOMContentLoaded',function(){
   ['btn-seed-mode-cancel-p1','btn-seed-mode-cancel-p2'].forEach(function(id){
     var el=document.getElementById(id);
     if(el)el.addEventListener('click',function(){
-      if(confirm('基準モードをやめます。次の「割振りを実行」は通常の全割振りになります。よろしいですか？'))clearSeedFromPrevMode();
+      if(confirm('基準モードをやめます。次の「割振りを実行」は通常の全割振りになります。よろしいですか？')){
+        clearSeedFromPrevMode();
+        pdfFileNameUseTodayDate=false;
+      }
     });
   });
   window.addEventListener('pagehide',function(){
