@@ -167,18 +167,57 @@ function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function applyMapToPast(past, map) {
+const PAST_LOAD_DEFAULT = 15;
+
+function weightLoadRankForLscore(wt) {
+  const w = String(wt || "");
+  if (w === "Very heavy") return 5;
+  if (w === "Heavy") return 4;
+  if (w === "Medium") return 3;
+  if (w === "Light") return 2;
+  if (w === "Very light") return 1;
+  return 3;
+}
+function lengthLoadRankForLscore(sz) {
+  const z = String(sz || "").toUpperCase();
+  if (z === "LL" || z === "SL") return 3;
+  if (z === "L") return 2;
+  if (z === "M") return 1;
+  return 0;
+}
+function lscoreFromTool(t) {
+  if (!t) return PAST_LOAD_DEFAULT;
+  return weightLoadRankForLscore(t.wt) * 10 + lengthLoadRankForLscore(t.sz);
+}
+function buildToolLoadMap(tools) {
+  const map = {};
+  (tools || []).forEach((t) => {
+    if (t && t.name) map[t.name] = lscoreFromTool(t);
+  });
+  return map;
+}
+function pastLoadForToolName(toolName, toolLoadMap) {
+  if (toolLoadMap && toolLoadMap[toolName] !== undefined) return toolLoadMap[toolName];
+  return PAST_LOAD_DEFAULT;
+}
+function roundPast(n) {
+  return Math.max(0, Math.round(Number(n) * 10) / 10);
+}
+
+function applyMapToPast(past, map, toolLoadMap) {
   Object.keys(map || {}).forEach((tool) => {
     const person = map[tool];
     if (!person) return;
-    past[person] = (Number(past[person]) || 0) + 1;
+    const load = pastLoadForToolName(tool, toolLoadMap);
+    past[person] = roundPast((Number(past[person]) || 0) + load);
   });
 }
-function revertMapFromPast(past, map) {
+function revertMapFromPast(past, map, toolLoadMap) {
   Object.keys(map || {}).forEach((tool) => {
     const person = map[tool];
     if (!person) return;
-    past[person] = Math.max(0, (Number(past[person]) || 0) - 1);
+    const load = pastLoadForToolName(tool, toolLoadMap);
+    past[person] = roundPast((Number(past[person]) || 0) - load);
   });
 }
 
@@ -196,8 +235,9 @@ async function confirmCarryout(env, body) {
   if (!master.PAST || typeof master.PAST !== "object") master.PAST = {};
 
   const old = carry.byDate[activityDate];
-  if (old && old.map) revertMapFromPast(master.PAST, old.map);
-  applyMapToPast(master.PAST, map);
+  const toolLoadMap = buildToolLoadMap(body.tools);
+  if (old && old.map) revertMapFromPast(master.PAST, old.map, toolLoadMap);
+  applyMapToPast(master.PAST, map, toolLoadMap);
   carry.byDate[activityDate] = { map: clone(map) };
   carry.lastMap = clone(map);
 

@@ -10,7 +10,7 @@
 | 16期 | https://tcb15-admin.github.io/tcb-tools/boys16/ | [操作マニュアル PDF](https://tcb15-admin.github.io/tcb-tools/boys16/docs/TCB-MAN-016_道具割り振りツール_操作マニュアル_v1.5.pdf) |
 
 - リポジトリ: https://github.com/tcb15-admin/tcb-tools
-- 現行ツール版: **v1.6.3**（`template/config_boys15.json` / `config_boys16.json` の `TOOL_VERSION`）
+- 現行ツール版: **v1.6.4**（`template/config_boys15.json` / `config_boys16.json` の `TOOL_VERSION`）
 
 ## リポジトリ構成（概要）
 
@@ -55,9 +55,10 @@ python3 template/build.py
 cd boys16/docs/scripts && npm install && node build-pdf.mjs
 ```
 
-## 主な機能（v1.6.3）
+## 主な機能（v1.6.4）
 
 - **持ち帰り調整モード** … 前回の割り振りを基準に欠席・お茶当番の変更分だけ調整
+- **累計負荷（PAST）** … 実施確定時に道具の lscore を加算。割振りは班内中央値超のみ弱ペナルティ
 - **実施確定** … PAST（過去担当回数）は確定時のみ反映
 - **Cloudflare 同期** … マスタの正は Worker + D1（推奨）
 - **UI_SIMPLE**（15/16期） … 公平再分配・履歴1年 PDF・デフォルト保存等の上級機能は非表示

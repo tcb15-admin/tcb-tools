@@ -115,7 +115,7 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 
 - マスタ保存は `expectedVersion` で楽観ロック（競合時 `version_conflict`）
 - 実施確定は `cohort + activityDate` で上書き（同日再確定）
-- PAST 更新はサーバ側で処理（`confirm-carryout`）
+- PAST 更新はサーバ側で処理（`confirm-carryout`）。リクエストに `map` に加え **`tools` 配列**（wt/sz/name）を含めると、道具ごとの **lscore（負荷pt）** を加算。未送信時は道具あたり 15pt 相当
 
 ## 11. 15期/16期の履歴・PAST を一括クリア
 

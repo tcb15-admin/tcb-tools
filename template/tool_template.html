@@ -807,7 +807,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="p3-carryout-card">
         <div class="p3-carryout-ct">&#9989; 実施確定（過去回数 PAST への反映）</div>
         <div class="p3-carryout-status" id="p3-carryout-status" style="font-size:12px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.55;">「割振りを実行」だけでは<strong>過去回数（PAST）は増えません</strong>。保護者へ連絡した内容で確定したら、下のボタンを押してください。同じ活動日で直した場合は、もう一度押すとその日のカウントを差し替えます。</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.55;">「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら、下のボタンを押してください。同じ活動日で直した場合は、もう一度押すとその日の加算を差し替えます。</div>
         <button type="button" class="p3-carryout-btn" id="btn-confirm-carryout">この内容で実施確定（PAST に反映）</button>
       </div>
     </div>
@@ -866,8 +866,8 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       </div>
     </div>
     <div class="card tcb-past-reset-wrap" style="margin-top:10px;border:1px solid var(--bdr);">
-      <div class="ct" style="margin-bottom:8px;">&#128200; 過去担当回数（累計・PAST）</div>
-      <p style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:10px;">公平割振りに使う累計を<strong>全員ゼロ</strong>に戻します。端末に保存された<strong>実施確定の記録</strong>も消えます（次の実施確定から再カウント）。続けて<strong>保存</strong>でファイル／クラウドへ反映してください。</p>
+      <div class="ct" style="margin-bottom:8px;">&#128200; 累計負荷（PAST）</div>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:10px;">道具の重さ・長さに応じた<strong>負荷ポイント</strong>の累計です。公平割振りでは班内の中央値より<strong>上の人だけ</strong>やや後回しにします（少ないから集中はしません）。端末の<strong>実施確定</strong>記録も消えます。続けて<strong>保存</strong>で反映してください。旧「回数」単位のデータがある場合はシーズン初めのリセットを推奨します。</p>
       <button type="button" class="nb nbs" id="btn-past-reset" style="font-size:13px;">PAST をゼロにリセット</button>
     </div>
     <div class="card">
@@ -1094,7 +1094,9 @@ var HVX={S:1,M:1,L:2,LL:3};
 function capSL(vv){var n=SLX[vv];return(n===undefined||n===null)?0:n;}
 function capLlen(vv){var n=LX[vv];return(n===undefined||n===null)?99:n;}
 function capHv(vv){var n=HVX[vv];return(n===undefined||n===null)?1:n;}
-var WA=3,WB=1,WC=6;
+var WA=1,WB=1,WC=6;
+/* PAST は道具ごとの lscore（負荷pt）を加算。表示は ÷PAST_DISPLAY_UNIT で「回相当」 */
+var PAST_DISPLAY_UNIT=15;
 var pat='kata', absS={}, ochS={}, skipS={}, tmMap={}, R=null;
 /* 前回 map を基準に差分だけ再割当（STEP1前回／STEP3元に再編集で開始） */
 var seedFromPrev=false, seedBaseSnap=null;
@@ -1290,10 +1292,36 @@ function normalizePastObj(rawP){
   if(!rawP||typeof rawP!=='object'||Array.isArray(rawP))return out;
   Object.keys(rawP).forEach(function(pk){
     var vv=rawP[pk];
-    var nn=parseInt(String(vv),10);
-    out[pk]=isNaN(nn)?0:Math.max(0,nn);
+    var nn=parseFloat(String(vv));
+    if(isNaN(nn))nn=0;
+    out[pk]=Math.max(0,Math.round(nn*10)/10);
   });
   return out;
+}
+function pastLoadForToolName(toolName){
+  for(var i=0;i<TL.length;i++){
+    if(TL[i]&&TL[i].name===toolName)return lscore(TL[i]);
+  }
+  return PAST_DISPLAY_UNIT;
+}
+function pastLoadForToolRow(t){
+  if(!t)return PAST_DISPLAY_UNIT;
+  return t.ls!=null?t.ls:lscore(t);
+}
+function pastDisplayCount(raw){
+  var v=Number(raw)||0;
+  return Math.max(0,Math.round(v/PAST_DISPLAY_UNIT));
+}
+function medianPastAmongKeys(state, keys){
+  if(!keys.length)return 0;
+  var vals=keys.map(function(k){return Number(state[k].past)||0;}).sort(function(a,b){return a-b;});
+  var mid=Math.floor(vals.length/2);
+  if(vals.length%2===1)return vals[mid];
+  return (vals[mid-1]+vals[mid])/2;
+}
+function pastPenaltyTerm(rawPast, medianPast){
+  var pen=Math.max(0,(Number(rawPast)||0)-medianPast);
+  return Math.sqrt(pen);
 }
 function normalizeMemberVehicle(v){
   if(v==='SS'||v==='ss')return 'S';
@@ -1888,7 +1916,8 @@ function revertPastFromMap(oldMap){
   Object.keys(oldMap).forEach(function(toolName){
     var p=oldMap[toolName];
     if(!p)return;
-    PAST[p]=Math.max(0,(PAST[p]||0)-1);
+    var load=pastLoadForToolName(toolName);
+    PAST[p]=Math.max(0,Math.round(((Number(PAST[p])||0)-load)*10)/10);
   });
 }
 function applyPastFromCurrentR(){
@@ -1896,7 +1925,9 @@ function applyPastFromCurrentR(){
   var allTools=(R.mode==='team')?R.allTools:R.tools;
   allTools.forEach(function(t){
     var person=R.map[t.name];
-    if(person) PAST[person]=(PAST[person]||0)+1;
+    if(!person)return;
+    var load=pastLoadForToolRow(t);
+    PAST[person]=Math.round(((Number(PAST[person])||0)+load)*10)/10;
   });
 }
 function persistPastToMaster(){
@@ -2123,7 +2154,7 @@ function sortToolsForDefer(toolList){
 function initSt(members){
   var s={};
   members.forEach(function(m){
-    s[m.name]={v:m.v,past:PAST[m.name]||0,tools:[],score:0,hv:0,sl:0,lc:0,cnt:0,exclusiveRecv:0};
+    s[m.name]={v:m.v,past:Number(PAST[m.name])||0,tools:[],score:0,hv:0,sl:0,lc:0,cnt:0,exclusiveRecv:0};
   });
   return s;
 }
@@ -2428,7 +2459,10 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, assignPoolCarryAdjust, zeroSide);
   return ochNotes;
 }
-function prio(s){return s.past*WA+s.score*WB+s.cnt*WC;}
+function prio(s, medianPast){
+  var pastTerm=pastPenaltyTerm(s.past, medianPast||0)*WA;
+  return pastTerm+s.score*WB+s.cnt*WC;
+}
 
 /* ========== アルゴリズム ========== */
 /* チーム割り：固定担当が相手グループにいる道具は、相手側の道具リストへ移す（fixed は維持）。
@@ -2475,6 +2509,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   var keys=Object.keys(state).filter(function(k){return !ex[k];});
   if(!keys.length)return false;
   var seed=(runSeed|0)||0;
+  var medianPast=medianPastAmongKeys(state, keys);
   var isHv=(t.wt==='Heavy'||t.wt==='Very heavy');
   var isSuperLong=isSuperLongToolSize(t.sz);
   var isLlen=(t.sz==='L');
@@ -2496,7 +2531,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
           .sort(function(a,b){
             var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
             if(zb!==0)return zb;
-            var p=prio(a[1])-prio(b[1]);
+            var p=prio(a[1], medianPast)-prio(b[1], medianPast);
             if(p!==0)return p;
             return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
           });
@@ -2524,7 +2559,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   }
   if(!placed){
     var sorted=keys.map(function(n){return [n,state[n]];}).sort(function(a,b){
-      var p=prio(a[1])-prio(b[1]);
+      var p=prio(a[1], medianPast)-prio(b[1], medianPast);
       if(p!==0)return p;
       return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
     });
@@ -2533,7 +2568,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
         var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
         if(zb!==0)return zb;
         if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
-        var p=prio(a[1])-prio(b[1]);
+        var p=prio(a[1], medianPast)-prio(b[1], medianPast);
         if(p!==0)return p;
         return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
       });
@@ -2656,7 +2691,7 @@ function ensureStateMembers(state, extraNames){
     if(!nm||state[nm])return;
     var m=MB.find(function(x){return x.name===nm;});
     if(!m)return;
-    state[nm]={v:m.v,past:PAST[m.name]||0,tools:[],score:0,hv:0,sl:0,lc:0,cnt:0,exclusiveRecv:0};
+    state[nm]={v:m.v,past:Number(PAST[m.name])||0,tools:[],score:0,hv:0,sl:0,lc:0,cnt:0,exclusiveRecv:0};
   });
 }
 /* 再分配用：プール外の道具だけで state を再構築（teamFilter 'A'/'B'/null） */
@@ -3417,7 +3452,7 @@ function scCard(m,state,cls){
     +'<div class="scn">'+esc(m.name)
     +' <span class="cv v'+m.v+'" style="font-size:9px;padding:1px 4px;">'+esc(m.v)+'</span></div>'
     +'<div class="sct">'+(ht?tools.map(function(t){return esc(t);}).join('<br>'):'（なし）')+'</div>'
-    +'<div class="scc">累計：<span class="cntb">'+nc+'回</span></div>'
+    +'<div class="scc">累計：<span class="cntb">'+pastDisplayCount(nc)+'回相当</span></div>'
     +'</div>';
 }
 function buildMem(){
