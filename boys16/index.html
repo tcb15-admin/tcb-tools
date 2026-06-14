@@ -244,8 +244,60 @@ html.theme-b16 .tcb-print-line-note strong{color:#122050;}
 .master-section{margin-bottom:20px;}
 .master-section h3{font-size:14px;font-weight:900;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
 .mrow{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
-.master-mbr-flags-wrap{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
-.master-mbr-flags-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.master-mbr-row{align-items:flex-start;}
+.master-mbr-row .minp{flex:1 1 120px;}
+.master-mbr-row .msel{flex-shrink:0;}
+.master-mbr-row .mdel{flex-shrink:0;}
+.master-mbr-flags-wrap{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(6.5em,max-content));
+  column-gap:14px;
+  row-gap:4px;
+  flex-shrink:0;
+  align-content:start;
+}
+.master-mbr-flag-lbl{
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  gap:3px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+#m-descs.master-desc-list{display:flex;flex-direction:column;gap:8px;width:100%;}
+.master-desc-card{
+  width:100%;box-sizing:border-box;margin-bottom:0;
+  border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;background:#fff;
+}
+.master-desc-card-head{
+  font-size:12px;font-weight:900;color:var(--navy);margin-bottom:8px;
+  word-break:break-word;line-height:1.35;
+}
+.master-desc-text{
+  display:block;width:100%;box-sizing:border-box;margin:0 0 8px;
+  padding:8px 10px;border:2px solid var(--bdr);border-radius:7px;
+  font-size:13px;font-family:inherit;line-height:1.5;min-height:52px;min-width:0;
+  resize:vertical;word-break:break-word;overflow-wrap:anywhere;white-space:pre-wrap;
+}
+.master-desc-text:focus{outline:none;border-color:var(--blue2);}
+.master-desc-url-row{display:flex;gap:6px;align-items:center;width:100%;}
+.master-desc-url-row .master-desc-url-inp{flex:1;min-width:0;width:100%;}
+.master-desc-preview{
+  flex-shrink:0;width:48px;height:36px;border-radius:5px;border:1px solid var(--bdr);
+  overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+@media (min-width:768px){
+  .master-desc-card{padding:12px 14px;}
+  .master-desc-card-head{font-size:13px;}
+  .master-desc-text{font-size:14px;min-height:56px;padding:10px 12px;}
+}
+@media (max-width:479px){
+  .master-mbr-flags-wrap{column-gap:10px;}
+  .master-mbr-flag-lbl{font-size:11px;}
+  .master-desc-card{padding:8px 10px;}
+  .master-desc-url-row{flex-wrap:wrap;}
+  .master-desc-url-row .master-desc-url-inp{flex:1 1 calc(100% - 54px);min-width:0;}
+}
 .minp{padding:8px 9px;border:2px solid var(--bdr);border-radius:7px;font-size:13px;flex:1;min-width:80px;min-height:var(--tap);}
 .minp:focus{outline:none;border-color:var(--blue2);}
 /* マスタ・道具一覧：1道具＝カード、ゼブラ＋左アクセントで区切り */
@@ -3758,37 +3810,30 @@ function buildMasterMembers(){
   sortMasterMembers();
   var el=document.getElementById('m-members'); el.innerHTML='';
   MB.forEach(function(m,i){
-    var row=document.createElement('div'); row.className='mrow';
+    var row=document.createElement('div'); row.className='mrow master-mbr-row';
     var ni=document.createElement('input'); ni.className='minp'; ni.value=m.name; ni.placeholder='名前';
     var vs=document.createElement('select'); vs.className='msel';
     ['S','M','L','LL'].forEach(function(v){
       var o=document.createElement('option'); o.value=v; o.textContent=v;
       if(v===m.v)o.selected=true; vs.appendChild(o);
     });
-    var rl=document.createElement('label');
-    rl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+    var rl=document.createElement('label'); rl.className='master-mbr-flag-lbl';
     var rc=document.createElement('input'); rc.type='checkbox'; rc.checked=!!m.rest;
     rl.appendChild(rc); rl.appendChild(document.createTextNode('休部'));
-    var cl=document.createElement('label');
-    cl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+    var cl=document.createElement('label'); cl.className='master-mbr-flag-lbl';
     var cc=document.createElement('input'); cc.type='checkbox'; cc.checked=!!m.coach;
     cl.appendChild(cc); cl.appendChild(document.createTextNode('コーチ'));
-    var a14l=document.createElement('label');
-    a14l.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+    var a14l=document.createElement('label'); a14l.className='master-mbr-flag-lbl';
     a14l.title='上の代に帯同し当期未参加のため割振り対象外';
     var a14c=document.createElement('input'); a14c.type='checkbox'; a14c.checked=!!m.ac14;
     a14l.appendChild(a14c); a14l.appendChild(document.createTextNode('14期帯同'));
-    var sl=document.createElement('label');
-    sl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+    var sl=document.createElement('label'); sl.className='master-mbr-flag-lbl';
     sl.title='上下期に兄妹がおり当期の割振り対象外';
     var sc=document.createElement('input'); sc.type='checkbox'; sc.checked=!!m.sibling;
     sl.appendChild(sc); sl.appendChild(document.createTextNode('兄弟所属'));
     var flagsWrap=document.createElement('div'); flagsWrap.className='master-mbr-flags-wrap';
-    var flagsRow1=document.createElement('div'); flagsRow1.className='master-mbr-flags-row';
-    var flagsRow2=document.createElement('div'); flagsRow2.className='master-mbr-flags-row';
-    flagsRow1.appendChild(rl); flagsRow1.appendChild(cl);
-    flagsRow2.appendChild(a14l); flagsRow2.appendChild(sl);
-    flagsWrap.appendChild(flagsRow1); flagsWrap.appendChild(flagsRow2);
+    flagsWrap.appendChild(rl); flagsWrap.appendChild(cl);
+    flagsWrap.appendChild(a14l); flagsWrap.appendChild(sl);
     var db=document.createElement('button'); db.className='mdel'; db.textContent='削除';
     (function(ii,n2,v2,r2,c2,a2,s2){
       n2.addEventListener('change',function(){MB[ii].name=n2.value;buildMasterMembers();});
@@ -3799,7 +3844,7 @@ function buildMasterMembers(){
       s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
       db.addEventListener('click',function(){MB.splice(ii,1);buildMasterMembers();});
     })(i,ni,vs,rc,cc,a14c,sc);
-    row.appendChild(ni); row.appendChild(vs); row.appendChild(rl); row.appendChild(cl); row.appendChild(a14l); row.appendChild(sl); row.appendChild(db);
+    row.appendChild(ni); row.appendChild(vs); row.appendChild(flagsWrap); row.appendChild(db);
     el.appendChild(row);
   });
 }
@@ -3909,6 +3954,7 @@ function buildMasterTools(){
 
 function buildMasterDescs(){
   var el=document.getElementById('m-descs'); el.innerHTML='';
+  el.className='master-desc-list';
   /* 画像URL説明（軽量URLでスマホ閲覧が滑らかに） */
   var hint=document.createElement('div');
   hint.className='al ali';
@@ -3922,27 +3968,29 @@ function buildMasterDescs(){
   TL.forEach(function(t){
     var d=DESCS[t.name]||{text:'',img:''};
     var row=document.createElement('div');
-    row.style.cssText='margin-bottom:8px;border:1px solid var(--bdr);border-radius:8px;padding:10px;';
+    row.className='master-desc-card';
     /* 道具名 */
     var head=document.createElement('div');
-    head.style.cssText='font-size:12px;font-weight:900;color:var(--navy);margin-bottom:8px;';
+    head.className='master-desc-card-head';
     head.textContent=t.name; row.appendChild(head);
     /* 説明文 */
-    var txtInp=document.createElement('input'); txtInp.className='minp';
+    var txtInp=document.createElement('textarea');
+    txtInp.className='master-desc-text';
     txtInp.value=d.text||''; txtInp.placeholder='説明文（保護者向け）';
-    txtInp.style.marginBottom='6px';
+    txtInp.rows=2;
+    txtInp.setAttribute('autocomplete','off');
     row.appendChild(txtInp);
     /* 画像URL入力 */
     var urlRow=document.createElement('div');
-    urlRow.style.cssText='display:flex;gap:6px;align-items:center;';
-    var urlInp=document.createElement('input'); urlInp.className='minp';
+    urlRow.className='master-desc-url-row';
+    var urlInp=document.createElement('input'); urlInp.className='minp master-desc-url-inp';
     urlInp.value=d.img||''; urlInp.placeholder='画像URL（https… を貼り付け。プレビューで確認）';
     urlInp.style.fontSize='12px';
     urlInp.setAttribute('inputmode','url');
     urlInp.setAttribute('autocomplete','off');
     /* プレビュー */
     var preview=document.createElement('div');
-    preview.style.cssText='flex-shrink:0;width:48px;height:36px;border-radius:5px;border:1px solid var(--bdr);overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:18px;';
+    preview.className='master-desc-preview';
     function fillDescPreview(pvEl,urlStr){
       pvEl.innerHTML='';
       var u=(urlStr||'').trim();
@@ -3966,6 +4014,10 @@ function buildMasterDescs(){
     (function(tn,tw,tu,pv){
       var urlTimer=null;
       tw.addEventListener('change',function(){
+        if(!DESCS[tn])DESCS[tn]={text:'',img:''};
+        DESCS[tn].text=tw.value;
+      });
+      tw.addEventListener('input',function(){
         if(!DESCS[tn])DESCS[tn]={text:'',img:''};
         DESCS[tn].text=tw.value;
       });
