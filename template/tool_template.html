@@ -244,6 +244,8 @@ html.theme-b16 .tcb-print-line-note strong{color:#122050;}
 .master-section{margin-bottom:20px;}
 .master-section h3{font-size:14px;font-weight:900;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
 .mrow{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+.master-mbr-flags-wrap{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
+.master-mbr-flags-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 .minp{padding:8px 9px;border:2px solid var(--bdr);border-radius:7px;font-size:13px;flex:1;min-width:80px;min-height:var(--tap);}
 .minp:focus{outline:none;border-color:var(--blue2);}
 /* マスタ・道具一覧：1道具＝カード、ゼブラ＋左アクセントで区切り */
@@ -3877,6 +3879,12 @@ function buildMasterMembers(){
     sl.title='上下期に兄妹がおり当期の割振り対象外';
     var sc=document.createElement('input'); sc.type='checkbox'; sc.checked=!!m.sibling;
     sl.appendChild(sc); sl.appendChild(document.createTextNode('兄弟所属'));
+    var flagsWrap=document.createElement('div'); flagsWrap.className='master-mbr-flags-wrap';
+    var flagsRow1=document.createElement('div'); flagsRow1.className='master-mbr-flags-row';
+    var flagsRow2=document.createElement('div'); flagsRow2.className='master-mbr-flags-row';
+    flagsRow1.appendChild(rl); flagsRow1.appendChild(cl);
+    flagsRow2.appendChild(a14l); flagsRow2.appendChild(sl);
+    flagsWrap.appendChild(flagsRow1); flagsWrap.appendChild(flagsRow2);
     var db=document.createElement('button'); db.className='mdel'; db.textContent='削除';
     (function(ii,n2,v2,r2,c2,a2,s2){
       n2.addEventListener('change',function(){MB[ii].name=n2.value;buildMasterMembers();});
@@ -3887,7 +3895,7 @@ function buildMasterMembers(){
       s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
       db.addEventListener('click',function(){MB.splice(ii,1);buildMasterMembers();});
     })(i,ni,vs,rc,cc,a14c,sc);
-    row.appendChild(ni); row.appendChild(vs); row.appendChild(rl); row.appendChild(cl); row.appendChild(a14l); row.appendChild(sl); row.appendChild(db);
+    row.appendChild(ni); row.appendChild(vs); row.appendChild(flagsWrap); row.appendChild(db);
     el.appendChild(row);
   });
 }
