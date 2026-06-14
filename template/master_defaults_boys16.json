@@ -5,301 +5,387 @@
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "伊藤（景）",
       "v": "L",
       "fix": "キャッチャー道具③",
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "伊藤（颯）",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "伊藤（遙）",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "歌野",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "河合",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "刈谷",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "亀浦",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "久保",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "原",
       "v": "LL",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "古脇",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "広瀬",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "佐藤（晴）",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "佐藤（大誌）",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "佐藤（大夢）",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "佐藤（哲）",
       "v": "LL",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "佐藤（琉）",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "山根",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "若林",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "勝嵜",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "小松",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "松岡",
       "v": "LL",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "森本",
       "v": "S",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "深井",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "神谷",
       "v": "LL",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "成岡",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "大脇",
       "v": "S",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "谷川",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "竹山",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "竹島",
       "v": "S",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "竹部",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "辻花",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "田中",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "陶山",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "梅田",
       "v": "M",
       "fix": "キャッチャー道具①",
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "尾鼻",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "北川",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "北村",
       "v": "S",
       "fix": null,
       "rest": 0,
-      "coach": 1
+      "coach": 1,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "木村",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "野尻",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "鈴木",
       "v": "S",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "和田",
       "v": "L",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     },
     {
       "name": "淺井",
       "v": "M",
       "fix": null,
       "rest": 0,
-      "coach": 0
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0
     }
   ],
   "TL": [

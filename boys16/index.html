@@ -81,6 +81,9 @@ html[data-cohort="15"] header{
 .vS{background:#78909c;}.vM{background:#26a69a;}.vL{background:#5c6bc0;}.vLL{background:#ef5350;}
 .rest-badge,.coach-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
 .rest-badge{background:#90a4ae;}.coach-badge{background:var(--coach);}
+.master-excl-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
+.ac14-badge{background:#5c6bc0;}.sibling-badge{background:#8d6e63;}
+.mc.master-excl{border-color:#b0bec5;background:#eceff1;opacity:.6;cursor:default;}
 .tc2{display:flex;align-items:center;gap:5px;padding:8px 8px;border-radius:8px;cursor:pointer;border:2px solid var(--bdr);background:#f8f9fa;user-select:none;min-height:var(--tap);flex-wrap:wrap;}
 .tc2:active{opacity:.7;}
 .tc2.tA{border-color:var(--ta-bd);background:var(--ta-bg);}
@@ -734,7 +737,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   <div class="pnl" id="p2">
     <div class="card">
       <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span></div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">欠席・その他の理由でこの日の割振り対象外にするメンバーをタップ。休部・コーチは常に対象外。</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">欠席・その他の理由でこの日の割振り対象外にするメンバーをタップ。休部・コーチ・14期帯同・兄弟所属は常に対象外。</div>
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
@@ -881,6 +884,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
         </h3>
         <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示は背番号（名前の「番号：」の左側）の昇順です。番号がない行は末尾に並びます。</div>
         <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分（名前の右のプルダウン）：S＝軽自動車、M＝普通車、L＝ミニバン程度、LL＝大型ワゴン程度。</div>
+        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。</div>
         <div id="m-members"></div>
         <button class="madd" id="btn-add-mbr">&#65291; メンバー追加</button>
       </div>
@@ -968,7 +972,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
 'use strict';
 
 /* ========== デフォルトマスタ ========== */
-var DEFAULT_MB=[{"name": "安江", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "伊藤（景）", "v": "L", "fix": "キャッチャー道具③", "rest": 0, "coach": 0}, {"name": "伊藤（颯）", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "伊藤（遙）", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "歌野", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "河合", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "刈谷", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "亀浦", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "久保", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "原", "v": "LL", "fix": null, "rest": 0, "coach": 0}, {"name": "古脇", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "広瀬", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "佐藤（晴）", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "佐藤（大誌）", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "佐藤（大夢）", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "佐藤（哲）", "v": "LL", "fix": null, "rest": 0, "coach": 0}, {"name": "佐藤（琉）", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "山根", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "若林", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "勝嵜", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "小松", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "松岡", "v": "LL", "fix": null, "rest": 0, "coach": 0}, {"name": "森本", "v": "S", "fix": null, "rest": 0, "coach": 0}, {"name": "深井", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "神谷", "v": "LL", "fix": null, "rest": 0, "coach": 0}, {"name": "成岡", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "大脇", "v": "S", "fix": null, "rest": 0, "coach": 0}, {"name": "谷川", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "竹山", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "竹島", "v": "S", "fix": null, "rest": 0, "coach": 0}, {"name": "竹部", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "辻花", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "田中", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "陶山", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "梅田", "v": "M", "fix": "キャッチャー道具①", "rest": 0, "coach": 0}, {"name": "尾鼻", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "北川", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "北村", "v": "S", "fix": null, "rest": 0, "coach": 1}, {"name": "木村", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "野尻", "v": "M", "fix": null, "rest": 0, "coach": 0}, {"name": "鈴木", "v": "S", "fix": null, "rest": 0, "coach": 0}, {"name": "和田", "v": "L", "fix": null, "rest": 0, "coach": 0}, {"name": "淺井", "v": "M", "fix": null, "rest": 0, "coach": 0}];
+var DEFAULT_MB=[{"name": "安江", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "伊藤（景）", "v": "L", "fix": "キャッチャー道具③", "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "伊藤（颯）", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "伊藤（遙）", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "歌野", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "河合", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "刈谷", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "亀浦", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "久保", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "原", "v": "LL", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "古脇", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "広瀬", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "佐藤（晴）", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "佐藤（大誌）", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "佐藤（大夢）", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "佐藤（哲）", "v": "LL", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "佐藤（琉）", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "山根", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "若林", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "勝嵜", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "小松", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "松岡", "v": "LL", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "森本", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "深井", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "神谷", "v": "LL", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "成岡", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "大脇", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "谷川", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "竹山", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "竹島", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "竹部", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "辻花", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "田中", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "陶山", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "梅田", "v": "M", "fix": "キャッチャー道具①", "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "尾鼻", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "北川", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "北村", "v": "S", "fix": null, "rest": 0, "coach": 1, "ac14": 0, "sibling": 0}, {"name": "木村", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "野尻", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "鈴木", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "和田", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "淺井", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}];
 var DEFAULT_TL=[{"id": 19, "name": "キャッチャー道具①", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "A", "note": "鵜飼", "fixed": 1, "practiceVenue": "outdoor"}, {"id": 20, "name": "キャッチャー道具②", "sz": "M", "wt": "Medium", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 21, "name": "キャッチャー道具③", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "A", "note": "伊郷", "fixed": 1, "practiceVenue": "outdoor"}, {"id": 1, "name": "タープ①", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 2, "name": "タープ②", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 3, "name": "タープ③", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 4, "name": "タープ④", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 5, "name": "タープ⑤", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 6, "name": "タープ⑥", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 22, "name": "トレーニングセット", "sz": "M", "wt": "Light", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "indoor", "fixed": 0}, {"id": 18, "name": "ベース一式", "sz": "M", "wt": "Very heavy", "kata": 0, "ryo": "B", "note": "noMul", "practiceVenue": "outdoor"}, {"id": 14, "name": "外野ノックボール", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 16, "name": "雑カゴ①", "sz": "M", "wt": "Very light", "kata": 1, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 17, "name": "雑カゴ②", "sz": "M", "wt": "Very light", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 25, "name": "審判道具①", "sz": "M", "wt": "Light", "kata": 1, "ryo": "A", "note": null, "practiceVenue": "indoor", "fixed": 0}, {"id": 26, "name": "審判道具②", "sz": "M", "wt": "Light", "kata": 1, "ryo": "B", "note": null, "practiceVenue": "indoor", "fixed": 0}, {"id": 24, "name": "短尺バット", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null, "practiceVenue": "indoor", "fixed": 0}, {"id": 23, "name": "長尺バット", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null, "practiceVenue": "indoor", "fixed": 0}, {"id": 15, "name": "投手用ボール", "sz": "M", "wt": "Light", "kata": 1, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 13, "name": "内野ノックボール", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 7, "name": "練習用ボール①", "sz": "M", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 8, "name": "練習用ボール②", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 9, "name": "練習用ボール③", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null, "practiceVenue": "outdoor"}, {"id": 10, "name": "練習用ボール④", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 11, "name": "練習用ボール⑤", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}, {"id": 12, "name": "練習用ボール⑥", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null, "practiceVenue": "outdoor"}];
 var DEFAULT_DESCS={"タープ①": {"text": "【脚破損】チーム所有タープ（緑）", "img": ""}, "タープ②": {"text": "チーム所有タープ（緑）", "img": ""}, "タープ③": {"text": "チーム所有タープ（緑）", "img": ""}, "タープ④": {"text": "チーム所有タープ（緑）", "img": ""}, "タープ⑤": {"text": "チーム所有タープ（紺）", "img": ""}, "タープ⑥": {"text": "チーム所有タープ（紺）", "img": ""}, "練習用ボール①": {"text": "練習球メッシュコンテナ満杯", "img": ""}, "練習用ボール②": {"text": "練習球メッシュコンテナ満杯", "img": ""}, "練習用ボール③": {"text": "練習球メッシュコンテナ満杯", "img": ""}, "練習用ボール④": {"text": "練習球メッシュコンテナ満杯", "img": ""}, "練習用ボール⑤": {"text": "練習球メッシュコンテナ満杯", "img": ""}, "練習用ボール⑥": {"text": "練習球メッシュコンテナ満杯", "img": ""}, "内野ノックボール": {"text": "ボール30～40球×1袋、メッシュコンテナ", "img": ""}, "外野ノックボール": {"text": "ボール30～40球×1袋、メッシュコンテナ", "img": ""}, "投手用ボール": {"text": "ボール12球、ホームベース×1、メジャー×1、メッシュコンテナ", "img": ""}, "雑カゴ①": {"text": "メッシュコンテナ、買い物カゴ", "img": ""}, "雑カゴ②": {"text": "メッシュコンテナ、買い物カゴ", "img": ""}, "ベース一式": {"text": "ホームベース×1、ベース×4、ブロック×8、ハンマー×1、メジャー×1", "img": ""}, "キャッチャー道具①": {"text": "マスク・メット・プロテクター・レガース・キンカップ", "img": ""}, "キャッチャー道具②": {"text": "【公式戦NG：膝割れ】マスク・メット・プロテクター・レガース・キンカップ", "img": ""}, "キャッチャー道具③": {"text": "マスク・メット×2・プロテクター・レガース（赤）", "img": ""}, "トレーニングセット": {"text": "脳を騙すバット×7本、穴あきボール20個×3袋、テニスボール数個×1袋、カラーボール満杯×3袋＋端数×1袋", "img": ""}, "長尺バット": {"text": "ナチュラル×9本", "img": ""}, "短尺バット": {"text": "オレンジ×3本、ナチュラル×3本", "img": ""}, "審判道具①": {"text": "球審用グッズ一式（マスク・プロテクター・レガース・ボールバッグ）、ボールカウンター×1、折りたたみイス×1", "img": ""}, "審判道具②": {"text": "球審用グッズ一式（マスク×2・プロテクター・レガース・ボールバッグ）、ボールカウンター×1、折りたたみイス×1", "img": ""}};
 
@@ -1185,6 +1189,20 @@ function refreshHistoryFromServer(){
 function normFlag01(v){
   return (v==1||v==='1'||v===true)?1:0;
 }
+function normalizeMemberRow(m){
+  if(!m)return;
+  if(m.coach===undefined)m.coach=0;
+  if(m.ac14===undefined)m.ac14=0;
+  if(m.sibling===undefined)m.sibling=0;
+  m.rest=normFlag01(m.rest);
+  m.coach=normFlag01(m.coach);
+  m.ac14=normFlag01(m.ac14);
+  m.sibling=normFlag01(m.sibling);
+  m.v=normalizeMemberVehicle(m.v);
+}
+function memberMasterExcluded(m){
+  return !!(m&&(m.rest||m.coach||m.ac14||m.sibling));
+}
 function parseMasterVersion(v){
   if(v==null||v==='')return 0;
   var n=Number(v);
@@ -1276,12 +1294,7 @@ function applyMasterObj(obj){
     ?JSON.parse(JSON.stringify(rawD))
     :JSON.parse(JSON.stringify(DEFAULT_DESCS));
   PAST=normalizePastObj(obj.PAST);
-  MB.forEach(function(m){
-    if(m.coach===undefined)m.coach=0;
-    m.rest=normFlag01(m.rest);
-    m.coach=normFlag01(m.coach);
-    m.v=normalizeMemberVehicle(m.v);
-  });
+  MB.forEach(function(m){normalizeMemberRow(m);});
   TL.forEach(function(t){
     t.sz=normalizeToolLength(t.sz);
     t.kata=normFlag01(t.kata);
@@ -1613,7 +1626,7 @@ function formatSnapConditionsHtml(snap){
   var la=snap.la||'A', lb=snap.lb||'B';
   var aList=[], bList=[];
   MB.forEach(function(m){
-    if(m.rest||m.coach)return;
+    if(memberMasterExcluded(m))return;
     if((snap.tmMap||{})[m.name]==='A')aList.push(m.name);
     else if((snap.tmMap||{})[m.name]==='B')bList.push(m.name);
   });
@@ -1694,7 +1707,7 @@ function restoreExclusionStateFromSnap(snap){
   skipS=clonePlainObj(s.skipS||{});
   tmMap={};
   MB.forEach(function(m){
-    if(m.rest||m.coach)return;
+    if(memberMasterExcluded(m))return;
     if(s.tmMap&&s.tmMap[m.name]==='A')tmMap[m.name]='A';
     else if(s.tmMap&&s.tmMap[m.name]==='B')tmMap[m.name]='B';
     else tmMap[m.name]='B';
@@ -1970,7 +1983,7 @@ function tieBreakName(n, seed){
 }
 function exSet(){
   var s={};
-  MB.forEach(function(m){if(m.rest||m.coach||absS[m.name]||ochS[m.name])s[m.name]=1;});
+  MB.forEach(function(m){if(memberMasterExcluded(m)||absS[m.name]||ochS[m.name])s[m.name]=1;});
   return s;
 }
 /* 割当順の負荷指数：極重は長さに関係なく最上位。次に「重」×長さ（LL＝スーパーロング→L→M→S）。重さを常に優先 */
@@ -2246,7 +2259,7 @@ function applyOchHandoff(baseMap, poolSet, snap, ctx){
   }
   var receivers=currOch.filter(function(n){
     var m=MB.find(function(x){return x.name===n;});
-    return m&&!m.rest&&!m.coach&&!absS[n];
+    return m&&!memberMasterExcluded(m)&&!absS[n];
   });
   var prevSet={};
   prevOch.forEach(function(n){prevSet[n]=1;});
@@ -2764,7 +2777,7 @@ function candsManual(team, toolName){
     candsAlloc(team).forEach(add);
   }
   MB.forEach(function(m){
-    if(m.rest||m.coach)return;
+    if(memberMasterExcluded(m))return;
     if(absS[m.name]||ochS[m.name])add(m.name);
   });
   if(toolName&&R.map[toolName])add(R.map[toolName]);
@@ -2816,7 +2829,7 @@ function setPat(p){
   }
   /* 全員Bに初期化 */
   if(p==='kata'||p==='ryoho'){
-    MB.forEach(function(m){if(!m.rest&&!m.coach)tmMap[m.name]='B';});
+    MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
   }
   updDesc();
   updateMemUnpublishedWrap();
@@ -2883,7 +2896,7 @@ function applyRenshuSplit(on){
   if(renshuSplit){
     var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
     if(inpA&&inpB){ inpA.value='A'; inpB.value='B'; tnA='A'; tnB='B'; }
-    MB.forEach(function(m){if(!m.rest&&!m.coach)tmMap[m.name]='B';});
+    MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
   }
   updDesc();
   updateMemUnpublishedWrap();
@@ -2971,6 +2984,12 @@ function buildAGrid(){
     }else if(m.rest){
       c.className='mc rest';
       c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="rest-badge">休部</span>';
+    }else if(m.ac14){
+      c.className='mc master-excl';
+      c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="master-excl-badge ac14-badge">14期帯同</span>';
+    }else if(m.sibling){
+      c.className='mc master-excl';
+      c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="master-excl-badge sibling-badge">兄弟所属</span>';
     }else{
       c.className='mc'+(absS[m.name]?' abs':'');
       c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="cv v'+m.v+'">'+esc(m.v)+'</span>';
@@ -3006,7 +3025,7 @@ function buildSkipGrid(){
 }
 function buildOGrid(){
   var g=document.getElementById('ogrid'); if(!g)return; g.innerHTML='';
-  MB.filter(function(m){return !m.rest&&!m.coach;}).forEach(function(m){
+  MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){
     var c=document.createElement('div');
     c.className='mc'+(ochS[m.name]?' ocha':'');
     c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="cv v'+m.v+'">'+esc(m.v)+'</span>';
@@ -3029,7 +3048,7 @@ function buildTGrid(){
   var hint=pat==='kata'?'片方試合':(pat==='renshu'&&renshuSplit)?'両方練習・場所分離':'両方試合';
   var hd=document.getElementById('tcard-hd');
   if(hd)hd.innerHTML=la+' / '+lb+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>';
-  MB.filter(function(m){return !m.rest&&!m.coach;}).forEach(function(m){
+  MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){
     var isEx=!!ex[m.name];
     if(isEx){
       tmMap[m.name]=null;
@@ -3065,7 +3084,7 @@ function tcHtml(m,tm,la,lb){
 }
 function updTC(){
   var ex=exSet();
-  var act=MB.filter(function(m){return !m.rest&&!m.coach&&!ex[m.name];});
+  var act=MB.filter(function(m){return !memberMasterExcluded(m)&&!ex[m.name];});
   var la=tnA||'試合組', lb=tnB||'練習組';
   var cA=act.filter(function(m){return tmMap[m.name]==='A';}).length;
   var cB=act.filter(function(m){return tmMap[m.name]==='B';}).length;
@@ -3076,7 +3095,7 @@ function updTC(){
 /* ========== デフォルト振り分け ========== */
 function saveDefault(){
   var snap={};
-  MB.filter(function(m){return !m.rest&&!m.coach;}).forEach(function(m){snap[m.name]=tmMap[m.name]||null;});
+  MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){snap[m.name]=tmMap[m.name]||null;});
   _ls.set(LS_DEF_TM,JSON.stringify(snap));
   /* master.jsonにも反映（GitHubアップロードで全端末同期） */
   saveMaster();
@@ -3199,7 +3218,7 @@ function renderAll(){
 
   var aa=document.getElementById('aalert'); aa.innerHTML='';
   var exNames=Object.keys(R.ex).filter(function(k){
-    return !MB.find(function(m){return m.name===k&&(m.rest||m.coach);});
+    return !MB.find(function(m){return m.name===k&&(memberMasterExcluded(m));});
   });
   var skipNames=Object.keys(skipS);
   if(skipNames.length){
@@ -3485,7 +3504,7 @@ function buildPrintHTML(){
     bodyHTML='<div class="cards'+gridColsCls+'">'+cardRows(printTools,hideTeam)+'</div>';
   }
   var exNames=Object.keys(R.ex).filter(function(k){
-    return !MB.find(function(m){return m.name===k&&(m.rest||m.coach);});
+    return !MB.find(function(m){return m.name===k&&(memberMasterExcluded(m));});
   });
   var exHtml=exNames.length?'<p class="pex">※除外：'+exNames.map(function(n){return esc(n);}).join('、')+'</p>':'';
   var pageCls='page'+(densityLevel?' tcb-print-density-'+densityLevel:'');
@@ -3752,15 +3771,27 @@ function buildMasterMembers(){
     cl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
     var cc=document.createElement('input'); cc.type='checkbox'; cc.checked=!!m.coach;
     cl.appendChild(cc); cl.appendChild(document.createTextNode('コーチ'));
+    var a14l=document.createElement('label');
+    a14l.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+    a14l.title='上の代に帯同し当期未参加のため割振り対象外';
+    var a14c=document.createElement('input'); a14c.type='checkbox'; a14c.checked=!!m.ac14;
+    a14l.appendChild(a14c); a14l.appendChild(document.createTextNode('14期帯同'));
+    var sl=document.createElement('label');
+    sl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+    sl.title='上下期に兄妹がおり当期の割振り対象外';
+    var sc=document.createElement('input'); sc.type='checkbox'; sc.checked=!!m.sibling;
+    sl.appendChild(sc); sl.appendChild(document.createTextNode('兄弟所属'));
     var db=document.createElement('button'); db.className='mdel'; db.textContent='削除';
-    (function(ii,n2,v2,r2,c2){
+    (function(ii,n2,v2,r2,c2,a2,s2){
       n2.addEventListener('change',function(){MB[ii].name=n2.value;buildMasterMembers();});
       v2.addEventListener('change',function(){MB[ii].v=normalizeMemberVehicle(v2.value);});
       r2.addEventListener('change',function(){MB[ii].rest=r2.checked?1:0;});
       c2.addEventListener('change',function(){MB[ii].coach=c2.checked?1:0;});
+      a2.addEventListener('change',function(){MB[ii].ac14=a2.checked?1:0;});
+      s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
       db.addEventListener('click',function(){MB.splice(ii,1);buildMasterMembers();});
-    })(i,ni,vs,rc,cc);
-    row.appendChild(ni); row.appendChild(vs); row.appendChild(rl); row.appendChild(cl); row.appendChild(db);
+    })(i,ni,vs,rc,cc,a14c,sc);
+    row.appendChild(ni); row.appendChild(vs); row.appendChild(rl); row.appendChild(cl); row.appendChild(a14l); row.appendChild(sl); row.appendChild(db);
     el.appendChild(row);
   });
 }
@@ -4557,7 +4588,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnPastReset=document.getElementById('btn-past-reset');
   if(btnPastReset)btnPastReset.addEventListener('click',function(){resetPastToZero();});
   document.getElementById('btn-add-mbr').addEventListener('click',function(){
-    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,coach:0}); buildMasterMembers();
+    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,coach:0,ac14:0,sibling:0}); buildMasterMembers();
   });
   document.getElementById('btn-add-tool').addEventListener('click',function(){
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id);},0);
@@ -4571,12 +4602,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('btn-mbr-import').addEventListener('click',function(){
     importJSON(function(data){
       if(!Array.isArray(data)){alert('メンバーデータの形式が正しくありません。');return;}
-      data.forEach(function(m){
-        if(m.coach===undefined)m.coach=0;
-        m.rest=normFlag01(m.rest);
-        m.coach=normFlag01(m.coach);
-        m.v=normalizeMemberVehicle(m.v);
-      });
+      data.forEach(function(m){normalizeMemberRow(m);});
       MB=data; buildMasterMembers();
       showMasterAlert('インポートしました。「保存」を押してください。','als');
     });
