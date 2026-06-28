@@ -805,7 +805,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="mgrid" id="skipgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">持ち帰り調整モード</strong><span id="p2-seed-mode-banner-body">：前回の割り振りを基準に、欠席・お茶当番の変更と当番引き継ぎを反映します。前回欠席で今回参加の人には、余った道具を優先して割り当てます。直してから「割振りを実行」してください。</span>
+      <strong id="p2-seed-mode-banner-title">持ち帰り調整モード</strong><span id="p2-seed-mode-banner-body">：前回の割り振りを基準に、欠席・お茶当番の変更と当番引き継ぎを反映します。前回欠席で今回参加の人には、余った道具を優先して割り当てます。STEP3では<strong>班をまたいだ手動割当</strong>ができます。直してから「割振りを実行」してください。</span>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
       </div>
@@ -852,7 +852,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
         担当列のプルダウンで手動変更できます。お茶当番・欠席の方も選べます（印刷の「除外」表示は従来どおり）。活動パターンを STEP1 で変えたときは STEP2 で<strong>割振りを実行</strong>し直してください。
       </div>
       <div class="p3-cross-team-wrap" id="p3-cross-team-wrap" style="display:none;">
-        <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示（<strong>手動割当のみ</strong>。自動の割振り実行は従来どおり班ごと）</label>
+        <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示（<strong>手動割当のみ</strong>。自動の「割振りを実行」は従来どおり班ごと）。<strong>持ち帰り調整モードでは自動でオン</strong>になります。</label>
       </div>
       <div class="al ali tcb-p3-hint" id="p3-mem-unpublished-hint" style="display:none;">
         メンバー未発表モード — 保護者向けの印刷・メンバー別は1一覧（組名・班なし）です。
@@ -1717,6 +1717,8 @@ function clearReeditMode(){
   seedFromPrev=false;
   seedBaseSnap=null;
   carryAdjustMode=false;
+  var chkCross=document.getElementById('chk-manual-cross-team');
+  if(chkCross){chkCross.checked=false;chkCross.disabled=false;}
   updateSeedModeBanners();
 }
 function clearSeedFromPrevMode(){
@@ -2798,8 +2800,13 @@ function memberDisplayTeam(name){
   for(i=0;i<R.mB.length;i++){if(R.mB[i].name===name)return 'B';}
   return tmMap[name]||null;
 }
+function isCarryAdjustCrossTeamActive(){
+  return !!(carryAdjustMode||seedFromPrev);
+}
 function isManualCrossTeamEnabled(){
-  if(!R||R.mode!=='team'||shareHidesTeamSplit())return false;
+  if(!R||R.mode!=='team')return false;
+  if(isCarryAdjustCrossTeamActive())return true;
+  if(shareHidesTeamSplit())return false;
   var chk=document.getElementById('chk-manual-cross-team');
   return !!(chk&&chk.checked);
 }
@@ -2816,17 +2823,38 @@ function manualAssignOptionLabel(name, toolTeam){
 function updateManualCrossTeamWrap(){
   var wrap=document.getElementById('p3-cross-team-wrap');
   if(!wrap)return;
-  wrap.style.display=(R&&R.mode==='team'&&!shareHidesTeamSplit())?'block':'none';
+  var showTeam=R&&R.mode==='team'&&!shareHidesTeamSplit();
+  wrap.style.display=showTeam?'block':'none';
+  var chk=document.getElementById('chk-manual-cross-team');
+  if(!chk)return;
+  var autoCross=showTeam&&isCarryAdjustCrossTeamActive();
+  if(autoCross){
+    chk.checked=true;
+    chk.disabled=true;
+  }else{
+    chk.disabled=false;
+  }
 }
-/* STEP3 手動割当：自動割振り対象＋欠席・お茶当番＋map 上の担当者 */
+/* STEP3 手動割当：自動割振り対象＋欠席・お茶当番＋map 上の担当者（班跨ぎ時は両班） */
 function candsManual(team, toolName){
   if(!R)return [];
   var names={};
   var cross=isManualCrossTeamEnabled();
   function add(n){if(n&&typeof n==='string')names[n]=1;}
   if(cross&&R.mode==='team'){
-    candsAlloc('A').forEach(add);
-    candsAlloc('B').forEach(add);
+    (R.mA||[]).forEach(function(m){add(m.name);});
+    (R.mB||[]).forEach(function(m){add(m.name);});
+    Object.keys(R.map||{}).forEach(function(tn){
+      var asgn=R.map[tn];
+      if(asgn)add(asgn);
+    });
+  }else if(R.mode==='team'){
+    candsAlloc(team).forEach(add);
+    var allT=(R.mode==='team')?R.allTools:R.tools;
+    allT.forEach(function(t){
+      if(team&&team!==''&&(t.team||'')!==team)return;
+      if(R.map[t.name])add(R.map[t.name]);
+    });
   }else{
     candsAlloc(team).forEach(add);
   }
@@ -2835,17 +2863,6 @@ function candsManual(team, toolName){
     if(absS[m.name]||ochS[m.name])add(m.name);
   });
   if(toolName&&R.map[toolName])add(R.map[toolName]);
-  var allT=(R.mode==='team')?R.allTools:R.tools;
-  if(cross){
-    allT.forEach(function(t){
-      if(R.map[t.name])add(R.map[t.name]);
-    });
-  }else{
-    allT.forEach(function(t){
-      if(R.mode==='team'&&team&&team!==''&&(t.team||'')!==team)return;
-      if(R.map[t.name])add(R.map[t.name]);
-    });
-  }
   return MB.filter(function(m){return names[m.name];}).map(function(m){return m.name;});
 }
 function getTBM(){
