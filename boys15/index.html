@@ -168,6 +168,12 @@ tr.rB td{border-left:3px solid var(--tb);}
 .tcb-seed-mode-banner{display:none;margin-bottom:10px;padding:10px 12px;background:#e8f4fd;border-left:4px solid var(--blue);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.55;}
 .tcb-seed-mode-banner.on{display:block;}
 .tcb-seed-mode-banner-btns{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;}
+.p3-carry-adjust-summary{display:none;margin-top:8px;padding:10px 12px;background:#f3e5f5;border-left:4px solid #7b1fa2;border-radius:8px;font-size:12px;line-height:1.55;color:var(--txt2);}
+.p3-carry-adjust-summary.on{display:block;}
+.p3-carry-adjust-summary strong{color:#4a148c;}
+.p3-carry-adjust-people{margin-top:6px;font-size:11px;color:#6a1b9a;}
+tr.p3-carry-keep-row{background:#e8f5e9!important;}
+tr.p3-carry-changed-row{background:#fff3e0!important;}
 #print-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;flex-direction:column;}
 #print-overlay.open{display:flex;}
 .print-header{
@@ -659,7 +665,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="mclose" id="prev-modal-close">&#10005;</button>
     <h2 id="prev-modal-title">前回の割振り結果</h2>
     <div class="tcb-prev-modal-actions" id="prev-modal-actions" style="display:none;">
-      <button type="button" class="rbtn" id="btn-prev-start-reedit">この結果を元に持ち帰り調整</button>
+      <button type="button" class="rbtn" id="btn-prev-start-reedit">試合前・最小入れ替え調整を開始</button>
       <button type="button" class="nb nbs" id="btn-prev-modal-close2">閉じる</button>
     </div>
     <div class="tcb-prev-modal-cond" id="prev-modal-cond" style="display:none;"></div>
@@ -691,7 +697,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   <div class="modal">
     <button class="mclose" id="hist-modal-close">&#10005;</button>
     <h2>&#128336; 割振り履歴</h2>
-    <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">活動日をタップすると詳細を表示します。詳細から<strong>この結果を元に持ち帰り調整</strong>することもできます（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">活動日をタップすると詳細を表示します。詳細から<strong>試合前・最小入れ替え調整</strong>を開始できます（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
     <div class="tcb-ui-advanced" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <button type="button" id="hist-month-btn" class="tcb-hist-mo-openbtn">&#128197; 直近1年（活動日）：一覧・PDF</button>
       <span style="font-size:11px;color:var(--txt2);line-height:1.45;">活動日が今日から<strong>過去1年以内</strong>のデータを、道具ごとの担当の並びで表示します（保護者向けPDF用）。</span>
@@ -718,7 +724,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="mclose" id="hist-detail-close">&#10005;</button>
     <h2 id="hist-detail-title"></h2>
     <div class="tcb-hist-detail-actions" id="hist-detail-actions">
-      <button type="button" class="rbtn" id="btn-hist-start-reedit">この結果を元に持ち帰り調整</button>
+      <button type="button" class="rbtn" id="btn-hist-start-reedit">試合前・最小入れ替え調整を開始</button>
       <button type="button" class="nb nbs" id="btn-hist-detail-close2">閉じる</button>
     </div>
     <div class="tcb-hist-detail-cond" id="hist-detail-cond"></div>
@@ -766,7 +772,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong id="p1-seed-mode-banner-title">持ち帰り調整モード</strong><span id="p1-seed-mode-banner-body">：前回の割り振りを基準に、欠席・お茶当番の変更分だけ直します。活動パターンを変えても基準の担当配置は維持します。<strong>活動日は本日</strong>に設定されます。STEP1・2 を直してから「割振りを実行」してください。固定担当は変わりません。前当番が基準にいない道具は引き継ぎされないことがあります（STEP3で手動可）。</span>
+        <strong id="p1-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p1-seed-mode-banner-body">：前回<strong>実施確定済み</strong>の割振りを基準に、<strong>同じ人・同じ道具</strong>を最大限維持します。班の入替があった場合は2人1組の入れ替えを自動で試み、それ以外はプールから再配分します（朝の集合が班別のため、<strong>前日に調整</strong>する想定）。活動パターン（片方→両方試合など）を変えても基準の担当を尊重します。<strong>活動日は本日</strong>に設定されます。STEP1でパターン・班分け、STEP2で欠席を直してから「割振りを実行」してください。</span>
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">調整モードをやめる</button>
         </div>
@@ -805,7 +811,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="mgrid" id="skipgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">持ち帰り調整モード</strong><span id="p2-seed-mode-banner-body">：前回の割り振りを基準に、欠席・お茶当番の変更と当番引き継ぎを反映します。前回欠席で今回参加の人には、余った道具を優先して割り当てます。STEP3では<strong>班をまたいだ手動割当</strong>ができます。直してから「割振りを実行」してください。</span>
+      <strong id="p2-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持しつつ、欠席・お茶当番の変更と当番引き継ぎを反映します。班をまたいだ入替は<strong>最小限の2人スワップ</strong>を優先します。STEP3では<strong>班をまたいだ手動割当</strong>ができます（自動でオン）。直してから「割振りを実行」してください。</span>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
       </div>
@@ -845,8 +851,9 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
         </div>
       </div>
       <div id="aalert"></div>
+      <div class="p3-carry-adjust-summary" id="p3-carry-adjust-summary" role="status"></div>
       <div class="al ali tcb-p3-hint" id="p3-reedit-hint" style="display:none;">
-        欠席・お茶当番だけ直すときは<strong>「元に再編集」</strong>→ 持ち帰り調整モードで STEP1 からやり直せます（結果は端末に自動保存されています）。
+        欠席・お茶当番だけ直すときは<strong>「元に再編集」</strong>→ 試合前・最小入れ替え調整で STEP1 からやり直せます（結果は端末に自動保存されています）。
       </div>
       <div class="al ali tcb-p3-hint" id="p3-manual-assign-hint">
         担当列のプルダウンで手動変更できます。お茶当番・欠席の方も選べます（印刷の「除外」表示は従来どおり）。活動パターンを STEP1 で変えたときは STEP2 で<strong>割振りを実行</strong>し直してください。
@@ -1065,6 +1072,8 @@ var seedFromPrev=false, seedBaseSnap=null;
 /* 持ち帰り調整：当番引き継ぎ・欠席復帰優先（再編集開始時に有効） */
 var carryAdjustMode=false;
 var carryAdjustRunNotes=[];
+/* 持ち帰り調整実行後も STEP3 で維持/変更比較に使う基準スナップ */
+var carryAdjustRefSnap=null;
 /* 前回ベース再割当後の PDF ファイル名は活動日ではなく当日日付 */
 var pdfFileNameUseTodayDate=false;
 var _persistAllocTimer=null;
@@ -1713,6 +1722,11 @@ function schedulePersistCurrentAllocation(){
     if(snap)persistAllocationSnapshot(snap);
   },280);
 }
+function clearCarryAdjustRef(){
+  carryAdjustRefSnap=null;
+  var sumEl=document.getElementById('p3-carry-adjust-summary');
+  if(sumEl){sumEl.className='p3-carry-adjust-summary';sumEl.innerHTML='';}
+}
 function clearReeditMode(){
   seedFromPrev=false;
   seedBaseSnap=null;
@@ -1723,6 +1737,7 @@ function clearReeditMode(){
 }
 function clearSeedFromPrevMode(){
   clearReeditMode();
+  clearCarryAdjustRef();
 }
 function updateSeedModeBanners(){
   var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
@@ -1778,6 +1793,7 @@ function beginReeditFromSnap(snap){
   }
   var enriched=enrichStoredSnap(snap);
   if(!enriched)return false;
+  clearCarryAdjustRef();
   seedBaseSnap=clonePlainObj(enriched);
   seedFromPrev=true;
   carryAdjustMode=true;
@@ -2301,6 +2317,109 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
   });
   return {baseMap:baseMap, poolSet:poolSet};
 }
+/* 班入替時：2人1組で持ち道具を入れ替え、物理的な変更人数を最小化 */
+function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
+  var notes=[], detail=[], swapCount=0;
+  if(ctx.mode!=='team'||!prevMap)return notes;
+  ex=ex||{};
+  var toolByName={};
+  (ctx.allTools||[]).forEach(function(t){toolByName[t.name]=t;});
+  var poolList=[];
+  Object.keys(poolSet).forEach(function(tn){
+    if(!poolSet[tn])return;
+    var t=toolByName[tn];
+    if(!t||t.fixed)return;
+    var pp=prevMap[tn];
+    if(!pp||ex[pp])return;
+    var tm=t.team||'';
+    if(!tm)return;
+    var otherTm=(tm==='A')?'B':'A';
+    if(memberInTeamByTmMap(pp, tm))return;
+    if(!memberInTeamByTmMap(pp, otherTm))return;
+    poolList.push({tn:tn, team:tm, prevP:pp});
+  });
+  var used={};
+  for(var i=0;i<poolList.length;i++){
+    if(used[i])continue;
+    var x=poolList[i];
+    for(var j=i+1;j<poolList.length;j++){
+      if(used[j])continue;
+      var y=poolList[j];
+      if(x.team===y.team)continue;
+      if(!memberInTeamByTmMap(y.prevP, x.team))continue;
+      if(!memberInTeamByTmMap(x.prevP, y.team))continue;
+      baseMap[x.tn]=y.prevP;
+      baseMap[y.tn]=x.prevP;
+      delete poolSet[x.tn];
+      delete poolSet[y.tn];
+      used[i]=used[j]=1;
+      swapCount++;
+      detail.push(x.prevP+'さん⇔'+y.prevP+'さん（'+x.tn+'／'+y.tn+'）');
+      break;
+    }
+  }
+  if(swapCount)notes.push('班入替の最小スワップ：'+swapCount+'組を自動入れ替え（'+detail.join('、')+'）。');
+  return notes;
+}
+function toolsByPersonFromMap(assignMap, toolNames){
+  var byPerson={};
+  (toolNames||[]).forEach(function(tn){
+    var p=assignMap[tn];
+    if(!p)return;
+    if(!byPerson[p])byPerson[p]=[];
+    byPerson[p].push(tn);
+  });
+  Object.keys(byPerson).forEach(function(p){byPerson[p].sort();});
+  return byPerson;
+}
+function computeCarryAdjustDiffSummary(refMap, curMap, allTools){
+  var kept=0, changed=0, changedRows=[];
+  var toolNames=[];
+  (allTools||[]).forEach(function(t){
+    toolNames.push(t.name);
+    var prev=refMap[t.name], curr=curMap[t.name];
+    if(prev&&curr&&prev===curr)kept++;
+    else if(prev!==curr){
+      changed++;
+      if(prev&&curr)changedRows.push(t.name+'：'+prev+'→'+curr);
+      else if(prev&&!curr)changedRows.push(t.name+'：'+prev+'→未割当');
+      else if(!prev&&curr)changedRows.push(t.name+'：→'+curr);
+    }
+  });
+  var prevBy=toolsByPersonFromMap(refMap, toolNames);
+  var curBy=toolsByPersonFromMap(curMap, toolNames);
+  var peopleSet={};
+  Object.keys(prevBy).forEach(function(p){peopleSet[p]=1;});
+  Object.keys(curBy).forEach(function(p){peopleSet[p]=1;});
+  var peopleMustChange=[];
+  Object.keys(peopleSet).forEach(function(p){
+    var a=(prevBy[p]||[]).join('\0');
+    var b=(curBy[p]||[]).join('\0');
+    if(a!==b)peopleMustChange.push(p);
+  });
+  peopleMustChange.sort();
+  return {kept:kept, changed:changed, changedRows:changedRows, peopleMustChange:peopleMustChange};
+}
+function renderCarryAdjustDiffSummary(){
+  var el=document.getElementById('p3-carry-adjust-summary');
+  if(!el)return;
+  if(!carryAdjustRefSnap||!R||typeof carryAdjustRefSnap.map!=='object'){
+    el.className='p3-carry-adjust-summary';
+    el.innerHTML='';
+    return;
+  }
+  var allT=(R.mode==='team')?R.allTools:R.tools;
+  var diff=computeCarryAdjustDiffSummary(carryAdjustRefSnap.map, R.map, allT);
+  var html='<strong>前回からの調整：</strong>維持 '+diff.kept+' 点';
+  if(diff.changed)html+='／変更 '+diff.changed+' 点';
+  html+='。<span style="color:#2e7d32;">■</span> 緑＝前回と同じ担当、<span style="color:#e65100;">■</span> 橙＝変更あり。';
+  if(diff.peopleMustChange.length){
+    html+='<div class="p3-carry-adjust-people"><strong>持ち帰り内容が変わる人（'+diff.peopleMustChange.length+'名）：</strong>'
+      +esc(diff.peopleMustChange.join('、'))+'</div>';
+  }
+  el.className='p3-carry-adjust-summary on';
+  el.innerHTML=html;
+}
 function applyOchHandoff(baseMap, poolSet, snap, ctx){
   var notes=[];
   var prevOch=flaggedNames(snap.ochS||{});
@@ -2422,6 +2541,7 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ex);
   var ochNotes=applyOchHandoff(built.baseMap, built.poolSet, snap, ctx);
+  var swapNotes=applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ex);
   var zeroSide={};
   if(ctx.mode==='team'){
     zeroSide.A=buildZeroPrioritySet(snap, ctx.mA);
@@ -2430,7 +2550,7 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
     zeroSide.all=buildZeroPrioritySet(snap, ctx.members);
   }
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, assignPoolCarryAdjust, zeroSide);
-  return ochNotes;
+  return (ochNotes||[]).concat(swapNotes||[]);
 }
 function prio(s, medianPast){
   var pastTerm=pastPenaltyTerm(s.past, medianPast||0)*WA;
@@ -3231,6 +3351,7 @@ function runAlgo(){
       carryAdjustRunNotes=snapCtxDiffWarnings(seedSnap, ctx);
       var ochNotes=runAlgoCarryAdjust(seedSnap, ctx, runSeed);
       carryAdjustRunNotes=carryAdjustRunNotes.concat(ochNotes||[]);
+      carryAdjustRefSnap=clonePlainObj(seedSnap);
       usedPrevSeed=true;
       pdfFileNameUseTodayDate=true;
       clearReeditMode();
@@ -3249,6 +3370,7 @@ function runAlgo(){
   }
   if(!usedPrevSeed){
     pdfFileNameUseTodayDate=false;
+    clearCarryAdjustRef();
     var prevAssignMap=loadPrevAssignMap();
     if(ctx.mode==='team'){
       var sA=doAssign(ctx.tA,initSt(ctx.mA),prevAssignMap,runSeed);
@@ -3305,9 +3427,10 @@ function renderAll(){
   if(carryAdjustRunNotes.length){
     var dCar=document.createElement('div');
     dCar.className='al als';
-    dCar.textContent='持ち帰り調整：'+carryAdjustRunNotes.join(' ');
+    dCar.textContent='最小入れ替え調整：'+carryAdjustRunNotes.join(' ');
     aa.appendChild(dCar);
   }
+  renderCarryAdjustDiffSummary();
   if(R.mode==='team'&&!shareHidesTeamSplit()){
     var dA=document.createElement('div'); dA.className='al ali';
     dA.textContent=R.la+'グループ：'+R.mA.map(function(m){return m.name;}).join('・');
@@ -3377,7 +3500,12 @@ function buildTbl(){
     var isMulti=!!rawAsgn&&(pCnt[rawAsgn]||0)>=2;
     var tr=document.createElement('tr');
     if(tm&&!hideTeam)tr.className='r'+tm;
-    if(isMulti)tr.style.background='#fff8e1';
+    if(carryAdjustRefSnap&&carryAdjustRefSnap.map){
+      var refAsgn=carryAdjustRefSnap.map[t.name];
+      if(refAsgn&&rawAsgn&&refAsgn===rawAsgn)tr.classList.add('p3-carry-keep-row');
+      else if(refAsgn!==rawAsgn&&(refAsgn||rawAsgn))tr.classList.add('p3-carry-changed-row');
+    }
+    if(isMulti&&!carryAdjustRefSnap)tr.style.background='#fff8e1';
     var td1=document.createElement('td');
     td1.style.cssText='color:var(--txt2);font-size:10px;white-space:nowrap;';
     td1.textContent=t.id;
@@ -3425,6 +3553,7 @@ function buildTbl(){
   });
   buildMem();
   updateAssignUndoUi();
+  renderCarryAdjustDiffSummary();
   schedulePersistCurrentAllocation();
 }
 
@@ -4490,7 +4619,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.6.4';
+  if(vEl)vEl.textContent='v1.6.5';
   MB.forEach(function(m){tmMap[m.name]='B';});
   updDesc(); buildAGrid(); buildOGrid(); buildSkipGrid();
   updateMemUnpublishedWrap();
