@@ -784,7 +784,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong id="p1-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p1-seed-mode-banner-body">：前回<strong>実施確定済み</strong>の割振りを基準に、<strong>同じ人・同じ道具</strong>を最大限維持します。班の入替があった場合は2人1組の入れ替えを自動で試み、それ以外はプールから再配分します（朝の集合が班別のため、<strong>前日に調整</strong>する想定）。活動パターン（片方→両方試合など）を変えても基準の担当を尊重します。<strong>活動日は本日</strong>に設定されます。STEP1でパターン・班分け、STEP2で欠席を直してから「割振りを実行」してください。</span>
+        <strong id="p1-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p1-seed-mode-banner-body">：前回<strong>実施確定済み</strong>の割振りを基準に、<strong>同じ人・同じ道具</strong>を最大限維持します。班の入替は2人1組の入れ替えを優先し、余った道具は<strong>変更が必要な人に集中</strong>（1人が複数持ちでも可）して調整人数を減らします。活動パターン（片方→両方試合など）を変えても基準の担当を尊重します。<strong>活動日は本日</strong>に設定されます。STEP1でパターン・班分け、STEP2で欠席を直してから「割振りを実行」してください。</span>
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">調整モードをやめる</button>
         </div>
@@ -823,7 +823,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="mgrid" id="skipgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持しつつ、欠席・お茶当番の変更と当番引き継ぎを反映します。班をまたいだ入替は<strong>最小限の2人スワップ</strong>を優先します。STEP3では<strong>班をまたいだ手動割当</strong>ができます（自動でオン）。直してから「割振りを実行」してください。</span>
+      <strong id="p2-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持しつつ、欠席・お茶当番の変更と当番引き継ぎを反映します。班をまたいだ入替は<strong>最小限の2人スワップ</strong>を優先し、余剰道具は変更が必要な人へ<strong>集中配分</strong>します。STEP3では<strong>班をまたいだ手動割当</strong>ができます（自動でオン）。直してから「割振りを実行」してください。</span>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
       </div>
@@ -2860,6 +2860,33 @@ function applyAssignToolToState(s,t){
 }
 
 /* 1道具を state へ割当（担当件数の少ない人を優先。雑カゴ等は未担当者への単独可） */
+function personPrevToolKey(prevMap, name){
+  var t=[];
+  Object.keys(prevMap||{}).forEach(function(tn){
+    if(prevMap[tn]===name)t.push(tn);
+  });
+  t.sort();
+  return t.join('\0');
+}
+function personStateToolKey(state, name){
+  var s=state[name];
+  if(!s||!s.tools||!s.tools.length)return '';
+  return s.tools.slice().sort().join('\0');
+}
+function personAlreadyChangedFromPrev(state, name, prevMap){
+  if(!prevMap)return false;
+  return personStateToolKey(state,name)!==personPrevToolKey(prevMap,name);
+}
+function assignMinChangersScore(name, st, state, prevMap, prevPerson, opts){
+  var score=0;
+  if(opts&&opts.zeroPriority&&opts.zeroPriority[name])score+=10000;
+  if(opts&&opts.poolAssigned&&opts.poolAssigned[name])score+=5000+opts.poolAssigned[name]*100;
+  if(personAlreadyChangedFromPrev(state,name,prevMap))score+=800;
+  if(prevPerson&&prevPerson===name)score+=400;
+  score+=(st.cnt|0)*10;
+  if(prevMap&&!personAlreadyChangedFromPrev(state,name,prevMap)&&!(opts&&opts.zeroPriority&&opts.zeroPriority[name]))score-=20000;
+  return score;
+}
 function assignPrioBoost(name, st, opts){
   if(!opts||!opts.zeroPriority||!opts.zeroPriority[name])return 0;
   if(!st||(st.cnt|0)!==0)return 0;
@@ -2881,18 +2908,29 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   var attachPasses=bundleAttachPassesForTool(t, state);
   var prevPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
   var placed=false;
-  var maxAdd=keys.length+8;
+  var minChangers=!!(opts&&opts.minChangers);
+  var maxAdd=minChangers?(keys.length+1):(keys.length+8);
+  var addStart=minChangers?(keys.length):0;
+  function notePoolAssign(name){
+    if(minChangers&&opts&&opts.poolAssigned&&name)opts.poolAssigned[name]=(opts.poolAssigned[name]||0)+1;
+  }
   for(var ap=0;ap<attachPasses.length&&!placed;ap++){
     var requireOther=(attachPasses[ap]===1);
     for(var relaxPrev=0;relaxPrev<=1&&!placed;relaxPrev++){
-      for(var add=0;add<maxAdd&&!placed;add++){
-        var minC=Math.min.apply(null,keys.map(function(k){return state[k].cnt;}));
-        var maxAllow=minC+add;
+      for(var add=minChangers?addStart:0;add<maxAdd&&!placed;add++){
+        var minC=minChangers?0:Math.min.apply(null,keys.map(function(k){return state[k].cnt;}));
+        var maxAllow=minChangers?9999:(minC+add);
         var cands=keys.filter(function(k){return state[k].cnt<=maxAllow;})
           .map(function(k){return [k,state[k]];})
           .sort(function(a,b){
-            var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
-            if(zb!==0)return zb;
+            if(minChangers){
+              var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,opts);
+              var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,opts);
+              if(sa!==sb)return sb-sa;
+            }else{
+              var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
+              if(zb!==0)return zb;
+            }
             var p=prio(a[1], medianPast)-prio(b[1], medianPast);
             if(p!==0)return p;
             return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
@@ -2914,22 +2952,35 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
           if(isLlen)s.lc++;
           s.cnt++;
           if(soloEx)s.exclusiveRecv=1;
-          placed=true;break;
+          placed=true;
+          notePoolAssign(n);
+          break;
         }
       }
     }
   }
   if(!placed){
     var sorted=keys.map(function(n){return [n,state[n]];}).sort(function(a,b){
+      if(minChangers){
+        var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,opts);
+        var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,opts);
+        if(sa!==sb)return sb-sa;
+      }
       var p=prio(a[1], medianPast)-prio(b[1], medianPast);
       if(p!==0)return p;
       return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
     });
     if(soloEx){
       var byCnt=sorted.slice().sort(function(a,b){
-        var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
-        if(zb!==0)return zb;
-        if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
+        if(minChangers){
+          var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,opts);
+          var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,opts);
+          if(sa!==sb)return sb-sa;
+        }else{
+          var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
+          if(zb!==0)return zb;
+          if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
+        }
         var p=prio(a[1], medianPast)-prio(b[1], medianPast);
         if(p!==0)return p;
         return tieBreakName(a[0],seed)-tieBreakName(b[0],seed);
@@ -2949,6 +3000,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
           if(isSuperLong)sJ.sl++;
           if(isLlen)sJ.lc++;
           sJ.cnt++; sJ.exclusiveRecv=1;
+          notePoolAssign(byCnt[j][0]);
           return true;
         }
         return false;
@@ -2960,25 +3012,26 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
         if(isSuperLong)s2.sl++;
         if(isLlen)s2.lc++;
         s2.cnt++; s2.exclusiveRecv=1;
+        notePoolAssign(byCnt[0][0]);
         placed=true;
       }
     }else{
-      var pick=null;
+      var pick=null, pickName=null;
       for(var ii=0;ii<sorted.length;ii++){
         if(soloFillOnly&&sorted[ii][1].cnt>0)continue;
         if(prevPerson&&sorted[ii][0]===prevPerson)continue;
-        if(!sorted[ii][1].exclusiveRecv){ pick=sorted[ii][1]; break; }
+        if(!sorted[ii][1].exclusiveRecv){ pick=sorted[ii][1]; pickName=sorted[ii][0]; break; }
       }
       if(!pick&&prevPerson){
         for(var iii=0;iii<sorted.length;iii++){
           if(soloFillOnly&&sorted[iii][1].cnt>0)continue;
-          if(!sorted[iii][1].exclusiveRecv){ pick=sorted[iii][1]; break; }
+          if(!sorted[iii][1].exclusiveRecv){ pick=sorted[iii][1]; pickName=sorted[iii][0]; break; }
         }
       }
       if(!pick){
         for(var iv=0;iv<sorted.length;iv++){
           if(soloFillOnly&&sorted[iv][1].cnt>0)continue;
-          pick=sorted[iv][1]; break;
+          pick=sorted[iv][1]; pickName=sorted[iv][0]; break;
         }
       }
       if(pick){
@@ -2987,6 +3040,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
         if(isSuperLong)pick.sl++;
         if(isLlen)pick.lc++;
         pick.cnt++;
+        notePoolAssign(pickName);
         placed=true;
       }
     }
@@ -3103,13 +3157,14 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed, zeroPri
     assignOneToolToState(t, fullState, prevMap, carryMap, seed, null);
   });
 }
-/* 持ち帰り調整：前回欠席→今回参加の人（0件）をプール割当で優先 */
+/* 持ち帰り調整：変更人数を最小化（余剰道具は既に変更が必要な人へ集中）＋欠席復帰者優先 */
 function assignPoolCarryAdjust(poolToolObjs, fullState, prevAssignMap, runSeed, zeroPriority){
   if(!Object.keys(fullState).length)return;
   var prevMap=prevAssignMap||null;
   var carryMap=loadCarryoutPrevMap();
   var seed=(runSeed|0)||0;
-  var opts={zeroPriority:zeroPriority||null};
+  var poolAssigned={};
+  var opts={zeroPriority:zeroPriority||null, minChangers:true, poolAssigned:poolAssigned};
   var defer=sortToolsForDefer(poolToolObjs);
   defer.forEach(function(t){
     assignOneToolToState(t, fullState, prevMap, carryMap, seed, opts);
