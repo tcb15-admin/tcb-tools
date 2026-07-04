@@ -67,6 +67,14 @@
         payload=payload||{};
         payload.cohort=cohort;
         return req('/api/confirm-carryout','POST',payload);
+      },
+      publishDay:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/publish-day','POST',payload);
+      },
+      unpublishDay:function(){
+        return req('/api/unpublish-day','POST',{cohort:cohort});
       }
     };
   }

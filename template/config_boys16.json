@@ -13,6 +13,10 @@
   "GITHUB_MASTER_URL": "",
   "SYNC_API_BASE_URL": "https://tcb-tools-sync.kazoo-matsu.workers.dev",
   "SYNC_API_TOKEN": "__SYNC_API_TOKEN__",
+  "PARENT_VIEW_URL": "",
+  "PWA_NAME": "東海中央ボーイズ 16期 道具割振り",
+  "PWA_SHORT_NAME": "16期道具",
+  "THEME_COLOR": "#122050",
   "TOOL_VERSION": "1.6.9",
   "OUTPUT_PATH": "boys16/index.html"
 }

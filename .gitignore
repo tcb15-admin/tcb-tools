@@ -6,3 +6,7 @@
 
 # 一時アーカイブ（配布は index.html + *.js）
 **/index.zip
+
+# ローカルE2Eテスト用（devトークンを含むためコミットしない）
+.test-local/
+.tmp-*

@@ -103,6 +103,8 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 
 ## 9. API 一覧
 
+認可: 下記のうち `Authorization: Bearer <token>` が必要なのは **`/api/public/` 以外のすべて**。`/api/public/` は shareId で個別に検証する **公開経路（トークン不要）**。
+
 - `GET /api/state?cohort=15|16`
 - `POST /api/save-master`
 - `POST /api/history-upsert`
@@ -110,6 +112,9 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 - `POST /api/history-delete`
 - `POST /api/history-clear`
 - `POST /api/confirm-carryout`
+- `POST /api/publish-day` … 保護者向け確認ページを発行/更新（Bearer）。body: `{cohort, teamName, days:[...], rotate?}`。戻り: `{ok, shareId, updatedAt}`
+- `POST /api/unpublish-day` … 公開を停止（Bearer）。body: `{cohort}`
+- `GET /api/public/day?sid=<shareId>` … 保護者向け読み取り公開（**トークン不要**）。active のときだけ view を返す
 
 ## 10. 競合と上書きルール
 
@@ -128,3 +133,27 @@ npx wrangler d1 execute tcb-tools-sync --remote --file=cloudflare-sync/reset_15_
 ```
 
 `cd cloudflare-sync` 済みなら `--file=./reset_15_16.sql` でよい。
+
+## 12. 保護者向け確認ページ（案2 Step2-1）のデプロイ
+
+新機能の反映には **D1マイグレーション → Worker 再デプロイ** の2手順が必要（トークンローテーションと同様、ここは手作業）。
+
+1. テーブル追加（冪等）:
+
+```bash
+cd cloudflare-sync
+npx wrangler d1 execute tcb-tools-sync --remote --file=./migrate_published_days.sql
+```
+
+2. Worker を再デプロイ:
+
+```bash
+cd cloudflare-sync
+npx wrangler deploy
+```
+
+これで公開経路 `GET /api/public/day` と発行系 `POST /api/publish-day` / `POST /api/unpublish-day` が有効になる。
+
+- 保護者ページ本体は GitHub Pages 側の `boys15/kakunin.html` / `boys16/kakunin.html`（`python3 template/build.py` で生成、**トークンは埋め込まれない**）。
+- MGRツールの「印刷／PDF」内「保護者向け確認画面」→「保護者確認URLを発行/更新」で `shareId` 付きURLを発行し、LINEに貼って案内する。
+- URL は `PARENT_VIEW_URL`（config）が空なら、ツール自身の場所から同フォルダ `kakunin.html` を自動導出する。独自ドメイン等で固定したい場合のみ config に設定。

@@ -16,6 +16,8 @@ import json, os, sys, re, shutil
 
 # ===== 設定 =====
 TEMPLATE_FILE = 'template/tool_template.html'
+PARENT_TEMPLATE_FILE = 'template/parent_view_template.html'
+PARENT_OUTPUT_NAME = 'kakunin.html'
 MASTER_BLOCK_START = '/*DEFAULT_MASTER_BLOCK*/'
 MASTER_BLOCK_END = '/*END_DEFAULT_MASTER_BLOCK*/'
 CONFIGS = {
@@ -87,6 +89,71 @@ def apply_default_master_block(html, target, config_path):
     return html[:s] + inner + html[e_end:]
 
 
+def build_manifest(target, config, out_dir):
+    """PWA用の Web App Manifest（manifest.webmanifest）を世代別に生成する。
+    ホーム画面追加時の名称・テーマ色・アイコンを定義。アイコンPNGは別途 .tmp-gen-icons.py 等で生成し配置しておく。"""
+    theme = str(config.get('THEME_COLOR', '#122050') or '#122050')
+    manifest = {
+        'name': str(config.get('PWA_NAME', config.get('TEAM_NAME', '道具割振り'))),
+        'short_name': str(config.get('PWA_SHORT_NAME', config.get('COHORT_LABEL', '道具'))),
+        'lang': 'ja',
+        'start_url': './index.html',
+        'scope': './',
+        'display': 'standalone',
+        'orientation': 'portrait',
+        'background_color': '#122050',
+        'theme_color': theme,
+        'icons': [
+            {'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any'},
+            {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any'},
+            {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'},
+        ],
+    }
+    out_path = os.path.join(out_dir or '.', 'manifest.webmanifest')
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    missing = [n for n in ('icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-32.png')
+               if not os.path.isfile(os.path.join(out_dir or '.', n))]
+    if missing:
+        print(f'[WARN] {target}: アイコン未配置 {missing}（python3 template/gen_icons.py で生成してください）')
+    print(f'[OK] {target}(manifest) → {out_path}')
+    return True
+
+
+def build_parent_view(target, config, out_dir):
+    """保護者向け確認ページ（kakunin.html）を生成。トークンは絶対に埋め込まない。"""
+    if not os.path.exists(PARENT_TEMPLATE_FILE):
+        print(f'[WARN] {target}: 保護者向けテンプレートが見つかりません: {PARENT_TEMPLATE_FILE}')
+        return False
+
+    with open(PARENT_TEMPLATE_FILE, encoding='utf-8') as f:
+        html = f.read()
+
+    if 'SYNC_API_TOKEN' in html:
+        print(f'[ERROR] {target}: 保護者向けページにトークン参照が含まれています。中止します。')
+        return False
+
+    html = html.replace('{{HTML_BODY_CLASS}}', html_body_class(config))
+
+    parent_keys = [
+        'TEAM_NAME', 'TEAM_SHORT_NAME', 'COHORT_KEY', 'COHORT_LABEL',
+        'SYNC_API_BASE_URL', 'TOOL_VERSION',
+    ]
+    for key in parent_keys:
+        html = html.replace('{{' + key + '}}', str(config.get(key, '')))
+    html = html.replace(' class=""', '')
+
+    remaining = re.findall(r'\{\{[^}]+\}\}', html)
+    if remaining:
+        print(f'[WARN] {target}(確認ページ): 未置換のプレースホルダ: {set(remaining)}')
+
+    out_path = os.path.join(out_dir or '.', PARENT_OUTPUT_NAME)
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print(f'[OK] {target}(確認ページ) → {out_path}')
+    return True
+
+
 def build(target):
     """指定世代のHTMLを生成"""
     if target not in CONFIGS:
@@ -126,6 +193,8 @@ def build(target):
         'TOOL_VERSION', 'HTML_THEME_CLASS',
         'COHORT_KEY', 'COHORT_LABEL',
         'SYNC_API_BASE_URL', 'SYNC_API_TOKEN',
+        'PARENT_VIEW_URL',
+        'PWA_NAME', 'PWA_SHORT_NAME', 'THEME_COLOR',
     ]
 
     for key in placeholders:
@@ -156,6 +225,12 @@ def build(target):
             shutil.copy2(src_asset, os.path.join(out_dir, asset))
 
     print(f'[OK] {target} → {out_path}  (v{config.get("TOOL_VERSION","?")})')
+
+    # PWA用マニフェスト（ホーム画面追加対応）
+    build_manifest(target, config, out_dir)
+
+    # 保護者向け確認ページ（案2 Step2-1）
+    build_parent_view(target, config, out_dir)
     return True
 
 

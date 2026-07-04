@@ -1,10 +1,27 @@
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return cors(new Response(null, { status: 204 }));
-    if (!authorize(request, env)) return json({ error: "unauthorized" }, 401);
 
     const url = new URL(request.url);
+    // 保護者向け公開経路（shareId で個別検証）だけは Bearer 認証を課さない
+    const isPublic = url.pathname.startsWith("/api/public/");
+    if (!isPublic && !authorize(request, env)) return json({ error: "unauthorized" }, 401);
+
     try {
+      // ===== 保護者向け公開エンドポイント（トークン不要・shareId 必須） =====
+      if (url.pathname === "/api/public/day" && request.method === "GET") {
+        const sid = (url.searchParams.get("sid") || "").trim();
+        return json(await getPublicDay(env, sid));
+      }
+      // ===== 確認ページ発行/失効（Bearer 保護） =====
+      if (url.pathname === "/api/publish-day" && request.method === "POST") {
+        const body = await request.json();
+        return json(await publishDay(env, body));
+      }
+      if (url.pathname === "/api/unpublish-day" && request.method === "POST") {
+        const body = await request.json();
+        return json(await unpublishDay(env, body));
+      }
       if (url.pathname === "/api/state" && request.method === "GET") {
         const cohort = (url.searchParams.get("cohort") || "").trim();
         return json(await getState(env, cohort));
@@ -248,4 +265,83 @@ async function confirmCarryout(env, body) {
     .bind(nextVersion, JSON.stringify(master), JSON.stringify(carry), new Date().toISOString(), cohort)
     .run();
   return { ok: true, version: nextVersion, past: master.PAST };
+}
+
+// ===== 保護者向け確認ページ（案2 Step2-1） =====
+
+function genShareId() {
+  const b = new Uint8Array(16);
+  crypto.getRandomValues(b);
+  let s = "";
+  for (let i = 0; i < b.length; i++) s += b[i].toString(16).padStart(2, "0");
+  return s;
+}
+
+/** 保護者に見せてよい最小情報だけを取り出して整形する（PAST等の内部指標は出さない） */
+function sanitizePublishDays(daysRaw) {
+  const days = Array.isArray(daysRaw) ? daysRaw : [];
+  return days.slice(0, 10).map((d) => {
+    const items = Array.isArray(d && d.items) ? d.items : [];
+    const role = d && (d.role === "today" || d.role === "prev") ? d.role : "";
+    return {
+      date: String((d && d.date) || ""),
+      label: String((d && d.label) || ""),
+      role: role,
+      items: items.map((it) => ({
+        tool: String((it && it.tool) || ""),
+        desc: String((it && it.desc) || ""),
+        person: String((it && it.person) || ""),
+        team: String((it && it.team) || ""),
+        teamLabel: String((it && it.teamLabel) || ""),
+      })),
+    };
+  });
+}
+
+async function publishDay(env, body) {
+  const cohort = mustCohort(body.cohort);
+  const teamName = String(body.teamName || "");
+  const days = sanitizePublishDays(body.days);
+  const now = new Date().toISOString();
+  const view = JSON.stringify({ cohort, teamName, days, updatedAt: now });
+
+  const existing = await env.DB.prepare("SELECT share_id, status FROM published_days WHERE cohort = ?")
+    .bind(cohort)
+    .first();
+  // 通常の再公開では URL を保つ。失効後や rotate 指定時のみ新しい shareId を発行する
+  const keep = existing && existing.share_id && existing.status === "active" && !body.rotate;
+  const shareId = keep ? existing.share_id : genShareId();
+
+  if (existing) {
+    await env.DB.prepare(
+      "UPDATE published_days SET share_id = ?, view_json = ?, status = 'active', updated_at = ? WHERE cohort = ?"
+    )
+      .bind(shareId, view, now, cohort)
+      .run();
+  } else {
+    await env.DB.prepare(
+      "INSERT INTO published_days (cohort, share_id, view_json, status, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?)"
+    )
+      .bind(cohort, shareId, view, now, now)
+      .run();
+  }
+  return { ok: true, shareId, updatedAt: now };
+}
+
+async function unpublishDay(env, body) {
+  const cohort = mustCohort(body.cohort);
+  await env.DB.prepare("UPDATE published_days SET status = 'revoked', updated_at = ? WHERE cohort = ?")
+    .bind(new Date().toISOString(), cohort)
+    .run();
+  return { ok: true };
+}
+
+async function getPublicDay(env, sidRaw) {
+  const sid = String(sidRaw || "").trim();
+  if (!sid || !/^[0-9a-f]{16,64}$/.test(sid)) throw new Error("invalid_share_id");
+  const row = await env.DB.prepare("SELECT view_json, status FROM published_days WHERE share_id = ?")
+    .bind(sid)
+    .first();
+  if (!row || row.status !== "active") throw new Error("not_found_or_revoked");
+  return JSON.parse(row.view_json || "{}");
 }
