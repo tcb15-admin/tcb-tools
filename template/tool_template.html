@@ -168,6 +168,16 @@ tr.rB td{border-left:3px solid var(--tb);}
 .tcb-seed-mode-banner{display:none;margin-bottom:10px;padding:10px 12px;background:#e8f4fd;border-left:4px solid var(--blue);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.55;}
 .tcb-seed-mode-banner.on{display:block;}
 .tcb-seed-mode-banner-btns{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;}
+.tcb-actual-hold-desc{font-size:12px;line-height:1.6;color:var(--txt2);margin-bottom:10px;}
+.tcb-actual-hold-note{font-size:11px;line-height:1.55;color:#6a1b9a;margin-bottom:10px;}
+.tcb-actual-hold-list{max-height:52vh;overflow:auto;margin:0 0 12px;border:1px solid #eee;border-radius:8px;}
+.tcb-actual-hold-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f0f0f0;}
+.tcb-actual-hold-row:last-child{border-bottom:none;}
+.tcb-actual-hold-tool{flex:1;font-size:13px;color:var(--navy);font-weight:700;word-break:break-word;}
+.tcb-actual-hold-sel{flex:0 0 46%;max-width:46%;font-family:inherit;font-size:13px;padding:6px 4px;border:2px solid var(--bdr);border-radius:7px;min-height:var(--tap);background:#f8f9fa;color:var(--navy);}
+.tcb-actual-hold-row.tcb-actual-hold-changed{background:#fff3e0;}
+.tcb-actual-hold-btns{display:flex;gap:8px;}
+.tcb-actual-hold-btns button{flex:1;}
 .p3-carry-adjust-summary{display:none;margin-top:8px;padding:10px 12px;background:#f3e5f5;border-left:4px solid #7b1fa2;border-radius:8px;font-size:12px;line-height:1.55;color:var(--txt2);}
 .p3-carry-adjust-summary.on{display:block;}
 .p3-carry-adjust-summary strong{color:#4a148c;}
@@ -685,6 +695,21 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   </div>
 </div>
 
+<!-- 現地の実保有に補正モーダル -->
+<div class="overlay" id="actual-hold-modal">
+  <div class="modal">
+    <button class="mclose" id="actual-hold-close">&#10005;</button>
+    <h2>&#128230; 現地の実保有に補正</h2>
+    <p class="tcb-actual-hold-desc">前回の割り当てです。現地で受け渡しがあった道具は、<strong>実際にいま持っている人</strong>に直してください。</p>
+    <p class="tcb-actual-hold-note">ここで直した内容が「前回持っていた道具」の基準になります。入れ替え案内（LINE／PDF）も、この<strong>実態との差分</strong>で作られます。変更した行はオレンジ色になります。</p>
+    <div class="tcb-actual-hold-list" id="actual-hold-list"></div>
+    <div class="tcb-actual-hold-btns">
+      <button type="button" class="rbtn" id="btn-actual-hold-save">この内容で補正する</button>
+      <button type="button" class="nb nbs" id="btn-actual-hold-cancel">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- 印刷プレビューモーダル -->
 <div id="print-overlay">
   <div class="print-header">
@@ -786,6 +811,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
         <strong id="p1-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p1-seed-mode-banner-body">：前回<strong>実施確定済み</strong>の割振りを基準に、<strong>同じ人・同じ道具</strong>を最大限維持します。班の入替は2人1組の入れ替えを優先し、余った道具は<strong>変更が必要な人に集中</strong>（1人が複数持ちでも可）して調整人数を減らします。活動パターン（片方→両方試合など）を変えても基準の担当を尊重します。<strong>活動日は本日</strong>に設定されます。STEP1でパターン・班分け、STEP2で欠席を直してから「割振りを実行」してください。</span>
         <div class="tcb-seed-mode-banner-btns">
+          <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 現地の実保有に補正</button>
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">調整モードをやめる</button>
         </div>
       </div>
@@ -825,6 +851,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
       <strong id="p2-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持しつつ、欠席・お茶当番の変更と当番引き継ぎを反映します。班をまたいだ入替は<strong>最小限の2人スワップ</strong>を優先し、余剰道具は変更が必要な人へ<strong>集中配分</strong>します。STEP3では<strong>班をまたいだ手動割当</strong>ができます（自動でオン）。直してから「割振りを実行」してください。</span>
       <div class="tcb-seed-mode-banner-btns">
+        <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地の実保有に補正</button>
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
       </div>
     </div>
@@ -5034,6 +5061,18 @@ document.addEventListener('DOMContentLoaded',function(){
   });
   var btnReedit=document.getElementById('btn-reedit-from-prev');
   if(btnReedit)btnReedit.addEventListener('click',function(){beginReeditFromCurrentResult();});
+  ['btn-actual-hold-p1','btn-actual-hold-p2'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('click',function(){openActualHoldModal();});
+  });
+  var btnActualHoldSave=document.getElementById('btn-actual-hold-save');
+  if(btnActualHoldSave)btnActualHoldSave.addEventListener('click',function(){saveActualHoldAdjust();});
+  ['btn-actual-hold-cancel','actual-hold-close'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('click',function(){closeModal('actual-hold-modal');});
+  });
+  var actualHoldListEl=document.getElementById('actual-hold-list');
+  if(actualHoldListEl)actualHoldListEl.addEventListener('change',onActualHoldSelChange);
   ['btn-seed-mode-cancel-p1','btn-seed-mode-cancel-p2'].forEach(function(id){
     var el=document.getElementById(id);
     if(el)el.addEventListener('click',function(){

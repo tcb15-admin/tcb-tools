@@ -12,7 +12,7 @@
   "LS_PREFIX": "tcb16",
   "GITHUB_MASTER_URL": "",
   "SYNC_API_BASE_URL": "https://tcb-tools-sync.kazoo-matsu.workers.dev",
-  "SYNC_API_TOKEN": "tokaicentralboys 2012",
-  "TOOL_VERSION": "1.6.7",
+  "SYNC_API_TOKEN": "__SYNC_API_TOKEN__",
+  "TOOL_VERSION": "1.6.8",
   "OUTPUT_PATH": "boys16/index.html"
 }
