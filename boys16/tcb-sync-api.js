@@ -75,6 +75,14 @@
       },
       unpublishDay:function(){
         return req('/api/unpublish-day','POST',{cohort:cohort});
+      },
+      fetchSwapReports:function(){
+        return req('/api/swap-reports?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      handleSwapReport:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/swap-reports/handle','POST',payload);
       }
     };
   }

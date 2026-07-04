@@ -16,6 +16,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="16期道具">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tcb-swap-mgr.css">
 <style>
 :root{
   /* チームカラー：濃紺＋赤＋白（15期既定）／16期は html.theme-b16 で画面は白ベース＋紺×赤（ヘッダのみ白バック）
@@ -775,6 +776,7 @@ html{color-scheme:light;}
   <h1>道具割振りツール<span>東海中央ボーイズ 16期　｜　不屈不撓の精神で全員野球</span></h1>
   <div class="tcb-hdr-actions" style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
     <div style="display:flex;gap:6px;">
+      <button class="hbtn tcbsw-hbtn" id="btn-swap-reports" style="display:none;">&#128236; 報告<span class="tcbsw-badge" id="swap-badge" hidden>0</span></button>
       <button class="hbtn" id="btn-history"><svg class="ic"><use href="#i-clock"/></svg>履歴</button>
       <button class="hbtn" id="btn-master"><svg class="ic"><use href="#i-gear"/></svg>マスタ</button>
     </div>
@@ -803,6 +805,16 @@ html{color-scheme:light;}
     </div>
     <div class="tcb-prev-modal-cond" id="prev-modal-cond" style="display:none;"></div>
     <div id="prev-modal-body"></div>
+  </div>
+</div>
+
+<!-- 交代報告モーダル（保護者→道具MGR） -->
+<div class="overlay" id="swap-modal">
+  <div class="modal">
+    <button class="mclose" id="swap-modal-close">&#10005;</button>
+    <h2>&#128236; 交代報告</h2>
+    <div class="tcbsw-modal-desc">保護者から届いた担当交代の報告です。内容を確認し「反映する」または「却下」してください。反映後は STEP3 の「実施確定」→「修正版をLINEで再通知」で保護者へ更新をお知らせください。</div>
+    <div id="swap-list" class="tcbsw-list"><div class="tcbsw-empty">読み込み中…</div></div>
   </div>
 </div>
 
@@ -840,6 +852,7 @@ html{color-scheme:light;}
         <button type="button" class="print-act-btn" id="parent-view-publish"><svg class="ic"><use href="#i-link"/></svg>保護者確認URLを発行/更新</button>
         <button type="button" class="print-act-btn sub" id="parent-view-unpublish">&#9940; 公開を停止</button>
       </div>
+      <button type="button" class="print-act-btn" id="parent-view-renotify" style="display:none;"><svg class="ic"><use href="#i-line"/></svg>修正版をLINEで再通知</button>
       <div class="tcb-parent-url-box" id="parent-view-url-box" style="display:none;">
         <div class="tcb-parent-url" id="parent-view-url"></div>
         <button type="button" class="print-act-btn" id="parent-view-copy">&#128203; URLをコピー</button>
@@ -4450,6 +4463,20 @@ function buildParentViewItems(map,tools,la,lb){
   });
   return items;
 }
+/** その日の「割振り対象メンバー一覧」（欠席・恒久対象外を除外／お茶当番はフラグ付き）を作る。
+    交代報告フォームの「新担当」候補の元データになる。 */
+function buildEligibleRosterForSnap(snap){
+  var abs=(snap&&snap.absS&&typeof snap.absS==='object')?snap.absS:{};
+  var ocha=(snap&&snap.ochS&&typeof snap.ochS==='object')?snap.ochS:{};
+  var out=[];
+  (MB||[]).forEach(function(m){
+    if(!m||!m.name)return;
+    if(memberMasterExcluded(m))return;   /* #2 恒久対象外（休部・コーチ・14期帯同・兄弟所属） */
+    if(abs[m.name])return;               /* #1 欠席 */
+    out.push({name:m.name,ocha:ocha[m.name]?1:0});
+  });
+  return out;
+}
 /** 実施確定済みの履歴から、当日（最新確定）＋前回（その前の確定）を組み立てる */
 function buildParentPublishPayload(){
   var confirmed=getHistoryCache().filter(function(h){return h&&h.confirmedAt&&h.map&&typeof h.map==='object';});
@@ -4464,7 +4491,8 @@ function buildParentPublishPayload(){
       date:'',
       label:fmtDayLabelJa(snap.date),
       role:(i===0)?'today':'prev',
-      items:items
+      items:items,
+      members:buildEligibleRosterForSnap(snap)
     });
   });
   return {teamName:TEAM_NAME_FOR_VIEW(),days:days};
@@ -5390,7 +5418,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.6.9';
+  if(vEl)vEl.textContent='v1.7.0';
   MB.forEach(function(m){tmMap[m.name]='B';});
   updDesc(); buildAGrid(); buildOGrid(); buildSkipGrid();
   updateMemUnpublishedWrap();
@@ -5505,6 +5533,24 @@ document.addEventListener('DOMContentLoaded',function(){
   if(pvCopy)pvCopy.addEventListener('click',function(){copyParentViewUrl();});
   var pvUnpub=document.getElementById('parent-view-unpublish');
   if(pvUnpub)pvUnpub.addEventListener('click',function(){unpublishParentView();});
+
+  /* 交代報告（MGR）モジュール初期化：内部関数をフックとして注入 */
+  if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.init==='function'){
+    TCB_SwapMgr.init({
+      syncEnabled:function(){return syncEnabled();},
+      fetchSwapReports:function(){return SYNC_CLIENT.fetchSwapReports();},
+      handleSwapReport:function(p){return SYNC_CLIENT.handleSwapReport(p);},
+      getR:function(){return R;},
+      chAssign:function(tool,name){chAssign(tool,name);},
+      getAdate:function(){var e=document.getElementById('adate');return e?e.value:'';},
+      fmtDayLabelJa:fmtDayLabelJa,
+      buildParentPublishPayload:buildParentPublishPayload,
+      publishDay:function(p){return SYNC_CLIENT.publishDay(p);},
+      buildParentViewUrl:buildParentViewUrl,
+      copyText:copyTextToClipboard,
+      setPublishedUrl:function(url){_parentViewUrl=url;renderParentViewState();}
+    });
+  }
 
   /* マスタ */
   document.getElementById('btn-master').addEventListener('click',function(){goMaster();});
@@ -5712,5 +5758,6 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="tcb-print-pdf.js"></script>
 <script src="tcb-sync-api.js"></script>
+<script src="tcb-swap-mgr.js"></script>
 </body>
 </html>

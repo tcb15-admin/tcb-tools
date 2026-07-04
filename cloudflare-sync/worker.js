@@ -13,6 +13,15 @@ export default {
         const sid = (url.searchParams.get("sid") || "").trim();
         return json(await getPublicDay(env, sid));
       }
+      if (url.pathname === "/api/public/swap-report" && request.method === "POST") {
+        const body = await request.json();
+        return json(await createSwapReport(env, body));
+      }
+      if (url.pathname === "/api/public/swap-status" && request.method === "GET") {
+        const sid = (url.searchParams.get("sid") || "").trim();
+        const person = url.searchParams.get("person") || "";
+        return json(await getSwapStatusPublic(env, sid, person));
+      }
       // ===== 確認ページ発行/失効（Bearer 保護） =====
       if (url.pathname === "/api/publish-day" && request.method === "POST") {
         const body = await request.json();
@@ -21,6 +30,15 @@ export default {
       if (url.pathname === "/api/unpublish-day" && request.method === "POST") {
         const body = await request.json();
         return json(await unpublishDay(env, body));
+      }
+      // ===== 交代報告（道具MGR側・Bearer 保護） =====
+      if (url.pathname === "/api/swap-reports" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await listSwapReports(env, cohort));
+      }
+      if (url.pathname === "/api/swap-reports/handle" && request.method === "POST") {
+        const body = await request.json();
+        return json(await handleSwapReport(env, body));
       }
       if (url.pathname === "/api/state" && request.method === "GET") {
         const cohort = (url.searchParams.get("cohort") || "").trim();
@@ -282,6 +300,7 @@ function sanitizePublishDays(daysRaw) {
   const days = Array.isArray(daysRaw) ? daysRaw : [];
   return days.slice(0, 10).map((d) => {
     const items = Array.isArray(d && d.items) ? d.items : [];
+    const members = Array.isArray(d && d.members) ? d.members : [];
     const role = d && (d.role === "today" || d.role === "prev") ? d.role : "";
     return {
       date: String((d && d.date) || ""),
@@ -294,6 +313,14 @@ function sanitizePublishDays(daysRaw) {
         team: String((it && it.team) || ""),
         teamLabel: String((it && it.teamLabel) || ""),
       })),
+      // 交代報告フォームの「新担当」候補（当日の割振り対象メンバー＋お茶当番フラグ）
+      members: members
+        .slice(0, 80)
+        .map((m) => ({
+          name: String((m && m.name) || ""),
+          ocha: m && (m.ocha === 1 || m.ocha === true || m.ocha === "1") ? 1 : 0,
+        }))
+        .filter((m) => m.name),
     };
   });
 }
@@ -344,4 +371,172 @@ async function getPublicDay(env, sidRaw) {
     .first();
   if (!row || row.status !== "active") throw new Error("not_found_or_revoked");
   return JSON.parse(row.view_json || "{}");
+}
+
+// ===== 交代報告（保護者→道具MGR） =====
+
+/** shareId から有効な公開データ（cohort と view）を取得。無効/失効は例外。 */
+async function getActivePublishedByShare(env, sidRaw) {
+  const sid = String(sidRaw || "").trim();
+  if (!sid || !/^[0-9a-f]{16,64}$/.test(sid)) throw new Error("invalid_share_id");
+  const row = await env.DB.prepare("SELECT cohort, view_json, status FROM published_days WHERE share_id = ?")
+    .bind(sid)
+    .first();
+  if (!row || row.status !== "active") throw new Error("not_found_or_revoked");
+  return { cohort: String(row.cohort || ""), view: JSON.parse(row.view_json || "{}") };
+}
+
+function findPublishedDay(view, dayKey) {
+  const days = Array.isArray(view && view.days) ? view.days : [];
+  return days.find((d) => String((d && d.role) || "") === String(dayKey || "")) || null;
+}
+
+function mapSwapReportRow(r) {
+  return {
+    id: String(r.id || ""),
+    shareId: String(r.share_id || ""),
+    dayKey: String(r.day_key || ""),
+    dayLabel: String(r.day_label || ""),
+    tool: String(r.tool || ""),
+    fromPerson: String(r.from_person || ""),
+    toPerson: String(r.to_person || ""),
+    reporter: r.reporter ? String(r.reporter) : "",
+    comment: r.comment ? String(r.comment) : "",
+    status: String(r.status || ""),
+    rejectCode: r.reject_code ? String(r.reject_code) : "",
+    rejectReason: r.reject_reason ? String(r.reject_reason) : "",
+    createdAt: String(r.created_at || ""),
+    handledAt: r.handled_at ? String(r.handled_at) : "",
+  };
+}
+
+/** 保護者からの交代報告を作成（無認証・入口で厳格に検証） */
+async function createSwapReport(env, body) {
+  const shareId = String((body && body.shareId) || "").trim();
+  const dayKey = String((body && body.dayKey) || "").trim();
+  const tool = String((body && body.tool) || "").trim();
+  const fromPerson = String((body && body.fromPerson) || "").trim();
+  const toPerson = String((body && body.toPerson) || "").trim();
+  const reporter = String((body && body.reporter) || "").trim().slice(0, 40);
+  const comment = String((body && body.comment) || "").trim().slice(0, 100);
+
+  if (!tool || !fromPerson || !toPerson) throw new Error("missing_fields");
+  if (toPerson === fromPerson) throw new Error("same_person");
+
+  const { cohort, view } = await getActivePublishedByShare(env, shareId);
+  const day = findPublishedDay(view, dayKey);
+  if (!day) throw new Error("invalid_day");
+
+  const items = Array.isArray(day.items) ? day.items : [];
+  const item = items.find((it) => String((it && it.tool) || "") === tool) || null;
+  if (!item) throw new Error("invalid_tool");
+  // 現担当Aの鮮度照合（公開データと不一致＝古い内容は拒否）
+  if (String(item.person || "") !== fromPerson) throw new Error("stale_from_person");
+
+  // 新担当Bは当日の割振り対象メンバーに限定
+  const members = Array.isArray(day.members) ? day.members : [];
+  const memberNames = members.map((m) => String((m && m.name) || ""));
+  if (memberNames.indexOf(toPerson) < 0) throw new Error("invalid_to_person");
+  if (reporter && memberNames.indexOf(reporter) < 0) throw new Error("invalid_reporter");
+
+  const now = new Date();
+  // レート制限：直近60秒に同一 shareId で5件以上は拒否
+  const cutoff = new Date(now.getTime() - 60 * 1000).toISOString();
+  const cntRow = await env.DB.prepare(
+    "SELECT COUNT(*) AS c FROM swap_reports WHERE share_id = ? AND created_at >= ?"
+  )
+    .bind(shareId, cutoff)
+    .first();
+  if (cntRow && Number(cntRow.c) >= 5) throw new Error("rate_limited");
+
+  // 重複抑止：同一 share/day/tool/from/to の未処理が既にあれば拒否
+  const dup = await env.DB.prepare(
+    "SELECT id FROM swap_reports WHERE share_id = ? AND day_key = ? AND tool = ? AND from_person = ? AND to_person = ? AND status = 'pending'"
+  )
+    .bind(shareId, dayKey, tool, fromPerson, toPerson)
+    .first();
+  if (dup) throw new Error("duplicate_pending");
+
+  const id = genShareId();
+  const nowIso = now.toISOString();
+  await env.DB.prepare(
+    "INSERT INTO swap_reports (id, cohort, share_id, day_key, day_label, tool, from_person, to_person, reporter, comment, status, created_at) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)"
+  )
+    .bind(
+      id,
+      cohort,
+      shareId,
+      dayKey,
+      String(day.label || ""),
+      tool,
+      fromPerson,
+      toPerson,
+      reporter || null,
+      comment || null,
+      nowIso
+    )
+    .run();
+  return { ok: true, id };
+}
+
+/** 保護者向け：自分（氏名）に紐づく報告の受付状況（無認証・shareId 検証あり） */
+async function getSwapStatusPublic(env, sidRaw, personRaw) {
+  await getActivePublishedByShare(env, sidRaw); // shareId の有効性を検証
+  const shareId = String(sidRaw || "").trim();
+  const person = String(personRaw || "").trim();
+  if (!person) return { reports: [] };
+  const rs = await env.DB.prepare(
+    "SELECT id, share_id, day_key, day_label, tool, from_person, to_person, reporter, comment, status, reject_code, reject_reason, created_at, handled_at " +
+      "FROM swap_reports WHERE share_id = ? AND (from_person = ? OR to_person = ? OR reporter = ?) ORDER BY created_at DESC LIMIT 20"
+  )
+    .bind(shareId, person, person, person)
+    .all();
+  return { reports: (rs.results || []).map(mapSwapReportRow) };
+}
+
+/** 道具MGR向け：世代の交代報告一覧（未処理を先頭に） */
+async function listSwapReports(env, cohortRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const rs = await env.DB.prepare(
+    "SELECT id, share_id, day_key, day_label, tool, from_person, to_person, reporter, comment, status, reject_code, reject_reason, created_at, handled_at " +
+      "FROM swap_reports WHERE cohort = ? ORDER BY (status = 'pending') DESC, created_at DESC LIMIT 200"
+  )
+    .bind(cohort)
+    .all();
+  const reports = (rs.results || []).map(mapSwapReportRow);
+  const pending = reports.filter((r) => r.status === "pending").length;
+  return { reports, pending };
+}
+
+/** 道具MGR向け：報告を反映（applied）／却下（dismissed）に更新 */
+async function handleSwapReport(env, body) {
+  const cohort = mustCohort(body && body.cohort);
+  const id = String((body && body.id) || "").trim();
+  const action = String((body && body.action) || "").trim();
+  if (!id) throw new Error("id_required");
+  const row = await env.DB.prepare("SELECT id, status FROM swap_reports WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!row) throw new Error("not_found");
+  const nowIso = new Date().toISOString();
+  if (action === "apply") {
+    await env.DB.prepare(
+      "UPDATE swap_reports SET status = 'applied', handled_at = ?, reject_code = NULL, reject_reason = NULL WHERE id = ? AND cohort = ?"
+    )
+      .bind(nowIso, id, cohort)
+      .run();
+  } else if (action === "dismiss") {
+    const code = String((body && body.rejectCode) || "").trim();
+    const reason = String((body && body.rejectReason) || "").trim().slice(0, 200);
+    if (!code) throw new Error("reject_code_required");
+    await env.DB.prepare(
+      "UPDATE swap_reports SET status = 'dismissed', handled_at = ?, reject_code = ?, reject_reason = ? WHERE id = ? AND cohort = ?"
+    )
+      .bind(nowIso, code, reason || null, id, cohort)
+      .run();
+  } else {
+    throw new Error("invalid_action");
+  }
+  return await listSwapReports(env, cohort);
 }

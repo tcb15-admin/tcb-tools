@@ -1,0 +1,57 @@
+/* 道具MGR側 交代報告UI（ヘッダーバッジ／一覧モーダル／反映・却下）
+   既存セレクタと衝突しないよう tcbsw- プレフィクスで統一する。 */
+
+/* ヘッダーの新着バッジ */
+.tcbsw-hbtn{position:relative;}
+.tcbsw-badge{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#c0000a;color:#fff;font-size:10px;font-weight:800;line-height:16px;text-align:center;box-shadow:0 0 0 2px rgba(0,0,0,.15);}
+.tcbsw-badge[hidden]{display:none;}
+
+/* モーダル内 */
+.tcbsw-modal-desc{font-size:12.5px;color:#6e6e78;line-height:1.6;margin-bottom:12px;}
+.tcbsw-list{display:flex;flex-direction:column;gap:10px;}
+.tcbsw-empty{font-size:13px;color:#6e6e78;text-align:center;padding:18px 8px;}
+.tcbsw-item{border:1px solid #e5e5ea;border-radius:14px;padding:12px 14px;background:#fff;}
+.tcbsw-item.tcbsw-done{opacity:.72;}
+.tcbsw-item.tcbsw-conflict{border-color:#c0000a;box-shadow:0 0 0 3px rgba(192,0,10,.08);}
+.tcbsw-conflict-note{font-size:11px;font-weight:700;color:#c0000a;margin-bottom:6px;}
+.tcbsw-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.tcbsw-day{font-size:11px;font-weight:700;color:#122050;background:#eef1f8;border-radius:980px;padding:2px 9px;}
+.tcbsw-tool{font-size:14px;font-weight:800;color:#122050;}
+.tcbsw-swap{font-size:15px;font-weight:700;color:#1c1c22;margin:4px 0 6px;}
+.tcbsw-swap .tcbsw-arrow{color:#c0000a;margin:0 6px;}
+.tcbsw-meta{font-size:12px;color:#6e6e78;line-height:1.6;}
+.tcbsw-meta .tcbsw-comment{display:block;margin-top:3px;color:#1c1c22;}
+.tcbsw-status{display:inline-block;font-size:10px;font-weight:800;padding:2px 9px;border-radius:980px;color:#fff;margin-left:auto;}
+.tcbsw-status.pending{background:#8e8e97;}
+.tcbsw-status.applied{background:#2e7d32;}
+.tcbsw-status.dismissed{background:#c0000a;}
+.tcbsw-reject-info{margin-top:6px;font-size:12px;color:#c0000a;line-height:1.5;}
+
+.tcbsw-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.tcbsw-btn{flex:1;min-width:120px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;font-family:inherit;border:none;}
+.tcbsw-btn-apply{background:#122050;color:#fff;}
+.tcbsw-btn-reject{background:none;border:1px solid #e6a3a3;color:#c0000a;}
+
+/* 却下フォーム */
+.tcbsw-reject-form{margin-top:10px;padding:12px;background:#f7f7fa;border-radius:12px;border:1px solid #e5e5ea;}
+.tcbsw-reject-form[hidden]{display:none;}
+.tcbsw-reject-label{display:block;font-size:12px;font-weight:700;color:#1c1c22;margin-bottom:6px;}
+.tcbsw-reject-opt{display:block;font-size:13px;color:#1c1c22;padding:5px 0;cursor:pointer;}
+.tcbsw-reject-opt input{margin-right:8px;}
+.tcbsw-reject-text{width:100%;font-family:inherit;font-size:14px;border:1px solid #e5e5ea;border-radius:10px;padding:9px;margin-top:6px;min-height:44px;}
+.tcbsw-reject-btns{display:flex;gap:8px;margin-top:8px;}
+.tcbsw-reject-confirm{flex:1;padding:10px;border:none;border-radius:10px;background:#c0000a;color:#fff;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;font-family:inherit;}
+.tcbsw-reject-cancel{padding:10px 16px;border:1px solid #e5e5ea;border-radius:10px;background:none;color:#6e6e78;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;font-family:inherit;}
+
+/* ダークモード追従 */
+@media (prefers-color-scheme:dark){
+  .tcbsw-modal-desc,.tcbsw-empty,.tcbsw-meta{color:#a1a1ac;}
+  .tcbsw-item{background:#1c1c1e;border-color:#38383a;}
+  .tcbsw-day{color:#9fb0ff;background:#22242b;}
+  .tcbsw-tool{color:#f5f5f7;}
+  .tcbsw-swap,.tcbsw-meta .tcbsw-comment{color:#f5f5f7;}
+  .tcbsw-btn-apply{background:#3a4a8a;}
+  .tcbsw-reject-form{background:#2c2c2e;border-color:#38383a;}
+  .tcbsw-reject-label,.tcbsw-reject-opt{color:#f5f5f7;}
+  .tcbsw-reject-text{background:#1c1c1e;color:#f5f5f7;border-color:#38383a;}
+}

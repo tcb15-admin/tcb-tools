@@ -1,0 +1,60 @@
+/* 保護者確認画面 追加機能（氏名フィルタ／全員トグル／交代報告／受付状況）
+   既存 pv- と衝突しないよう pvsw- プレフィクスで統一する。 */
+
+/* 氏名ピッカー */
+.pvsw-picker{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:20px 16px;margin-bottom:16px;}
+.pvsw-picker-title{font-weight:700;font-size:15px;color:var(--navy);margin-bottom:6px;}
+.pvsw-picker-desc{font-size:12.5px;color:var(--txt2);line-height:1.6;margin-bottom:14px;}
+.pvsw-picker-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.pvsw-picker-btn{flex:0 0 auto;padding:9px 14px;background:var(--surface-2);border:1px solid var(--bdr);border-radius:var(--r-pill);font-size:13px;font-weight:600;color:var(--txt);cursor:pointer;min-height:var(--tap);font-family:inherit;}
+.pvsw-picker-btn:hover{border-color:var(--navy);}
+
+/* ツールバー（自分のみ／全員 トグル＋氏名切替） */
+.pvsw-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:12px 14px;margin-bottom:16px;}
+.pvsw-toolbar-name{font-weight:700;font-size:14px;color:var(--navy);flex:1;min-width:0;}
+.pvsw-toolbar-name .pvsw-toolbar-me{display:inline-block;background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);margin-right:6px;}
+.pvsw-toggle-btn,.pvsw-switch-name{padding:8px 13px;border:1px solid var(--bdr);border-radius:var(--r-pill);background:var(--surface-2);font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer;min-height:38px;font-family:inherit;white-space:nowrap;}
+.pvsw-toggle-btn.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* 自分のカードを強調 */
+.pv-person.pvsw-me{border:2px solid var(--navy);box-shadow:0 0 0 3px rgba(18,32,80,.08);}
+.pvsw-me-badge{display:inline-block;background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);}
+
+/* 交代報告フォーム（各道具行にインライン） */
+.pvsw-open{margin-top:6px;padding:6px 12px;background:none;border:1px solid var(--navy);color:var(--navy);border-radius:var(--r-pill);font-size:12px;font-weight:700;cursor:pointer;min-height:34px;font-family:inherit;}
+.pvsw-form{margin-top:10px;padding:12px;background:var(--surface-2);border-radius:12px;border:1px solid var(--bdr);}
+.pvsw-form[hidden]{display:none;}
+.pvsw-field{margin-bottom:10px;}
+.pvsw-label{display:block;font-size:12px;font-weight:700;color:var(--txt);margin-bottom:5px;}
+.pvsw-select,.pvsw-comment{width:100%;font-family:inherit;font-size:14px;border:1px solid var(--bdr);border-radius:10px;padding:10px;background:var(--card);color:var(--txt);min-height:var(--tap);}
+.pvsw-comment{min-height:64px;resize:vertical;line-height:1.5;}
+.pvsw-counter{display:block;text-align:right;font-size:11px;color:var(--txt2);margin-top:3px;}
+.pvsw-warn{font-size:12px;color:var(--acc);line-height:1.5;margin:6px 0;}
+.pvsw-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.pvsw-apply{flex:1;min-width:130px;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;}
+.pvsw-apply:disabled{opacity:.5;cursor:default;}
+.pvsw-cancel{padding:11px 16px;background:none;border:1px solid var(--bdr);color:var(--txt2);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;min-height:var(--tap);font-family:inherit;}
+
+/* 受付状況 */
+.pvsw-status{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:16px;margin-bottom:16px;}
+.pvsw-status-title{font-weight:700;font-size:14px;color:var(--navy);margin-bottom:10px;}
+.pvsw-status-item{border:1px solid var(--bdr);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.55;}
+.pvsw-status-item:last-child{margin-bottom:0;}
+.pvsw-status-main{color:var(--txt);}
+.pvsw-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:var(--r-pill);color:#fff;margin-left:6px;}
+.pvsw-badge.pending{background:#8e8e97;}
+.pvsw-badge.applied{background:var(--grn);}
+.pvsw-badge.dismissed{background:var(--red);}
+.pvsw-reject{margin-top:5px;font-size:12px;color:var(--acc);line-height:1.5;}
+.pvsw-status-empty{font-size:12.5px;color:var(--txt2);}
+
+/* ダークモード追従 */
+@media (prefers-color-scheme:dark){
+  .pvsw-picker,.pvsw-toolbar,.pvsw-status{border:1px solid var(--bdr);}
+  .pvsw-picker-title,.pvsw-toolbar-name,.pvsw-status-title{color:#f5f5f7;}
+  .pvsw-open{border-color:#5b6cff;color:#9fb0ff;}
+  .pv-person.pvsw-me{border-color:#5b6cff;box-shadow:0 0 0 3px rgba(91,108,255,.18);}
+  .pvsw-me-badge,.pvsw-toolbar-name .pvsw-toolbar-me,.pvsw-toggle-btn.on,.pvsw-apply{background:#3a4a8a;border-color:#3a4a8a;}
+  .pvsw-form{background:#2c2c2e;}
+  .pvsw-select,.pvsw-comment{background:#1c1c1e;color:#f5f5f7;}
+}

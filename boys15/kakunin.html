@@ -12,6 +12,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <meta name="apple-mobile-web-app-title" content="15期道具">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="parent-swap.css">
 <style>
 :root{
   --navy:#122050;--navy2:#1a2d68;--blue:#122050;
@@ -94,8 +95,8 @@ html.theme-b16 .pv-chip{background:var(--surface-2);color:#122050;border:none;}
 
 <div class="pv-wrap">
   <div class="pv-note">
-    この画面は<strong>閲覧用</strong>です。当日と前回（確定分）の道具割振りをご確認いただけます。
-    変更・調整のご連絡は<strong>チームの案内（LINE 等）</strong>に従ってください。
+    当日と前回（確定分）の道具割振りをご確認いただけます。お名前を選ぶと<strong>自分の担当だけ</strong>を表示します。
+    保護者間で交代を調整された場合は、各道具の<strong>「交代を申請」</strong>から道具担当者へ報告できます（申請には確認があります）。
   </div>
 
   <div class="pv-actions">
@@ -104,161 +105,10 @@ html.theme-b16 .pv-chip{background:var(--surface-2);color:#122050;border:none;}
 
   <div id="pv-content"><div class="pv-state"><span class="pv-state-emoji">&#8987;</span>読み込み中です…</div></div>
 
-  <div class="pv-foot">東海中央ボーイズ 15期　道具割振りツール v1.6.9</div>
+  <div class="pv-foot">東海中央ボーイズ 15期　道具割振りツール v1.7.0</div>
 </div>
 
-<script>
-(function(){
-  'use strict';
-  var API_BASE='https://tcb-tools-sync.kazoo-matsu.workers.dev'.replace(/\/+$/,'');
-
-  function getShareId(){
-    try{
-      var u=new URL(location.href);
-      var v=(u.searchParams.get('v')||u.searchParams.get('sid')||'').trim();
-      if(!v&&location.hash){
-        var h=location.hash.replace(/^#/,'');
-        var m=h.match(/(?:^|[&?])(?:v|sid)=([0-9a-fA-F]+)/);
-        if(m)v=m[1];
-      }
-      return v;
-    }catch(e){return '';}
-  }
-
-  function esc(s){
-    return String(s==null?'':s).replace(/[&<>"']/g,function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c];
-    });
-  }
-
-  function teamClass(t){
-    var s=String(t||'').toUpperCase();
-    if(s==='A')return 'A';
-    if(s==='B')return 'B';
-    return '';
-  }
-
-  function fmtUpdated(iso){
-    if(!iso)return '';
-    var d=new Date(iso);
-    if(isNaN(d.getTime()))return '';
-    function p(n){return String(n).padStart(2,'0');}
-    return d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
-  }
-
-  /** 道具中心のitemsを「担当者ごと」に集約して描画する（保護者が自分の担当を探しやすい） */
-  function renderDay(day, idx){
-    var items=Array.isArray(day.items)?day.items:[];
-    var byPerson={};
-    var order=[];
-    items.forEach(function(it){
-      var person=String(it.person||'').trim();
-      if(!person)return;
-      if(!byPerson[person]){byPerson[person]={team:it.team||'',teamLabel:it.teamLabel||'',tools:[]};order.push(person);}
-      if(it.team&&!byPerson[person].team)byPerson[person].team=it.team;
-      if(it.teamLabel&&!byPerson[person].teamLabel)byPerson[person].teamLabel=it.teamLabel;
-      byPerson[person].tools.push({tool:it.tool||'',desc:it.desc||''});
-    });
-    order.sort(function(a,b){return a.localeCompare(b,'ja');});
-
-    var role=day.role||(idx===0?'today':'prev');
-    var badge=role==='today'
-      ?'<span class="pv-day-badge">当日</span>'
-      :'<span class="pv-day-badge prev">前回</span>';
-    var html=''
-      +'<div class="pv-card">'
-      +'<div class="pv-day-head">'
-      +badge
-      +'<span class="pv-day-label">'+esc(day.label||('活動日 '+(idx+1)))+'</span>'
-      +(day.date?'<span class="pv-day-date">'+esc(day.date)+'</span>':'')
-      +'</div>';
-
-    if(!order.length){
-      html+='<div class="pv-empty">担当の登録がありません。</div>';
-    }else{
-      order.forEach(function(person){
-        var p=byPerson[person];
-        var tc=teamClass(p.team);
-        var tagTxt=p.teamLabel||(p.team?(p.team+'組'):'');
-        html+='<div class="pv-person">'
-          +'<div class="pv-person-name">'+esc(person)
-          +(tagTxt?'<span class="pv-team-tag '+tc+'">'+esc(tagTxt)+'</span>':'')
-          +'</div><ul class="pv-tools">';
-        p.tools.forEach(function(t){
-          html+='<li class="pv-tool">'+esc(t.tool)
-            +(t.desc?'<span class="pv-tool-desc">'+esc(t.desc)+'</span>':'')
-            +'</li>';
-        });
-        html+='</ul></div>';
-      });
-    }
-    html+='</div>';
-    return html;
-  }
-
-  function showState(emoji, msg){
-    document.getElementById('pv-content').innerHTML=
-      '<div class="pv-state"><span class="pv-state-emoji">'+emoji+'</span>'+msg+'</div>';
-  }
-
-  function render(data){
-    var days=Array.isArray(data.days)?data.days:[];
-    if(data.teamName){
-      var te=document.getElementById('pv-team');
-      if(te)te.textContent=data.teamName;
-    }
-    if(!days.length){
-      showState('&#128203;','まだ公開された割振りがありません。<br>チームからの案内をお待ちください。');
-      return;
-    }
-    var html='';
-    days.forEach(function(d,i){html+=renderDay(d,i);});
-    if(data.updatedAt){
-      html+='<div class="pv-updated">最終更新: '+esc(fmtUpdated(data.updatedAt))+'</div>';
-    }
-    document.getElementById('pv-content').innerHTML=html;
-  }
-
-  function load(){
-    var sid=getShareId();
-    if(!sid){
-      showState('&#128273;','URL が正しくありません。<br>チームから案内された確認用リンクを開いてください。');
-      return;
-    }
-    if(!API_BASE){
-      showState('&#9888;&#65039;','設定が正しくありません。管理者にお問い合わせください。');
-      return;
-    }
-    var btn=document.getElementById('pv-reload');
-    if(btn)btn.disabled=true;
-    showState('&#8987;','読み込み中です…');
-    fetch(API_BASE+'/api/public/day?sid='+encodeURIComponent(sid),{method:'GET'})
-      .then(function(res){
-        return res.text().then(function(t){
-          var payload={};
-          try{payload=t?JSON.parse(t):{};}catch(e){payload={};}
-          if(!res.ok||payload.error){
-            var code=payload.error||('HTTP '+res.status);
-            throw new Error(code);
-          }
-          return payload;
-        });
-      })
-      .then(function(data){render(data);})
-      .catch(function(err){
-        var msg=String(err&&err.message||'');
-        if(msg==='not_found_or_revoked'||msg==='invalid_share_id'){
-          showState('&#128273;','この確認用リンクは<strong>無効または期限切れ</strong>です。<br>最新のリンクをチームにご確認ください。');
-        }else{
-          showState('&#9888;&#65039;','読み込みに失敗しました。<br>通信環境をご確認のうえ、時間をおいて再度お試しください。');
-        }
-      })
-      .finally(function(){if(btn)btn.disabled=false;});
-  }
-
-  document.getElementById('pv-reload').addEventListener('click',load);
-  load();
-})();
-</script>
+<script>window.PVSW_CONFIG={apiBase:'https://tcb-tools-sync.kazoo-matsu.workers.dev'};</script>
+<script src="parent-swap.js"></script>
 </body>
 </html>

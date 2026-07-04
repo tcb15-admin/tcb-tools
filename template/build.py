@@ -219,7 +219,13 @@ def build(target):
         f.write(html)
 
     out_dir = os.path.dirname(out_path) or '.'
-    for asset in ('tcb-print-pdf.js', 'tcb-sync-api.js'):
+    # index.html（道具MGR）用アセット＋保護者確認ページ（kakunin.html）用アセット
+    assets = (
+        'tcb-print-pdf.js', 'tcb-sync-api.js',
+        'tcb-swap-mgr.js', 'tcb-swap-mgr.css',
+        'parent-swap.js', 'parent-swap.css',
+    )
+    for asset in assets:
         src_asset = os.path.join(os.path.dirname(TEMPLATE_FILE), asset)
         if os.path.isfile(src_asset):
             shutil.copy2(src_asset, os.path.join(out_dir, asset))
