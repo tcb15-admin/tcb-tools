@@ -1961,6 +1961,97 @@ function beginReeditFromCurrentResult(){
   persistAllocationSnapshot(snap);
   return beginReeditFromSnap(snap);
 }
+/* ===== 現地の実保有に補正（v1.6.8）：前回確定と実態のズレを実保有者へ手動補正 ===== */
+function actualHoldMemberOptions(selectedPerson){
+  var opts='<option value=""'+(!selectedPerson?' selected':'')+'>未割当</option>';
+  var seen={};
+  (MB||[]).forEach(function(m){
+    if(!m||!m.name)return;
+    if(memberMasterExcluded(m))return;
+    seen[m.name]=1;
+    opts+='<option value="'+esc(m.name)+'"'+(m.name===selectedPerson?' selected':'')+'>'+esc(m.name)+'</option>';
+  });
+  if(selectedPerson&&!seen[selectedPerson]){
+    opts+='<option value="'+esc(selectedPerson)+'" selected>'+esc(selectedPerson)+'（対象外）</option>';
+  }
+  return opts;
+}
+function onActualHoldSelChange(e){
+  var sel=e&&e.target;
+  if(!sel||sel.tagName!=='SELECT'||!sel.hasAttribute('data-tcb-ah-tool'))return;
+  var row=sel.closest?sel.closest('.tcb-actual-hold-row'):null;
+  if(!row)return;
+  var orig=sel.getAttribute('data-tcb-ah-orig')||'';
+  if((sel.value||'')!==orig)row.classList.add('tcb-actual-hold-changed');
+  else row.classList.remove('tcb-actual-hold-changed');
+}
+function openActualHoldModal(){
+  var base=seedBaseSnap;
+  if(!base||typeof base.map!=='object'||base.map===null){
+    alert('補正の基準となる前回の割り当てがありません。\n先に「試合前・最小入れ替え調整」を開始してください。');
+    return;
+  }
+  var listEl=document.getElementById('actual-hold-list');
+  if(!listEl)return;
+  var map=base.map;
+  var names=[], seen={};
+  (TL||[]).forEach(function(t){
+    if(!t||!t.name)return;
+    if(map[t.name]&&!seen[t.name]){names.push(t.name);seen[t.name]=1;}
+  });
+  Object.keys(map).forEach(function(tn){
+    if(map[tn]&&!seen[tn]){names.push(tn);seen[tn]=1;}
+  });
+  if(!names.length){
+    listEl.innerHTML='<div class="tcb-actual-hold-row"><div class="tcb-actual-hold-tool">前回の割り当て道具がありません。</div></div>';
+  }else{
+    var html='';
+    names.forEach(function(tn){
+      var person=map[tn]||'';
+      html+='<div class="tcb-actual-hold-row">'
+        +'<div class="tcb-actual-hold-tool">'+esc(tn)+'</div>'
+        +'<select class="tcb-actual-hold-sel" data-tcb-ah-tool="'+esc(tn)+'" data-tcb-ah-orig="'+esc(person)+'">'
+        +actualHoldMemberOptions(person)
+        +'</select>'
+        +'</div>';
+    });
+    listEl.innerHTML=html;
+  }
+  openModal('actual-hold-modal');
+}
+function saveActualHoldAdjust(){
+  var base=seedBaseSnap;
+  if(!base||typeof base.map!=='object'||base.map===null){closeModal('actual-hold-modal');return;}
+  var listEl=document.getElementById('actual-hold-list');
+  if(!listEl){closeModal('actual-hold-modal');return;}
+  var sels=listEl.querySelectorAll('select[data-tcb-ah-tool]');
+  var changed=0;
+  for(var i=0;i<sels.length;i++){
+    var sel=sels[i];
+    var tn=sel.getAttribute('data-tcb-ah-tool');
+    if(!tn)continue;
+    var val=sel.value||'';
+    var cur=base.map[tn]||'';
+    if(val!==cur){
+      if(val)base.map[tn]=val;
+      else delete base.map[tn];
+      changed++;
+    }
+  }
+  if(carryAdjustRefSnap&&typeof carryAdjustRefSnap.map==='object'&&carryAdjustRefSnap.map!==null){
+    carryAdjustRefSnap.map=clonePlainObj(base.map);
+  }
+  closeModal('actual-hold-modal');
+  if(changed){
+    if(R){
+      if(typeof buildTbl==='function')buildTbl();
+      if(typeof renderCarryAdjustDiffSummary==='function')renderCarryAdjustDiffSummary();
+    }
+    alert(changed+'点の実保有を補正しました。\nこの内容が「前回持っていた道具」の基準になり、入れ替え案内はこの実態との差分で作られます。');
+  }else{
+    alert('変更はありませんでした。');
+  }
+}
 function savePrevResult(){
   if(!R)return;
   var snap=buildAllocationSnapshot();
