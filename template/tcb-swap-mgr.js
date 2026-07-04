@@ -304,8 +304,6 @@
     // クラウド同期が無効（トークン未設定）の環境では報告機能を隠す
     if (!ctx.syncEnabled || !ctx.syncEnabled()) {
       if (btn) btn.style.display = 'none';
-      var reBtn = el('parent-view-renotify');
-      if (reBtn) reBtn.style.display = 'none';
       return;
     }
     if (btn) { btn.style.display = ''; btn.addEventListener('click', openModal); }
@@ -315,11 +313,23 @@
     if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
     var list = el('swap-list');
     if (list) list.addEventListener('click', onListClick);
-    var reBtn2 = el('parent-view-renotify');
-    if (reBtn2) { reBtn2.style.display = ''; reBtn2.addEventListener('click', reNotify); }
     // 起動時に新着件数を取得（バッジ表示）
     refresh();
   }
 
-  global.TCB_SwapMgr = { init: init, refresh: refresh, reNotify: reNotify };
+  function hasRevisedNotice() {
+    return appliedSession.length > 0;
+  }
+  function clearRevisedNotice() {
+    appliedSession = [];
+  }
+
+  global.TCB_SwapMgr = {
+    init: init,
+    refresh: refresh,
+    reNotify: reNotify,
+    hasRevisedNotice: hasRevisedNotice,
+    buildRevisedLineMessage: buildRevisedMessage,
+    clearRevisedNotice: clearRevisedNotice
+  };
 })(window);

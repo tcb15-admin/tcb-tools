@@ -141,7 +141,7 @@ html[data-cohort="15"] header{
 .tcb-tab-print{margin-left:auto;background:var(--navy);color:#fff;display:inline-flex;align-items:center;gap:5px;}
 .tcb-tab-print:active{opacity:.9;}
 .p3-rh-actions{max-width:100%;}
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.tcb-tab-print{display:none;}
 table{width:100%;border-collapse:collapse;min-width:320px;}
 th{background:var(--navy);color:#fff;font-size:11px;font-weight:700;padding:10px 8px;text-align:left;white-space:nowrap;}
 td{padding:10px 8px;font-size:12px;border-bottom:1px solid var(--bdr);}
@@ -159,10 +159,14 @@ tr.rB td{border-left:3px solid var(--tb);}
 .p3-carryout-status{color:var(--txt2);line-height:1.55;}
 .tgA{background:var(--ta-bg);color:var(--ta);border:1px solid var(--ta-bd);}
 .tgB{background:var(--tb-bg);color:var(--tb);border:1px solid var(--tb-bd);}
-/* 割振り結果 表：道具名は左、写真ボタンは右端で縦に揃える */
-.p3-tool-cell{display:flex;align-items:center;gap:8px;}
-.p3-tool-name{flex:1;min-width:0;line-height:1.5;}
-.p3-tool-cell .ibtn{flex-shrink:0;margin-left:auto;}
+/* 割振り結果 表：道具名は固定幅、タグ列は固定スロットで縦揃え、写真ボタンは右端 */
+.p3-tool-cell{display:grid;grid-template-columns:clamp(72px,28vw,112px) auto 1fr;gap:6px 8px;align-items:center;}
+.p3-tool-name{min-width:0;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.p3-tool-tags{display:grid;grid-template-columns:24px 24px 24px 36px 36px;gap:4px;align-items:center;}
+.p3-tool-tags.p3-tool-tags-team{grid-template-columns:24px 24px 24px 36px 36px minmax(40px,5em);}
+.p3-tag-slot{display:flex;align-items:center;justify-content:center;min-height:18px;}
+.p3-tool-tags .tag{margin-left:0;white-space:nowrap;}
+.p3-tool-cell .ibtn{justify-self:end;}
 tr.p3-multi-row{background:#fff8e1;}
 .ibtn{background:var(--ui-accent-bg);color:var(--ui-accent);border:1px solid var(--ui-accent-bd);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;padding:3px 8px;vertical-align:middle;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;gap:3px;margin-left:4px;}
 .ibtn:active{opacity:1;}
@@ -239,36 +243,44 @@ tr.p3-multi-row{background:#fff8e1;}
   background:#6a1b9a;color:#fff;font-size:13px;font-weight:900;cursor:pointer;min-height:var(--tap);
 }
 .p3-carry-adjust-copybtn:active{opacity:.92;}
+.p1-from-prev-block{margin-bottom:14px;padding:12px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--surface-2);}
+.p1-from-prev-btn{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--ui-accent-bd);background:var(--ui-accent-bg);color:var(--ui-accent);font-size:14px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.p1-from-prev-btn:active{opacity:.92;}
+.p1-from-prev-desc{margin:8px 0 0;font-size:12px;color:var(--txt2);line-height:1.55;}
+.p3-cross-handoff-notice{display:none;margin:0 0 10px;padding:10px 12px;border-radius:8px;border-left:4px solid #e65100;background:#fff3e0;font-size:12px;line-height:1.6;color:#4e342e;}
+.p3-cross-handoff-notice.on{display:block;}
+.p3-cross-handoff-notice strong{color:#bf360c;}
+.p3-cross-handoff-notice ul{margin:6px 0 0 18px;padding:0;}
+.p3-cross-handoff-notice li{margin:4px 0;}
 tr.p3-carry-keep-row{background:#e8f5e9!important;}
 tr.p3-carry-changed-row{background:#fff3e0!important;}
-#print-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;flex-direction:column;}
+#print-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:600;flex-direction:column;overflow:hidden;height:100%;height:100dvh;}
 #print-overlay.open{display:flex;}
-.print-header{
-  padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--hdr-g1),var(--hdr-g2));
-  border-bottom:3px solid #c0000a;
-  box-shadow:0 2px 14px rgba(18,32,80,.2);
-}
-.print-header .tcb-print-hdr-text{flex:1;min-width:0;}
-.tcb-print-hdr-title{font-size:15px;font-weight:900;color:#fff;line-height:1.3;}
-.tcb-print-hdr-sub{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;line-height:1.3;}
-.print-close-btn{margin-left:auto;flex-shrink:0;padding:8px 16px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
-.print-actions{background:var(--navy2);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0;align-items:center;}
-.print-act-btn{flex:1;min-width:140px;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-height:42px;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
-.print-act-btn .ic{width:16px;height:16px;}
-.print-act-btn.sub{background:#546e7a;}
-.print-act-btn.send{background:var(--grn);}
-.print-act-btn:disabled{opacity:.6;cursor:default;}
-.tcb-parent-share{flex:1 1 100%;margin-top:6px;padding:10px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:10px;}
-.tcb-parent-share-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;}
-.tcb-parent-share-desc{font-size:11px;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:10px;}
-.tcb-parent-share-desc strong{color:#fff;font-weight:700;}
-.tcb-parent-share-btns{display:flex;gap:8px;flex-wrap:wrap;}
-.tcb-parent-url-box{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.tcb-parent-url{flex:1 1 100%;font-size:12px;color:#fff;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:8px 10px;word-break:break-all;font-family:inherit;}
-.tcb-print-line-note{flex:1 1 100%;margin:0;font-size:11px;color:rgba(255,255,255,.88);line-height:1.55;}
-.tcb-print-line-note strong{font-weight:700;color:#fff;}
-.tcb-print-pdf-label{flex:1 1 100%;margin:4px 0 -2px;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);}
+.print-scroll-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#1a2d68;}
+.print-close-btn{margin-left:auto;flex-shrink:0;padding:8px 14px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-height:40px;font-family:inherit;white-space:nowrap;}
+.tcb-share-panel{margin:0;padding:14px 14px calc(18px + env(safe-area-inset-bottom,0px));background:#f1f5f9;}
+.tcb-share-section{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(18,32,80,.06);}
+.tcb-share-section-hd{font-size:12px;font-weight:700;color:var(--label-3);letter-spacing:.04em;margin-bottom:10px;}
+.tcb-share-opts{display:flex;flex-direction:column;gap:8px;}
+.tcb-share-opt{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--txt);cursor:pointer;line-height:1.4;}
+.tcb-share-opt input{width:18px;height:18px;accent-color:var(--ui-accent);flex-shrink:0;margin:0;}
+.tcb-share-opt-note{font-size:11px;color:var(--txt2);font-weight:400;margin:-4px 0 0 28px;line-height:1.45;}
+.tcb-share-preview{margin:0;padding:12px;background:var(--surface-2);border:1px solid var(--bdr);border-radius:10px;font-size:12px;line-height:1.65;color:var(--txt);white-space:pre-wrap;word-break:break-word;max-height:min(36vh,240px);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:inherit;}
+.tcb-share-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start;}
+.tcb-share-primary{flex:0 1 auto;padding:14px 22px;border:none;border-radius:12px;background:var(--grn);color:#fff;font-size:15px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;white-space:nowrap;}
+.tcb-share-primary:active{opacity:.92;}
+.tcb-share-primary:disabled{opacity:.55;cursor:not-allowed;}
+.tcb-share-secondary{padding:14px 16px;border:none;border-radius:12px;background:var(--navy);color:#fff;font-size:14px;font-weight:600;cursor:pointer;min-height:var(--tap);font-family:inherit;white-space:nowrap;}
+.tcb-share-secondary:active{opacity:.92;}
+.tcb-share-ghost{padding:10px 12px;border:none;border-radius:10px;background:transparent;color:var(--txt2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;}
+.tcb-share-status{font-size:12px;color:var(--txt2);line-height:1.5;margin-top:8px;min-height:1.2em;}
+.tcb-share-preview-wrap{margin-top:12px;padding-top:12px;border-top:1px solid var(--hairline);}
+.tcb-share-preview-hd{font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:6px;}
+.p3-share-entry{margin:0 0 12px;display:flex;justify-content:center;}
+.p3-share-entry-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border:none;border-radius:14px;background:var(--navy);color:#fff;font-size:15px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;letter-spacing:-.2px;box-shadow:0 6px 18px rgba(18,32,80,.18);max-width:100%;white-space:nowrap;}
+.p3-share-entry-btn:active{opacity:.92;}
+.p3-share-entry-btn:disabled{opacity:.5;cursor:not-allowed;}
+#print-frame{display:block;width:100%;min-height:min(52vh,420px);border:none;background:#fff;}
 html.theme-b16 .print-header{
   background:#fff;
   border-bottom:3px solid #c0000a;
@@ -282,17 +294,20 @@ html.theme-b16 .print-close-btn{
   color:#122050;
 }
 html.theme-b16 .print-actions{background:#f1f5f9;border-bottom:1px solid #e2e8f0;}
-html.theme-b16 .tcb-print-line-note{color:#475569;}
-html.theme-b16 .tcb-print-line-note strong{color:#122050;}
-html.theme-b16 .tcb-parent-share{background:#fff;border:1px solid #e2e8f0;}
-html.theme-b16 .tcb-parent-share-title{color:#122050;}
-html.theme-b16 .tcb-parent-share-desc{color:#475569;}
-html.theme-b16 .tcb-parent-share-desc strong{color:#122050;}
-html.theme-b16 .tcb-parent-url{color:#122050;background:#f8fafc;border:1px solid #cbd5e1;}
-html.theme-b16 .tcb-print-pdf-label{color:#64748b;}
+html.theme-b16 .tcb-share-panel{background:#f1f5f9;}
+html.theme-b16 .print-scroll-body{background:#e8ecf4;}
 .p3-rh-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center;}
 .p3-rh-actions .nb:disabled{opacity:.45;cursor:not-allowed;}
-#print-frame{flex:1;border:none;background:#fff;}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.print-header{
+  padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--hdr-g1),var(--hdr-g2));
+  border-bottom:3px solid #c0000a;
+  box-shadow:0 2px 14px rgba(18,32,80,.2);
+}
+.print-header .tcb-print-hdr-text{flex:1;min-width:0;}
+.tcb-print-hdr-title{font-size:15px;font-weight:900;color:#fff;line-height:1.3;}
+.tcb-print-hdr-sub{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;line-height:1.3;}
 .prev-table{width:100%;border-collapse:collapse;font-size:13px;}
 .prev-table th{background:var(--navy);color:#fff;padding:8px 10px;text-align:left;}
 .prev-table td{padding:8px 10px;border-bottom:1px solid var(--bdr);}
@@ -732,6 +747,7 @@ html{color-scheme:light;}
   .mc.ocha{background:rgba(255,193,7,.14);}
   .al.alw{background:rgba(255,193,7,.12);color:#f0d48a;}
   .al.ali{background:var(--surface-2);color:#cdd6ec;}
+  .al.alb{background:rgba(255,90,95,.16);border-left-color:#ff5a5f;color:#ffd7d9;}
   .al.als{background:rgba(48,209,88,.12);color:#8ee6a3;}
   /* 16期：白ヘッダをダーク面に */
   html.theme-b16 header{background:#1c1c1e;border-bottom-color:#e5484d;box-shadow:0 1px 0 rgba(255,255,255,.04);}
@@ -740,7 +756,9 @@ html{color-scheme:light;}
   html.theme-b16 .card{border-color:var(--bdr);box-shadow:0 0 0 1px rgba(255,255,255,.02);}
   html.theme-b16 .hbtn{background:rgba(255,255,255,.14);color:#f5f5f7;}
   /* 淡色ハードコード背景の小ブロックをダーク面に */
-  .p1-mem-unpublished-wrap,.p3-cross-team-wrap{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
+  .p1-mem-unpublished-wrap,.p3-cross-team-wrap,.p1-from-prev-block{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
+  .p3-cross-handoff-notice{background:rgba(230,81,0,.14);border-left-color:#ff9800;color:#ffccbc;}
+  .p3-cross-handoff-notice strong{color:#ffab91;}
   .p1-renshu-split-wrap{background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.32);}
   .p1-renshu-split-lbl{color:#f0d48a;}
   .tcb-seed-mode-banner{background:var(--surface-2);border-left-color:var(--blue2);color:var(--txt2);}
@@ -867,7 +885,7 @@ html{color-scheme:light;}
     <button class="mclose" id="prev-modal-close">&#10005;</button>
     <h2 id="prev-modal-title">前回の割振り結果</h2>
     <div class="tcb-prev-modal-actions" id="prev-modal-actions" style="display:none;">
-      <button type="button" class="rbtn" id="btn-prev-start-reedit">試合前・最小入れ替え調整を開始</button>
+      <button type="button" class="rbtn" id="btn-prev-start-reedit">前回の結果を元に割振り開始</button>
       <button type="button" class="nb nbs" id="btn-prev-modal-close2">閉じる</button>
     </div>
     <div class="tcb-prev-modal-cond" id="prev-modal-cond" style="display:none;"></div>
@@ -900,38 +918,44 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<!-- 印刷プレビューモーダル -->
+<!-- 展開情報確認・LINE送信 -->
 <div id="print-overlay">
   <div class="print-header">
     <img id="print-header-logo" class="logo" alt="東海中央ボーイズ" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0;display:none;">
     <span class="tcb-cohort-chip" aria-label="この画面は16期の道具割振りツールです">16期</span>
     <div class="tcb-print-hdr-text">
-      <div class="tcb-print-hdr-title">印刷プレビュー</div>
-      <div class="tcb-print-hdr-sub">東海中央ボーイズ 16期　｜　印刷・PDF</div>
+      <div class="tcb-print-hdr-title">展開情報の確認</div>
+      <div class="tcb-print-hdr-sub">東海中央ボーイズ 16期</div>
     </div>
     <button class="print-close-btn" id="print-close">&#10005; 閉じる</button>
   </div>
-  <div class="print-actions">
-    <div class="tcb-parent-share" id="parent-share-block" style="display:none;">
-      <div class="tcb-parent-share-title">&#128279; 保護者へ共有（推奨・LINEにURLを貼るだけ）</div>
-      <div class="tcb-parent-share-desc"><strong>実施確定した</strong>直近2日（当日＋前回）を<strong>閲覧専用URL</strong>で共有します。※先に STEP3 の「実施確定」が必要です。</div>
-      <div class="tcb-parent-share-btns">
-        <button type="button" class="print-act-btn" id="parent-view-publish"><svg class="ic"><use href="#i-link"/></svg>保護者確認URLを発行/更新</button>
-        <button type="button" class="print-act-btn sub" id="parent-view-unpublish">&#9940; 公開を停止</button>
+  <div class="print-scroll-body">
+    <iframe id="print-frame" title="展開プレビュー"></iframe>
+    <div class="tcb-share-panel" id="tcb-share-panel">
+      <div class="tcb-share-section">
+        <div class="tcb-share-section-hd">1. 送る内容</div>
+        <div class="tcb-share-opts">
+          <label class="tcb-share-opt" for="share-opt-line"><input type="checkbox" id="share-opt-line" checked> LINE本文</label>
+          <label class="tcb-share-opt" for="share-opt-url" id="share-opt-url-wrap"><input type="checkbox" id="share-opt-url" checked> 保護者確認URL</label>
+          <p class="tcb-share-opt-note" id="share-opt-url-note">実施確定済みの直近2日分を閲覧専用URLで共有します。</p>
+          <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> PDF添付（送信時は端末にも自動保存）</label>
+        </div>
+        <div class="tcb-share-preview-wrap">
+          <div class="tcb-share-preview-hd">LINE本文プレビュー</div>
+          <pre class="tcb-share-preview" id="share-line-preview"></pre>
+        </div>
       </div>
-      <button type="button" class="print-act-btn" id="parent-view-renotify" style="display:none;"><svg class="ic"><use href="#i-line"/></svg>修正版をLINEで再通知</button>
-      <div class="tcb-parent-url-box" id="parent-view-url-box" style="display:none;">
-        <div class="tcb-parent-url" id="parent-view-url"></div>
-        <button type="button" class="print-act-btn" id="parent-view-copy">&#128203; URLをコピー</button>
+      <div class="tcb-share-section">
+        <div class="tcb-share-section-hd">2. 送信</div>
+        <div class="tcb-share-actions">
+          <button type="button" class="tcb-share-primary" id="btn-share-line">LINEへ展開</button>
+          <button type="button" class="tcb-share-secondary" id="print-exec">PDFを保存</button>
+          <button type="button" class="tcb-share-ghost" id="parent-view-unpublish" title="配布済みURLを無効化します">公開を停止</button>
+        </div>
+        <div class="tcb-share-status" id="share-panel-status" role="status"></div>
       </div>
     </div>
-    <button type="button" class="print-act-btn sub" id="print-copy-share"><svg class="ic"><use href="#i-line"/></svg>LINE用メッセージをコピー</button>
-    <div class="tcb-print-pdf-label" id="print-pdf-label">&#128190; オフライン用（PDF）</div>
-    <button type="button" class="print-act-btn send" id="print-share-pdf" style="display:none;"><svg class="ic"><use href="#i-share"/></svg>PDFを送る（LINE など）</button>
-    <button type="button" class="print-act-btn" id="print-exec"><svg class="ic"><use href="#i-printer"/></svg>印刷 / PDF保存</button>
-    <p class="tcb-print-line-note" id="print-line-note"><strong>「LINE用メッセージをコピー」</strong>で本文（変更の要点）を貼り付けられます。PDFはオフライン保管用の補助です。</p>
   </div>
-  <iframe id="print-frame"></iframe>
 </div>
 
 <!-- 割振り履歴モーダル -->
@@ -939,7 +963,7 @@ html{color-scheme:light;}
   <div class="modal">
     <button class="mclose" id="hist-modal-close">&#10005;</button>
     <h2>&#128336; 割振り履歴</h2>
-    <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">活動日をタップすると詳細を表示します。詳細から<strong>試合前・最小入れ替え調整</strong>を開始できます（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
+    <div id="hist-modal-intro" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">基準にする活動日をタップして詳細を表示し、<strong>前回の結果を元に割振り開始</strong>を選んでください（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
     <div class="tcb-ui-advanced" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <button type="button" id="hist-month-btn" class="tcb-hist-mo-openbtn">&#128197; 直近1年（活動日）：一覧・PDF</button>
       <span style="font-size:11px;color:var(--txt2);line-height:1.45;">活動日が今日から<strong>過去1年以内</strong>のデータを、道具ごとの担当の並びで表示します（保護者向けPDF用）。</span>
@@ -966,7 +990,7 @@ html{color-scheme:light;}
     <button class="mclose" id="hist-detail-close">&#10005;</button>
     <h2 id="hist-detail-title"></h2>
     <div class="tcb-hist-detail-actions" id="hist-detail-actions">
-      <button type="button" class="rbtn" id="btn-hist-start-reedit">試合前・最小入れ替え調整を開始</button>
+      <button type="button" class="rbtn" id="btn-hist-start-reedit">前回の結果を元に割振り開始</button>
       <button type="button" class="nb nbs" id="btn-hist-detail-close2">閉じる</button>
     </div>
     <div class="tcb-hist-detail-cond" id="hist-detail-cond"></div>
@@ -1000,6 +1024,10 @@ html{color-scheme:light;}
   <!-- STEP1 -->
   <div class="pnl on" id="p1">
     <div class="card">
+      <div class="p1-from-prev-block" id="p1-from-prev-block">
+        <button type="button" class="p1-from-prev-btn" id="btn-p1-from-prev">&#128336; 前回の結果を元に割振る</button>
+        <p class="p1-from-prev-desc">前回の担当を維持して調整する場合はこちら。不要なら下の設定のまま「次へ」へ進んでください。</p>
+      </div>
       <div class="ct">活動パターンを選択 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="<strong>当日</strong>の活動日・班分け・マスタ設定で割り振ります。対戦の組み合わせや過去・未来の予定は<strong>自動参照しません</strong>。会場や並びが変わる日はグループを組み直してから実行してください。" aria-label="説明"></button></div>
       <div class="tgg">
         <button class="tb2"    id="btn-renshu">両方練習</button>
@@ -1014,7 +1042,7 @@ html{color-scheme:light;}
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong id="p1-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="前回<strong>実施確定済み</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先し、余りは<strong>変更が必要な人へ集中</strong>して調整人数を最小化します。活動日は本日に設定。" aria-label="説明"></button>
+        <strong id="p1-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>過去の割振り</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先し、余りは<strong>変更が必要な人へ集中</strong>して調整人数を最小化します。活動日は本日に設定。" aria-label="説明"></button>
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 現地の実保有に補正</button>
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">調整モードをやめる</button>
@@ -1032,7 +1060,6 @@ html{color-scheme:light;}
       </div>
     </div>
     <div class="nav">
-      <button class="nb nbs" id="btn-prev-result" style="font-size:13px;">&#128336; 前回</button>
       <button class="nb nbp" id="btn-s2" style="flex:1;">次へ：欠席・当番 &#9654;</button>
     </div>
   </div>
@@ -1051,7 +1078,7 @@ html{color-scheme:light;}
       <div class="mgrid" id="skipgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">試合前・最小入れ替え調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先し、余剰は変更が必要な人へ集中配分。STEP3では班をまたいだ手動割当が自動でオンになります。" aria-label="説明"></button>
+      <strong id="p2-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先し、余剰は変更が必要な人へ集中配分。STEP3では班をまたいだ手動割当が自動でオンになります。" aria-label="説明"></button>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地の実保有に補正</button>
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
@@ -1059,7 +1086,6 @@ html{color-scheme:light;}
     </div>
     <div class="card" id="tcard" style="display:none;">
       <div class="ct" id="tcard-hd">グループ振り分け</div>
-      <div id="tcb-sameday-hint-tcard-line" class="al ali tcb-sameday-hint-tcard-line" style="margin-bottom:10px;">タップで青（G1）&#8596;紫（G2）を切替。</div>
       <div class="tcrow">
         <div class="tcb A" id="cntA">-</div>
         <div class="tcb B" id="cntB">-</div>
@@ -1084,13 +1110,14 @@ html{color-scheme:light;}
           <button type="button" class="nb nbs" id="btn-assign-undo" disabled style="font-size:13px;">&#8630; 元に戻す</button>
           <button type="button" class="nb nbs" id="btn-assign-redo" disabled style="font-size:13px;">&#8631; 先に進む</button>
           <button type="button" class="nb nbs" id="btn-reset" style="font-size:13px;">&#9664; 再設定</button>
-          <button type="button" class="nb nbs" id="btn-reedit-from-prev" style="font-size:13px;">&#128336; 元に再編集</button>
+          <button type="button" class="nb nbs" id="btn-reedit-from-prev" style="font-size:13px;" title="いまの割振りを基準に、変更を最小限にして再調整">&#128336; 最小変更で再調整</button>
         </div>
       </div>
       <div id="aalert"></div>
       <div class="p3-carry-adjust-summary" id="p3-carry-adjust-summary" role="status"></div>
+      <div class="p3-cross-handoff-notice" id="p3-cross-handoff-notice" role="status"></div>
       <div class="al ali tcb-p3-hint" id="p3-reedit-hint" style="display:none;">
-        欠席・当番だけ直すなら<strong>「元に再編集」</strong>から。<button type="button" class="tcb-tip" data-tip="試合前・最小入れ替え調整で STEP1 からやり直せます。結果は端末に自動保存されています。" aria-label="説明"></button>
+        欠席・当番が変わったときは<strong>「最小変更で再調整」</strong>で、いまの割振りを基準に STEP1 からやり直せます。<button type="button" class="tcb-tip" data-tip="表示中の割振り結果を<strong>基準</strong>に「前回の結果を元に調整」モードへ入ります。前回と同じ担当をできるだけ維持し、必要な人だけ入れ替えます。" aria-label="説明"></button>
       </div>
       <div class="p3-cross-team-wrap" id="p3-cross-team-wrap" style="display:none;">
         <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示<button type="button" class="tcb-tip" data-tip="<strong>手動割当のみ</strong>に適用（自動の「割振りを実行」は従来どおり班ごと）。持ち帰り調整モードでは自動でオンになります。" aria-label="説明"></button></label>
@@ -1108,10 +1135,12 @@ html{color-scheme:light;}
         <button type="button" class="p3-carryout-btn" id="btn-confirm-carryout">この内容で実施確定（PAST に反映）</button>
       </div>
     </div>
+    <div class="p3-share-entry">
+      <button type="button" class="p3-share-entry-btn" id="btn-open-share">&#128228; 展開情報を確認・LINE送信</button>
+    </div>
     <div class="tabrow">
       <button class="tabbtn on" id="tab-tbl">&#128202; 道具別</button>
       <button class="tabbtn"    id="tab-mem">&#128100; メンバー別</button>
-      <button type="button" class="tabbtn tcb-tab-print" id="btn-print-tab">&#128247; 印刷/PDF</button>
     </div>
     <div id="ttbl">
       <div class="tbl-wrap">
@@ -1278,7 +1307,7 @@ var LS_CARRYOUT_CONFIRMED='tcb16CarryoutConfirmed';
 /* GitHub上のマスタJSONのURL（設定後は全端末で自動同期） */
 var GITHUB_MASTER_URL='';
 var SYNC_API_BASE_URL='https://tcb-tools-sync.kazoo-matsu.workers.dev';
-var SYNC_API_TOKEN='wu5e9FVLZtkaVZ1U3DwgfR6a2g6RhL4ddynhStiZ';
+var SYNC_API_TOKEN='__SYNC_API_TOKEN__';
 /* 保護者向け確認ページのURL（空なら同フォルダの kakunin.html を自ページ位置から導出） */
 var PARENT_VIEW_URL='';
 var COHORT_KEY='16';
@@ -1982,6 +2011,8 @@ function updateSeedModeBanners(){
   });
   var hint=document.getElementById('p3-reedit-hint');
   if(hint)hint.style.display=(R&&!on)?'block':'none';
+  var prevBlock=document.getElementById('p1-from-prev-block');
+  if(prevBlock)prevBlock.style.display=on?'none':'block';
 }
 function applySnapToActivityUI(snap, opts){
   opts=opts||{};
@@ -2088,7 +2119,7 @@ function onActualHoldSelChange(e){
 function openActualHoldModal(){
   var base=seedBaseSnap;
   if(!base||typeof base.map!=='object'||base.map===null){
-    alert('補正の基準となる前回の割り当てがありません。\n先に「試合前・最小入れ替え調整」を開始してください。');
+    alert('補正の基準となる前回の割り当てがありません。\n先に「前回の結果を元に割振る」から調整を開始してください。');
     return;
   }
   var listEl=document.getElementById('actual-hold-list');
@@ -2912,42 +2943,119 @@ function copyTextToClipboard(text, okMsg,failMsg){
 function copyCarryAdjustChangeText(){
   var text=getCarryAdjustLineBodyPlain();
   if(!text){
-    alert('前回からの調整データがありません。\n試合前・最小入れ替え調整を実行した結果画面でお試しください。');
+    alert('前回からの調整データがありません。\n前回の結果を元に割振った結果画面でお試しください。');
     return;
   }
   copyTextToClipboard(text,'入れ替え案内（要点）をコピーしました。LINE等に貼り付けてください。','以下をコピーしてLINE等に貼り付けてください');
 }
+function teamGroupLabel(teamCode){
+  if(!R||!teamCode)return '';
+  return teamCode==='A'?(R.la||'A'):(R.lb||'B');
+}
+function buildCrossGroupHandoffList(){
+  if(!R||R.mode!=='team'||shareHidesTeamSplit())return [];
+  var curMap=R.map||{};
+  var allT=R.allTools||R.tools||[];
+  var refMap=carryAdjustRefSnap&&carryAdjustRefSnap.map?carryAdjustRefSnap.map:null;
+  var items=[];
+  var seen={};
+  allT.forEach(function(t){
+    var tn=t.name;
+    var curr=curMap[tn]||'';
+    if(!curr)return;
+    var currTeam=memberDisplayTeam(curr);
+    var toolTeam=t.team||'';
+    if(toolTeam&&currTeam&&currTeam!==toolTeam){
+      var k1='venue:'+tn;
+      if(!seen[k1]){
+        seen[k1]=1;
+        items.push({
+          kind:'venue',
+          tool:tn,
+          holder:curr,
+          holderTeam:currTeam,
+          toolTeam:toolTeam
+        });
+      }
+    }
+    if(refMap){
+      var prev=refMap[tn]||'';
+      if(prev&&prev!==curr){
+        var prevTeam=memberDisplayTeam(prev);
+        if(prevTeam&&currTeam&&prevTeam!==currTeam){
+          var k2='handoff:'+tn;
+          if(!seen[k2]){
+            seen[k2]=1;
+            items.push({
+              kind:'handoff',
+              tool:tn,
+              from:prev,
+              to:curr,
+              fromTeam:prevTeam,
+              toTeam:currTeam
+            });
+          }
+        }
+      }
+    }
+  });
+  return items;
+}
+function renderCrossGroupHandoffNotice(){
+  var el=document.getElementById('p3-cross-handoff-notice');
+  if(!el)return;
+  var items=buildCrossGroupHandoffList();
+  if(!items.length){
+    el.className='p3-cross-handoff-notice';
+    el.innerHTML='';
+    return;
+  }
+  var html='<strong>班をまたぐ受け渡し：</strong>集合・解散以外のタイミングで、保護者同士の<strong>個別受け渡し</strong>が必要になる可能性があります。';
+  html+='<ul>';
+  items.forEach(function(it){
+    if(it.kind==='handoff'){
+      html+='<li>「'+esc(it.tool)+'」… '+esc(it.from)+'（'+esc(teamGroupLabel(it.fromTeam))+'）→ '+esc(it.to)+'（'+esc(teamGroupLabel(it.toTeam))+'）</li>';
+    }else{
+      html+='<li>「'+esc(it.tool)+'」… '+esc(it.holder)+'（'+esc(teamGroupLabel(it.holderTeam))+'）が担当。道具は'+esc(teamGroupLabel(it.toolTeam))+'側</li>';
+    }
+  });
+  html+='</ul>';
+  el.className='p3-cross-handoff-notice on';
+  el.innerHTML=html;
+}
 function renderCarryAdjustDiffSummary(){
   var el=document.getElementById('p3-carry-adjust-summary');
-  if(!el)return;
-  if(!carryAdjustRefSnap||!R||typeof carryAdjustRefSnap.map!=='object'){
-    el.className='p3-carry-adjust-summary';
-    el.innerHTML='';
-    return;
+  if(el){
+    if(!carryAdjustRefSnap||!R||typeof carryAdjustRefSnap.map!=='object'){
+      el.className='p3-carry-adjust-summary';
+      el.innerHTML='';
+    }else{
+      var report=getCarryAdjustChangeReport();
+      if(!report){
+        el.className='p3-carry-adjust-summary';
+        el.innerHTML='';
+      }else{
+        var lineBody=getCarryAdjustLineBodyPlain();
+        var html='<strong>前回からの調整：</strong>維持 '+report.kept+' 点';
+        if(report.changed)html+='／変更 '+report.changed+' 点';
+        if(report.changed)html+='。<span class="p3-carry-adjust-legend">色分けは下の「道具別」表（緑＝維持・橙＝変更）。</span>';
+        if(report.changed){
+          html+='<div class="p3-carry-adjust-text-wrap">'
+            +'<div class="p3-carry-adjust-text-hd">LINE用の要点（この本文がコピーされます）</div>'
+            +'<pre class="p3-carry-adjust-text" id="p3-carry-adjust-text">'+esc(lineBody)+'</pre>'
+            +'<button type="button" class="p3-carry-adjust-copybtn" id="btn-copy-carry-adjust">&#128203; この要点をコピー</button>'
+            +'</div>';
+        }else if(report.peopleMustChange.length){
+          html+='<div class="p3-carry-adjust-people"><strong>変更はありません。</strong></div>';
+        }
+        el.className='p3-carry-adjust-summary on';
+        el.innerHTML=html;
+        var copyBtn=document.getElementById('btn-copy-carry-adjust');
+        if(copyBtn)copyBtn.addEventListener('click',copyCarryAdjustChangeText);
+      }
+    }
   }
-  var report=getCarryAdjustChangeReport();
-  if(!report){
-    el.className='p3-carry-adjust-summary';
-    el.innerHTML='';
-    return;
-  }
-  var lineBody=getCarryAdjustLineBodyPlain();
-  var html='<strong>前回からの調整：</strong>維持 '+report.kept+' 点';
-  if(report.changed)html+='／変更 '+report.changed+' 点';
-  html+='。<span style="color:#2e7d32;">■</span> 緑＝前回と同じ担当、<span style="color:#e65100;">■</span> 橙＝変更あり。';
-  if(report.changed){
-    html+='<div class="p3-carry-adjust-text-wrap">'
-      +'<div class="p3-carry-adjust-text-hd">LINE用の要点（この本文がコピーされます）</div>'
-      +'<pre class="p3-carry-adjust-text" id="p3-carry-adjust-text">'+esc(lineBody)+'</pre>'
-      +'<button type="button" class="p3-carry-adjust-copybtn" id="btn-copy-carry-adjust">&#128203; この要点をコピー</button>'
-      +'</div>';
-  }else if(report.peopleMustChange.length){
-    html+='<div class="p3-carry-adjust-people"><strong>変更はありません。</strong></div>';
-  }
-  el.className='p3-carry-adjust-summary on';
-  el.innerHTML=html;
-  var copyBtn=document.getElementById('btn-copy-carry-adjust');
-  if(copyBtn)copyBtn.addEventListener('click',copyCarryAdjustChangeText);
+  renderCrossGroupHandoffNotice();
 }
 function applyOchHandoff(baseMap, poolSet, snap, ctx){
   var notes=[];
@@ -3628,10 +3736,6 @@ function updDesc(){
   if(h1){h1.style.display='none';h1.textContent='';}
   var tc=document.getElementById('tcard');
   if(tc)tc.style.display=needsTeamUI()?'':'none';
-  var ht=document.getElementById('tcb-sameday-hint-tcard-line');
-  if(ht){
-    ht.innerHTML='タップで青（G1）&#8596;紫（G2）を切替。<button type="button" class="tcb-tip" data-tip="全員が最初はG2です。会場や試合の並びが変わる日は<strong>当日の2分け</strong>に合わせて並べ替えてから進めてください。" aria-label="説明"></button>';
-  }
   updateMemUnpublishedWrap();
 }
 function applyRenshuSplit(on){
@@ -3794,7 +3898,11 @@ function buildTGrid(){
   var la=tnA||'試合組', lb=tnB||'練習組';
   var hint=pat==='kata'?'片方試合':(pat==='renshu'&&renshuSplit)?'両方練習・場所分離':'両方試合';
   var hd=document.getElementById('tcard-hd');
-  if(hd)hd.innerHTML=la+' / '+lb+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>';
+  if(hd){
+    var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>（青）と<strong>'+esc(lb)+'</strong>（赤）を切り替えます。最初は全員<strong>'+esc(lb)+'</strong>です。会場や試合の並びが変わる日は、<strong>当日の2分け</strong>に合わせて並べ替えてから進めてください。';
+    hd.innerHTML=la+' / '+lb+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
+      +'<button type="button" class="tcb-tip" data-tip="'+tipText.replace(/"/g,'&quot;')+'" aria-label="説明"></button>';
+  }
   MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){
     var isEx=!!ex[m.name];
     if(isEx){
@@ -3900,7 +4008,7 @@ function runAlgo(){
   if(carryAdjustMode||seedFromPrev){
     var seedSnap=loadPrevSnapForSeed();
     if(!seedSnap||typeof seedSnap.map!=='object'||seedSnap.map===null){
-      alert('基準となる割り振り結果がありません。\nSTEP1の「前回」で確認するか、通常の割振りを行ってください。');
+      alert('基準となる割り振り結果がありません。\nSTEP1の「前回の結果を元に割振る」から基準を選ぶか、通常の割振りを行ってください。');
       return;
     }
     if(carryAdjustMode){
@@ -3983,7 +4091,7 @@ function renderAll(){
   if(carryAdjustRunNotes.length){
     var dCar=document.createElement('div');
     dCar.className='al als';
-    dCar.textContent='最小入れ替え調整：'+carryAdjustRunNotes.join(' ');
+    dCar.textContent='前回の結果を元に調整：'+carryAdjustRunNotes.join(' ');
     aa.appendChild(dCar);
   }
   renderCarryAdjustDiffSummary();
@@ -4020,6 +4128,22 @@ function renderAll(){
   schedulePersistCurrentAllocation();
 }
 
+function buildToolTagSlots(t, tLabel, hideTeam){
+  var teamColMode=R&&R.mode==='team'&&!hideTeam;
+  function slot(inner){return '<span class="p3-tag-slot">'+(inner||'')+'</span>';}
+  var h='';
+  h+=slot(isSuperLongToolSize(t.sz)?'<span class="tag tll">LL</span>':'');
+  h+=slot(t.sz==='L'?'<span class="tag tlen">L</span>':'');
+  h+=slot((t.wt==='Heavy'||t.wt==='Very heavy')?'<span class="tag thv">重</span>':'');
+  h+=slot(t.fixed?'<span class="tag tfx">固定</span>':'');
+  h+=slot(t.broken?'<span class="tag tbr">故障</span>':'');
+  if(teamColMode){
+    var tm=t.team||'';
+    h+=slot(tm?'<span class="tag tg'+tm+'">'+esc(tLabel)+'</span>':'');
+  }
+  return '<div class="p3-tool-tags'+(teamColMode?' p3-tool-tags-team':'')+'">'+h+'</div>';
+}
+
 function buildTbl(){
   if(!R)return;
   updateManualCrossTeamWrap();
@@ -4032,13 +4156,7 @@ function buildTbl(){
     var rawAsgn=R.map[t.name];
     var tm=t.team||'';
     var tLabel=tm?(tm==='A'?(R.la||'A'):(R.lb||'B')):'';
-    var tags='';
-    if(isSuperLongToolSize(t.sz))tags+='<span class="tag tll">LL</span>';
-    if(t.sz==='L')tags+='<span class="tag tlen">L</span>';
-    if(t.wt==='Heavy'||t.wt==='Very heavy')tags+='<span class="tag thv">重</span>';
-    if(t.fixed)tags+='<span class="tag tfx">固定</span>';
-    if(t.broken)tags+='<span class="tag tbr">故障</span>';
-    if(tm&&!hideTeam)tags+='<span class="tag tg'+tm+'">'+esc(tLabel)+'</span>';
+    var tagSlots=buildToolTagSlots(t, tLabel, hideTeam);
     var ibtn=DESCS[t.name]
       ?'<button class="ibtn" data-tool="'+esc(t.name)+'">&#128247; 写真</button>':'';
 
@@ -4067,7 +4185,7 @@ function buildTbl(){
     td1.textContent=t.id;
     var td2=document.createElement('td');
     td2.style.cssText='font-weight:700;font-size:12px;';
-    td2.innerHTML='<div class="p3-tool-cell"><span class="p3-tool-name">'+esc(t.name)+tags+'</span>'+ibtn+'</div>';
+    td2.innerHTML='<div class="p3-tool-cell"><span class="p3-tool-name">'+esc(t.name)+'</span>'+tagSlots+ibtn+'</div>';
     var tdRb=document.createElement('td');
     tdRb.className='tcb-ui-advanced';
     tdRb.style.cssText='text-align:center;vertical-align:middle;';
@@ -4344,30 +4462,120 @@ var PDF_DELIVERY_ENABLED=true;
 /** 事前生成したPDF Blobのキャッシュ（共有をワンタップで即実行するため） */
 var _assignPdfCache={html:null,blob:null,pending:null};
 function copyAssignShareMessage(){
+  var text=buildShareLinePreviewText({includeUrl:false});
+  copyTextToClipboard(text,'本文をコピーしました。LINEに貼り付けて送信してください。');
+}
+function setSharePanelStatus(msg){
+  var el=document.getElementById('share-panel-status');
+  if(el)el.textContent=msg||'';
+}
+function parentPublishPayloadReady(){
+  var payload=buildParentPublishPayload();
+  return !!(payload&&payload.days&&payload.days.length);
+}
+function shareUsesRevisedLineMessage(){
+  return typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.hasRevisedNotice==='function'&&TCB_SwapMgr.hasRevisedNotice();
+}
+/** 展開パネル用 LINE 本文（プレビュー／送信共通） */
+function buildShareLinePreviewText(opts){
+  opts=opts||{};
+  var includeUrl=!!opts.includeUrl;
+  var url=String(opts.url||_parentViewUrl||'').trim();
+  if(shareUsesRevisedLineMessage()){
+    if(typeof TCB_SwapMgr.buildRevisedLineMessage==='function'){
+      return TCB_SwapMgr.buildRevisedLineMessage(includeUrl?url:'');
+    }
+  }
   var text=SHARE_PDF_MESSAGE;
   var lineBody=getCarryAdjustLineBodyPlain();
   if(lineBody)text=text+'\n\n'+lineBody;
-  function done(ok){
-    if(ok){
-      alert('本文（変更の要点を含む）をコピーしました。PDFを送信／保存したあと、LINEに貼り付けてください。');
+  if(includeUrl&&url){
+    text=text+'\n\n最新の担当確認はこちら\n'+url;
+  }
+  return text;
+}
+function refreshSharePanel(){
+  var syncOn=syncEnabled();
+  var urlReady=syncOn&&parentPublishPayloadReady();
+  var urlWrap=document.getElementById('share-opt-url-wrap');
+  var urlInput=document.getElementById('share-opt-url');
+  var urlNote=document.getElementById('share-opt-url-note');
+  var unpublishBtn=document.getElementById('parent-view-unpublish');
+  if(urlWrap)urlWrap.style.display=syncOn?'':'none';
+  if(urlInput){
+    if(!syncOn){urlInput.checked=false;urlInput.disabled=true;}
+    else{
+      urlInput.disabled=!urlReady;
+      if(!urlReady)urlInput.checked=false;
+    }
+  }
+  if(urlNote){
+    urlNote.textContent=urlReady
+      ? '実施確定済みの直近2日分を閲覧専用URLで共有します。'
+      : '保護者確認URLは実施確定後に選べます。';
+  }
+  if(unpublishBtn)unpublishBtn.style.display=(syncOn&&_parentViewUrl)?'':'none';
+  var pdfInput=document.getElementById('share-opt-pdf');
+  if(pdfInput){
+    pdfInput.disabled=!PDF_DELIVERY_ENABLED;
+    if(!PDF_DELIVERY_ENABLED)pdfInput.checked=false;
+  }
+  var lineInput=document.getElementById('share-opt-line');
+  var preview=document.getElementById('share-line-preview');
+  if(preview){
+    var showLine=!lineInput||lineInput.checked;
+    var showUrl=urlInput&&urlInput.checked&&syncOn;
+    preview.textContent=showLine?buildShareLinePreviewText({includeUrl:showUrl}):'(LINE本文は送信しません)';
+  }
+  var shareBtn=document.getElementById('btn-share-line');
+  if(shareBtn){
+    var lineOn=!lineInput||lineInput.checked;
+    var urlOn=urlInput&&urlInput.checked&&syncOn;
+    var pdfOn=pdfInput&&pdfInput.checked&&PDF_DELIVERY_ENABLED;
+    shareBtn.disabled=!(lineOn||urlOn||pdfOn);
+  }
+}
+function copyTextSilent(text){
+  return new Promise(function(resolve,reject){
+    if(!text){resolve(false);return;}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){resolve(true);}).catch(function(){reject(new Error('copy_failed'));});
       return;
     }
-    prompt('以下をコピーしてLINEに貼り付けてください',text);
-  }
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(function(){done(true);}).catch(function(){done(false);});
-    return;
-  }
-  var ta=document.createElement('textarea');
-  ta.value=text;
-  ta.setAttribute('readonly','');
-  ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';
-  document.body.appendChild(ta);
-  ta.select();
-  var ok=false;
-  try{ok=document.execCommand('copy');}catch(e){}
-  document.body.removeChild(ta);
-  done(ok);
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.setAttribute('readonly','');
+    ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+    ok?resolve(true):reject(new Error('copy_failed'));
+  });
+}
+function publishParentViewAsync(){
+  if(!syncEnabled())return Promise.reject(new Error('sync_off'));
+  var payload=buildParentPublishPayload();
+  if(!payload.days.length)return Promise.reject(new Error('no_confirmed'));
+  return SYNC_CLIENT.publishDay(payload).then(function(res){
+    var sid=res&&res.shareId?res.shareId:'';
+    if(!sid)throw new Error('no_share_id');
+    var url=buildParentViewUrl(sid);
+    if(!url)throw new Error('no_url');
+    _parentViewUrl=url;
+    refreshSharePanel();
+    return url;
+  });
+}
+function publishParentView(){
+  publishParentViewAsync().then(function(url){
+    copyTextToClipboard(url,'保護者向け確認URLを発行し、コピーしました。');
+  }).catch(function(err){
+    if(err&&err.message==='no_confirmed'){
+      alert('公開できる確定済みの割振りがありません。\n先に STEP3 の「実施確定」を行ってください。');
+      return;
+    }
+    console.error(err);
+    alert('確認URLの発行に失敗しました。通信状況を確認して再度お試しください。');
+  });
 }
 function localIsoDateFromDate(d){
   d=d||new Date();
@@ -4458,44 +4666,110 @@ function warmAssignPdfBlob(html){
     if(_assignPdfCache.html===html){_assignPdfCache.html=null;_assignPdfCache.pending=null;}
   });
 }
-/** 共有シート（LINE 等）へPDFを送る。iOS対策として事前生成済みBlobがあればジェスチャ内で即共有する */
-function shareAssignPdf(){
-  if(!R){alert('先に割振りを実行してください。');return;}
-  if(typeof TCB_generateAssignPdfBlob!=='function'){
-    alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
-    return;
-  }
-  var out=prepareAssignPdfOutput();
-  if(!out)return;
-  var btn=document.getElementById('print-share-pdf');
-  var orig=btn?btn.innerHTML:'';
-  function restore(){if(btn){btn.disabled=false;btn.innerHTML=orig;}}
-  function shareBlob(blob){
-    return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:true});
-  }
-  function fallbackDownload(blob){
-    return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:false});
-  }
-  if(_assignPdfCache.html===out.html&&_assignPdfCache.blob){
-    shareBlob(_assignPdfCache.blob).catch(function(err){
-      if(err&&err.name==='AbortError')return;
-      fallbackDownload(_assignPdfCache.blob);
-    });
-    return;
-  }
-  if(btn){btn.disabled=true;btn.innerHTML='<svg class="ic"><use href="#i-share"/></svg>PDF作成中…';}
+/** PDF Blob を取得（キャッシュ利用） */
+function resolveAssignPdfBlob(out){
+  if(!out||!out.html)return Promise.reject(new Error('no_output'));
+  if(_assignPdfCache.html===out.html&&_assignPdfCache.blob)return Promise.resolve(_assignPdfCache.blob);
   var gen=(_assignPdfCache.html===out.html&&_assignPdfCache.pending)?_assignPdfCache.pending:TCB_generateAssignPdfBlob(out.html);
-  gen.then(function(blob){
+  return gen.then(function(blob){
     _assignPdfCache.html=out.html;_assignPdfCache.blob=blob;
-    return shareBlob(blob).catch(function(err){
-      if(err&&err.name==='AbortError')return;
-      return fallbackDownload(blob);
+    return blob;
+  });
+}
+/** 共有シートへ PDF＋本文をまとめて展開。送信時は端末にも自動保存 */
+function executeLineShare(){
+  if(!R){alert('先に割振りを実行してください。');return;}
+  var lineOn=!(document.getElementById('share-opt-line')&&!document.getElementById('share-opt-line').checked);
+  var urlEl=document.getElementById('share-opt-url');
+  var urlOn=!!(urlEl&&urlEl.checked&&syncEnabled());
+  var pdfEl=document.getElementById('share-opt-pdf');
+  var pdfOn=!!(pdfEl&&pdfEl.checked&&PDF_DELIVERY_ENABLED);
+  if(!lineOn&&!urlOn&&!pdfOn){
+    setSharePanelStatus('送る内容を1つ以上選んでください。');
+    return;
+  }
+  if(urlOn&&!parentPublishPayloadReady()){
+    alert('保護者確認URLは実施確定後に送信できます。\n先に STEP3 の「実施確定」を行うか、URLのチェックを外してください。');
+    return;
+  }
+  var btn=document.getElementById('btn-share-line');
+  var orig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='準備中…';}
+  setSharePanelStatus('');
+  var out=prepareAssignPdfOutput();
+  if(pdfOn&&!out){
+    if(btn){btn.disabled=false;btn.textContent=orig;}
+    return;
+  }
+  var urlPromise=urlOn?publishParentViewAsync():Promise.resolve(_parentViewUrl||'');
+  urlPromise.then(function(url){
+    var msg='';
+    if(lineOn){
+      msg=buildShareLinePreviewText({includeUrl:urlOn,url:url});
+    }else if(urlOn&&url){
+      msg='最新の担当確認はこちら\n'+url;
+    }
+    var tasks=[];
+    if(pdfOn){
+      if(typeof TCB_generateAssignPdfBlob!=='function')throw new Error('no_pdf_module');
+      tasks.push(resolveAssignPdfBlob(out).then(function(blob){
+        return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:false}).then(function(){
+          return blob;
+        });
+      }));
+    }else{tasks.push(Promise.resolve(null));}
+    return Promise.all(tasks).then(function(arr){
+      var blob=arr[0];
+      if(blob&&typeof navigator.share==='function'){
+        var file=new File([blob],out.fileName,{type:'application/pdf'});
+        var payload={title:out.baseName};
+        if(msg)payload.text=msg;
+        if(navigator.canShare&&navigator.canShare(Object.assign({},payload,{files:[file]}))){
+          payload.files=[file];
+          return navigator.share(payload);
+        }
+        if(msg&&navigator.canShare&&navigator.canShare({text:msg})){
+          return navigator.share({text:msg});
+        }
+      }
+      if(msg){
+        return copyTextSilent(msg).then(function(){
+          if(pdfOn&&blob){
+            return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:assignShareFilesSupported()});
+          }
+          setSharePanelStatus('本文をコピーしました。LINEに貼り付けて送信してください。');
+        });
+      }
+      if(pdfOn&&blob){
+        return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:true});
+      }
+    }).then(function(){
+      if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.clearRevisedNotice==='function'){
+        TCB_SwapMgr.clearRevisedNotice();
+      }
+      refreshSharePanel();
+      setSharePanelStatus('LINE展開の準備ができました。共有先で送信を完了してください。');
     });
   }).catch(function(err){
-    if(err&&err.name==='AbortError')return;
+    if(err&&err.name==='AbortError'){
+      setSharePanelStatus('送信をキャンセルしました。');
+      return;
+    }
+    if(err&&err.message==='no_confirmed'){
+      alert('保護者確認URLは実施確定後に送信できます。');
+      return;
+    }
     console.error(err);
-    alert('PDFの送信に失敗しました。時間をおいて再度お試しください。');
-  }).finally(restore);
+    alert('LINE展開の準備に失敗しました。時間をおいて再度お試しください。');
+  }).finally(function(){
+    if(btn){btn.disabled=false;btn.textContent=orig;}
+    refreshSharePanel();
+  });
+}
+function shareAssignPdf(){
+  var pdfEl=document.getElementById('share-opt-pdf');
+  if(pdfEl)pdfEl.checked=true;
+  executeLineShare();
 }
 
 /* ===== 保護者向け確認ページ（案2 Step2-1）: 発行・URLコピー ===== */
@@ -4576,50 +4850,11 @@ function buildParentViewUrl(shareId){
   return base+(base.indexOf('?')>=0?'&':'?')+'v='+encodeURIComponent(shareId);
 }
 function renderParentViewState(){
-  var box=document.getElementById('parent-view-url-box');
-  var urlEl=document.getElementById('parent-view-url');
-  if(!box||!urlEl)return;
-  if(_parentViewUrl){
-    box.style.display='';
-    urlEl.textContent=_parentViewUrl;
-  }else{
-    box.style.display='none';
-    urlEl.textContent='';
-  }
-}
-function publishParentView(){
-  if(!syncEnabled()){
-    alert('この機能はクラウド同期が有効な環境でのみ利用できます。');
-    return;
-  }
-  var payload=buildParentPublishPayload();
-  if(!payload.days.length){
-    alert('公開できる確定済みの割振りがありません。\n先に STEP3 の「実施確定」を行ってから発行してください。');
-    return;
-  }
-  var btn=document.getElementById('parent-view-publish');
-  var orig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='発行中…';}
-  SYNC_CLIENT.publishDay(payload).then(function(res){
-    var sid=res&&res.shareId?res.shareId:'';
-    if(!sid)throw new Error('no_share_id');
-    _parentViewUrl=buildParentViewUrl(sid);
-    renderParentViewState();
-    if(!_parentViewUrl){
-      alert('URLの組み立てに失敗しました。設定（PARENT_VIEW_URL）をご確認ください。');
-      return;
-    }
-    copyTextToClipboard(_parentViewUrl,'保護者向け確認URLを発行し、コピーしました。LINEに貼り付けて案内してください。');
-  }).catch(function(err){
-    console.error(err);
-    alert('確認URLの発行に失敗しました。通信状況を確認して再度お試しください。');
-  }).finally(function(){
-    if(btn){btn.disabled=false;btn.textContent=orig;}
-  });
+  refreshSharePanel();
 }
 function copyParentViewUrl(){
-  if(!_parentViewUrl){alert('先に「保護者確認URLを発行/更新」を実行してください。');return;}
-  copyTextToClipboard(_parentViewUrl,'確認URLをコピーしました。LINEに貼り付けてください。');
+  if(!_parentViewUrl){alert('先に展開情報からURLを発行してください。');return;}
+  copyTextToClipboard(_parentViewUrl,'確認URLをコピーしました。');
 }
 function unpublishParentView(){
   if(!syncEnabled()){alert('この機能はクラウド同期が有効な環境でのみ利用できます。');return;}
@@ -4629,8 +4864,8 @@ function unpublishParentView(){
   if(btn){btn.disabled=true;btn.textContent='停止中…';}
   SYNC_CLIENT.unpublishDay().then(function(){
     _parentViewUrl='';
-    renderParentViewState();
-    alert('保護者向け確認URLを無効化しました。');
+    refreshSharePanel();
+    setSharePanelStatus('保護者向け確認URLを無効化しました。');
   }).catch(function(err){
     console.error(err);
     alert('無効化に失敗しました。通信状況を確認して再度お試しください。');
@@ -4754,6 +4989,7 @@ function openPrint(){
   var out=syncAssignPdfPreview(frame);
   if(!out)return;
   applyShareUiForEnv(out);
+  setSharePanelStatus('');
   var overlay=document.getElementById('print-overlay');
   frame.onload=function(){
     try{applyAssignPdfTitles(frame.contentDocument);}catch(e){}
@@ -4762,28 +4998,8 @@ function openPrint(){
 }
 /** 端末環境に応じて送信/保存ボタンと案内文を出し分け、共有用にPDFを事前生成する */
 function applyShareUiForEnv(out){
-  var canShareFiles=assignShareFilesSupported();
-  var shareBtn=document.getElementById('print-share-pdf');
-  var execBtn=document.getElementById('print-exec');
-  var note=document.getElementById('print-line-note');
-  if(shareBtn)shareBtn.style.display=(PDF_DELIVERY_ENABLED&&canShareFiles)?'':'none';
-  if(execBtn){
-    execBtn.style.display=PDF_DELIVERY_ENABLED?'':'none';
-    execBtn.innerHTML='<svg class="ic"><use href="#i-printer"/></svg>'+(canShareFiles?'PDFを保存':'印刷 / PDF保存');
-  }
-  if(note){
-    if(!PDF_DELIVERY_ENABLED){
-      note.innerHTML='<strong>「LINE用メッセージをコピー」</strong>で本文（変更の要点を含む）を貼り付けられます。';
-    }else if(canShareFiles){
-      note.innerHTML='<strong>「LINE用メッセージをコピー」</strong>で本文（変更の要点）を貼り付け→<strong>「PDFを送る」</strong>で共有シートから<strong>LINE</strong>に送れます（iCloud Drive 不要）。PDFはオフライン保管用の補助です。';
-    }else{
-      note.innerHTML='<strong>「LINE用メッセージをコピー」</strong>で本文（変更の要点）を貼り付けられます。PDFは<strong>「印刷 / PDF保存」</strong>でオフライン保管用に保存できます。';
-    }
-  }
-  if(PDF_DELIVERY_ENABLED)warmAssignPdfBlob(out.html);
-  var parentBlock=document.getElementById('parent-share-block');
-  if(parentBlock)parentBlock.style.display=syncEnabled()?'':'none';
-  renderParentViewState();
+  if(PDF_DELIVERY_ENABLED&&out)warmAssignPdfBlob(out.html);
+  refreshSharePanel();
 }
 function closePrint(){
   document.getElementById('print-overlay').classList.remove('open');
@@ -5485,7 +5701,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.7.1';
+  if(vEl)vEl.textContent='v1.7.2';
   MB.forEach(function(m){tmMap[m.name]='B';});
   updDesc(); buildAGrid(); buildOGrid(); buildSkipGrid();
   updateMemUnpublishedWrap();
@@ -5513,7 +5729,8 @@ document.addEventListener('DOMContentLoaded',function(){
     if(R)buildTbl();
   });
   document.getElementById('btn-s2').addEventListener('click',function(){goStep(2);});
-  document.getElementById('btn-prev-result').addEventListener('click',function(){showPrevResult();});
+  var btnP1FromPrev=document.getElementById('btn-p1-from-prev');
+  if(btnP1FromPrev)btnP1FromPrev.addEventListener('click',function(){showHistory();});
   document.getElementById('tnA').addEventListener('input',function(){
     tnA=this.value||'試合組'; updDesc();
     if(needsTeamUI())buildTGrid();
@@ -5540,7 +5757,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(btnReb)btnReb.addEventListener('click',function(){runRebalanceFair();});
   document.getElementById('tab-tbl').addEventListener('click',function(){swTab('tbl');});
   document.getElementById('tab-mem').addEventListener('click',function(){swTab('mem');});
-  document.getElementById('btn-print-tab').addEventListener('click',function(){openPrint();});
+  var btnOpenShare=document.getElementById('btn-open-share');
+  if(btnOpenShare)btnOpenShare.addEventListener('click',function(){openPrint();});
 
   /* 道具詳細モーダル */
   document.getElementById('modal-close').addEventListener('click',function(){closeModal('info-modal');});
@@ -5588,18 +5806,17 @@ document.addEventListener('DOMContentLoaded',function(){
     if(snap)persistAllocationSnapshot(snap);
   });
 
-  /* 印刷モーダル */
+  /* 展開情報モーダル */
   document.getElementById('print-close').addEventListener('click',function(){closePrint();});
-  var shareBtnEl=document.getElementById('print-share-pdf');
-  if(shareBtnEl)shareBtnEl.addEventListener('click',function(){shareAssignPdf();});
   document.getElementById('print-exec').addEventListener('click',function(){execPrint();});
-  document.getElementById('print-copy-share').addEventListener('click',function(){copyAssignShareMessage();});
-  var pvPub=document.getElementById('parent-view-publish');
-  if(pvPub)pvPub.addEventListener('click',function(){publishParentView();});
-  var pvCopy=document.getElementById('parent-view-copy');
-  if(pvCopy)pvCopy.addEventListener('click',function(){copyParentViewUrl();});
+  var btnShareLine=document.getElementById('btn-share-line');
+  if(btnShareLine)btnShareLine.addEventListener('click',function(){executeLineShare();});
   var pvUnpub=document.getElementById('parent-view-unpublish');
   if(pvUnpub)pvUnpub.addEventListener('click',function(){unpublishParentView();});
+  ['share-opt-line','share-opt-url','share-opt-pdf'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('change',function(){refreshSharePanel();});
+  });
 
   /* 交代報告（MGR）モジュール初期化：内部関数をフックとして注入 */
   if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.init==='function'){
@@ -5615,7 +5832,7 @@ document.addEventListener('DOMContentLoaded',function(){
       publishDay:function(p){return SYNC_CLIENT.publishDay(p);},
       buildParentViewUrl:buildParentViewUrl,
       copyText:copyTextToClipboard,
-      setPublishedUrl:function(url){_parentViewUrl=url;renderParentViewState();}
+      setPublishedUrl:function(url){_parentViewUrl=url;refreshSharePanel();}
     });
   }
 

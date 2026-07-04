@@ -62,7 +62,7 @@ async function main() {
   await delay(600);
   await shot(page, '04-step3.png', { fullPage: true });
 
-  await page.click('#btn-print-tab');
+  await page.click('#btn-open-share');
   await page.waitForSelector('#print-overlay.open', { timeout: 10000 });
   await delay(400);
   await shot(page, '05-print-preview.png');
