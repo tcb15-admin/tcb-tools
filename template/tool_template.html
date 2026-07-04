@@ -85,7 +85,20 @@ html[data-cohort="15"] header{
 .tninp{padding:11px 12px;border:1px solid var(--bdr);border-radius:var(--r-ctl);font-size:14px;font-family:inherit;width:100%;min-height:var(--tap);background:#fff;}
 .tninp.A{border-color:var(--ta-bd);color:var(--ta);}
 .tninp.B{border-color:var(--tb-bd);color:var(--tb);}
+.tninp::placeholder{color:var(--label-3);}
+.tng-dot{font-size:13px;line-height:1;}
+.tng-dot-a{color:var(--ta);}
+.tng-dot-b{color:var(--tb);}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;}
+/* メンバー系グリッド（対象外/お茶当番/振り分け）：氏名を1行に収め、カード高さを揃える */
+#agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}
+#agrid .mc,#ogrid .mc,#tgrid .tc2{flex-wrap:nowrap;gap:4px;}
+#agrid .cn,#ogrid .cn,#tgrid .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-break:normal;min-width:0;}
+/* スマホ幅は氏名がはみ出しやすいので、内側余白と文字を詰めて（例：伊藤（櫂）など）1行表示を維持 */
+@media (max-width:520px){
+  #agrid .mc,#ogrid .mc,#tgrid .tc2{padding-left:7px;padding-right:7px;}
+  #agrid .cn,#ogrid .cn,#tgrid .cn{font-size:11px;}
+}
 .mc{display:flex;align-items:center;gap:4px;padding:9px 10px;border-radius:12px;cursor:pointer;border:1px solid var(--bdr);background:#fff;user-select:none;min-height:var(--tap);flex-wrap:wrap;}
 .mc:active{opacity:.7;}
 .mc.abs{border-color:var(--red);background:var(--red-l);}
@@ -146,6 +159,11 @@ tr.rB td{border-left:3px solid var(--tb);}
 .p3-carryout-status{color:var(--txt2);line-height:1.55;}
 .tgA{background:var(--ta-bg);color:var(--ta);border:1px solid var(--ta-bd);}
 .tgB{background:var(--tb-bg);color:var(--tb);border:1px solid var(--tb-bd);}
+/* 割振り結果 表：道具名は左、写真ボタンは右端で縦に揃える */
+.p3-tool-cell{display:flex;align-items:center;gap:8px;}
+.p3-tool-name{flex:1;min-width:0;line-height:1.5;}
+.p3-tool-cell .ibtn{flex-shrink:0;margin-left:auto;}
+tr.p3-multi-row{background:#fff8e1;}
 .ibtn{background:var(--ui-accent-bg);color:var(--ui-accent);border:1px solid var(--ui-accent-bd);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;padding:3px 8px;vertical-align:middle;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;gap:3px;margin-left:4px;}
 .ibtn:active{opacity:1;}
 .shd2{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:9px;margin:12px 0 8px;font-weight:900;font-size:14px;}
@@ -169,6 +187,9 @@ tr.rB td{border-left:3px solid var(--tb);}
 .als{background:var(--grn-l);border-left:4px solid var(--grn);color:#1b5e20;}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:flex-end;justify-content:center;}
 .overlay.open{display:flex;}
+/* 交代報告モーダルは画面上部に表示（下だと気づきにくいとの要望） */
+#swap-modal.overlay{align-items:flex-start;}
+#swap-modal .modal{border-radius:20px;margin-top:max(14px,env(safe-area-inset-top,0px));max-height:min(90vh,calc(100vh - 28px));}
 .modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px;width:100%;max-width:640px;position:relative;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .mclose{display:flex;align-items:center;justify-content:center;width:36px;height:36px;position:absolute;top:14px;right:14px;background:var(--surface-2);border:none;border-radius:50%;font-size:16px;cursor:pointer;color:var(--txt2);z-index:1;}
 .modal h2{font-size:19px;font-weight:750;letter-spacing:-.3px;color:var(--navy);margin-bottom:14px;padding-right:44px;}
@@ -727,6 +748,52 @@ html{color-scheme:light;}
   .mc.rest,.mc.coach,.mc.master-excl{background:var(--surface-2);border-color:var(--bdr);}
   .p3-carry-adjust-text{background:var(--surface-2);border-color:#7c53b0;color:var(--txt);}
   .tcb-actual-hold-list,.tcb-actual-hold-row{border-color:var(--bdr);}
+
+  /* ===== 追加：ダークで濃紺文字/白面白文字を解消（全画面共通） ===== */
+  /* 濃紺(--ta/--navy)をテキストに使う箇所を明るいブルーへ */
+  .tcb.A,.tninp.A,.shd2.A,.tgA,.hist-date,.master-section h3,
+  .master-desc-card-head,.tcb-actual-hold-sel{color:#cdd8f5;}
+  /* 赤(--tb)をテキストに使う箇所を明るいレッドへ */
+  .tcb.B,.tninp.B,.shd2.B,.tgB{color:#ff9ea2;}
+  .tng-dot-a{color:#9fb4e8;}
+  .tng-dot-b{color:#ff7d82;}
+  .tninp.A{color:#dfe6ff;}
+  .tninp.B{color:#ffd7d9;}
+  .tninp::placeholder{color:#7d7d88;}
+  /* カウントピル・見出し・タグの面色（濃紺塗り→半透明ブルー/レッド） */
+  .tcb.A{background:rgba(159,180,232,.18);border-color:rgba(159,180,232,.55);}
+  .tcb.B{background:rgba(255,90,95,.18);border-color:rgba(255,90,95,.55);}
+  .shd2.A{background:rgba(159,180,232,.16);border-left-color:#9fb4e8;}
+  .shd2.B{background:rgba(255,90,95,.16);border-left-color:#ff5a5f;}
+  .tgA{background:rgba(159,180,232,.18);border-color:rgba(159,180,232,.5);}
+  .tgB{background:rgba(255,90,95,.18);border-color:rgba(255,90,95,.5);}
+  .hist-badge{background:rgba(159,180,232,.18);color:#cdd8f5;}
+  /* 選択タブを明るいブルーで強調（選択が分かりやすいように） */
+  .tabbtn.on{background:#3f5bd0;color:#fff;}
+  .tb2.on{background:#4a5fb0;color:#fff;box-shadow:none;}
+  .si.on{background:rgba(229,72,77,.16);}
+  .si.done{background:rgba(48,209,88,.14);}
+  /* マスタ編集：白面/淡色面 → ダーク面 */
+  .master-tl-mrow{background:var(--card);border-color:var(--bdr);border-left-color:#9fb4e8;}
+  .master-tl-mrow:nth-child(even){background:var(--surface-2);border-color:var(--bdr);}
+  .master-tl-mrow:nth-child(even) .master-tl-name-ta{background:var(--surface-2);}
+  .master-desc-card{background:var(--card);border-color:var(--bdr);}
+  .master-section h3{border-bottom-color:var(--bdr);}
+  .minp,.msel,.master-tl-name-ta,.master-desc-text,.master-desc-url-inp{
+    background:var(--surface-2);color:var(--txt);border-color:var(--bdr);}
+  .master-desc-preview,.img-placeholder{background:var(--surface-2);border-color:var(--bdr);}
+  .io-btn{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
+  /* ⓘツールチップ・履歴ホバー・履歴マトリクス */
+  .tcb-tip{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
+  .hist-item:hover{background:var(--surface-2);}
+  .tcb-hist-mo-scroll{background:var(--card);border-color:var(--bdr);}
+  .tcb-hist-mo-table td.tcb-hist-mo-td-tool{background:var(--surface-2);color:var(--txt);}
+  .tcb-hist-mo-table th.tcb-hist-mo-th-tool{background:#3a4a6a;}
+  /* STEP3 行ハイライト（淡色→ダーク調） */
+  tr.p3-carry-keep-row{background:rgba(48,209,88,.14)!important;}
+  tr.p3-carry-changed-row{background:rgba(255,159,10,.16)!important;}
+  tr.p3-multi-row{background:rgba(255,193,7,.12);}
+  .tcb-actual-hold-row.tcb-actual-hold-changed{background:rgba(255,159,10,.16);}
 }
 
 /* ==== 印刷はどのモードでも常にライト（紙面） ==== */
@@ -956,8 +1023,8 @@ html{color-scheme:light;}
       <div id="tnarea" style="display:block;">
         <div class="ct" style="margin-bottom:8px;margin-top:14px;">&#127991; グループ名（名称変更可）</div>
         <div class="tnrow">
-          <div class="tng"><label style="color:var(--ta);">&#9679;</label><input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組"></div>
-          <div class="tng"><label style="color:var(--tb);">&#9679;</label><input class="tninp B" id="tnB" type="text" maxlength="12" value="練習組"></div>
+          <div class="tng"><label class="tng-dot tng-dot-a">&#9679;</label><input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組"></div>
+          <div class="tng"><label class="tng-dot tng-dot-b">&#9679;</label><input class="tninp B" id="tnB" type="text" maxlength="12" value="練習組"></div>
         </div>
       </div>
       <div id="mem-unpublished-wrap" class="p1-mem-unpublished-wrap" style="display:none;">
@@ -3785,7 +3852,7 @@ function buildSkipGrid(){
   TL.forEach(function(t){
     var c=document.createElement('div');
     c.className='mc'+(skipS[t.name]?' abs':'');
-    c.style.cssText='border-color:'+(skipS[t.name]?'var(--red)':'var(--bdr)')+';background:'+(skipS[t.name]?'var(--red-l)':'#f8f9fa')+';';
+    c.style.cssText='border-color:'+(skipS[t.name]?'var(--red)':'var(--bdr)')+';background:'+(skipS[t.name]?'var(--red-l)':'var(--surface-2)')+';';
     c.innerHTML='<span class="cn" style="font-size:11px;">'+esc(t.name)+'</span>';
     if(skipS[t.name]){
       c.innerHTML+='<span class="rest-badge" style="background:var(--red);">除外</span>';
@@ -4090,13 +4157,13 @@ function buildTbl(){
       if(refAsgn&&rawAsgn&&refAsgn===rawAsgn)tr.classList.add('p3-carry-keep-row');
       else if(refAsgn!==rawAsgn&&(refAsgn||rawAsgn))tr.classList.add('p3-carry-changed-row');
     }
-    if(isMulti&&!carryAdjustRefSnap)tr.style.background='#fff8e1';
+    if(isMulti&&!carryAdjustRefSnap)tr.classList.add('p3-multi-row');
     var td1=document.createElement('td');
     td1.style.cssText='color:var(--txt2);font-size:10px;white-space:nowrap;';
     td1.textContent=t.id;
     var td2=document.createElement('td');
     td2.style.cssText='font-weight:700;font-size:12px;';
-    td2.innerHTML=esc(t.name)+tags+ibtn;
+    td2.innerHTML='<div class="p3-tool-cell"><span class="p3-tool-name">'+esc(t.name)+tags+'</span>'+ibtn+'</div>';
     var tdRb=document.createElement('td');
     tdRb.className='tcb-ui-advanced';
     tdRb.style.cssText='text-align:center;vertical-align:middle;';
