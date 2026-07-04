@@ -211,6 +211,8 @@ tr.p3-carry-changed-row{background:#fff3e0!important;}
 .print-actions{background:var(--navy2);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0;align-items:center;}
 .print-act-btn{flex:1;min-width:140px;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px;font-family:inherit;}
 .print-act-btn.sub{background:#546e7a;}
+.print-act-btn.send{background:var(--grn);}
+.print-act-btn:disabled{opacity:.6;cursor:default;}
 .tcb-print-line-note{flex:1 1 100%;margin:0;font-size:11px;color:rgba(255,255,255,.88);line-height:1.55;}
 .tcb-print-line-note strong{font-weight:700;color:#fff;}
 html.theme-b16 .print-header{
@@ -722,9 +724,10 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     <button class="print-close-btn" id="print-close">&#10005; 閉じる</button>
   </div>
   <div class="print-actions">
+    <button type="button" class="print-act-btn send" id="print-share-pdf" style="display:none;">&#128228; PDFを送る（LINE など）</button>
     <button type="button" class="print-act-btn" id="print-exec">&#128424; 印刷 / PDF保存</button>
     <button type="button" class="print-act-btn sub" id="print-copy-share">&#128203; LINE用メッセージをコピー</button>
-    <p class="tcb-print-line-note">PDFは<strong>「印刷 / PDF保存」</strong>から保存してください。入れ替えがある場合は<strong>2ページ目</strong>に案内文が付きます。スマホは<strong>mmdd_道具割振り｜…</strong>のファイル名でPDFを作成します（iPhoneは共有シートから<strong>ファイルに保存</strong>を選んでください）。PCは印刷ダイアログからPDF保存できます。<strong>LINE用メッセージをコピー</strong>には入れ替え案内も含まれます。</p>
+    <p class="tcb-print-line-note" id="print-line-note"><strong>「印刷 / PDF保存」</strong>でPDFをダウンロードし、LINEアプリに添付してください。<strong>「LINE用メッセージをコピー」</strong>で本文（入れ替え案内を含む）を貼り付けられます。入れ替えがある場合は<strong>2ページ目</strong>に案内文が付きます。</p>
   </div>
   <iframe id="print-frame"></iframe>
 </div>
@@ -4136,13 +4139,17 @@ function buildPrintHTML(){
 }
 var _pdfTitle='道具割振り';
 var SHARE_PDF_MESSAGE='お疲れ様です。本日のチーム道具の割り振りを展開します。ご確認ならびにご対応よろしくお願いします。';
+/** 将来、確認画面URL運用へ移行しPDF添付が不要になったら false にすると印刷/送信ボタンを非表示にできる */
+var PDF_DELIVERY_ENABLED=true;
+/** 事前生成したPDF Blobのキャッシュ（共有をワンタップで即実行するため） */
+var _assignPdfCache={html:null,blob:null,pending:null};
 function copyAssignShareMessage(){
   var text=SHARE_PDF_MESSAGE;
   var changeText=getCarryAdjustChangeTextPlain();
   if(changeText)text=text+'\n\n'+changeText;
   function done(ok){
     if(ok){
-      alert('共有用メッセージをコピーしました。PDFを保存したあと、LINEに貼り付けてください。');
+      alert('本文（変更概要を含む）をコピーしました。PDFを送信／保存したあと、LINEに貼り付けてください。');
       return;
     }
     prompt('以下をコピーしてLINEに貼り付けてください',text);
@@ -4227,6 +4234,69 @@ function deliverAssignPdfBlob(blob,opts){
   }
   return Promise.resolve();
 }
+/** この端末が「ファイル付き共有（共有シート）」に対応しているか（主にスマホで true） */
+function assignShareFilesSupported(){
+  try{
+    if(typeof navigator.share!=='function')return false;
+    if(typeof navigator.canShare!=='function')return false;
+    if(typeof File!=='function')return false;
+    var probe=new File([new Blob(['0'],{type:'application/pdf'})],'probe.pdf',{type:'application/pdf'});
+    return !!navigator.canShare({files:[probe]});
+  }catch(e){return false;}
+}
+/** 印刷プレビューを開いた時点でPDFを先に作っておき、共有ボタンのタップ時に即共有できるようにする */
+function warmAssignPdfBlob(html){
+  if(!html||typeof TCB_generateAssignPdfBlob!=='function')return;
+  if(_assignPdfCache.html===html&&(_assignPdfCache.blob||_assignPdfCache.pending))return;
+  _assignPdfCache.html=html;
+  _assignPdfCache.blob=null;
+  _assignPdfCache.pending=TCB_generateAssignPdfBlob(html).then(function(blob){
+    if(_assignPdfCache.html===html)_assignPdfCache.blob=blob;
+    return blob;
+  }).catch(function(){
+    /* 事前生成の失敗は握りつぶし、共有時に作り直す */
+    if(_assignPdfCache.html===html){_assignPdfCache.html=null;_assignPdfCache.pending=null;}
+  });
+}
+/** 共有シート（LINE 等）へPDFを送る。iOS対策として事前生成済みBlobがあればジェスチャ内で即共有する */
+function shareAssignPdf(){
+  if(!R){alert('先に割振りを実行してください。');return;}
+  if(typeof TCB_generateAssignPdfBlob!=='function'){
+    alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
+    return;
+  }
+  var out=prepareAssignPdfOutput();
+  if(!out)return;
+  var btn=document.getElementById('print-share-pdf');
+  var orig=btn?btn.textContent:'';
+  function restore(){if(btn){btn.disabled=false;btn.textContent=orig;}}
+  function shareBlob(blob){
+    return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:true});
+  }
+  function fallbackDownload(blob){
+    return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:false});
+  }
+  if(_assignPdfCache.html===out.html&&_assignPdfCache.blob){
+    shareBlob(_assignPdfCache.blob).catch(function(err){
+      if(err&&err.name==='AbortError')return;
+      fallbackDownload(_assignPdfCache.blob);
+    });
+    return;
+  }
+  if(btn){btn.disabled=true;btn.textContent='PDF作成中…';}
+  var gen=(_assignPdfCache.html===out.html&&_assignPdfCache.pending)?_assignPdfCache.pending:TCB_generateAssignPdfBlob(out.html);
+  gen.then(function(blob){
+    _assignPdfCache.html=out.html;_assignPdfCache.blob=blob;
+    return shareBlob(blob).catch(function(err){
+      if(err&&err.name==='AbortError')return;
+      return fallbackDownload(blob);
+    });
+  }).catch(function(err){
+    if(err&&err.name==='AbortError')return;
+    console.error(err);
+    alert('PDFの送信に失敗しました。時間をおいて再度お試しください。');
+  }).finally(restore);
+}
 function execAssignPdfBlobSave(out){
   if(typeof TCB_generateAssignPdfBlob!=='function'){
     alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
@@ -4276,11 +4346,34 @@ function openPrint(){
   var frame=document.getElementById('print-frame');
   var out=syncAssignPdfPreview(frame);
   if(!out)return;
+  applyShareUiForEnv(out);
   var overlay=document.getElementById('print-overlay');
   frame.onload=function(){
     try{applyAssignPdfTitles(frame.contentDocument);}catch(e){}
   };
   overlay.classList.add('open');
+}
+/** 端末環境に応じて送信/保存ボタンと案内文を出し分け、共有用にPDFを事前生成する */
+function applyShareUiForEnv(out){
+  var canShareFiles=assignShareFilesSupported();
+  var shareBtn=document.getElementById('print-share-pdf');
+  var execBtn=document.getElementById('print-exec');
+  var note=document.getElementById('print-line-note');
+  if(shareBtn)shareBtn.style.display=(PDF_DELIVERY_ENABLED&&canShareFiles)?'':'none';
+  if(execBtn){
+    execBtn.style.display=PDF_DELIVERY_ENABLED?'':'none';
+    execBtn.textContent=canShareFiles?'\uD83D\uDCBE PDFを保存':'\uD83D\uDDA8 印刷 / PDF保存';
+  }
+  if(note){
+    if(!PDF_DELIVERY_ENABLED){
+      note.innerHTML='<strong>「LINE用メッセージをコピー」</strong>で本文（入れ替え案内を含む）を貼り付けられます。入れ替えがある場合の詳細も本文に含まれます。';
+    }else if(canShareFiles){
+      note.innerHTML='スマホは<strong>「PDFを送る」</strong>→ 共有シートで<strong>LINE</strong>を選ぶとそのまま送信できます（iCloud Drive への保存は不要）。オフライン用に残す場合は<strong>「PDFを保存」</strong>。<strong>「LINE用メッセージをコピー」</strong>で本文（入れ替え案内を含む）を貼り付けられます。入れ替えがある場合は<strong>2ページ目</strong>に案内文が付きます。';
+    }else{
+      note.innerHTML='<strong>「印刷 / PDF保存」</strong>でPDFをダウンロードし、LINEアプリに添付してください。<strong>「LINE用メッセージをコピー」</strong>で本文（入れ替え案内を含む）を貼り付けられます。入れ替えがある場合は<strong>2ページ目</strong>に案内文が付きます。';
+    }
+  }
+  if(PDF_DELIVERY_ENABLED)warmAssignPdfBlob(out.html);
 }
 function closePrint(){
   document.getElementById('print-overlay').classList.remove('open');
@@ -4982,7 +5075,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.6.8';
+  if(vEl)vEl.textContent='v1.6.9';
   MB.forEach(function(m){tmMap[m.name]='B';});
   updDesc(); buildAGrid(); buildOGrid(); buildSkipGrid();
   updateMemUnpublishedWrap();
@@ -5087,6 +5180,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
   /* 印刷モーダル */
   document.getElementById('print-close').addEventListener('click',function(){closePrint();});
+  var shareBtnEl=document.getElementById('print-share-pdf');
+  if(shareBtnEl)shareBtnEl.addEventListener('click',function(){shareAssignPdf();});
   document.getElementById('print-exec').addEventListener('click',function(){execPrint();});
   document.getElementById('print-copy-share').addEventListener('click',function(){copyAssignShareMessage();});
 
