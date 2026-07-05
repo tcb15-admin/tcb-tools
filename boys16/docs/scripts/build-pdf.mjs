@@ -45,15 +45,29 @@ function mdToHtml(md) {
   let html = '';
   let i = 0;
   let inCode = false;
+  let codeLang = '';
+  let codeBuf = [];
 
   while (i < lines.length) {
     const line = lines[i];
     if (line.startsWith('```')) {
-      inCode = !inCode;
+      if (!inCode) {
+        inCode = true;
+        codeLang = line.slice(3).trim();
+        codeBuf = [];
+      } else {
+        if (codeLang === 'mermaid') {
+          html += `<pre class="mermaid">${codeBuf.join('\n')}</pre>`;
+        }
+        inCode = false;
+        codeLang = '';
+        codeBuf = [];
+      }
       i++;
       continue;
     }
     if (inCode) {
+      codeBuf.push(line);
       i++;
       continue;
     }
@@ -162,6 +176,8 @@ const fullHtml = `<!DOCTYPE html>
   code { background: #eee; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
   hr { border: none; border-top: 1px solid #ddd; margin: 16px 0; }
   li { margin-left: 1.2em; }
+  pre.mermaid { background: transparent; border: none; padding: 0; margin: 12px 0 16px; overflow: visible; page-break-inside: avoid; }
+  pre.mermaid svg { max-width: 100%; height: auto; }
 </style>
 </head>
 <body>
@@ -180,6 +196,19 @@ fs.writeFileSync(htmlPath, fullHtml, 'utf8');
 const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
 const page = await browser.newPage();
 await page.goto('file://' + htmlPath, { waitUntil: 'networkidle0' });
+await page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js' });
+await page.evaluate(async () => {
+  if (typeof mermaid === 'undefined') return;
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'neutral',
+    securityLevel: 'loose',
+    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+  });
+  const nodes = document.querySelectorAll('pre.mermaid');
+  if (nodes.length) await mermaid.run({ nodes });
+});
+await new Promise((r) => setTimeout(r, 1500));
 await page.pdf({
   path: OUT,
   format: 'A4',
