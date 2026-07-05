@@ -8,6 +8,8 @@
     });
   }
 
+  var REQ_TIMEOUT_MS=30000;
+
   function createSyncClient(opts){
     opts=opts||{};
     var base=String(opts.baseUrl||'').replace(/\/+$/,'');
@@ -16,13 +18,17 @@
     if(!base||!token||!cohort)return null;
 
     function req(path, method, body){
+      /* 遅い回線で無限に待たないよう30秒でタイムアウト */
+      var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+      var timer=ctrl?setTimeout(function(){ctrl.abort();},REQ_TIMEOUT_MS):null;
       return fetch(base+path,{
         method:method||'GET',
         headers:{
           'Content-Type':'application/json',
           'Authorization':'Bearer '+token
         },
-        body:body?JSON.stringify(body):undefined
+        body:body?JSON.stringify(body):undefined,
+        signal:ctrl?ctrl.signal:undefined
       }).then(function(res){
         return safeJson(res).then(function(payload){
           if(!res.ok){
@@ -31,8 +37,18 @@
           }
           return payload;
         });
+      }).catch(function(err){
+        if(err&&err.name==='AbortError'){
+          throw new Error('通信がタイムアウトしました（30秒）。電波状況を確認して再度お試しください。');
+        }
+        throw err;
+      }).finally(function(){
+        if(timer)clearTimeout(timer);
       });
     }
+
+    /* 履歴追記は並行POSTで後勝ちにならないよう直列化する */
+    var historyQueue=Promise.resolve();
 
     return {
       loadState:function(){
@@ -46,10 +62,15 @@
         });
       },
       appendHistory:function(snap){
-        return req('/api/history-upsert','POST',{
-          cohort:cohort,
-          snap:snap
-        });
+        var run=function(){
+          return req('/api/history-upsert','POST',{
+            cohort:cohort,
+            snap:snap
+          });
+        };
+        var p=historyQueue.then(run,run);
+        historyQueue=p.catch(function(){});
+        return p;
       },
       fetchHistory:function(days){
         return req('/api/history?cohort='+encodeURIComponent(cohort)+'&days='+encodeURIComponent(days||365),'GET');

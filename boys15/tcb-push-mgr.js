@@ -121,6 +121,8 @@
     }
     return navigator.serviceWorker.register('./sw.js', { scope: './' })
       .then(function (reg) {
+        /* 起動時に sw.js の更新有無を確認（skipWaiting で即置き換わる） */
+        if (reg.update) reg.update().catch(function () {});
         return reg.pushManager.getSubscription().then(function (sub) {
           if (sub) {
             return registerSubscription(sub).catch(function () { updateBtnState('off'); });

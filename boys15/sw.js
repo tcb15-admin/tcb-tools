@@ -1,6 +1,15 @@
 /* Service Worker: 道具MGR向け Web Push 受信（交代報告の新着通知） */
 'use strict';
 
+/* キャッシュ機能は持たないため、新しい sw.js は待機せず即座に置き換える
+   （旧版が端末に残り続けるのを防ぐ） */
+self.addEventListener('install', function () {
+  self.skipWaiting();
+});
+self.addEventListener('activate', function (event) {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener('push', function (event) {
   var data = {};
   if (event.data) {

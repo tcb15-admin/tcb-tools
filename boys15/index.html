@@ -274,6 +274,8 @@ tr.p3-multi-row{background:#fff8e1;}
 }
 .modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px;width:100%;max-width:640px;position:relative;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .mclose{display:flex;align-items:center;justify-content:center;width:36px;height:36px;position:absolute;top:14px;right:14px;background:var(--surface-2);border:none;border-radius:50%;font-size:16px;cursor:pointer;color:var(--txt2);z-index:1;}
+/* 見た目は36pxのまま、タップ当たり判定のみ44pxに拡大 */
+.mclose::after{content:'';position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%;}
 .modal h2{font-size:19px;font-weight:750;letter-spacing:-.3px;color:var(--ink-heading);margin-bottom:14px;padding-right:44px;}
 .modal-img{display:block;}
 /* 道具写真モーダル（tcb-desc-*：他セレクタとの衝突回避） */
@@ -286,8 +288,10 @@ tr.p3-multi-row{background:#fff8e1;}
 .tcb-prev-modal-cond{margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6;}
 .tcb-prev-modal-cond strong{color:var(--ink-heading);}
 /* 簡易説明ツールチップ（ⓘ）: 詳細はマニュアル。ツール内は最小テキスト＋吹き出し */
-.tcb-tip{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:1px solid var(--bdr);background:#fff;color:var(--txt2);font-size:11px;line-height:1;cursor:help;vertical-align:middle;margin-left:5px;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.tcb-tip{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:1px solid var(--bdr);background:#fff;color:var(--txt2);font-size:11px;line-height:1;cursor:help;vertical-align:middle;margin-left:5px;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent;position:relative;}
 .tcb-tip::before{content:'i';font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;}
+/* 隣接ラベルの誤タップを避けつつ当たり判定を拡大（17px→31px） */
+.tcb-tip::after{content:'';position:absolute;left:50%;top:50%;width:31px;height:31px;transform:translate(-50%,-50%);border-radius:50%;}
 .tcb-tip:hover,.tcb-tip.on,.tcb-tip:focus-visible{background:var(--blue);color:#fff;border-color:var(--blue);outline:none;}
 .tcb-tip-bubble{position:fixed;z-index:10000;max-width:min(300px,88vw);background:#0d1b2a;color:#fff;font-size:12.5px;font-weight:400;line-height:1.6;padding:10px 12px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease;pointer-events:none;}
 .tcb-tip-bubble.on{opacity:1;transform:translateY(0);}
@@ -428,6 +432,9 @@ html.theme-b16 .print-scroll-body{background:#e8ecf4;}
   padding-bottom:max(28px,calc(16px + env(safe-area-inset-bottom,0px)));
 }
 .overlay.tcb-modal-under{pointer-events:none;}
+/* 履歴一覧モーダル：一覧のみスクロールし、書出・削除ボタンは常に見える固定フッター */
+#hist-modal .tcb-scroll-modal-body{padding-bottom:14px;}
+.tcb-hist-modal-foot{flex:0 0 auto;padding-bottom:max(14px,env(safe-area-inset-bottom,0px));}
 body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
 .overlay.open{touch-action:none;}
 .overlay.open .tcb-scroll-modal-body{touch-action:pan-y;}
@@ -1049,6 +1056,13 @@ html{color-scheme:light;}
   .mc.rest,.mc.coach,.mc.master-excl{background:var(--surface-2);border-color:var(--bdr);}
   .p3-carry-adjust-text{background:var(--surface-2);border-color:#7c53b0;color:var(--txt);}
   .tcb-actual-hold-list,.tcb-actual-hold-row{border-color:var(--bdr);}
+  /* 紫系ハードコードの注記・差分サマリをダークで読める色に */
+  .tcb-actual-hold-note{color:#ce93d8;}
+  .tcb-actual-hold-row.tcb-actual-hold-changed{background:rgba(230,81,0,.16);}
+  .p3-carry-adjust-summary{background:var(--surface-2);border-left-color:#ab47bc;}
+  .p3-carry-adjust-summary strong{color:#ce93d8;}
+  .p3-carry-adjust-people{color:#ce93d8;}
+  .p3-carry-adjust-text-hd{color:#ce93d8;}
 
   /* ===== 追加：ダークで濃紺文字/白面白文字を解消（全画面共通） ===== */
   /* 濃紺(--ta/--navy)をテキストに使う箇所を明るいブルーへ */
@@ -1306,7 +1320,7 @@ html{color-scheme:light;}
 
 <!-- 割振り履歴モーダル -->
 <div class="overlay" id="hist-modal">
-  <div class="modal">
+  <div class="modal tcb-scroll-modal">
     <button class="mclose" id="hist-modal-close">&#10005;</button>
     <h2>&#128336; 割振り履歴</h2>
     <div id="hist-modal-intro" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">基準にする活動日をタップして詳細を表示し、<strong>前回の結果を元に割振り開始</strong>を選んでください（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
@@ -1314,17 +1328,19 @@ html{color-scheme:light;}
       <button type="button" id="hist-month-btn" class="tcb-hist-mo-openbtn">&#128197; 直近1年（活動日）：一覧・PDF</button>
       <span style="font-size:11px;color:var(--txt2);line-height:1.45;">活動日が今日から<strong>過去1年以内</strong>のデータを、道具ごとの担当の並びで表示します（保護者向けPDF用）。</span>
     </div>
-    <div id="hist-list"></div>
-    <div id="hist-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button id="hist-export-btn" style="flex:1;min-width:120px;padding:10px;background:var(--grn);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">&#11015; JSONで書出</button>
-      <button id="hist-sel-del-btn" style="flex:1;min-width:120px;padding:10px;background:var(--red-l);color:var(--red);border:1px solid var(--red);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;display:none;">&#128465; 選択削除</button>
-      <button id="hist-clear-btn" style="flex:1;min-width:120px;padding:10px;background:var(--red-l);color:var(--red);border:1px solid var(--red);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">&#128465; 全削除</button>
-    </div>
-    <div id="hist-confirm-bar" style="display:none;margin-top:8px;background:var(--red-l);border:1px solid var(--red);border-radius:8px;padding:10px 12px;">
-      <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px;">全ての履歴を削除しますか？この操作は元に戻せません。</div>
-      <div style="display:flex;gap:8px;">
-        <button id="hist-confirm-yes" style="flex:1;padding:9px;background:var(--red);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">削除する</button>
-        <button id="hist-confirm-no" class="tcb-hist-confirm-no">キャンセル</button>
+    <div class="tcb-scroll-modal-body" id="hist-list"></div>
+    <div class="tcb-hist-modal-foot">
+      <div id="hist-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="hist-export-btn" style="flex:1;min-width:120px;padding:10px;background:var(--grn);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">&#11015; JSONで書出</button>
+        <button id="hist-sel-del-btn" style="flex:1;min-width:120px;padding:10px;background:var(--red-l);color:var(--red);border:1px solid var(--red);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;display:none;">&#128465; 選択削除</button>
+        <button id="hist-clear-btn" style="flex:1;min-width:120px;padding:10px;background:var(--red-l);color:var(--red);border:1px solid var(--red);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">&#128465; 全削除</button>
+      </div>
+      <div id="hist-confirm-bar" style="display:none;margin-top:8px;background:var(--red-l);border:1px solid var(--red);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px;">全ての履歴を削除しますか？この操作は元に戻せません。</div>
+        <div style="display:flex;gap:8px;">
+          <button id="hist-confirm-yes" style="flex:1;padding:9px;background:var(--red);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">削除する</button>
+          <button id="hist-confirm-no" class="tcb-hist-confirm-no">キャンセル</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1770,7 +1786,7 @@ function showsMemUnpublishedOption(){
   return pat==='kata';
 }
 function snapMemUnpublished(snap){
-  return !!(snap&&(snap.memUnpublished===1||snap.memUnpublished===true));
+  return !!(snap&&normFlag01(snap.memUnpublished));
 }
 function isMemUnpublished(){
   if(!showsMemUnpublishedOption())return false;
@@ -2134,6 +2150,34 @@ function captureMasterSnapshotForDirty(){
 function isMasterDirty(){
   return _masterSnapAtOpen!==''&&captureMasterSnapshotForDirty()!==_masterSnapAtOpen;
 }
+/* メンバー名変更時：名前をキーにした関連データ（PAST・固定担当・当日の状態）を新名へ引き継ぐ */
+function migrateMemberNameRefs(oldName,newName){
+  oldName=String(oldName==null?'':oldName).trim();
+  newName=String(newName==null?'':newName).trim();
+  if(!oldName||!newName||oldName===newName)return;
+  if(PAST&&Object.prototype.hasOwnProperty.call(PAST,oldName)&&!Object.prototype.hasOwnProperty.call(PAST,newName)){
+    PAST[newName]=PAST[oldName];
+    delete PAST[oldName];
+  }
+  (TL||[]).forEach(function(t){ if(t&&t.fixed&&t.note===oldName)t.note=newName; });
+  [typeof tmMap!=='undefined'?tmMap:null,
+   typeof absS!=='undefined'?absS:null,
+   typeof ochS!=='undefined'?ochS:null].forEach(function(o){
+    if(o&&Object.prototype.hasOwnProperty.call(o,oldName)&&!Object.prototype.hasOwnProperty.call(o,newName)){
+      o[newName]=o[oldName];
+      delete o[oldName];
+    }
+  });
+}
+/* 道具名変更時：当日の持出し不要（スキップ）状態を新名へ引き継ぐ（DESCS は呼び出し側で移行） */
+function migrateToolNameRefs(oldName,newName){
+  if(!oldName||!newName||oldName===newName)return;
+  var s=(typeof skipS!=='undefined')?skipS:null;
+  if(s&&Object.prototype.hasOwnProperty.call(s,oldName)&&!Object.prototype.hasOwnProperty.call(s,newName)){
+    s[newName]=s[oldName];
+    delete s[oldName];
+  }
+}
 function syncMasterEditsFromDom(){
   var mel=document.getElementById('m-members');
   if(mel){
@@ -2143,7 +2187,11 @@ function syncMasterEditsFromDom(){
       var ni=row.querySelector('.minp');
       var vs=row.querySelector('.msel');
       var cbs=row.querySelectorAll('.master-mbr-flags-wrap input[type="checkbox"]');
-      if(ni)MB[i].name=String(ni.value||'');
+      if(ni){
+        var mNew=String(ni.value||'');
+        if(mNew!==MB[i].name)migrateMemberNameRefs(MB[i].name,mNew);
+        MB[i].name=mNew;
+      }
       if(vs)MB[i].v=normalizeMemberVehicle(vs.value);
       if(cbs[0])MB[i].rest=cbs[0].checked?1:0;
       if(cbs[1])MB[i].coach=cbs[1].checked?1:0;
@@ -2166,6 +2214,7 @@ function syncMasterEditsFromDom(){
             DESCS[newName]=DESCS[oldName];
             delete DESCS[oldName];
           }
+          migrateToolNameRefs(oldName,newName);
           TL[j].name=newName;
           TL[j].fixed=0;
           TL[j].note=null;
@@ -2546,7 +2595,7 @@ function confirmPatChangeInSeedMode(newPat,newSplit){
   var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
   if(!on)return true;
   var basePat=seedBaseSnap.pat||'kata';
-  var baseSplit=(seedBaseSnap.renshuSplit===1||seedBaseSnap.renshuSplit===true);
+  var baseSplit=!!normFlag01(seedBaseSnap.renshuSplit);
   var same=(newPat===basePat)&&(newPat!=='renshu'||(!!newSplit)===baseSplit);
   if(same)return true;
   if(!confirm('「前回の結果を元に割振る」モード中です。\n活動パターンを基準と変えると前回の結果を引き継げないため、前回基準モードを解除して通常の割振りに戻します。\nよろしいですか？'))return false;
@@ -2574,7 +2623,7 @@ function applySnapToActivityUI(snap, opts){
   }
   if(snap.pat)setPat(snap.pat);
   if(snap.pat==='renshu'){
-    var rs=(snap.renshuSplit===1||snap.renshuSplit===true);
+    var rs=!!normFlag01(snap.renshuSplit);
     applyRenshuSplit(rs);
     var chkx=document.getElementById('chk-renshu-split');
     if(chkx)chkx.checked=rs;
@@ -3152,7 +3201,7 @@ function isPrevSnapCompatibleWithCtx(snap, ctx){
   if(snap.pat!==pat)return false;
   if((snap.mode||'')!==ctx.mode)return false;
   var rsNow=(pat==='renshu'&&renshuSplit)?1:0;
-  var rsSn=(snap.renshuSplit===1||snap.renshuSplit===true)?1:0;
+  var rsSn=normFlag01(snap.renshuSplit);
   if(rsSn!==rsNow)return false;
   return true;
 }
@@ -3166,7 +3215,7 @@ function snapCtxDiffWarnings(snap, ctx){
   var w=[];
   if(!snap)return w;
   if(snap.pat!==pat){
-    var was=patLabel(snap.pat,(snap.renshuSplit===1||snap.renshuSplit===true));
+    var was=patLabel(snap.pat,!!normFlag01(snap.renshuSplit));
     var now=patLabel(pat,renshuSplit);
     w.push('活動パターンが基準と異なります（'+was+'→'+now+'）。');
   }
@@ -3174,7 +3223,7 @@ function snapCtxDiffWarnings(snap, ctx){
     w.push('チーム分割の有無が基準と異なります。');
   }
   var rsNow=(pat==='renshu'&&renshuSplit)?1:0;
-  var rsSn=(snap.renshuSplit===1||snap.renshuSplit===true)?1:0;
+  var rsSn=normFlag01(snap.renshuSplit);
   if(rsSn!==rsNow)w.push('練習の場所分離設定が基準と異なります。');
   return w;
 }
@@ -5902,7 +5951,11 @@ function buildMasterMembers(){
     flagsWrap.appendChild(a14l); flagsWrap.appendChild(sl);
     var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
     (function(ii,n2,v2,r2,c2,a2,s2){
-      n2.addEventListener('change',function(){MB[ii].name=n2.value;buildMasterMembers();});
+      n2.addEventListener('change',function(){
+        if(n2.value!==MB[ii].name)migrateMemberNameRefs(MB[ii].name,n2.value);
+        MB[ii].name=n2.value;
+        buildMasterMembers();
+      });
       v2.addEventListener('change',function(){MB[ii].v=normalizeMemberVehicle(v2.value);});
       r2.addEventListener('change',function(){MB[ii].rest=r2.checked?1:0;});
       c2.addEventListener('change',function(){MB[ii].coach=c2.checked?1:0;});
@@ -6000,6 +6053,7 @@ function buildMasterTools(){
           } else {
             if(!DESCS[newName])DESCS[newName]={text:'',img:''};
           }
+          migrateToolNameRefs(oldName,newName);
         }
         TL[idx].name=newName;
         TL[idx].fixed=0;TL[idx].note=null;
