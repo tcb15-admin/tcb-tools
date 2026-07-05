@@ -102,11 +102,11 @@ html[data-cohort="15"] header{
 /* メンバー系グリッド（対象外/お茶当番/振り分け）：氏名を1行に収め、カード高さを揃える */
 #agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}
 #agrid .mc,#ogrid .mc,#tgrid .tc2{flex-wrap:nowrap;gap:4px;}
-#agrid .cn,#ogrid .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-break:normal;min-width:0;}
-#tgrid .tc2{flex-direction:column;align-items:stretch;gap:6px;flex-wrap:nowrap;}
-#tgrid .tgrid-top{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;}
-#tgrid .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-break:normal;min-width:0;width:100%;flex:none;font-size:13px;line-height:1.3;}
+#agrid .cn,#ogrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;}
+#tgrid .tc2{flex-direction:row;align-items:center;flex-wrap:nowrap;gap:4px;}
+#tgrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;font-size:13px;line-height:1.25;}
 #tgrid .tcb-name-tip{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#tgrid .tbdg{max-width:none;font-size:10px;min-width:26px;height:24px;padding:0 4px;}
 /* スマホ幅は氏名を大きく・2列固定で視認性を確保 */
 @media (max-width:520px){
   #agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{
@@ -121,16 +121,16 @@ html[data-cohort="15"] header{
   #agrid .cn,#ogrid .cn,#tgrid .cn{
     font-size:15px;
     font-weight:800;
-    line-height:1.25;
+    line-height:1.2;
   }
+  #tgrid .tbdg{font-size:11px;min-width:30px;height:26px;padding:0 5px;}
   #tgrid .tc2{
-    min-height:56px;
+    min-height:52px;
     padding:10px 8px;
   }
-  #tgrid .cn{font-size:14px;}
   #skipgrid.mgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   #skipgrid .mc{padding:10px 8px;min-height:48px;align-items:center;}
-  #skipgrid .cn{font-size:clamp(12px,3.6vw,15px);font-weight:800;line-height:1.2;}
+  #skipgrid .cn{font-weight:800;line-height:1.15;}
   #agrid .cv,#ogrid .cv,#tgrid .cv{font-size:10px;padding:2px 5px;}
   #agrid .rest-badge,#ogrid .rest-badge,#tgrid .rest-badge,
   #agrid .coach-badge,#ogrid .coach-badge,#tgrid .coach-badge,
@@ -214,7 +214,7 @@ tr.p3-multi-row{background:#fff8e1;}
 .shd2{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:9px;margin:12px 0 8px;font-weight:900;font-size:14px;}
 .shd2.A{background:var(--ta-bg);color:var(--ta);border-left:4px solid var(--ta);}
 .shd2.B{background:var(--tb-bg);color:var(--tb);border-left:4px solid var(--tb);}
-#skipgrid .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:700;flex:1;min-width:0;line-height:1.2;}
+#skipgrid .cn{white-space:nowrap;overflow:hidden;font-size:13px;font-weight:700;flex:1;min-width:0;line-height:1.2;}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
 .sc{border-radius:9px;padding:10px;border:2px solid var(--bdr);}
 .sc.ht{border-color:var(--blue2);background:#f0f7ff;}
@@ -1896,6 +1896,61 @@ function toolPrefixAndCircled(name){
   }
   return {prefix:s, num:0, hasCirc:false};
 }
+var _step2FitT=0;
+function fitGridCellText(cn,box,opts){
+  if(!cn||!box)return;
+  opts=opts||{};
+  var gap=opts.gap!=null?opts.gap:4;
+  var pad=opts.pad!=null?opts.pad:8;
+  var fixed=0;
+  box.querySelectorAll(':scope > .cv,:scope > .rest-badge,:scope > .coach-badge,:scope > .master-excl-badge,:scope > .tbdg').forEach(function(el){
+    if(el!==cn)fixed+=el.offsetWidth+gap;
+  });
+  var maxW=box.clientWidth-fixed-pad;
+  if(maxW<=0)return;
+  var mob=window.matchMedia('(max-width:520px)').matches;
+  var maxFs=opts.maxFs!=null?opts.maxFs:(mob?16:14);
+  var minFs=opts.minFs!=null?opts.minFs:8;
+  var fs=maxFs;
+  cn.style.textOverflow='clip';
+  cn.style.fontSize=fs+'px';
+  while(fs>minFs&&cn.scrollWidth>maxW){
+    fs--;
+    cn.style.fontSize=fs+'px';
+  }
+}
+function fitMemberGridFonts(id){
+  var g=document.getElementById(id);
+  if(!g)return;
+  g.querySelectorAll('.mc, .tc2').forEach(function(box){
+    var cn=box.querySelector('.cn');
+    fitGridCellText(cn,box,{maxFs:window.matchMedia('(max-width:520px)').matches?16:14});
+  });
+}
+function fitSkipGridFonts(){
+  var g=document.getElementById('skipgrid');
+  if(!g)return;
+  var mob=window.matchMedia('(max-width:520px)').matches;
+  g.querySelectorAll('.mc').forEach(function(box){
+    var cn=box.querySelector('.cn');
+    if(!cn)return;
+    var maxFs=mob?Math.min(20,Math.max(14,Math.floor(box.clientHeight*0.42))):14;
+    fitGridCellText(cn,box,{maxFs:maxFs,minFs:8});
+  });
+}
+function fitStep2Grids(){
+  fitMemberGridFonts('agrid');
+  fitMemberGridFonts('ogrid');
+  fitMemberGridFonts('tgrid');
+  fitSkipGridFonts();
+}
+function scheduleStep2GridFit(){
+  requestAnimationFrame(function(){requestAnimationFrame(fitStep2Grids);});
+}
+window.addEventListener('resize',function(){
+  clearTimeout(_step2FitT);
+  _step2FitT=setTimeout(fitStep2Grids,120);
+});
 function sortMasterTools(){
   TL.sort(function(a,b){
     var pa=toolPrefixAndCircled(a.name), pb=toolPrefixAndCircled(b.name);
@@ -4087,6 +4142,7 @@ function buildAGrid(){
     }
     g.appendChild(c);
   });
+  scheduleStep2GridFit();
 }
 function buildSkipGrid(){
   var g=document.getElementById('skipgrid'); if(!g)return; g.innerHTML='';
@@ -4106,6 +4162,7 @@ function buildSkipGrid(){
     })(t,c);
     g.appendChild(c);
   });
+  scheduleStep2GridFit();
 }
 function buildOGrid(){
   var g=document.getElementById('ogrid'); if(!g)return; g.innerHTML='';
@@ -4122,6 +4179,7 @@ function buildOGrid(){
     })(m,c);
     g.appendChild(c);
   });
+  scheduleStep2GridFit();
 }
 
 /* ========== グループ振り分け ========== */
@@ -4155,6 +4213,7 @@ function buildTGrid(){
           var nt=tmMap[mm.name];
           cc.className='tc2 t'+nt;
           cc.innerHTML=tcHtml(mm,nt,tnA||'試合組',tnB||'練習組');
+          scheduleStep2GridFit();
           updTC();
         });
       })(m,c);
@@ -4162,14 +4221,14 @@ function buildTGrid(){
     g.appendChild(c);
   });
   updTC();
+  scheduleStep2GridFit();
 }
 function tcHtml(m,tm,la,lb){
   var lbl=tm?(tm==='A'?la:lb):'－', bc=tm||'';
-  var disp=lbl.length>4?lbl.substring(0,4)+'…':lbl;
   var safeName=esc(m.name);
-  return '<div class="tgrid-top"><span class="tbdg '+bc+'">'+esc(disp)+'</span>'
-       +'<span class="cv v'+m.v+'">'+esc(m.v)+'</span></div>'
-       +'<span class="cn tcb-name-tip" data-tip="'+safeName+'" title="'+safeName+'">'+safeName+'</span>';
+  return '<span class="tbdg '+bc+'">'+esc(lbl)+'</span>'
+       +'<span class="cn tcb-name-tip" data-tip="'+safeName+'" title="'+safeName+'">'+safeName+'</span>'
+       +'<span class="cv v'+m.v+'">'+esc(m.v)+'</span>';
 }
 function updTC(){
   var ex=exSet();
