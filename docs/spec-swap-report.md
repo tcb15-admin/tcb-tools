@@ -1,12 +1,13 @@
-# 交代報告機能 確定仕様書 v1.2
+# 交代報告機能 確定仕様書 v1.3
 
 - 対象アプリ: 道具割り振りツール（`template/tool_template.html`）／保護者確認画面（`template/parent_view_template.html`）／同期API（`cloudflare-sync/worker.js`＋D1）
-- 版: v1.2（設計確定・実装前）
+- 版: v1.3（Phase 1・Phase 2 実装済み）
 - 作成日: 2026-07-04
 - 前提: 保護者間の交代調整は**アプリ外**で合意済み。アプリは「合意結果の報告」を受け、道具MGRが承認して割振りへ反映する。
 - 設計方針: **入口で弾く（事前防止）を優先**し、無効・誤りの申請をフォーム段階で防ぐことでMGRの確認手数を最小化する。却下理由は“最後の受け皿”として人の判断に絞る。
 
 ### 変更履歴
+- v1.3: Phase 1（交代報告本体）・Phase 2（Web Push）をコード実装。README §13–14 にデプロイ手順を追記。
 - v1.2: 却下理由を「事前防止＋人判断3種」に簡素化。新担当候補の範囲を「当日の割振り対象メンバー（欠席・恒久対象外を除外／お茶当番は当番ラベル付きで含む）」に確定。申請フォームの事前防止チェックを追加。
 - v1.1: 9決定事項を反映して初版確定。
 
@@ -229,9 +230,9 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 - 公開データへの対象メンバー一覧追加は**氏名＋当番フラグのみ**の最小限に留める（既に割振り結果で大半の氏名は公開済みのため増分リスクは軽微）。
 
 ## 13. 段階リリース
-- **Phase 1**: 保護者フォーム＋MGR一覧/反映/却下（プリセット理由）＋受付状況＋修正版LINE再通知＋プル型バッジ。
-- **Phase 2**: Web Push（MGRのみ）。※本要望では Phase1・2 を続けて実装する想定。
-- リリース手順: D1マイグレーション → Worker deploy → 静的サイト push（既存手順に準拠）。
+- **Phase 1**（実装済）: 保護者フォーム＋MGR一覧/反映/却下（プリセット理由）＋受付状況＋修正版LINE再通知＋プル型バッジ。
+- **Phase 2**（実装済）: Web Push（MGRのみ）。`sw.js`＋`tcb-push-mgr.js`＋`/api/push/subscribe`＋Worker 送信。
+- リリース手順: D1マイグレーション → Worker deploy → 静的サイト push（`cloudflare-sync/README.md` §13–14）。
 
 ## 14. 非対象（やらないこと）
 - 保護者間の合意調整そのもの（アプリ外）。
@@ -265,7 +266,13 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 | MGR | `template/tcb-swap-mgr.js`（新規） | 一覧取得・反映（A→B置換）・却下・修正版LINE本文生成 |
 | MGR | `template/tcb-swap-mgr.css`（新規） | `tcbsw-` スタイル |
 | ビルド | `template/build.py`（変更） | 新規JS/CSSを配布へ取り込み、必要な差し込み |
-| 設定 | `template/config_boys15.json` / `config_boys16.json`（変更） | `TOOL_VERSION` 更新 |
+| DB | `cloudflare-sync/migrate_push_subscriptions.sql`（新規） | `push_subscriptions` 追加（冪等） |
+| DB | `cloudflare-sync/schema.sql`（変更） | `push_subscriptions` を正本に追記 |
+| API | `cloudflare-sync/worker.js`（変更） | `/api/push/subscribe`、新着報告時 Web Push 送信 |
+| MGR | `template/sw.js`（新規） | Service Worker（push 受信・通知クリック） |
+| MGR | `template/tcb-push-mgr.js` / `.css`（新規） | 通知許可・購読登録 UI |
+| 設定 | `template/config_boys15.json`（変更） | `VAPID_PUBLIC_KEY` / `VAPID_SUBJECT` / `TOOL_VERSION` |
+| 運用 | `cloudflare-sync/gen-vapid-keys.mjs`（新規） | VAPID 鍵生成スクリプト |
 
 ### Phase 1（本体機能）タスク
 1. **DBスキーマ**: `swap_reports` のマイグレーションSQL＋schema.sql追記（実行はユーザー承認後）。
@@ -283,12 +290,12 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 13. **ローカルE2E**: 保護者申請→MGR反映→修正版再通知→保護者受付状況の通し確認。
 14. **本番反映**: SQL適用（承認後）→ worker deploy → 静的サイト push。
 
-### Phase 2（Web Push・MGRのみ）タスク
-15. `push_subscriptions` テーブル＋マイグレーションSQL。
-16. `sw.js`（Service Worker）追加＋登録、VAPID鍵生成（秘密鍵はWorker Secret）。
-17. MGRの通知許可UI＋購読登録（`/api/push/subscribe`）。
-18. Worker側 Web Push 送信（VAPID JWT署名）を新着報告時に実行。
-19. ローカル/実機確認 → 本番反映。
+### Phase 2（Web Push・MGRのみ）タスク — 実装済
+15. `push_subscriptions` テーブル＋マイグレーションSQL。 ✅
+16. `sw.js`（Service Worker）追加＋登録、VAPID鍵生成（秘密鍵はWorker Secret）。 ✅
+17. MGRの通知許可UI＋購読登録（`/api/push/subscribe`）。 ✅
+18. Worker側 Web Push 送信（web-push-neo）を新着報告時に実行。 ✅
+19. ローカル/実機確認 → 本番反映。（運用側・VAPID 設定後）
 
 ### リリース順序（安全策）
 D1マイグレーション（後方互換・追加のみ）→ Worker deploy → 静的サイト push。各段で疎通確認。

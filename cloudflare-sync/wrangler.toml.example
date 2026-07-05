@@ -8,4 +8,6 @@ database_name = "tcb-tools-sync"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 
 # トークンはコミットしないこと。本番: wrangler secret put SYNC_API_TOKEN
+# Web Push（VAPID）: wrangler secret put VAPID_PRIVATE_KEY / VAPID_PUBLIC_KEY / VAPID_SUBJECT
+# 鍵生成: node gen-vapid-keys.mjs
 # ローカル検証: このディレクトリに .dev.vars を置く（例: SYNC_API_TOKEN=dev-only-...）

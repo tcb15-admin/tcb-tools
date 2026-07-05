@@ -63,6 +63,7 @@ npx wrangler secret put SYNC_API_TOKEN
 
 ```bash
 cd cloudflare-sync
+npm install
 npx wrangler deploy
 ```
 
@@ -115,6 +116,11 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 - `POST /api/publish-day` … 保護者向け確認ページを発行/更新（Bearer）。body: `{cohort, teamName, days:[...], rotate?}`。戻り: `{ok, shareId, updatedAt}`
 - `POST /api/unpublish-day` … 公開を停止（Bearer）。body: `{cohort}`
 - `GET /api/public/day?sid=<shareId>` … 保護者向け読み取り公開（**トークン不要**）。active のときだけ view を返す
+- `POST /api/public/swap-report` … 保護者の交代申請（**トークン不要**）
+- `GET /api/public/swap-status?sid=&person=` … 保護者の受付状況（**トークン不要**）
+- `GET /api/swap-reports?cohort=15|16` … MGR 交代報告一覧（Bearer）
+- `POST /api/swap-reports/handle` … MGR 反映/却下（Bearer）
+- `POST /api/push/subscribe` … MGR Web Push 購読登録（Bearer）
 
 ## 10. 競合と上書きルール
 
@@ -157,3 +163,96 @@ npx wrangler deploy
 - 保護者ページ本体は GitHub Pages 側の `boys15/kakunin.html` / `boys16/kakunin.html`（`python3 template/build.py` で生成、**トークンは埋め込まれない**）。
 - MGRツールの「印刷／PDF」内「保護者向け確認画面」→「保護者確認URLを発行/更新」で `shareId` 付きURLを発行し、LINEに貼って案内する。
 - URL は `PARENT_VIEW_URL`（config）が空なら、ツール自身の場所から同フォルダ `kakunin.html` を自動導出する。独自ドメイン等で固定したい場合のみ config に設定。
+
+## 13. 交代報告機能（保護者申請 → MGR 反映/却下）
+
+コードは **Phase 1 実装済み**。本番で使うには D1 マイグレーションと Worker 再デプロイが必要。
+
+1. テーブル追加（冪等）:
+
+```bash
+cd cloudflare-sync
+npx wrangler d1 execute tcb-tools-sync --remote --file=./migrate_swap_reports.sql
+```
+
+2. Worker を再デプロイ:
+
+```bash
+cd cloudflare-sync
+npx wrangler deploy
+```
+
+3. MGR ツール（`boys15/index.html`）は **`SYNC_API_TOKEN` 付きでビルド**すること（未設定だと 📮 報告ボタンは表示されても API が失敗する）。
+
+```bash
+SYNC_API_TOKEN='（トークン）' python3 template/build.py boys15
+```
+
+### エンドポイント（交代報告）
+
+| 経路 | 認証 | 用途 |
+|------|------|------|
+| `POST /api/public/swap-report` | 不要（shareId 検証） | 保護者が交代を申請 |
+| `GET /api/public/swap-status` | 不要 | 保護者の受付状況 |
+| `GET /api/swap-reports` | Bearer | MGR 一覧・未処理件数 |
+| `POST /api/swap-reports/handle` | Bearer | MGR 反映/却下 |
+
+- 保護者ページ: `kakunin.html?v=<shareId>`（トークン不要）
+- MGR: ヘッダー **📮 報告** で一覧・反映・却下
+- 詳細仕様: `docs/spec-swap-report.md`
+
+## 14. Web Push（Phase 2・道具MGRのみ）
+
+新着交代報告を MGR 端末へプッシュ通知する。**VAPID 鍵の設定後**に有効。
+
+### 14-1. VAPID 鍵を生成
+
+```bash
+cd cloudflare-sync
+node gen-vapid-keys.mjs
+```
+
+出力された **公開鍵** を `template/config_boys15.json` の `VAPID_PUBLIC_KEY` に設定。`VAPID_SUBJECT` は連絡先（`mailto:...` 推奨）。
+
+### 14-2. Worker Secret に登録
+
+```bash
+cd cloudflare-sync
+npx wrangler secret put VAPID_PRIVATE_KEY
+npx wrangler secret put VAPID_PUBLIC_KEY
+npx wrangler secret put VAPID_SUBJECT
+```
+
+`gen-vapid-keys.mjs` の出力と同じ値を使う。
+
+### 14-3. D1 マイグレーション
+
+```bash
+cd cloudflare-sync
+npx wrangler d1 execute tcb-tools-sync --remote --file=./migrate_push_subscriptions.sql
+```
+
+### 14-4. デプロイ
+
+```bash
+cd cloudflare-sync
+npx wrangler deploy
+SYNC_API_TOKEN='（トークン）' python3 template/build.py boys15
+```
+
+GitHub Pages に `boys15/`（`sw.js` 含む）を push。
+
+### 14-5. MGR 側の使い方
+
+1. 道具MGR ツールを開く（同期 ON）
+2. ヘッダー **🔔 通知** をタップ → ブラウザで通知を許可
+3. 状態が **🔔 通知ON** になれば登録完了
+4. 保護者から交代申請があるとプッシュ通知（未許可・非対応時は 📮 バッジ）
+
+**iOS**: 16.4 以降、**ホーム画面に追加した PWA** でのみ Push 受信可（Safari 通常タブでは不可）。
+
+### 14-6. API
+
+- `POST /api/push/subscribe`（Bearer・MGR）: 購読登録。body: `{ cohort, endpoint, p256dh, auth }`
+
+`VAPID_PUBLIC_KEY` が config で空の間、🔔 ボタンは非表示（Push 無効）。

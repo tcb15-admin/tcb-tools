@@ -1,2 +1,6 @@
 # wrangler dev 用。コピーして .dev.vars にリネーム（.gitignore 済み）
 SYNC_API_TOKEN=local-dev-token-change-me
+# Web Push（任意・node gen-vapid-keys.mjs で生成）
+# VAPID_PRIVATE_KEY=
+# VAPID_PUBLIC_KEY=
+# VAPID_SUBJECT=mailto:admin@example.com

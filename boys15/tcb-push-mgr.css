@@ -1,0 +1,12 @@
+/* 道具MGR Web Push ボタン（tcbpush- プレフィクス） */
+.tcbpush-hbtn {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.tcbpush-hbtn.tcbpush-on {
+  background: rgba(46, 125, 50, 0.35);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+.tcbpush-hbtn.tcbpush-denied {
+  opacity: 0.55;
+}

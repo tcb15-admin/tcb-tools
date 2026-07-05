@@ -50,3 +50,15 @@ CREATE TABLE IF NOT EXISTS swap_reports (
 
 CREATE INDEX IF NOT EXISTS idx_swap_cohort_status ON swap_reports(cohort, status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_swap_share ON swap_reports(share_id, created_at DESC);
+
+-- Web Push 購読（道具MGRのみ）: 新着交代報告のプッシュ通知
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id TEXT PRIMARY KEY,
+  cohort TEXT NOT NULL,
+  endpoint TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_cohort ON push_subscriptions(cohort);

@@ -19,5 +19,7 @@
   "THEME_COLOR": "#122050",
   "TOOL_VERSION": "1.7.3",
   "MANUAL_URL": "",
+  "VAPID_PUBLIC_KEY": "",
+  "VAPID_SUBJECT": "mailto:admin@example.com",
   "OUTPUT_PATH": "boys16/index.html"
 }

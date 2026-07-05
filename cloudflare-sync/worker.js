@@ -1,5 +1,7 @@
+import { sendNotification, WebPushError } from "web-push-neo";
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") return cors(new Response(null, { status: 204 }));
 
     const url = new URL(request.url);
@@ -15,7 +17,13 @@ export default {
       }
       if (url.pathname === "/api/public/swap-report" && request.method === "POST") {
         const body = await request.json();
-        return json(await createSwapReport(env, body));
+        const result = await createSwapReport(env, body);
+        if (ctx && result.ok && result._pushMeta) {
+          const meta = result._pushMeta;
+          ctx.waitUntil(notifySwapReportPush(env, meta.cohort, meta.report).catch(() => {}));
+          delete result._pushMeta;
+        }
+        return json(result);
       }
       if (url.pathname === "/api/public/swap-status" && request.method === "GET") {
         const sid = (url.searchParams.get("sid") || "").trim();
@@ -39,6 +47,10 @@ export default {
       if (url.pathname === "/api/swap-reports/handle" && request.method === "POST") {
         const body = await request.json();
         return json(await handleSwapReport(env, body));
+      }
+      if (url.pathname === "/api/push/subscribe" && request.method === "POST") {
+        const body = await request.json();
+        return json(await savePushSubscription(env, body));
       }
       if (url.pathname === "/api/state" && request.method === "GET") {
         const cohort = (url.searchParams.get("cohort") || "").trim();
@@ -477,7 +489,15 @@ async function createSwapReport(env, body) {
       nowIso
     )
     .run();
-  return { ok: true, id };
+
+  return {
+    ok: true,
+    id,
+    _pushMeta: {
+      cohort,
+      report: { id, tool, fromPerson, toPerson, dayLabel: String(day.label || "") },
+    },
+  };
 }
 
 /** 保護者向け：自分（氏名）に紐づく報告の受付状況（無認証・shareId 検証あり） */
@@ -539,4 +559,99 @@ async function handleSwapReport(env, body) {
     throw new Error("invalid_action");
   }
   return await listSwapReports(env, cohort);
+}
+
+// ===== Web Push（道具MGRのみ） =====
+
+function pushConfigured(env) {
+  return !!(env.VAPID_PRIVATE_KEY && env.VAPID_PUBLIC_KEY);
+}
+
+function vapidDetailsFromEnv(env) {
+  const subject = String(env.VAPID_SUBJECT || "mailto:admin@example.com").trim();
+  return {
+    subject,
+    publicKey: String(env.VAPID_PUBLIC_KEY || ""),
+    privateKey: String(env.VAPID_PRIVATE_KEY || ""),
+  };
+}
+
+function isValidPushEndpoint(url) {
+  if (!url || url.length > 2048) return false;
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isValidPushKeyB64(v, minLen, maxLen) {
+  const s = String(v || "").trim();
+  if (!s || s.length > maxLen) return false;
+  return /^[A-Za-z0-9_-]+$/.test(s) && s.length >= minLen;
+}
+
+/** MGR向け: push 購読を登録（endpoint 単位で upsert） */
+async function savePushSubscription(env, body) {
+  const cohort = mustCohort(body && body.cohort);
+  const endpoint = String((body && body.endpoint) || "").trim();
+  const p256dh = String((body && body.p256dh) || "").trim();
+  const auth = String((body && body.auth) || "").trim();
+  if (!isValidPushEndpoint(endpoint)) throw new Error("invalid_endpoint");
+  if (!isValidPushKeyB64(p256dh, 80, 200)) throw new Error("invalid_p256dh");
+  if (!isValidPushKeyB64(auth, 20, 64)) throw new Error("invalid_auth");
+  const id = genShareId();
+  const nowIso = new Date().toISOString();
+  await env.DB.prepare(
+    "INSERT INTO push_subscriptions (id, cohort, endpoint, p256dh, auth, created_at) VALUES (?, ?, ?, ?, ?, ?) " +
+      "ON CONFLICT(endpoint) DO UPDATE SET cohort = excluded.cohort, p256dh = excluded.p256dh, auth = excluded.auth, created_at = excluded.created_at"
+  )
+    .bind(id, cohort, endpoint, p256dh, auth, nowIso)
+    .run();
+  return { ok: true };
+}
+
+/** 新着交代報告時: 登録済み MGR 端末へ Web Push 送信 */
+async function notifySwapReportPush(env, cohortRaw, report) {
+  if (!pushConfigured(env)) return { sent: 0, skipped: true };
+  const cohort = mustCohort(cohortRaw);
+  const rs = await env.DB.prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE cohort = ?")
+    .bind(cohort)
+    .all();
+  const rows = rs.results || [];
+  if (!rows.length) return { sent: 0 };
+
+  const tool = String((report && report.tool) || "");
+  const fromPerson = String((report && report.fromPerson) || "");
+  const toPerson = String((report && report.toPerson) || "");
+  const dayLabel = String((report && report.dayLabel) || "");
+  const bodyText = dayLabel
+    ? `${dayLabel} ${tool}: ${fromPerson} → ${toPerson}`
+    : `${tool}: ${fromPerson} → ${toPerson}`;
+  const payload = JSON.stringify({
+    title: "新しい交代報告",
+    body: bodyText,
+    url: "./index.html",
+    tag: "swap-" + String((report && report.id) || ""),
+  });
+
+  const vapid = vapidDetailsFromEnv(env);
+  let sent = 0;
+  for (const row of rows) {
+    const subscription = {
+      endpoint: String(row.endpoint || ""),
+      keys: { p256dh: String(row.p256dh || ""), auth: String(row.auth || "") },
+    };
+    try {
+      await sendNotification(subscription, payload, { vapidDetails: vapid, TTL: 86400 });
+      sent += 1;
+    } catch (e) {
+      const code = e instanceof WebPushError ? Number(e.statusCode) : 0;
+      if (code === 404 || code === 410) {
+        await env.DB.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").bind(subscription.endpoint).run();
+      }
+    }
+  }
+  return { sent };
 }

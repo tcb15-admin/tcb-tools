@@ -195,6 +195,7 @@ def build(target):
         'SYNC_API_BASE_URL', 'SYNC_API_TOKEN',
         'PARENT_VIEW_URL',
         'MANUAL_URL',
+        'VAPID_PUBLIC_KEY', 'VAPID_SUBJECT',
         'PWA_NAME', 'PWA_SHORT_NAME', 'THEME_COLOR',
     ]
 
@@ -224,6 +225,8 @@ def build(target):
     assets = (
         'tcb-print-pdf.js', 'tcb-sync-api.js',
         'tcb-swap-mgr.js', 'tcb-swap-mgr.css',
+        'tcb-push-mgr.js', 'tcb-push-mgr.css',
+        'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )
     for asset in assets:

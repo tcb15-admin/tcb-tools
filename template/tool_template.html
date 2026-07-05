@@ -17,6 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="{{PWA_SHORT_NAME}}">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="tcb-swap-mgr.css">
+<link rel="stylesheet" href="tcb-push-mgr.css">
 <style>
 :root{
   /* チームカラー：濃紺＋赤＋白（15期既定）／16期は html.theme-b16 で画面は白ベース＋紺×赤（ヘッダのみ白バック）
@@ -914,6 +915,7 @@ html{color-scheme:light;}
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
       <a class="hbtn tcb-hdr-manual-link" id="hdr-manual-link" href="#" target="_blank" rel="noopener noreferrer" hidden aria-label="操作マニュアル（PDF）を開く"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg>マニュアル</a>
       <button class="hbtn tcbsw-hbtn" id="btn-swap-reports" style="display:none;">&#128236; 報告<span class="tcbsw-badge" id="swap-badge" hidden>0</span></button>
+      <button class="hbtn tcbpush-hbtn" id="btn-push-notify" style="display:none;" title="新着交代報告をプッシュ通知で受け取る">&#128276; 通知</button>
       <button class="hbtn" id="btn-history"><svg class="ic"><use href="#i-clock"/></svg>履歴</button>
       <button class="hbtn" id="btn-master"><svg class="ic"><use href="#i-gear"/></svg>マスタ</button>
     </div>
@@ -950,7 +952,7 @@ html{color-scheme:light;}
   <div class="modal">
     <button class="mclose" id="swap-modal-close">&#10005;</button>
     <h2>&#128236; 交代報告</h2>
-    <div class="tcbsw-modal-desc">保護者から届いた担当交代の報告です。内容を確認し「反映する」または「却下」してください。反映後は STEP3 の「実施確定」→「修正版をLINEで再通知」で保護者へ更新をお知らせください。</div>
+    <div class="tcbsw-modal-desc">保護者から届いた担当交代の報告です。内容を確認し「反映する」または「却下」してください。反映後は STEP3 の「実施確定」→「修正版をLINEで再通知」で保護者へ更新をお知らせください。ヘッダーの「&#128276; 通知」を ON にすると、新着報告をプッシュ通知でも受け取れます（未許可時は &#128236; バッジにフォールバック）。</div>
     <div id="swap-list" class="tcbsw-list"><div class="tcbsw-empty">読み込み中…</div></div>
   </div>
 </div>
@@ -1462,6 +1464,8 @@ var SYNC_API_TOKEN='{{SYNC_API_TOKEN}}';
 /* 保護者向け確認ページのURL（空なら同フォルダの kakunin.html を自ページ位置から導出） */
 var PARENT_VIEW_URL='{{PARENT_VIEW_URL}}';
 var COHORT_KEY='{{COHORT_KEY}}';
+var VAPID_PUBLIC_KEY='{{VAPID_PUBLIC_KEY}}';
+var VAPID_SUBJECT='{{VAPID_SUBJECT}}';
 var SYNC_HISTORY_DAYS=365;
 var SYNC_CLIENT=null;
 var MASTER_VERSION=0;
@@ -6067,6 +6071,16 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
 
+  /* Web Push（MGR・交代報告の新着通知） */
+  if(typeof TCB_PushMgr!=='undefined'&&TCB_PushMgr&&typeof TCB_PushMgr.init==='function'){
+    TCB_PushMgr.init({
+      syncEnabled:function(){return syncEnabled();},
+      vapidPublicKey:VAPID_PUBLIC_KEY,
+      lsPrefix:'{{LS_PREFIX}}',
+      pushSubscribe:function(p){return SYNC_CLIENT.pushSubscribe(p);}
+    });
+  }
+
   /* マスタ */
   document.getElementById('btn-master').addEventListener('click',function(){goMaster();});
   document.getElementById('btn-history').addEventListener('click',function(){showHistory();});
@@ -6274,5 +6288,6 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="tcb-print-pdf.js"></script>
 <script src="tcb-sync-api.js"></script>
 <script src="tcb-swap-mgr.js"></script>
+<script src="tcb-push-mgr.js"></script>
 </body>
 </html>

@@ -83,6 +83,11 @@
         payload=payload||{};
         payload.cohort=cohort;
         return req('/api/swap-reports/handle','POST',payload);
+      },
+      pushSubscribe:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/push/subscribe','POST',payload);
       }
     };
   }
