@@ -29,6 +29,16 @@ async function main() {
   });
   const page = await browser.newPage();
 
+  // マニュアル掲載用はライトモード固定
+  await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
+
+  // alert/confirm がクリックをブロックしないよう自動処理する
+  page.on('dialog', (d) => d.accept().catch(() => {}));
+  await page.evaluateOnNewDocument(() => {
+    window.alert = () => {};
+    window.confirm = () => true;
+  });
+
   await page.goto(BASE, { waitUntil: 'networkidle2', timeout: 30000 });
   await page.waitForSelector('#pw-screen', { visible: true, timeout: 15000 });
   await shot(page, '01-login.png');
