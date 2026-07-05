@@ -22,6 +22,7 @@ GitHub Pages 運用手順書（版 1.7）
 1.7	2026年5月22日	TOOL_VERSION 1.6.3・持ち帰り調整モード・UI_SIMPLE・ドキュメント版更新（SPEC/MAN 1.5・16期マニュアル 1.6）・SYNC_API_TOKEN ビルド時注入を追記	15期管理担当
 1.8	2026年5月22日	PAST を lscore 加算・prio 片側ペナルティ（v1.6.4）・Worker 同期	15期管理担当
 1.9	2026年7月5日	現行 TOOL_VERSION 1.7.4 に更新。html2pdf.bundle.min.js を同梱アセット化（build.py がコピー。CDN はフォールバックのみ）。SYNC_API_TOKEN 未注入ビルドは同期無効化＋build.py が警告。交代報告 Web Push 用アセット（tcb-push-mgr.js/css・sw.js・tcb-pwa-install.js/css）を追記	15期管理担当
+1.10	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更（bundle 版が html2canvas / jspdf をグローバル公開せず iPhone で PDF 生成に失敗するため）。未ロード時は tcb-print-pdf.js がローカル→CDN の順で動的ロードして復旧	15期管理担当
 
 1. アカウント・リポジトリ情報
 項目	内容
@@ -44,7 +45,7 @@ template/config_boys16.json	16期固有設定
 template/master_defaults_boys16.json	16期ビルド時のみ参照。テンプレ内 DEFAULT マスタブロックを JSON から埋め込む（15期は boys15/master.json から埋め込み）
 template/build.py	ビルドスクリプト（Python 3）。template + config → 各 index.html 生成。環境変数 SYNC_API_TOKEN でトークン注入可
 template/tcb-print-pdf.js	印刷プレビューから PDF Blob を生成（html2pdf.js 利用）。ビルドで boys15/・boys16/ にコピーされる
-template/html2pdf.bundle.min.js	PDF 生成ライブラリ本体（同梱。読込失敗時のみ CDN フォールバック）。ビルドで各世代フォルダにコピーされる
+template/jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js	PDF 生成ライブラリ本体（個別同梱。この順で読み込み。読込失敗時は tcb-print-pdf.js がローカル→CDN の順で動的ロード）。ビルドで各世代フォルダにコピーされる
 template/tcb-sync-api.js	Cloudflare 同期 API 呼び出し。ビルドで boys15/・boys16/ にコピーされる
 template/tcb-swap-mgr.js ほか	交代報告・Web Push・PWA 用アセット（tcb-swap-mgr.js/css・tcb-push-mgr.js/css・tcb-pwa-install.js/css・sw.js）。ビルドで各世代フォルダにコピーされる
 boys15/index.html	15期ツール本体（ビルドで自動生成。GitHub へはこのファイル名で配置）
@@ -127,7 +128,7 @@ URL にアクセスできない	GitHub Pages 有効化後 5〜10 分待つ。Set
 最新マスタが反映されない	同期 ON なら「保存」で Cloudflare を確認。同期 OFF なら master.json の GitHub 反映を確認。スマホは再読み込み
 PAST が想定と違う	「実施確定」を押した日付・担当が最終状態か確認。試行の「割振りを実行」だけでは PAST は増えない
 持ち帰り調整で担当が消えた	前当番が基準にいない道具は引き継ぎ0件になりうる。STEP3 で手動割当。固定担当は維持される
-PDF が出ない・共有できない	index.html と同じフォルダに tcb-print-pdf.js と html2pdf.bundle.min.js があるか確認（v1.7.4 から同梱。無い場合は CDN フォールバックに頼るため通信環境の影響を受ける）
+PDF が出ない・共有できない	index.html と同じフォルダに tcb-print-pdf.js・jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js があるか確認（v1.7.4 から個別同梱。無い場合は CDN フォールバックに頼るため通信環境の影響を受ける）
 パスワードを忘れた	マスタ設定の JSON をエクスポートして管理者に相談
 写真が表示されない	raw.githubusercontent.com の URL が正しいか確認
 HTML を差し替えたが変わらない	ブラウザのキャッシュをクリア

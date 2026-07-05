@@ -6977,18 +6977,10 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 </script>
-<script src="html2pdf.bundle.min.js"></script>
-<script>
-/* ローカル同梱の html2pdf が読めなかった場合のみ CDN から再取得（オフラインキャッシュ未整備端末向け） */
-if(typeof html2pdf==='undefined'){
-  (function(){
-    var s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    s.crossOrigin='anonymous';
-    document.head.appendChild(s);
-  })();
-}
-</script>
+<!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
+<script src="jspdf.umd.min.js"></script>
+<script src="html2canvas.min.js"></script>
+<script src="html2pdf.min.js"></script>
 <script src="tcb-print-pdf.js"></script>
 <script src="tcb-sync-api.js"></script>
 <script src="tcb-swap-mgr.js"></script>

@@ -24,10 +24,11 @@
 1.9	2026年7月5日	展開情報確認画面（print-overlay／tcb-share-panel）：PDF プレビュー＋送る内容（LINE本文・保護者確認URL・PDF）選択＋LINEへ展開（Web Share API）／PDFを保存（端末自動保存）／公開を停止。STEP1「前回の結果を元に割振る」（btn-p1-from-prev）、履歴「前回の結果を元に割振り開始」、STEP3「最小変更で再調整」（btn-reedit-from-prev）。UI 表記を「前回の結果を元に調整」に統一。保護者確認ページ・交代報告（btn-swap-reports）。班跨ぎ受け渡し特記（p3-cross-handoff-notice）。道具故障フラグ（broken）。PWA manifest。ダークモード CSS 変数上書き／ツール v1.7.2	15期管理担当
 1.10	2026年7月5日	ヘッダー操作マニュアルリンク（hdr-manual-link／config MANUAL_URL・build.py プレースホルダ）／ツール v1.7.3	15期管理担当
 1.11	2026年7月5日	html2pdf.bundle.min.js を同梱（読込失敗時のみ CDN フォールバック）／LINE共有の iOS 再タップ対応（_lineShareReady・PDF Blob キャッシュ）と割振り・オプション変更時のキャッシュ無効化（invalidateShareCaches）／モーダル統合（tcb-scroll-modal・body スクロールロック・swap-modal/print-overlay を共通管理・hist-month-overlay z-index 525）／マスタ削除の確認モーダル（tcbMasterConfirm）・未保存で閉じた際の自動復元（revertMasterToSessionOpenIfDirty）・クラウド loadState 適用前の未保存確認／前回基準モード中のパターン変更確認（confirmPatChangeInSeedMode）／道具0件時の runAlgo ガード／グループ名 esc 徹底／STEP3 ボタン「実施確定」に統一／build.py SYNC_API_TOKEN プレースホルダ警告・未注入時は同期無効化（syncHeadersReady）／Web Push（tcb-push-mgr.js・sw.js）・PWAインストール導線（tcb-pwa-install.js）／ツール v1.7.4	15期管理担当
+1.12	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更。bundle 版は html2canvas / jspdf をグローバル公開しないため tcb-print-pdf.js の担当表（縦A4）生成が「PDFライブラリが読み込まれていません」で失敗していた（iPhone で顕在化）。未ロード時は ensurePdfLibs() がローカル同梱→CDN の順で動的ロードして復旧	15期管理担当
 
 1. システム概要
 項目	内容
-ファイル形式	単一 HTML（tool_template.html を config でビルド）＋同梱 tcb-print-pdf.js・tcb-sync-api.js・tcb-swap-mgr.js・tcb-push-mgr.js・sw.js ほか。html2pdf.js は同梱（html2pdf.bundle.min.js。読込失敗時のみ CDN フォールバック）
+ファイル形式	単一 HTML（tool_template.html を config でビルド）＋同梱 tcb-print-pdf.js・tcb-sync-api.js・tcb-swap-mgr.js・tcb-push-mgr.js・sw.js ほか。PDF ライブラリは個別同梱（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js。読込失敗時はローカル→CDN の順で動的ロード）
 動作環境	スマートフォン・PC・タブレット（主要ブラウザ）。Web Share API は端末により未対応
 データ保存	Cloudflare D1（マスタの正・同期 ON 時）＋ localStorage（端末内キャッシュ・履歴・実施確定メタ）。GitHub master.json はビルド用／同期 OFF 時の代替
 認証	パスワード認証（djb2 ベース簡易ハッシュ・初期 PW は世代ごと config）
@@ -156,7 +157,7 @@ ${prefix}CarryoutConfirmed	実施確定メタ（byDate 等）
 ${prefix}Auth（sessionStorage）	ログイン状態
 
 6. 外部依存
-html2pdf.js 0.10.1 は各世代フォルダに同梱（html2pdf.bundle.min.js。ビルドでコピー）。同梱版の読込に失敗した場合のみ cdnjs からフォールバック取得する。オフラインでも同梱版が読めれば PDF 生成可能。
+PDF 生成ライブラリは jsPDF 2.5.1（jspdf.umd.min.js）・html2canvas 1.4.1（html2canvas.min.js）・html2pdf.js 0.10.1（html2pdf.min.js）を各世代フォルダに個別同梱（ビルドでコピー。この順で読み込み）。読込に失敗した場合は tcb-print-pdf.js の ensurePdfLibs() がローカル同梱→cdnjs の順で動的ロードして復旧する。オフラインでも同梱版が読めれば PDF 生成可能。
 
 7. セキュリティ（運用上の注意）
 SYNC_API_TOKEN は Worker secret と HTML 内 Bearer で一致させる。Git への平文コミットは避け build 時注入を推奨。クライアント埋め込み Bearer は URL 入手者がソースから読み取りうる（Cloudflare Access 等は将来検討）。

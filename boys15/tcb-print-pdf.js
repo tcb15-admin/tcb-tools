@@ -1,6 +1,8 @@
 /**
  * 印刷プレビュー用HTML から PDF Blob を生成する。
- * 依存: html2pdf.js（グローバル html2pdf / html2canvas / jspdf）を先に読み込むこと。
+ * 依存: jspdf.umd.min.js / html2canvas.min.js / html2pdf.min.js（この順で読み込み、
+ * グローバル jspdf / html2canvas / html2pdf を公開すること）。
+ * 未ロードでも ensurePdfLibs() がローカル同梱→CDN の順で動的ロードして復旧する。
  */
 (function (global) {
   'use strict';
@@ -23,6 +25,83 @@
   function getHtml2Canvas() {
     if (typeof html2canvas !== 'undefined') return html2canvas;
     return null;
+  }
+
+  function hasHtml2Pdf() {
+    return typeof html2pdf !== 'undefined';
+  }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      if (src.indexOf('https://') === 0) s.crossOrigin = 'anonymous';
+      s.onload = function () { resolve(); };
+      s.onerror = function () {
+        if (s.parentNode) s.parentNode.removeChild(s);
+        reject(new Error('script load failed: ' + src));
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  /** 先頭から順に試し、最初に成功した時点で解決する */
+  function loadScriptWithFallback(srcs) {
+    var p = Promise.reject(new Error('no source'));
+    srcs.forEach(function (src) {
+      p = p.catch(function () { return loadScript(src); });
+    });
+    return p;
+  }
+
+  var _pdfLibsPromise = null;
+
+  /**
+   * PDF 生成に必要なライブラリ（jspdf / html2canvas / html2pdf）が未ロードなら
+   * ローカル同梱→CDN の順で動的ロードして待つ。
+   * iOS 等で <script> の読み込みが一部失敗しても、生成時にリカバリできるようにする。
+   */
+  function ensurePdfLibs() {
+    if (getJsPDF() && getHtml2Canvas() && hasHtml2Pdf()) return Promise.resolve();
+    if (_pdfLibsPromise) return _pdfLibsPromise;
+    var depsReloaded = false;
+    var steps = [
+      {
+        ok: function () { return !!getJsPDF(); },
+        srcs: ['jspdf.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'],
+        isDep: true
+      },
+      {
+        ok: function () { return !!getHtml2Canvas(); },
+        srcs: ['html2canvas.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'],
+        isDep: true
+      },
+      {
+        /* html2pdf はロード時に jspdf / html2canvas を取り込むため、依存を再ロードした場合は読み直す */
+        ok: function () { return hasHtml2Pdf() && !depsReloaded; },
+        srcs: ['html2pdf.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.min.js'],
+        isDep: false
+      }
+    ];
+    _pdfLibsPromise = steps
+      .reduce(function (chain, step) {
+        return chain.then(function () {
+          if (step.ok()) return undefined;
+          return loadScriptWithFallback(step.srcs).then(function () {
+            if (step.isDep) depsReloaded = true;
+          });
+        });
+      }, Promise.resolve())
+      .then(function () {
+        if (!getJsPDF() || !getHtml2Canvas() || !hasHtml2Pdf()) {
+          throw new Error('PDFライブラリが読み込まれていません');
+        }
+      })
+      .catch(function (err) {
+        _pdfLibsPromise = null;
+        throw err;
+      });
+    return _pdfLibsPromise;
   }
 
   function isMobileLike() {
@@ -167,6 +246,12 @@
 
   function captureAssignPortraitBlob(doc, pageEl, opts) {
     opts = opts || {};
+    return ensurePdfLibs().then(function () {
+      return captureAssignPortraitBlobReady(doc, pageEl, opts);
+    });
+  }
+
+  function captureAssignPortraitBlobReady(doc, pageEl, opts) {
     var html2canvasFn = getHtml2Canvas();
     if (!html2canvasFn) {
       return Promise.reject(new Error('PDFライブラリが読み込まれていません'));
@@ -203,6 +288,12 @@
    */
   function generatePdfBlobFromHtml(htmlFullDocument, opts) {
     opts = opts || {};
+    return ensurePdfLibs().then(function () {
+      return generatePdfBlobFromHtmlReady(htmlFullDocument, opts);
+    });
+  }
+
+  function generatePdfBlobFromHtmlReady(htmlFullDocument, opts) {
     var orientation = opts.orientation === 'landscape' ? 'landscape' : 'portrait';
     var isAssignPortrait = orientation === 'portrait';
     var iframeW = Math.round(A4_W_MM * PX_PER_MM) + 'px';
@@ -212,7 +303,7 @@
         reject(new Error('PDFライブラリが読み込まれていません'));
         return;
       }
-      if (!isAssignPortrait && typeof html2pdf === 'undefined') {
+      if (!isAssignPortrait && !hasHtml2Pdf()) {
         reject(new Error('PDFライブラリが読み込まれていません'));
         return;
       }
