@@ -154,7 +154,18 @@ def build_parent_view(target, config, out_dir):
     return True
 
 
-def build(target):
+def normalize_sync_token(raw):
+    """メモ帳等からのコピペで紛れ込むカール引用符を除去（トークン本体は英数字記号のみ想定）。"""
+    s = str(raw or '').strip()
+    curly = ('\u2018', '\u2019', '\u201c', '\u201d', '\u0060', '\u00b4', '\uff07')
+    if any(c in s for c in curly):
+        for c in curly:
+            s = s.replace(c, '')
+        s = s.strip()
+        print('[WARN] SYNC_API_TOKEN: カール引用符（‘ ’ 等）を除去しました。シェルでは直線の \' を使ってください。')
+    return s
+
+
     """指定世代のHTMLを生成"""
     if target not in CONFIGS:
         print(f'[ERROR] 不明なターゲット: {target}')
@@ -175,7 +186,7 @@ def build(target):
 
     # Public リポジトリ対策: SYNC_API_TOKEN は Git に載せず、ビルド時のみ環境変数で渡す
     # 例: SYNC_API_TOKEN='（新トークン）' python3 template/build.py boys15 boys16
-    _tok = os.environ.get('SYNC_API_TOKEN', '').strip()
+    _tok = normalize_sync_token(os.environ.get('SYNC_API_TOKEN', ''))
     if _tok:
         config['SYNC_API_TOKEN'] = _tok
 
