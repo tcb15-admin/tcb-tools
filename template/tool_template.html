@@ -216,15 +216,15 @@ tr.rB td{border-left:3px solid var(--tb);}
 /* 割振り結果 表：道具名は可変幅、タグ列は固定スロットで縦揃え、写真ボタンは右端 */
 .p3-tool-cell{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 8px;align-items:center;}
 .p3-tool-name{min-width:0;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.p3-tool-tags{display:grid;grid-template-columns:28px 28px 38px 38px;gap:4px;align-items:center;flex-shrink:0;}
-.p3-tag-slot{display:flex;align-items:center;justify-content:center;min-height:18px;width:100%;}
-.p3-tool-tags .tag{margin-left:0;white-space:nowrap;justify-content:center;min-width:100%;max-width:100%;box-sizing:border-box;padding:1px 3px;font-size:9px;line-height:1.2;}
+.p3-tool-tags{display:grid;grid-template-columns:repeat(4,minmax(0,auto));gap:5px;align-items:center;flex-shrink:0;}
+.p3-tag-slot{display:flex;align-items:center;justify-content:center;min-height:20px;width:auto;}
+.p3-tool-tags .tag{margin-left:0;white-space:nowrap;justify-content:center;min-width:0;max-width:none;box-sizing:border-box;padding:2px 6px;font-size:11px;line-height:1.25;min-height:18px;}
 .p3-tool-cell .ibtn{justify-self:end;}
 .p3-multi-badge{font-size:10px;font-weight:700;color:#e65100;background:#fff3e0;border:1px solid #ffcc02;border-radius:10px;padding:1px 5px;margin-right:4px;white-space:nowrap;display:inline-block;vertical-align:middle;}
 tr.p3-multi-row{background:#fff8e1;}
 .ibtn{background:var(--ui-accent-bg);color:var(--ui-accent);border:1px solid var(--ui-accent-bd);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;padding:3px 8px;vertical-align:middle;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;gap:3px;margin-left:4px;}
-.ibtn.tcb-tool-info-btn{padding:4px 6px;min-width:28px;justify-content:center;margin-left:0;}
-.ibtn.tcb-tool-info-btn .ic{width:16px;height:16px;}
+.ibtn.tcb-tool-info-btn{padding:2px;border:none;background:transparent;min-width:0;min-height:0;justify-content:center;margin-left:0;color:var(--ui-accent);}
+.ibtn.tcb-tool-info-btn .ic{width:18px;height:18px;}
 .ibtn:active{opacity:1;}
 .p3-asgn-cell{display:flex;flex-direction:column;align-items:stretch;width:100%;}
 .p3-asgn-cell .p3-multi-badge{align-self:flex-start;margin:0 0 4px;}
@@ -789,6 +789,12 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     padding:5px 10px;
     font-size:12px;
   }
+  #p3 .ibtn.tcb-tool-info-btn{
+    min-height:0;
+    padding:2px;
+    border:none;
+    background:transparent;
+  }
   /* STEP3 道具別：道具名2段＋担当列幅確保（タグ固定幅で名前が消える問題の解消） */
   .p3-result-tbl{
     table-layout:fixed;
@@ -805,7 +811,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   }
   .p3-result-tbl th.p3-col-asgn,
   .p3-result-tbl td.p3-col-asgn{
-    width:44%;
+    width:36%;
     padding:8px 4px;
   }
   .p3-result-tbl th.p3-col-name,
@@ -828,7 +834,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     overflow:visible;
     text-overflow:unset;
     word-break:break-word;
-    font-size:13px;
+    font-size:14px;
     line-height:1.35;
   }
   .p3-result-tbl .p3-tool-tags{
@@ -852,6 +858,8 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     grid-row:2;
     justify-self:end;
     margin-left:0;
+    min-height:0;
+    padding:2px;
   }
   .p3-result-tbl td.p3-col-asgn{
     vertical-align:top;
@@ -902,6 +910,51 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   .p3-rh-actions{gap:6px;}
   .tabbtn{padding:10px 12px;}
   .tcb-hist-mo-modal{max-width:min(96vw,960px)!important;}
+}
+/* STEP3 道具別：PCは担当列を半分・道具名を大きく */
+@media (min-width:521px){
+  .p3-result-tbl{table-layout:fixed;}
+  .p3-result-tbl th.p3-col-id,
+  .p3-result-tbl td.p3-col-id{width:28px;padding:10px 4px;}
+  .p3-result-tbl th.p3-col-team,
+  .p3-result-tbl td.p3-col-team{width:36px;padding:10px 4px;}
+  .p3-result-tbl th.p3-col-asgn,
+  .p3-result-tbl td.p3-col-asgn{width:20%;padding:10px 8px;}
+  .p3-result-tbl th.p3-col-name,
+  .p3-result-tbl td.p3-col-name{padding:10px 10px 10px 8px;text-align:left;}
+  .p3-result-tbl .p3-tool-name{
+    font-size:16px;
+    font-weight:700;
+    line-height:1.45;
+    white-space:normal;
+    word-break:break-word;
+    overflow:visible;
+    text-overflow:unset;
+  }
+  .p3-result-tbl td.p3-col-name .p3-tool-cell{
+    grid-template-columns:minmax(0,1fr) auto auto;
+    gap:8px 10px;
+    align-items:center;
+  }
+  .p3-result-tbl .p3-tool-tags{
+    grid-template-columns:repeat(4,auto);
+    gap:6px;
+  }
+  .p3-result-tbl .p3-tool-tags .tag{
+    font-size:11px;
+    padding:2px 7px;
+    min-height:18px;
+  }
+  .p3-result-tbl .p3-col-asgn .asel{
+    font-size:13px;
+    padding:8px 6px;
+  }
+  #p3 .ibtn.tcb-tool-info-btn{
+    min-height:0;
+    padding:2px;
+    border:none;
+    background:transparent;
+  }
 }
 
 /* ==== アイコン（SVGスプライト <use> 用） ==== */
@@ -1008,6 +1061,7 @@ html{color-scheme:light;}
   }
   .io-btn.exp{border-color:rgba(48,209,88,.45);color:var(--grn);}
   .ibtn{background:rgba(159,180,232,.16);border-color:rgba(159,180,232,.55);color:var(--ink-accent-text);}
+  .ibtn.tcb-tool-info-btn{background:transparent;border:none;color:var(--ink-accent-text);}
   .p1-from-prev-btn{background:rgba(159,180,232,.16);border-color:var(--ui-accent-bd);color:var(--ink-accent-text);}
   .p3-rebalance-btn,.tcb-master-pw-btn{background:var(--ui-accent-fill);color:#fff;}
   .tcb-master-pw-box{background:rgba(255,193,7,.12);border-left-color:#ffc107;}
@@ -4598,7 +4652,6 @@ function buildTbl(){
     td1.textContent=t.id;
     var td2=document.createElement('td');
     td2.className='p3-col-name';
-    td2.style.cssText='font-weight:700;font-size:12px;';
     td2.innerHTML='<div class="p3-tool-cell"><span class="p3-tool-name">'+esc(t.name)+'</span>'+tagSlots+ibtn+'</div>';
     var tdRb=document.createElement('td');
     tdRb.className='tcb-ui-advanced';
@@ -4618,7 +4671,6 @@ function buildTbl(){
     tdRb.appendChild(rbc);
     var td4=document.createElement('td');
     td4.className='p3-col-asgn';
-    td4.style.minWidth='100px';
     var asgnWrap=document.createElement('div');
     asgnWrap.className='p3-asgn-cell';
     if(isMulti){
