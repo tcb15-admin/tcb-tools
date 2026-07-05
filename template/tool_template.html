@@ -361,7 +361,8 @@ html.theme-b16 .print-scroll-body{background:#e8ecf4;}
 .tcb-master-restore-btns{display:flex;flex-wrap:wrap;gap:8px;}
 .tcb-master-revert-danger{border-color:var(--red);color:var(--red);}
 .master-section{margin-bottom:20px;}
-.master-section h3{font-size:14px;font-weight:900;color:var(--ink-heading);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.master-section h3{font-size:14px;font-weight:900;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.master-section-h3-title{font-weight:900;color:var(--ink-heading);}
 .mrow{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
 .master-mbr-row{align-items:flex-start;}
 .master-mbr-row .minp{flex:1 1 120px;}
@@ -460,7 +461,7 @@ html.theme-b16 .print-scroll-body{background:#e8ecf4;}
 .mdel{background:var(--red-l);color:var(--red);border:none;border-radius:6px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;min-height:var(--tap);}
 .madd{background:var(--grn-l);color:var(--grn);border:2px solid var(--grn);border-radius:8px;padding:10px 16px;cursor:pointer;font-size:13px;font-weight:700;margin-top:8px;min-height:var(--tap);}
 .io-btn{padding:8px 12px;border-radius:7px;border:1px solid var(--bdr);background:#f8f9fa;color:var(--txt2);font-size:12px;font-weight:700;cursor:pointer;min-height:var(--tap);}
-.io-btn.imp{border-color:var(--blue2);color:var(--ink-accent-text);}
+.io-btn.imp{border-color:var(--blue2);color:var(--ui-accent);}
 .io-btn.exp{border-color:var(--grn);color:var(--grn);}
 .img-thumb{width:44px;height:33px;border-radius:5px;object-fit:cover;border:1px solid var(--bdr);cursor:pointer;}
 .img-placeholder{width:44px;height:33px;border-radius:5px;border:2px dashed var(--bdr);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;background:#fafafa;}
@@ -793,7 +794,7 @@ html{color-scheme:light;}
 
   /* ===== 追加：ダークで濃紺文字/白面白文字を解消（全画面共通） ===== */
   /* 濃紺(--ta/--navy)をテキストに使う箇所を明るいブルーへ */
-  .tcb.A,.tninp.A,.shd2.A,.tgA,.hist-date,.master-section h3,
+  .tcb.A,.tninp.A,.shd2.A,.tgA,.hist-date,.master-section-h3-title,
   .master-desc-card-head,.tcb-actual-hold-sel{color:#cdd8f5;}
   /* 赤(--tb)をテキストに使う箇所を明るいレッドへ */
   .tcb.B,.tninp.B,.shd2.B,.tgB{color:#ff9ea2;}
@@ -825,7 +826,9 @@ html{color-scheme:light;}
     background:var(--surface-2);color:var(--txt);border-color:var(--bdr);}
   .master-desc-preview,.img-placeholder{background:var(--surface-2);border-color:var(--bdr);}
   .io-btn{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
-  .io-btn.imp{border-color:var(--ui-accent-bd);color:var(--ink-accent-text);}
+  .io-btn.imp,
+  .master-section h3 .io-btn.imp,
+  button.io-btn.imp{border-color:var(--ui-accent-bd);color:#9fb4e8;-webkit-text-fill-color:#9fb4e8;}
   .io-btn.exp{border-color:rgba(48,209,88,.45);color:var(--grn);}
   .ibtn{background:rgba(159,180,232,.16);border-color:rgba(159,180,232,.55);color:var(--ink-accent-text);}
   .p1-from-prev-btn{background:rgba(159,180,232,.16);border-color:var(--ui-accent-bd);color:var(--ink-accent-text);}
@@ -1241,8 +1244,8 @@ html{color-scheme:light;}
     <div class="card">
       <div class="master-section">
         <h3>
-          <span>&#128101; メンバー一覧</span>
-          <span style="display:flex;gap:6px;">
+          <span class="master-section-h3-title">&#128101; メンバー一覧</span>
+          <span class="master-section-h3-btns" style="display:flex;gap:6px;">
             <button class="io-btn imp" id="btn-mbr-import">&#11014; 読込</button>
             <button class="io-btn exp" id="btn-mbr-export">&#11015; 書出</button>
           </span>
@@ -1257,8 +1260,8 @@ html{color-scheme:light;}
     <div class="card">
       <div class="master-section">
         <h3>
-          <span>&#129520; 道具一覧</span>
-          <span style="display:flex;gap:6px;">
+          <span class="master-section-h3-title">&#129520; 道具一覧</span>
+          <span class="master-section-h3-btns" style="display:flex;gap:6px;">
             <button class="io-btn imp" id="btn-tool-import">&#11014; 読込</button>
             <button class="io-btn exp" id="btn-tool-export">&#11015; 書出</button>
           </span>
