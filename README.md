@@ -46,8 +46,8 @@ python3 template/build.py
 |------|-----|------|
 | TCB-OPS-001 GitHub 運用手順書 | 1.7 | [boys15/docs/](./boys15/docs/) |
 | TCB-SPEC-001 仕様書 | 1.9 | [boys15/docs/](./boys15/docs/) |
-| TCB-MAN-001 ユーザーマニュアル | 1.9 | [boys15/docs/](./boys15/docs/) |
-| TCB-MAN-016 16期操作マニュアル | 1.10（PDF ファイル名は v1.5 のまま） | [boys16/docs/](./boys16/docs/) |
+| TCB-MAN-001 ユーザーマニュアル | 1.10（[PDF](./boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf)・利用シーン別フロー） | [boys15/docs/](./boys15/docs/) |
+| TCB-MAN-016 16期操作マニュアル | 1.10（**更新停止予定**・16期未使用） | [boys16/docs/](./boys16/docs/) |
 
 16期マニュアル PDF の再生成:
 

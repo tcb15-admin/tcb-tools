@@ -5,7 +5,7 @@
 ユーザーマニュアル
 
 文書番号	TCB-MAN-001
-版	1.9
+版	1.10
 作成日	2026年3月27日
 作成者	15期管理担当
 最終更新	2026年7月5日
@@ -22,13 +22,14 @@
 1.7	2026年7月4日	試合前・最小入れ替え調整（前回確定を基準に同じ人・同じ道具を維持／班入替は2人交換／入れ替え人数を最小化）／道具入れ替え案内テキスト（STEP3・PDF2ページ目・LINE）／対象外に14期帯同・兄弟所属／v1.6.7	15期管理担当
 1.8	2026年7月4日	現地の実保有に補正（試合前・最小入れ替え調整の開始時に、実際にいま持っている人へ手直しして入れ替え案内を実態に合わせる）／v1.6.8	15期管理担当
 1.9	2026年7月5日	展開情報確認・LINE送信（PDF プレビュー・送る内容選択・LINEへ展開／PDFを保存）／STEP1「前回の結果を元に割振る」／履歴・STEP3「最小変更で再調整」／保護者確認URL・交代報告／班跨ぎ受け渡し特記／道具故障フラグ／PWA・ダークモード／v1.7.2	15期管理担当
+1.10	2026年7月5日	操作マニュアル Markdown＋PDF（TCB-MAN-001_…v1.5.md／.pdf）に利用シーン別フロー6本・boys15 実画面スクショを追加。詳細手順の正本は md／PDF を参照	15期管理担当
 
 はじめに
 項目	内容
-15期アクセス URL	https://tcb15-admin.github.io/tcb-tools/boys15/
-16期アクセス URL	https://tcb15-admin.github.io/tcb-tools/boys16/
-16期詳細マニュアル PDF	https://tcb15-admin.github.io/tcb-tools/boys16/docs/TCB-MAN-016_道具割り振りツール_操作マニュアル_v1.5.pdf
-初期パスワード	15期：tcb15／16期：tcb16
+ツール URL（15期）	https://tcb15-admin.github.io/tcb-tools/boys15/
+操作マニュアル PDF（正本）	https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf
+操作マニュアル Markdown	boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.md（フロー図・詳細手順）
+初期パスワード	tcb15
 バージョン確認	ヘッダ右上に「v1.7.2」等と表示（config の TOOL_VERSION）
 動作環境	スマートフォン・PC・タブレットのブラウザ。印刷・PDF は html2pdf.js（CDN）に依存
 マスタ同期	Cloudflare 同期 ON 時は「保存」で全端末に反映（GitHub への master.json アップロードは不要）
