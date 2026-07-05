@@ -84,15 +84,13 @@ html[data-cohort="15"] header{
 .p1-renshu-split-wrap{display:none;margin:0 0 14px;padding:10px 12px;background:#fff8e1;border-radius:8px;border:1px solid #ffe082;font-size:13px;}
 .p1-renshu-split-lbl{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:700;color:#5d4037;line-height:1.5;}
 .p1-renshu-split-lbl input{flex-shrink:0;width:20px;height:20px;margin-top:2px;cursor:pointer;accent-color:var(--ink-heading);}
-.p1-mem-unpublished-wrap{display:none;margin:0;padding:3px 5px;background:#f0f4f8;border-radius:8px;border:1px solid #cfd8dc;font-size:11px;box-sizing:border-box;flex-shrink:0;}
+.p1-mem-unpublished-wrap{display:none;margin:0;padding:3px 5px;background:#f0f4f8;border-radius:8px;border:1px solid #cfd8dc;font-size:11px;box-sizing:border-box;}
+#tnarea .tnrow .p1-mem-unpublished-wrap{grid-column:1;grid-row:2;}
 .p1-mem-unpublished-lbl{display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:700;color:var(--ink-heading);line-height:1.2;white-space:nowrap;}
 .p1-mem-unpublished-lbl input{flex-shrink:0;width:16px;height:16px;margin:0;cursor:pointer;accent-color:var(--ink-heading);}
 .p1-mem-unpublished-txt{line-height:1.2;font-size:10px;}
 .tnrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
 .tng{display:flex;align-items:center;gap:6px;min-width:0;}
-.tng-a-row{align-items:stretch;}
-.tng-a-inner{flex:1;min-width:0;display:flex;align-items:center;gap:4px;border:1px solid var(--ta-bd);border-radius:var(--r-ctl);background:#fff;padding-right:4px;overflow:hidden;}
-.tng-a-inner .tninp.A{flex:1;min-width:0;border:none;border-radius:0;background:transparent;padding:11px 8px;}
 .tng label{font-size:12px;font-weight:700;white-space:nowrap;}
 .tninp{padding:11px 12px;border:1px solid var(--bdr);border-radius:var(--r-ctl);font-size:14px;font-family:inherit;width:100%;min-height:var(--tap);background:#fff;}
 .tninp.A{border-color:var(--ta-bd);color:var(--ta);}
@@ -1300,16 +1298,11 @@ html{color-scheme:light;}
       <div id="tnarea" style="display:block;">
         <div class="ct" style="margin-bottom:8px;margin-top:14px;">&#127991; グループ名（名称変更可）</div>
         <div class="tnrow">
-          <div class="tng tng-a-row">
-            <label class="tng-dot tng-dot-a" for="tnA">&#9679;</label>
-            <div class="tng-a-inner">
-              <input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組">
-              <div id="mem-unpublished-wrap" class="p1-mem-unpublished-wrap" style="display:none;">
-                <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷で<strong>組別（班）を表示しません</strong>。メンバー発表前の下書き用です。" aria-label="メンバー未発表の説明"></button></label>
-              </div>
-            </div>
-          </div>
+          <div class="tng"><label class="tng-dot tng-dot-a" for="tnA">&#9679;</label><input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組"></div>
           <div class="tng"><label class="tng-dot tng-dot-b" for="tnB">&#9679;</label><input class="tninp B" id="tnB" type="text" maxlength="12" value="練習組"></div>
+          <div id="mem-unpublished-wrap" class="p1-mem-unpublished-wrap" style="display:none;">
+            <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷で<strong>組別（班）を表示しません</strong>。メンバー発表前の下書き用です。" aria-label="メンバー未発表の説明"></button></label>
+          </div>
         </div>
       </div>
     </div>
