@@ -56,7 +56,7 @@ function mdToHtml(md) {
         codeBuf = [];
       } else {
         if (codeLang === 'mermaid') {
-          html += `<pre class="mermaid">${codeBuf.join('\n')}</pre>`;
+          html += `<div class="flowchart-wrap"><pre class="mermaid">${codeBuf.join('\n')}</pre></div>`;
         }
         inCode = false;
         codeLang = '';
@@ -122,6 +122,13 @@ function mdToHtml(md) {
       i++;
       continue;
     }
+    if (line.match(/^\*\*[▼▲]/)) {
+      const cls = line.includes('▼') ? 'flow-continue-down' : 'flow-continue-up';
+      const text = line.replace(/^\*\*|\*\*$/g, '');
+      html += `<div class="${cls}">${inlineMd(text)}</div>`;
+      i++;
+      continue;
+    }
     if (line.match(/^- \[ \]/)) {
       html += `<p class="chk">☐ ${inlineMd(line.replace(/^- \[ \]\s*/, ''))}</p>`;
       i++;
@@ -175,8 +182,41 @@ const fullHtml = `<!DOCTYPE html>
   code { background: #eee; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
   hr { border: none; border-top: 1px solid #ddd; margin: 16px 0; }
   li { margin-left: 1.2em; }
-  pre.mermaid { background: transparent; border: none; padding: 0; margin: 12px 0 16px; overflow: visible; page-break-inside: avoid; }
-  pre.mermaid svg { max-width: 100%; height: auto; }
+  .flowchart-wrap {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 10px 0 14px;
+    padding: 10px 12px 12px;
+    border: 1px solid #b0bec5;
+    border-radius: 6px;
+    background: #fafafa;
+  }
+  pre.mermaid { background: transparent; border: none; padding: 0; margin: 0; overflow: visible; text-align: center; }
+  pre.mermaid svg { max-width: 92%; height: auto; margin: 0 auto; display: block; }
+  .flow-continue-down {
+    text-align: center;
+    font-size: 9pt;
+    font-weight: 600;
+    color: #37474f;
+    border-bottom: 2px dashed #78909c;
+    padding: 4px 8px 12px;
+    margin: 4px 0 0;
+    page-break-after: always;
+    break-after: page;
+  }
+  .flow-continue-up {
+    text-align: center;
+    font-size: 9pt;
+    font-weight: 600;
+    color: #37474f;
+    border-top: 2px dashed #78909c;
+    padding: 12px 8px 6px;
+    margin: 0 0 8px;
+    page-break-before: always;
+    break-before: page;
+  }
+  h3 + p + .flowchart-wrap,
+  h3 + .flow-continue-up + .flowchart-wrap { margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -202,7 +242,21 @@ await page.evaluate(async () => {
     startOnLoad: false,
     theme: 'neutral',
     securityLevel: 'loose',
-    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+    themeVariables: {
+      fontSize: '11px',
+      fontFamily: '"Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif',
+      primaryTextColor: '#212121',
+      lineColor: '#455a64',
+    },
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'linear',
+      padding: 14,
+      nodeSpacing: 28,
+      rankSpacing: 38,
+      diagramPadding: 10,
+    },
   });
   const nodes = document.querySelectorAll('pre.mermaid');
   if (nodes.length) await mermaid.run({ nodes });
