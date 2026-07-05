@@ -29,12 +29,13 @@
 html{color-scheme:light;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased;letter-spacing:.1px;}
-.pv-header{background:linear-gradient(135deg,var(--hdr-g1),var(--hdr-g2));padding:14px 18px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px var(--hdr-sh);display:flex;align-items:center;gap:10px;}
-html[data-cohort="15"] .pv-header{border-bottom:3px solid #c0000a;box-shadow:0 2px 14px rgba(18,32,80,.2);}
-.pv-htxt{flex:1;min-width:0;}
-.pv-title{font-weight:700;font-size:16px;letter-spacing:-.2px;color:#fff;line-height:1.3;}
-.pv-sub{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;}
-.pv-chip{font-size:10px;font-weight:600;padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.16);color:#fff;border:none;white-space:nowrap;flex-shrink:0;}
+header{background:linear-gradient(135deg,var(--hdr-g1),var(--hdr-g2));padding:12px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px var(--hdr-sh);display:flex;align-items:center;gap:10px;}
+html[data-cohort="15"] header{border-bottom:3px solid #c0000a;box-shadow:0 2px 14px rgba(18,32,80,.2);}
+.logo{width:40px;height:40px;background:transparent;border-radius:8px;object-fit:cover;flex-shrink:0;}
+h1{font-weight:900;font-size:15px;color:#fff;line-height:1.3;flex:1;min-width:0;}
+h1 span{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;line-height:1.35;}
+.tcb-cohort-chip{flex-shrink:0;font-size:11px;font-weight:900;letter-spacing:.06em;padding:7px 11px;border-radius:999px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.12);}
+html[data-cohort="15"] .tcb-cohort-chip,html[data-cohort="16"] .tcb-cohort-chip{background:linear-gradient(165deg,#fde68a,#f59e0b);color:#78350f;border:1px solid rgba(180,83,9,.45);}
 .pv-wrap{max-width:680px;margin:0 auto;padding:16px 14px 48px;}
 .pv-note{background:var(--surface-2);border-left:none;border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--txt2);margin-bottom:16px;line-height:1.65;}
 .pv-note strong{font-weight:700;color:var(--txt);}
@@ -60,11 +61,17 @@ html[data-cohort="15"] .pv-header{border-bottom:3px solid #c0000a;box-shadow:0 2
 .pv-btn{flex:1;min-width:120px;padding:12px;background:var(--navy);color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:600;letter-spacing:-.1px;cursor:pointer;min-height:var(--tap);font-family:inherit;}
 .pv-btn:disabled{opacity:.6;cursor:default;}
 .pv-foot{text-align:center;font-size:10px;color:var(--txt2);margin-top:18px;}
+@media (max-width:520px){
+  header{padding:10px 12px;padding-top:max(10px, env(safe-area-inset-top, 0px));gap:8px;}
+  header .logo{width:36px;height:36px;}
+  header h1{font-size:14px;min-width:0;}
+  header h1 span{font-size:9px;line-height:1.35;}
+  .tcb-cohort-chip{font-size:10px;padding:6px 10px;}
+}
 /* 16期テーマ：ヘッダ白ベース＋紺×赤 */
-html.theme-b16 .pv-header{background:#fff;border-bottom:3px solid #c0000a;box-shadow:0 2px 14px rgba(18,32,80,.12);}
-html.theme-b16 .pv-title{color:#122050;}
-html.theme-b16 .pv-sub{color:#64748b;}
-html.theme-b16 .pv-chip{background:var(--surface-2);color:#122050;border:none;}
+html.theme-b16 header{background:#fff;border-bottom:3px solid #c0000a;box-shadow:0 2px 14px rgba(18,32,80,.12);}
+html.theme-b16 header h1{color:#122050;}
+html.theme-b16 header h1 span{color:#64748b;}
 /* ダークモード（システム設定に自動追従） */
 @media (prefers-color-scheme:dark){
   :root{
@@ -78,21 +85,18 @@ html.theme-b16 .pv-chip{background:var(--surface-2);color:#122050;border:none;}
   .pv-card,.pv-state{border:1px solid var(--bdr);}
   .pv-day-label,.pv-person-name{color:#f5f5f7;}
   .pv-note{background:var(--surface-2);}
-  html.theme-b16 .pv-header{background:#1c1c1e;border-bottom-color:#e5484d;}
-  html.theme-b16 .pv-title{color:#f5f5f7;}
-  html.theme-b16 .pv-sub{color:#a1a1ac;}
-  html.theme-b16 .pv-chip{background:rgba(255,255,255,.14);color:#f5f5f7;}
+  html.theme-b16 header{background:#1c1c1e;border-bottom-color:#e5484d;}
+  html.theme-b16 header h1{color:#f5f5f7;}
+  html.theme-b16 header h1 span{color:#a1a1ac;}
 }
 </style>
 </head>
 <body>
-<div class="pv-header">
-  <div class="pv-htxt">
-    <div class="pv-title">道具割振り 確認</div>
-    <span class="pv-sub" id="pv-team">東海中央ボーイズ 15期</span>
-  </div>
-  <span class="pv-chip">15期</span>
-</div>
+<header>
+  <img src="apple-touch-icon.png" class="logo" alt="東海中央ボーイズ" width="40" height="40">
+  <span class="tcb-cohort-chip" aria-label="この画面は15期の道具割振り確認です">15期</span>
+  <h1>道具割振り 確認<span id="pv-team" data-slogan="不屈不撓の精神で全員野球">東海中央ボーイズ 15期　｜　不屈不撓の精神で全員野球</span></h1>
+</header>
 
 <div class="pv-wrap">
   <div class="pv-note">

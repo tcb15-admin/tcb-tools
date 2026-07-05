@@ -79,6 +79,17 @@
   }
 
   /* ========== データ由来のヘルパ ========== */
+  function jerseyNumFromName(name) {
+    var n = parseInt(String(name).split('：')[0], 10);
+    return isNaN(n) ? -1 : n;
+  }
+  function sortNamesByJerseyDesc(names) {
+    return names.slice().sort(function (a, b) {
+      var na = jerseyNumFromName(a), nb = jerseyNumFromName(b);
+      if (na !== nb) return nb - na;
+      return a.localeCompare(b, 'ja');
+    });
+  }
   function allPersonNames(data) {
     var set = {};
     (data.days || []).forEach(function (d) {
@@ -87,7 +98,7 @@
         if (p) set[p] = true;
       });
     });
-    return Object.keys(set).sort(function (a, b) { return a.localeCompare(b, 'ja'); });
+    return sortNamesByJerseyDesc(Object.keys(set));
   }
   function primaryDay(data) {
     var days = (data && data.days) || [];
@@ -237,7 +248,10 @@
     var data = state.data;
     if (!data) return;
     var te = document.getElementById('pv-team');
-    if (te && data.teamName) te.textContent = data.teamName;
+    if (te && data.teamName) {
+      var sl = te.getAttribute('data-slogan') || '';
+      te.textContent = data.teamName + (sl ? '　｜　' + sl : '');
+    }
 
     var days = Array.isArray(data.days) ? data.days : [];
     if (!days.length) {

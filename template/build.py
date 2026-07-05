@@ -136,7 +136,7 @@ def build_parent_view(target, config, out_dir):
     html = html.replace('{{HTML_BODY_CLASS}}', html_body_class(config))
 
     parent_keys = [
-        'TEAM_NAME', 'TEAM_SHORT_NAME', 'COHORT_KEY', 'COHORT_LABEL',
+        'TEAM_NAME', 'TEAM_SHORT_NAME', 'TEAM_SLOGAN', 'COHORT_KEY', 'COHORT_LABEL',
         'SYNC_API_BASE_URL', 'TOOL_VERSION',
     ]
     for key in parent_keys:
