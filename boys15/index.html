@@ -203,13 +203,14 @@ tr.rB td{border-left:3px solid var(--tb);}
 .tll{background:#ffccbc;color:#bf360c;}.tlen{background:#e1f5fe;color:#0277bd;}.thv{background:#fce4ec;color:#880e4f;}
 .tfx{background:#e8f5e9;color:#1b5e20;}.tbr{background:#ffd54f;color:#5d4037;}
 .p3-line-share-wrap{margin:0 0 12px;display:flex;justify-content:stretch;}
-.p3-line-share-btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px;border:none;border-radius:14px;background:#06C755;color:#fff;font-size:17px;font-weight:700;letter-spacing:-.2px;cursor:pointer;min-height:var(--tap);font-family:inherit;box-shadow:0 6px 18px rgba(6,199,85,.28);}
+.p3-line-share-btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px;border:3px solid #048c44;border-radius:14px;background:#06C755;color:#fff;font-size:17px;font-weight:700;letter-spacing:-.2px;cursor:pointer;min-height:var(--tap);font-family:inherit;box-shadow:inset 0 0 0 2px #fff,0 6px 18px rgba(6,199,85,.28);}
 .p3-line-share-btn:active{opacity:.92;}
 .p3-line-share-btn:disabled{opacity:.5;cursor:not-allowed;}
 .p3-line-share-ic{width:26px;height:26px;flex-shrink:0;fill:currentColor;}
-.p3-confirm-wrap{margin:0 0 10px;display:flex;justify-content:center;align-items:center;gap:6px;}
-.p3-confirm-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;border:none;border-radius:14px;background:var(--navy);color:#fff;font-size:14px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;letter-spacing:-.2px;box-shadow:0 4px 14px rgba(18,32,80,.16);max-width:100%;white-space:nowrap;}
+.p3-confirm-wrap{margin:0;padding-top:2px;position:relative;width:100%;}
+.p3-confirm-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;padding-right:36px;border:none;border-radius:8px;background:#e65100;color:#fff;font-size:14px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;letter-spacing:-.2px;box-shadow:0 4px 14px rgba(230,81,0,.22);width:100%;max-width:100%;white-space:nowrap;box-sizing:border-box;}
 .p3-confirm-btn:active{opacity:.92;}
+.p3-confirm-wrap .tcb-tip{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:1;}
 .tgA{background:var(--ta-bg);color:var(--ta);border:1px solid var(--ta-bd);}
 .tgB{background:var(--tb-bg);color:var(--tb);border:1px solid var(--tb-bd);}
 /* 割振り結果 表：道具名は可変幅、タグ列は固定スロットで縦揃え、写真ボタンは右端 */
@@ -222,7 +223,12 @@ tr.rB td{border-left:3px solid var(--tb);}
 .p3-multi-badge{font-size:10px;font-weight:700;color:#e65100;background:#fff3e0;border:1px solid #ffcc02;border-radius:10px;padding:1px 5px;margin-right:4px;white-space:nowrap;display:inline-block;vertical-align:middle;}
 tr.p3-multi-row{background:#fff8e1;}
 .ibtn{background:var(--ui-accent-bg);color:var(--ui-accent);border:1px solid var(--ui-accent-bd);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;padding:3px 8px;vertical-align:middle;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;gap:3px;margin-left:4px;}
+.ibtn.tcb-tool-info-btn{padding:4px 6px;min-width:28px;justify-content:center;margin-left:0;}
+.ibtn.tcb-tool-info-btn .ic{width:16px;height:16px;}
 .ibtn:active{opacity:1;}
+.p3-asgn-cell{display:flex;flex-direction:column;align-items:stretch;width:100%;}
+.p3-asgn-cell .p3-multi-badge{align-self:flex-start;margin:0 0 4px;}
+.p3-asgn-cell .asel{width:100%;box-sizing:border-box;}
 .shd2{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:9px;margin:12px 0 8px;font-weight:900;font-size:14px;}
 .shd2.A{background:var(--ta-bg);color:var(--ta);border-left:4px solid var(--ta);}
 .shd2.B{background:var(--tb-bg);color:var(--tb);border-left:4px solid var(--tb);}
@@ -248,6 +254,24 @@ tr.p3-multi-row{background:#fff8e1;}
 /* 交代報告モーダルは画面上部に表示（下だと気づきにくいとの要望） */
 #swap-modal.overlay{align-items:flex-start;}
 #swap-modal .modal{border-radius:20px;margin-top:max(14px,env(safe-area-inset-top,0px));max-height:min(90vh,calc(100vh - 28px));}
+/* 道具説明モーダル：PCは中央、スマホは下シート */
+@media (min-width:521px){
+  #info-modal.overlay{
+    align-items:center;
+    justify-content:center;
+    padding:max(20px,env(safe-area-inset-top,0px)) 16px max(20px,env(safe-area-inset-bottom,0px));
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  #info-modal .modal{
+    border-radius:20px;
+    max-width:520px;
+    max-height:min(86vh,680px);
+    margin:0;
+    flex-shrink:0;
+    box-shadow:0 18px 50px rgba(13,27,42,.28);
+  }
+}
 .modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px;width:100%;max-width:640px;position:relative;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .mclose{display:flex;align-items:center;justify-content:center;width:36px;height:36px;position:absolute;top:14px;right:14px;background:var(--surface-2);border:none;border-radius:50%;font-size:16px;cursor:pointer;color:var(--txt2);z-index:1;}
 .modal h2{font-size:19px;font-weight:750;letter-spacing:-.3px;color:var(--ink-heading);margin-bottom:14px;padding-right:44px;}
@@ -831,8 +855,9 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   }
   .p3-result-tbl td.p3-col-asgn{
     vertical-align:top;
+    text-align:left;
   }
-  .p3-result-tbl .p3-multi-badge{
+  .p3-result-tbl .p3-asgn-cell .p3-multi-badge{
     display:block;
     margin:0 0 4px;
   }
@@ -929,6 +954,8 @@ html{color-scheme:light;}
   .p1-mem-unpublished-wrap,.p3-cross-team-wrap,.p1-from-prev-block{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
   .p3-cross-handoff-notice{background:rgba(230,81,0,.14);border-left-color:#ff9800;color:#ffccbc;}
   .p3-cross-handoff-notice strong{color:#ffab91;}
+  .p3-confirm-btn{background:#e65100;box-shadow:0 4px 14px rgba(230,81,0,.35);}
+  .p3-line-share-btn{border-color:#05a847;box-shadow:inset 0 0 0 2px rgba(255,255,255,.92),0 6px 18px rgba(6,199,85,.32);}
   .p1-renshu-split-wrap{background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.32);}
   .p1-renshu-split-lbl{color:#f0d48a;}
   .tcb-seed-mode-banner{background:var(--surface-2);border-left-color:var(--blue2);color:var(--txt2);}
@@ -1027,6 +1054,7 @@ html{color-scheme:light;}
   <symbol id="i-share" viewBox="0 0 24 24"><g class="ic-mono"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M6 12v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-7"/></g></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><g class="ic-mono"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><g class="ic-mono"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6"/></g></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><g class="ic-mono"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/></g></symbol>
 </svg>
 <!-- パスワード画面 -->
 <div id="pw-screen" style="display:none;">
@@ -1347,10 +1375,10 @@ html{color-scheme:light;}
         <div class="p3-rebalance-t"><strong>公平に再分配</strong>：チェックした道具と、担当が<strong>未割当</strong>の道具をまとめて対象にします。いま<strong>担当0件</strong>の人を優先し、足りなければ<strong>最も少ない人</strong>へ順に割り当てます（割振り実行と同じ負荷・上限ルール）。<strong>固定担当</strong>の道具は対象外です。</div>
         <button type="button" class="p3-rebalance-btn" id="btn-rebalance-fair">&#9889; 公平に再分配</button>
       </div>
-    </div>
-    <div class="p3-confirm-wrap">
-      <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">割振り確定</button>
-      <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。確定済みの日も、担当を直したあと再度押すと PAST を更新できます。" aria-label="割振り確定の説明"></button>
+      <div class="p3-confirm-wrap">
+        <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">割振り確定</button>
+        <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。確定済みの日も、担当を直したあと再度押すと PAST を更新できます。" aria-label="割振り確定の説明"></button>
+      </div>
     </div>
     <div class="p3-line-share-wrap">
       <button type="button" class="p3-line-share-btn" id="btn-open-share">
@@ -1365,7 +1393,7 @@ html{color-scheme:light;}
     <div id="ttbl">
       <div class="tbl-wrap">
         <table class="p3-result-tbl"><thead><tr>
-          <th class="p3-col-id">#</th><th class="p3-col-name">道具名</th>
+          <th class="p3-col-id tcb-ui-advanced">#</th><th class="p3-col-name">道具名</th>
           <th class="p3-rebal-th tcb-ui-advanced">再配</th>
           <th id="thteam" class="p3-col-team" style="display:none;">班</th>
           <th class="p3-col-asgn">担当者</th>
@@ -1919,6 +1947,29 @@ function fitGridCellText(cn,box,opts){
     cn.style.lineHeight='1.15';
   }
 }
+function syncNameTipState(cn){
+  if(!cn)return;
+  var text=(cn.textContent||'').trim();
+  if(!text){
+    cn.classList.remove('tcb-name-tip');
+    cn.removeAttribute('data-tip');
+    cn.removeAttribute('title');
+    return;
+  }
+  var cs=window.getComputedStyle(cn);
+  var truncated=cn.scrollWidth>cn.clientWidth+1;
+  if(!truncated&&cs.textOverflow==='ellipsis'&&cs.overflow!=='visible'){
+    truncated=cn.scrollWidth>cn.clientWidth+1;
+  }
+  if(truncated){
+    cn.classList.add('tcb-name-tip');
+    cn.setAttribute('data-tip',text);
+  }else{
+    cn.classList.remove('tcb-name-tip');
+    cn.removeAttribute('data-tip');
+    cn.removeAttribute('title');
+  }
+}
 function fitMemberGridFonts(id){
   var g=document.getElementById(id);
   if(!g)return;
@@ -1926,6 +1977,7 @@ function fitMemberGridFonts(id){
   g.querySelectorAll('.mc, .tc2').forEach(function(box){
     var cn=box.querySelector('.cn');
     fitGridCellText(cn,box,{maxFs:mob?14:14,minFs:7,fullWidth:mob});
+    if(id==='tgrid')syncNameTipState(cn);
   });
 }
 function fitSkipGridFonts(){
@@ -4229,7 +4281,7 @@ function tcHtml(m,tm,la,lb){
   var lbl=tm?(tm==='A'?la:lb):'－', bc=tm||'';
   var safeName=esc(m.name);
   return '<span class="tbdg '+bc+'">'+esc(lbl)+'</span>'
-       +'<span class="cn tcb-name-tip" data-tip="'+safeName+'" title="'+safeName+'">'+safeName+'</span>'
+       +'<span class="cn">'+safeName+'</span>'
        +'<span class="cv v'+m.v+'">'+esc(m.v)+'</span>';
 }
 function updTC(){
@@ -4441,7 +4493,7 @@ function buildTbl(){
     var tLabel=tm?(tm==='A'?(R.la||'A'):(R.lb||'B')):'';
     var tagSlots=buildToolTagSlots(t);
     var ibtn=DESCS[t.name]
-      ?'<button class="ibtn" data-tool="'+esc(t.name)+'">&#128247; 写真</button>':'';
+      ?'<button type="button" class="ibtn tcb-tool-info-btn" data-tool="'+esc(t.name)+'" aria-label="'+esc(t.name)+'の説明"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button>':'';
 
     var opts='<option value=""'+(!rawAsgn?' selected':'')+'>未割当</option>';
     candsManual(tm, t.name).forEach(function(n){
@@ -4464,7 +4516,7 @@ function buildTbl(){
     }
     if(isMulti&&!carryAdjustRefSnap)tr.classList.add('p3-multi-row');
     var td1=document.createElement('td');
-    td1.className='p3-col-id';
+    td1.className='p3-col-id tcb-ui-advanced';
     td1.style.cssText='color:var(--txt2);font-size:10px;white-space:nowrap;';
     td1.textContent=t.id;
     var td2=document.createElement('td');
@@ -4490,13 +4542,16 @@ function buildTbl(){
     var td4=document.createElement('td');
     td4.className='p3-col-asgn';
     td4.style.minWidth='100px';
+    var asgnWrap=document.createElement('div');
+    asgnWrap.className='p3-asgn-cell';
     if(isMulti){
       var mbdg=document.createElement('span');
       mbdg.className='p3-multi-badge';
       mbdg.textContent='複数';
-      td4.appendChild(mbdg);
+      asgnWrap.appendChild(mbdg);
     }
-    td4.appendChild(sel);
+    asgnWrap.appendChild(sel);
+    td4.appendChild(asgnWrap);
     tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(tdRb);
     if(R.mode==='team'&&!hideTeam){
       var tdTm=document.createElement('td');
