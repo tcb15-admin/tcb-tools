@@ -268,9 +268,6 @@
       alert('公開できる確定済みの割振りがありません。\n先に STEP3 の「実施確定」を行ってください。');
       return;
     }
-    var btn = el('parent-view-renotify');
-    var orig = btn ? btn.textContent : '';
-    if (btn) { btn.disabled = true; btn.textContent = '再通知の準備中…'; }
     ctx.publishDay(payload).then(function (res) {
       var sid = res && res.shareId ? res.shareId : '';
       if (!sid) throw new Error('no_share_id');
@@ -288,8 +285,6 @@
     }).catch(function (err) {
       console.error(err);
       alert('修正版の再公開に失敗しました。通信状況を確認して再度お試しください。');
-    }).finally(function () {
-      if (btn) { btn.disabled = false; btn.textContent = orig; }
     });
   }
 
