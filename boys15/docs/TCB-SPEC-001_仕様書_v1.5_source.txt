@@ -5,7 +5,7 @@
 システム仕様書
 
 文書番号	TCB-SPEC-001
-版	1.9
+版	1.10
 作成日	2026年3月27日
 作成者	15期管理担当
 最終更新	2026年7月5日
@@ -22,6 +22,7 @@
 1.7	2026年7月4日	試合前・最小入れ替え調整（前回確定を基準に同一担当維持・班入替は2人スワップ applyMinimalCrossTeamSwaps・余剰道具は変更人数最小化で集中配分 assignPoolCarryAdjust の minChangers）／道具入れ替え案内テキスト（STEP3・PDF 2ページ目・LINE 本文）／メンバー対象外フラグ ac14（14期帯同）・sibling（兄弟所属）／マスタ対象外チェック 2×2 グリッド・道具説明を全幅 textarea／PDF 印刷レイアウト刷新（3〜4列・道具名強調・A4 1ページ固定）	15期管理担当
 1.8	2026年7月4日	現地の実保有に補正（openActualHoldModal／saveActualHoldAdjust）：試合前・最小入れ替え調整の開始時に、前回確定と実態がズレた道具を実保有者へ手動補正し、seedBaseSnap.map と carryAdjustRefSnap を実態基準に更新。入れ替え案内（LINE／PDF）を実態との差分で生成。SYNC_API_TOKEN ローテーション対応（config はプレースホルダ＝ビルド時注入）／ツール v1.6.8	15期管理担当
 1.9	2026年7月5日	展開情報確認画面（print-overlay／tcb-share-panel）：PDF プレビュー＋送る内容（LINE本文・保護者確認URL・PDF）選択＋LINEへ展開（Web Share API）／PDFを保存（端末自動保存）／公開を停止。STEP1「前回の結果を元に割振る」（btn-p1-from-prev）、履歴「前回の結果を元に割振り開始」、STEP3「最小変更で再調整」（btn-reedit-from-prev）。UI 表記を「前回の結果を元に調整」に統一。保護者確認ページ・交代報告（btn-swap-reports）。班跨ぎ受け渡し特記（p3-cross-handoff-notice）。道具故障フラグ（broken）。PWA manifest。ダークモード CSS 変数上書き／ツール v1.7.2	15期管理担当
+1.10	2026年7月5日	ヘッダー操作マニュアルリンク（hdr-manual-link／config MANUAL_URL・build.py プレースホルダ）／ツール v1.7.3	15期管理担当
 
 1. システム概要
 項目	内容
@@ -31,7 +32,8 @@
 認証	パスワード認証（djb2 ベース簡易ハッシュ・初期 PW は世代ごと config）
 ホスティング	GitHub Pages（tcb15-admin / tcb-tools）
 チームカラー	濃紺（#122050）・赤（#C0000A）・白。16 期は html.theme-b16 でヘッダ等の配色が変化
-バージョン	v1.7.2 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み）
+バージョン	v1.7.3 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み）
+操作マニュアル	ヘッダ「マニュアル」→ config MANUAL_URL（15期は GitHub Pages 上の PDF）。未設定世代は非表示
 世代管理	boys15 / boys16（テンプレート＋config ビルド方式）
 UI_SIMPLE	config で true の世代は html.tcb-ui-simple を付与し、.tcb-ui-advanced ブロックを非表示（公平再分配・履歴1年 PDF・デフォルト保存読込等）
 
@@ -75,7 +77,8 @@ cloudflare-sync/	Worker ソース・D1 スキーマ
 {{GITHUB_MASTER_URL}}	同期 OFF 用 master.json URL（Cloudflare 正運用時は空）
 {{SYNC_API_BASE_URL}}	Worker オリジン
 {{SYNC_API_TOKEN}}	Bearer トークン（ビルド時注入推奨）
-{{TOOL_VERSION}}	表示バージョン	1.7.2
+{{MANUAL_URL}}	操作マニュアル PDF URL（空ならリンク非表示）	boys15/docs/…v1.5.pdf
+{{TOOL_VERSION}}	表示バージョン	1.7.3
 {{HTML_THEME_CLASS}}	body 用クラス	15期は tcb-ui-simple、16期は theme-b16 tcb-ui-simple
 {{COHORT_KEY}}	/data-cohort 等	15／16
 {{COHORT_LABEL}}	表示用ラベル	15期／16期
