@@ -2074,6 +2074,86 @@ function captureMasterSnapshotForDirty(){
 function isMasterDirty(){
   return _masterSnapAtOpen!==''&&captureMasterSnapshotForDirty()!==_masterSnapAtOpen;
 }
+function syncMasterEditsFromDom(){
+  var mel=document.getElementById('m-members');
+  if(mel){
+    var mrows=mel.querySelectorAll('.master-mbr-row');
+    for(var i=0;i<mrows.length&&i<MB.length;i++){
+      var row=mrows[i];
+      var ni=row.querySelector('.minp');
+      var vs=row.querySelector('.msel');
+      var cbs=row.querySelectorAll('.master-mbr-flags-wrap input[type="checkbox"]');
+      if(ni)MB[i].name=String(ni.value||'');
+      if(vs)MB[i].v=normalizeMemberVehicle(vs.value);
+      if(cbs[0])MB[i].rest=cbs[0].checked?1:0;
+      if(cbs[1])MB[i].coach=cbs[1].checked?1:0;
+      if(cbs[2])MB[i].ac14=cbs[2].checked?1:0;
+      if(cbs[3])MB[i].sibling=cbs[3].checked?1:0;
+    }
+  }
+  var tel=document.getElementById('m-tools');
+  if(tel){
+    var trows=tel.querySelectorAll('.master-tl-mrow');
+    for(var j=0;j<trows.length&&j<TL.length;j++){
+      var trow=trows[j];
+      var tni=trow.querySelector('.master-tl-name-ta');
+      var ctl=trow.querySelector('.master-tl-ctl-row');
+      if(tni){
+        var newName=String(tni.value||'').replace(/\r?\n/g,'').trim();
+        var oldName=TL[j].name;
+        if(newName!==oldName){
+          if(oldName&&DESCS[oldName]&&!DESCS[newName]){
+            DESCS[newName]=DESCS[oldName];
+            delete DESCS[oldName];
+          }
+          TL[j].name=newName;
+          TL[j].fixed=0;
+          TL[j].note=null;
+        }
+      }
+      if(ctl){
+        var sels=ctl.querySelectorAll('select.msel');
+        var tcbs=ctl.querySelectorAll('input[type="checkbox"]');
+        if(sels[0])TL[j].sz=normalizeToolLength(sels[0].value);
+        if(sels[1])TL[j].wt=sels[1].value;
+        if(sels[2])TL[j].ryo=sels[2].value;
+        if(sels[3]){
+          var ven=sels[3].value;
+          if(ven==='indoor'||ven==='outdoor')TL[j].practiceVenue=ven;
+          else delete TL[j].practiceVenue;
+        }
+        if(sels[4]){
+          if(sels[4].value){TL[j].fixed=1;TL[j].note=sels[4].value;}
+          else{TL[j].fixed=0;TL[j].note=null;}
+        }
+        if(tcbs[0])TL[j].kata=tcbs[0].checked?1:0;
+        if(tcbs[1])TL[j].broken=tcbs[1].checked?1:0;
+      }
+    }
+  }
+  var del=document.getElementById('m-descs');
+  if(del){
+    var cards=del.querySelectorAll('.master-desc-card');
+    var ci=0;
+    TL.forEach(function(t){
+      if(ci>=cards.length)return;
+      var card=cards[ci++];
+      var tw=card.querySelector('.master-desc-text');
+      var tu=card.querySelector('.master-desc-url-inp');
+      if(!DESCS[t.name])DESCS[t.name]={text:'',img:''};
+      if(tw)DESCS[t.name].text=tw.value;
+      if(tu)DESCS[t.name].img=String(tu.value||'').trim();
+    });
+  }
+}
+function confirmLeaveMasterIfDirty(kind){
+  syncMasterEditsFromDom();
+  if(!isMasterDirty())return true;
+  var msg=(kind==='close')
+    ?'マスタの内容がまだ「保存」されていません。このまま閉じますか？\n\n※ この端末上では編集した内容がそのまま使われます。ほかの端末やバックアップへ残すには、マスタで「保存」してください。'
+    :'マスタの内容がまだ「保存」されていません。このままSTEPの別画面に移りますか？\n\n※ この端末上では編集した内容がそのまま使われます。ほかの端末やバックアップへ残すには、マスタに戻って「保存」してください。';
+  return confirm(msg);
+}
 function markMasterSnapshotClean(){
   _masterSnapAtOpen=captureMasterSnapshotForDirty();
 }
@@ -2185,6 +2265,7 @@ function loadMaster(){
   }
 }
 function saveMaster(){
+  syncMasterEditsFromDom();
   sortMasterMembers();
   sortMasterTools();
   pruneDescsOrphans();
@@ -4142,9 +4223,7 @@ function goStep(n){
   var pm0=document.getElementById('p-master');
   var onMaster0=pm0&&pm0.className.indexOf('on')>=0;
   if(onMaster0&&(n===1||n===2||n===3)){
-    if(isMasterDirty()){
-      if(!confirm('マスタの内容がまだ「保存」されていません。このままSTEPの別画面に移りますか？\n\n※ この端末上では編集した内容がそのまま使われます。ほかの端末やバックアップへ残すには、マスタに戻って「保存」してください。'))return;
-    }
+    if(!confirmLeaveMasterIfDirty(n===1?'close':'step'))return;
   }
   ['p1','p2','p3','p-master'].forEach(function(id){
     var el=document.getElementById(id); if(el)el.className='pnl';
@@ -5620,7 +5699,11 @@ function buildMasterMembers(){
       c2.addEventListener('change',function(){MB[ii].coach=c2.checked?1:0;});
       a2.addEventListener('change',function(){MB[ii].ac14=a2.checked?1:0;});
       s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
-      db.addEventListener('click',function(){MB.splice(ii,1);buildMasterMembers();});
+      db.addEventListener('click',function(){
+        var nm=String((MB[ii]&&MB[ii].name)||n2.value||'').trim()||'このメンバー';
+        if(!confirm('「'+nm+'」をメンバー一覧から削除します。よろしいですか？'))return;
+        MB.splice(ii,1);buildMasterMembers();
+      });
     })(i,ni,vs,rc,cc,a14c,sc);
     row.appendChild(ni); row.appendChild(vs); row.appendChild(flagsWrap); row.appendChild(db);
     el.appendChild(row);
@@ -5723,6 +5806,8 @@ function buildMasterTools(){
         else{TL[idx].fixed=0;TL[idx].note=null;}
       });
       db.addEventListener('click',function(){
+        var nm=String((TL[idx]&&TL[idx].name)||n2.value||'').trim()||'この道具';
+        if(!confirm('「'+nm+'」を道具一覧から削除します。説明・写真も消えます。よろしいですか？'))return;
         var gone=TL[idx]&&TL[idx].name;
         TL.splice(idx,1);
         if(gone!=null&&gone!=='')delete DESCS[gone];
