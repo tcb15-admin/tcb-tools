@@ -1265,7 +1265,7 @@ html{color-scheme:light;}
           <label class="tcb-share-opt" for="share-opt-line"><input type="checkbox" id="share-opt-line" checked> LINE本文</label>
           <label class="tcb-share-opt" for="share-opt-url" id="share-opt-url-wrap"><input type="checkbox" id="share-opt-url" checked> 保護者確認URL</label>
           <p class="tcb-share-opt-note" id="share-opt-url-note">実施確定済みの直近2日分を閲覧専用URLで共有します。</p>
-          <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> PDF添付（送信時は端末にも自動保存）</label>
+          <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> PDF添付（端末に残す場合は共有シートで「ファイルに保存」）</label>
         </div>
         <div class="tcb-share-preview-wrap">
           <div class="tcb-share-intro-label">定型文（編集可）</div>
@@ -5399,7 +5399,11 @@ function resolveAssignPdfBlob(out){
   var frame=document.getElementById('print-frame');
   var overlay=document.getElementById('print-overlay');
   if(typeof TCB_generateAssignPdfBlobFromFrame==='function'&&frame&&overlay&&overlay.classList.contains('open')&&frame.contentDocument&&frame.contentDocument.body){
-    return TCB_generateAssignPdfBlobFromFrame(frame).then(function(blob){
+    return TCB_generateAssignPdfBlobFromFrame(frame).catch(function(frameErr){
+      /* プレビューiframeからのキャプチャ失敗時は非表示iframeで作り直す */
+      console.warn('プレビューからのPDF生成に失敗。作り直します。',frameErr);
+      return TCB_generateAssignPdfBlob(out.html);
+    }).then(function(blob){
       _assignPdfCache.html=out.html;_assignPdfCache.blob=blob;
       return blob;
     });
@@ -5433,6 +5437,15 @@ function deliverLineShareBundle(opts){
         if(!navigator.canShare||navigator.canShare(combined)){
           return navigator.share(combined).then(function(){
             setSharePanelStatus('共有シートからLINEを選ぶと本文とPDFをまとめて送れます。');
+          }).catch(function(shareErr){
+            /* iOSはボタン押下から時間が経つと共有シートを開けない（NotAllowedError）。
+               準備済みデータを保持し、次のタップで即共有する */
+            if(shareErr&&shareErr.name==='NotAllowedError'){
+              _lineShareReady={msg:msg,blob:blob,out:out,pdfOn:pdfOn,lineOn:lineOn};
+              setSharePanelStatus('準備ができました。もう一度「LINEへ展開」を押すと共有シートが開きます。');
+              return;
+            }
+            throw shareErr;
           });
         }
       }catch(eIosShare){/* 非対応時は従来の分離フローへ */ }
@@ -5448,7 +5461,8 @@ function deliverLineShareBundle(opts){
       return Promise.reject(new Error('empty pdf'));
     }
     return chain.then(function(){
-      if(lineOn&&msg&&pdfOn)setSharePanelStatus('本文をコピーしました。続く共有シートでPDFをLINEに添付してください。');
+      if(lineOn&&msg&&pdfOn&&blob)setSharePanelStatus('本文をコピーしました。続く共有シートでPDFをLINEに添付してください。');
+      else if(lineOn&&msg&&pdfOn&&!blob)setSharePanelStatus('本文をコピーしました（PDFの生成に失敗したため本文のみ）。LINEに貼り付けて送信してください。');
       else if(lineOn&&msg)setSharePanelStatus(shareLinePasteHint());
       else if(pdfOn)setSharePanelStatus('PDFの共有シートを開きました。');
     });
@@ -5500,9 +5514,24 @@ function lineShareErrorMessage(err){
   if(err.message==='no_share_id'||err.message==='no_url')return '保護者確認URLの発行に失敗しました。通信状況を確認してください。';
   return 'LINE展開の準備に失敗しました。時間をおいて再度お試しください。';
 }
-/** 共有シートへ PDF＋本文をまとめて展開。送信時は端末にも自動保存 */
+/** 共有シートへ PDF＋本文をまとめて展開（端末保存は共有シートの「ファイルに保存」で） */
+var _lineShareReady=null;
 function executeLineShare(){
   if(!R){alert('先に割振りを実行してください。');return;}
+  /* 前回タップで準備済み（iOSの共有シート権限切れ）なら、タップ直後に即共有 */
+  if(_lineShareReady){
+    var ready=_lineShareReady;
+    _lineShareReady=null;
+    deliverLineShareBundle(ready).then(function(){
+      refreshSharePanel();
+    }).catch(function(err){
+      if(err&&err.name==='AbortError'){setSharePanelStatus('送信をキャンセルしました。');return;}
+      console.error(err);
+      var em=lineShareErrorMessage(err);
+      alert(em||'LINE展開の準備に失敗しました。時間をおいて再度お試しください。');
+    });
+    return;
+  }
   var lineOn=!(document.getElementById('share-opt-line')&&!document.getElementById('share-opt-line').checked);
   var urlEl=document.getElementById('share-opt-url');
   var urlOn=!!(urlEl&&urlEl.checked&&syncEnabled());
@@ -5563,9 +5592,14 @@ function executeLineShare(){
       alert('保護者確認URLは実施確定後に送信できます。');
       return;
     }
+    if(err&&err.name==='NotAllowedError'){
+      setSharePanelStatus('準備ができました。もう一度「LINEへ展開」を押すと共有シートが開きます。');
+      return;
+    }
     console.error(err);
     var em=lineShareErrorMessage(err);
-    alert(em||'LINE展開の準備に失敗しました。時間をおいて再度お試しください。');
+    var detail=(err&&err.message&&['no_confirmed','empty pdf','no_pdf_module','no_output','no_share_id','no_url'].indexOf(err.message)<0)?'\n\n詳細: '+err.message:'';
+    alert((em||'LINE展開の準備に失敗しました。時間をおいて再度お試しください。')+detail);
   }).finally(function(){
     if(btn){btn.disabled=false;btn.textContent=orig;}
     refreshSharePanel();
@@ -5754,19 +5788,28 @@ function execAssignPdfBlobSave(out){
   if(btn){btn.disabled=true;btn.innerHTML='<svg class="ic"><use href="#i-printer"/></svg>PDF作成中…';}
   var frame=document.getElementById('print-frame');
   var overlay=document.getElementById('print-overlay');
+  var htmlOut=out||prepareAssignPdfOutput(true);
+  out=htmlOut||out;
+  /* 事前生成済み（キャッシュ）があれば即使う：iOSの共有シートはボタン押下直後でないと開けないため */
   var blobGen;
-  if(typeof TCB_generateAssignPdfBlobFromFrame==='function'&&frame&&overlay&&overlay.classList.contains('open')&&frame.contentDocument&&frame.contentDocument.body){
-    blobGen=TCB_generateAssignPdfBlobFromFrame(frame);
+  if(out&&_assignPdfCache.html===out.html&&_assignPdfCache.blob){
+    blobGen=Promise.resolve(_assignPdfCache.blob);
+  }else if(typeof TCB_generateAssignPdfBlobFromFrame==='function'&&frame&&overlay&&overlay.classList.contains('open')&&frame.contentDocument&&frame.contentDocument.body){
+    /* プレビューiframeからの取得に失敗したら、非表示iframeで作り直す */
+    blobGen=TCB_generateAssignPdfBlobFromFrame(frame).catch(function(frameErr){
+      console.warn('プレビューからのPDF生成に失敗。作り直します。',frameErr);
+      if(out&&typeof TCB_generateAssignPdfBlob==='function')return TCB_generateAssignPdfBlob(out.html);
+      throw frameErr;
+    });
   }else{
-    var htmlOut=out||prepareAssignPdfOutput(true);
-    if(!htmlOut){
+    if(!out){
       if(btn){btn.disabled=false;btn.innerHTML=orig;}
       return;
     }
-    out=htmlOut;
     blobGen=TCB_generateAssignPdfBlob(out.html);
   }
   blobGen.then(function(blob){
+    if(out){_assignPdfCache.html=out.html;_assignPdfCache.blob=blob;}
     return deliverAssignPdfBlob(blob,{
       fileName:(out&&out.fileName)||getAssignPdfFileName(),
       baseName:(out&&out.baseName)||getAssignPdfBaseName(),
@@ -5774,8 +5817,14 @@ function execAssignPdfBlobSave(out){
     });
   }).catch(function(err){
     if(err&&err.name==='AbortError')return;
+    if(err&&err.name==='NotAllowedError'){
+      /* iOS: 生成に時間がかかり共有シートを開く権限が切れた。PDFはキャッシュ済みなので次タップで即共有 */
+      setSharePanelStatus('PDFの準備ができました。もう一度「PDFを保存」を押すと共有シートが開きます。');
+      return;
+    }
     console.error(err);
-    alert('PDFの作成に失敗しました。時間をおいて再度お試しください。');
+    var detail=(err&&err.message)?'\n\n詳細: '+err.message:'';
+    alert('PDFの作成に失敗しました。時間をおいて再度お試しください。'+detail);
   }).finally(function(){
     if(btn){btn.disabled=false;btn.innerHTML=orig;}
   });
@@ -6932,7 +6981,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="html2pdf.bundle.min.js"></script>
+<script>
+/* ローカル同梱の html2pdf が読めなかった場合のみ CDN から再取得（オフラインキャッシュ未整備端末向け） */
+if(typeof html2pdf==='undefined'){
+  (function(){
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.crossOrigin='anonymous';
+    document.head.appendChild(s);
+  })();
+}
+</script>
 <script src="tcb-print-pdf.js"></script>
 <script src="tcb-sync-api.js"></script>
 <script src="tcb-swap-mgr.js"></script>

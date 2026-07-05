@@ -242,6 +242,7 @@ def build(target):
     out_dir = os.path.dirname(out_path) or '.'
     # index.html（道具MGR）用アセット＋保護者確認ページ（kakunin.html）用アセット
     assets = (
+        'html2pdf.bundle.min.js',
         'tcb-print-pdf.js', 'tcb-sync-api.js',
         'tcb-swap-mgr.js', 'tcb-swap-mgr.css',
         'tcb-push-mgr.js', 'tcb-push-mgr.css',
