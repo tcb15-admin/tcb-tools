@@ -166,6 +166,7 @@ def normalize_sync_token(raw):
     return s
 
 
+def build(target):
     """指定世代のHTMLを生成"""
     if target not in CONFIGS:
         print(f'[ERROR] 不明なターゲット: {target}')
