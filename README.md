@@ -10,7 +10,7 @@
 | 16期 | https://tcb15-admin.github.io/tcb-tools/boys16/ | [操作マニュアル PDF](https://tcb15-admin.github.io/tcb-tools/boys16/docs/TCB-MAN-016_道具割り振りツール_操作マニュアル_v1.5.pdf) |
 
 - リポジトリ: https://github.com/tcb15-admin/tcb-tools
-- 現行ツール版: **v1.7.2**（`template/config_boys15.json` / `config_boys16.json` の `TOOL_VERSION`）
+- 現行ツール版: **v1.7.3**（`template/config_boys15.json` / `config_boys16.json` の `TOOL_VERSION`）
 
 ## リポジトリ構成（概要）
 
