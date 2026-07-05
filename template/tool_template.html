@@ -56,6 +56,8 @@ h1 span{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;}
 a.hbtn{text-decoration:none;box-sizing:border-box;}
 a.hbtn:hover,a.hbtn:focus{color:#fff;background:rgba(255,255,255,.24);}
 .hbtn .ic{width:14px;height:14px;}
+.tcb-hdr-btn-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center;}
+.tcb-hdr-lbl-short{display:none;}
 /* 15期ヘッダ：紺のまま＋16期同様の赤下線 */
 html[data-cohort="15"] header{
   border-bottom:3px solid #c0000a;
@@ -100,10 +102,26 @@ html[data-cohort="15"] header{
 #agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}
 #agrid .mc,#ogrid .mc,#tgrid .tc2{flex-wrap:nowrap;gap:4px;}
 #agrid .cn,#ogrid .cn,#tgrid .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-break:normal;min-width:0;}
-/* スマホ幅は氏名がはみ出しやすいので、内側余白と文字を詰めて（例：伊藤（櫂）など）1行表示を維持 */
+/* スマホ幅は氏名を大きく・2列固定で視認性を確保 */
 @media (max-width:520px){
-  #agrid .mc,#ogrid .mc,#tgrid .tc2{padding-left:7px;padding-right:7px;}
-  #agrid .cn,#ogrid .cn,#tgrid .cn{font-size:11px;}
+  #agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  #agrid .mc,#ogrid .mc,#tgrid .tc2{
+    padding:12px 10px;
+    min-height:52px;
+    align-items:center;
+  }
+  #agrid .cn,#ogrid .cn,#tgrid .cn{
+    font-size:15px;
+    font-weight:800;
+    line-height:1.25;
+  }
+  #agrid .cv,#ogrid .cv,#tgrid .cv{font-size:10px;padding:2px 5px;}
+  #agrid .rest-badge,#ogrid .rest-badge,#tgrid .rest-badge,
+  #agrid .coach-badge,#ogrid .coach-badge,#tgrid .coach-badge,
+  #agrid .master-excl-badge,#ogrid .master-excl-badge,#tgrid .master-excl-badge{font-size:9px;}
 }
 .mc{display:flex;align-items:center;gap:4px;padding:9px 10px;border-radius:12px;cursor:pointer;border:1px solid var(--bdr);background:#fff;user-select:none;min-height:var(--tap);flex-wrap:wrap;}
 .mc:active{opacity:.7;}
@@ -651,7 +669,27 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   header h1{font-size:14px;min-width:0;}
   header h1 span{font-size:9px;line-height:1.35;}
   .tcb-cohort-chip{font-size:10px;padding:6px 10px;}
-  header .tcb-hdr-actions{width:100%;margin-left:0!important;flex-direction:row!important;justify-content:flex-end;}
+  header .tcb-hdr-actions{width:100%;margin-left:0!important;flex-direction:column!important;align-items:stretch!important;}
+  header .tcb-hdr-btn-row{
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    gap:5px;
+    overflow-x:auto;
+    max-width:100%;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  header .tcb-hdr-btn-row::-webkit-scrollbar{display:none;}
+  header .tcb-hdr-btn-row .hbtn{
+    padding:7px 9px;
+    font-size:11px;
+    min-height:36px;
+    flex-shrink:0;
+  }
+  header .tcb-hdr-btn-row .hbtn .ic{width:13px;height:13px;}
+  #btn-pwa-install .tcb-hdr-lbl-full{display:none;}
+  #btn-pwa-install .tcb-hdr-lbl-short{display:inline;}
   .tcb-seed-mode-banner{font-size:11px;line-height:1.5;padding:10px;}
   .steps{margin-bottom:12px;}
   .si .sl{font-size:10px;}
@@ -714,8 +752,13 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   }
   .mc,
   .tc2{
-    padding:10px 10px;
+    padding:12px 10px;
   }
+  .tninp{
+    font-size:16px;
+    padding:12px 14px;
+  }
+  .tng label{font-size:13px;}
   .nav{
     flex-direction:column;
     gap:8px;
@@ -913,11 +956,11 @@ html{color-scheme:light;}
   <span class="tcb-cohort-chip" aria-label="この画面は{{COHORT_LABEL}}の道具割振りツールです">{{COHORT_LABEL}}</span>
   <h1>道具割振りツール<span>{{TEAM_NAME}}　｜　{{TEAM_SLOGAN}}</span></h1>
   <div class="tcb-hdr-actions" style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+    <div class="tcb-hdr-btn-row">
       <a class="hbtn tcb-hdr-manual-link" id="hdr-manual-link" href="#" target="_blank" rel="noopener noreferrer" hidden aria-label="操作マニュアル（PDF）を開く"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg>マニュアル</a>
       <button class="hbtn tcbsw-hbtn" id="btn-swap-reports" style="display:none;">&#128236; 報告<span class="tcbsw-badge" id="swap-badge" hidden>0</span></button>
       <button class="hbtn tcbpush-hbtn" id="btn-push-notify" style="display:none;" title="新着交代報告をプッシュ通知で受け取る">&#128276; 通知</button>
-      <button class="hbtn tcb-pwa-hbtn" id="btn-pwa-install" type="button" title="iPhone/iPad のホーム画面に追加する手順">&#128242; ホーム画面に追加</button>
+      <button class="hbtn tcb-pwa-hbtn" id="btn-pwa-install" type="button" title="iPhone/iPad のホーム画面に追加する手順"><span class="tcb-hdr-lbl-full">&#128242; ホーム画面に追加</span><span class="tcb-hdr-lbl-short">&#128242; 追加</span></button>
       <button class="hbtn" id="btn-history"><svg class="ic"><use href="#i-clock"/></svg>履歴</button>
       <button class="hbtn" id="btn-master"><svg class="ic"><use href="#i-gear"/></svg>マスタ</button>
     </div>
@@ -4927,6 +4970,81 @@ function resolveAssignPdfBlob(out){
     return blob;
   });
 }
+/** LINE/PDF 共有（iOS は本文コピーと PDF を分離して失敗を防ぐ） */
+function deliverLineShareBundle(opts){
+  opts=opts||{};
+  var msg=opts.msg||'';
+  var blob=opts.blob;
+  var out=opts.out||{};
+  var pdfOn=!!opts.pdfOn;
+  var lineOn=!!opts.lineOn;
+  var fileName=out.fileName||getAssignPdfFileName();
+  var baseName=out.baseName||getAssignPdfBaseName();
+
+  if(isIosLikeBrowser()){
+    var chain=Promise.resolve();
+    if(lineOn&&msg){
+      chain=chain.then(function(){return copyTextSilent(msg);});
+    }
+    if(pdfOn&&blob){
+      chain=chain.then(function(){
+        return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:assignShareFilesSupported()});
+      });
+    }else if(pdfOn&&!blob&&!lineOn){
+      return Promise.reject(new Error('empty pdf'));
+    }
+    return chain.then(function(){
+      if(lineOn&&msg)setSharePanelStatus(shareLinePasteHint());
+      else if(pdfOn)setSharePanelStatus('PDFの共有シートを開きました。');
+    });
+  }
+
+  var skipWebShare=isMacDesktop()&&lineOn&&!pdfOn;
+  if(!skipWebShare&&typeof navigator.share==='function'){
+    if(blob&&msg&&navigator.canShare){
+      var file=new File([blob],fileName,{type:'application/pdf'});
+      var payload={title:baseName,text:msg};
+      try{
+        if(navigator.canShare(Object.assign({},payload,{files:[file]}))){
+          payload.files=[file];
+          return navigator.share(payload);
+        }
+      }catch(e){/* canShare 失敗時はフォールバックへ */ }
+    }
+    if(blob&&navigator.canShare){
+      try{
+        var f2=new File([blob],fileName,{type:'application/pdf'});
+        if(navigator.canShare({files:[f2]})){
+          return navigator.share({files:[f2],title:baseName});
+        }
+      }catch(e2){}
+    }
+    if(msg&&navigator.canShare&&navigator.canShare({text:msg})){
+      return navigator.share({text:msg});
+    }
+  }
+  if(msg){
+    return copyTextSilent(msg).then(function(){
+      if(pdfOn&&blob){
+        return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:assignShareFilesSupported()});
+      }
+      setSharePanelStatus(shareLinePasteHint());
+    });
+  }
+  if(pdfOn&&blob){
+    return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:true});
+  }
+  return Promise.resolve();
+}
+function lineShareErrorMessage(err){
+  if(!err)return 'LINE展開の準備に失敗しました。時間をおいて再度お試しください。';
+  if(err.message==='no_confirmed')return null;
+  if(err.message==='empty pdf')return 'PDFの生成に失敗しました。PDFのチェックを外して本文のみ送るか、時間をおいて再度お試しください。';
+  if(err.message==='no_pdf_module')return 'PDF機能を読み込めませんでした。ページを再読み込みしてください。';
+  if(err.message==='no_output')return '印刷データの準備に失敗しました。展開画面を閉じて開き直してください。';
+  if(err.message==='no_share_id'||err.message==='no_url')return '保護者確認URLの発行に失敗しました。通信状況を確認してください。';
+  return 'LINE展開の準備に失敗しました。時間をおいて再度お試しください。';
+}
 /** 共有シートへ PDF＋本文をまとめて展開。送信時は端末にも自動保存 */
 function executeLineShare(){
   if(!R){alert('先に割振りを実行してください。');return;}
@@ -4962,49 +5080,22 @@ function executeLineShare(){
     }
     var tasks=[];
     if(pdfOn){
-      if(typeof TCB_generateAssignPdfBlob!=='function')throw new Error('no_pdf_module');
-      tasks.push(resolveAssignPdfBlob(out).then(function(blob){
-        return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:false}).then(function(){
-          return blob;
-        });
+      if(typeof TCB_generateAssignPdfBlob!=='function'){throw new Error('no_pdf_module');}
+      tasks.push(resolveAssignPdfBlob(out).catch(function(err){
+        console.warn('PDF生成失敗',err);
+        if(!lineOn&&!urlOn)throw err;
+        return null;
       }));
     }else{tasks.push(Promise.resolve(null));}
     return Promise.all(tasks).then(function(arr){
       var blob=arr[0];
-      var skipWebShare=isMacDesktop()&&lineOn&&!pdfOn;
-      if(!skipWebShare&&typeof navigator.share==='function'){
-        if(blob){
-          var file=new File([blob],out.fileName,{type:'application/pdf'});
-          var payload={title:out.baseName};
-          if(msg)payload.text=msg;
-          if(navigator.canShare&&navigator.canShare(Object.assign({},payload,{files:[file]}))){
-            payload.files=[file];
-            return navigator.share(payload);
-          }
-        }
-        if(msg&&navigator.canShare&&navigator.canShare({text:msg})){
-          return navigator.share({text:msg});
-        }
-      }
-      if(msg){
-        return copyTextSilent(msg).then(function(){
-          if(pdfOn&&blob){
-            return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:assignShareFilesSupported()});
-          }
-          setSharePanelStatus(shareLinePasteHint());
-        });
-      }
-      if(pdfOn&&blob){
-        return deliverAssignPdfBlob(blob,{fileName:out.fileName,baseName:out.baseName,useShareFirst:true});
-      }
+      return deliverLineShareBundle({msg:msg,blob:blob,out:out,pdfOn:pdfOn,lineOn:lineOn});
     }).then(function(){
       if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.clearRevisedNotice==='function'){
         TCB_SwapMgr.clearRevisedNotice();
       }
       refreshSharePanel();
-      if(isMacDesktop()&&msg){
-        setSharePanelStatus(shareLinePasteHint());
-      }else{
+      if(!isIosLikeBrowser()&&!isMacDesktop()&&msg){
         setSharePanelStatus('LINE展開の準備ができました。共有先で送信を完了してください。');
       }
     });
@@ -5018,7 +5109,8 @@ function executeLineShare(){
       return;
     }
     console.error(err);
-    alert('LINE展開の準備に失敗しました。時間をおいて再度お試しください。');
+    var em=lineShareErrorMessage(err);
+    alert(em||'LINE展開の準備に失敗しました。時間をおいて再度お試しください。');
   }).finally(function(){
     if(btn){btn.disabled=false;btn.textContent=orig;}
     refreshSharePanel();
