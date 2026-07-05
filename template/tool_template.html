@@ -753,6 +753,7 @@ html{color-scheme:light;}
     --ink-accent-text:#9fb4e8;
     --ink-info:#cdd6ec;
     --blue2:#7a9fd8;
+    --blue:#7a9fd8;
     --ta:#9fb4e8;
     --tb:#ff9ea2;
   }
@@ -828,7 +829,11 @@ html{color-scheme:light;}
   .io-btn{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
   .io-btn.imp,
   .master-section h3 .io-btn.imp,
-  button.io-btn.imp{border-color:var(--ui-accent-bd);color:#9fb4e8;-webkit-text-fill-color:#9fb4e8;}
+  button.io-btn.imp{
+    border-color:var(--ui-accent-bd);
+    color:#9fb4e8!important;
+    -webkit-text-fill-color:#9fb4e8!important;
+  }
   .io-btn.exp{border-color:rgba(48,209,88,.45);color:var(--grn);}
   .ibtn{background:rgba(159,180,232,.16);border-color:rgba(159,180,232,.55);color:var(--ink-accent-text);}
   .p1-from-prev-btn{background:rgba(159,180,232,.16);border-color:var(--ui-accent-bd);color:var(--ink-accent-text);}
@@ -841,6 +846,8 @@ html{color-scheme:light;}
   .tcb-hist-mo-scroll{background:var(--card);border-color:var(--bdr);}
   .tcb-hist-mo-table td.tcb-hist-mo-td-tool{background:var(--surface-2);color:var(--txt);}
   .tcb-hist-mo-table th.tcb-hist-mo-th-tool{background:#3a4a6a;}
+  .tcb-hist-mo-openbtn,.tcb-hist-mo-tb-pdf{background:#3f5bd0;}
+  .bdg{background:#3f5bd0;}
   /* STEP3 行ハイライト（淡色→ダーク調） */
   tr.p3-carry-keep-row{background:rgba(48,209,88,.14)!important;}
   tr.p3-carry-changed-row{background:rgba(255,159,10,.16)!important;}
