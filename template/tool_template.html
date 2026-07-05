@@ -1951,7 +1951,11 @@ function syncEnabled(){
   return !!SYNC_CLIENT;
 }
 function syncHeadersReady(){
-  return !!(SYNC_API_BASE_URL&&SYNC_API_TOKEN&&COHORT_KEY);
+  /* トークンが未注入（ビルド時に環境変数 SYNC_API_TOKEN 未設定）のプレースホルダのままなら、
+     API全滅状態で同期UIを出さないよう同期を無効化する */
+  var tok=String(SYNC_API_TOKEN||'');
+  if(!tok||tok.indexOf('__')===0||tok.indexOf('{{')>=0)return false;
+  return !!(SYNC_API_BASE_URL&&COHORT_KEY);
 }
 function setHistoryCache(hist){
   try{ _ls.set(LS_HIST,JSON.stringify(Array.isArray(hist)?hist:[])); }catch(e){}

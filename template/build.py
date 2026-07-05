@@ -197,6 +197,11 @@ def build(target):
     _tok = normalize_sync_token(os.environ.get('SYNC_API_TOKEN', ''))
     if _tok:
         config['SYNC_API_TOKEN'] = _tok
+    _cfg_tok = str(config.get('SYNC_API_TOKEN', '') or '')
+    if not _cfg_tok or _cfg_tok.startswith('__'):
+        print(f'[WARN] {target}: SYNC_API_TOKEN が未設定（プレースホルダのまま）です。'
+              'この出力ではクラウド同期が無効になります。'
+              "配布用は SYNC_API_TOKEN='…' python3 template/build.py で再ビルドしてください。")
 
     with open(TEMPLATE_FILE, encoding='utf-8') as f:
         html = f.read()

@@ -23,16 +23,17 @@
 1.8	2026年7月4日	現地の実保有に補正（openActualHoldModal／saveActualHoldAdjust）：試合前・最小入れ替え調整の開始時に、前回確定と実態がズレた道具を実保有者へ手動補正し、seedBaseSnap.map と carryAdjustRefSnap を実態基準に更新。入れ替え案内（LINE／PDF）を実態との差分で生成。SYNC_API_TOKEN ローテーション対応（config はプレースホルダ＝ビルド時注入）／ツール v1.6.8	15期管理担当
 1.9	2026年7月5日	展開情報確認画面（print-overlay／tcb-share-panel）：PDF プレビュー＋送る内容（LINE本文・保護者確認URL・PDF）選択＋LINEへ展開（Web Share API）／PDFを保存（端末自動保存）／公開を停止。STEP1「前回の結果を元に割振る」（btn-p1-from-prev）、履歴「前回の結果を元に割振り開始」、STEP3「最小変更で再調整」（btn-reedit-from-prev）。UI 表記を「前回の結果を元に調整」に統一。保護者確認ページ・交代報告（btn-swap-reports）。班跨ぎ受け渡し特記（p3-cross-handoff-notice）。道具故障フラグ（broken）。PWA manifest。ダークモード CSS 変数上書き／ツール v1.7.2	15期管理担当
 1.10	2026年7月5日	ヘッダー操作マニュアルリンク（hdr-manual-link／config MANUAL_URL・build.py プレースホルダ）／ツール v1.7.3	15期管理担当
+1.11	2026年7月5日	html2pdf.bundle.min.js を同梱（読込失敗時のみ CDN フォールバック）／LINE共有の iOS 再タップ対応（_lineShareReady・PDF Blob キャッシュ）と割振り・オプション変更時のキャッシュ無効化（invalidateShareCaches）／モーダル統合（tcb-scroll-modal・body スクロールロック・swap-modal/print-overlay を共通管理・hist-month-overlay z-index 525）／マスタ削除の確認モーダル（tcbMasterConfirm）・未保存で閉じた際の自動復元（revertMasterToSessionOpenIfDirty）・クラウド loadState 適用前の未保存確認／前回基準モード中のパターン変更確認（confirmPatChangeInSeedMode）／道具0件時の runAlgo ガード／グループ名 esc 徹底／STEP3 ボタン「実施確定」に統一／build.py SYNC_API_TOKEN プレースホルダ警告・未注入時は同期無効化（syncHeadersReady）／Web Push（tcb-push-mgr.js・sw.js）・PWAインストール導線（tcb-pwa-install.js）／ツール v1.7.4	15期管理担当
 
 1. システム概要
 項目	内容
-ファイル形式	単一 HTML（tool_template.html を config でビルド）＋同梱 tcb-print-pdf.js・tcb-sync-api.js。html2pdf.js は CDN 読込
+ファイル形式	単一 HTML（tool_template.html を config でビルド）＋同梱 tcb-print-pdf.js・tcb-sync-api.js・tcb-swap-mgr.js・tcb-push-mgr.js・sw.js ほか。html2pdf.js は同梱（html2pdf.bundle.min.js。読込失敗時のみ CDN フォールバック）
 動作環境	スマートフォン・PC・タブレット（主要ブラウザ）。Web Share API は端末により未対応
 データ保存	Cloudflare D1（マスタの正・同期 ON 時）＋ localStorage（端末内キャッシュ・履歴・実施確定メタ）。GitHub master.json はビルド用／同期 OFF 時の代替
 認証	パスワード認証（djb2 ベース簡易ハッシュ・初期 PW は世代ごと config）
 ホスティング	GitHub Pages（tcb15-admin / tcb-tools）
 チームカラー	濃紺（#122050）・赤（#C0000A）・白。16 期は html.theme-b16 でヘッダ等の配色が変化
-バージョン	v1.7.3 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み）
+バージョン	v1.7.4 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み）
 操作マニュアル	ヘッダ「マニュアル」→ config MANUAL_URL（15期は GitHub Pages 上の PDF）。未設定世代は非表示
 世代管理	boys15 / boys16（テンプレート＋config ビルド方式）
 UI_SIMPLE	config で true の世代は html.tcb-ui-simple を付与し、.tcb-ui-advanced ブロックを非表示（公平再分配・履歴1年 PDF・デフォルト保存読込等）
@@ -78,7 +79,7 @@ cloudflare-sync/	Worker ソース・D1 スキーマ
 {{SYNC_API_BASE_URL}}	Worker オリジン
 {{SYNC_API_TOKEN}}	Bearer トークン（ビルド時注入推奨）
 {{MANUAL_URL}}	操作マニュアル PDF URL（空ならリンク非表示）	boys15/docs/…v1.5.pdf
-{{TOOL_VERSION}}	表示バージョン	1.7.3
+{{TOOL_VERSION}}	表示バージョン	1.7.4
 {{HTML_THEME_CLASS}}	body 用クラス	15期は tcb-ui-simple、16期は theme-b16 tcb-ui-simple
 {{COHORT_KEY}}	/data-cohort 等	15／16
 {{COHORT_LABEL}}	表示用ラベル	15期／16期
@@ -155,9 +156,9 @@ ${prefix}CarryoutConfirmed	実施確定メタ（byDate 等）
 ${prefix}Auth（sessionStorage）	ログイン状態
 
 6. 外部依存
-html2pdf.js 0.10.1（cdnjs）。オフライン時は PDF 生成が失敗しうる。
+html2pdf.js 0.10.1 は各世代フォルダに同梱（html2pdf.bundle.min.js。ビルドでコピー）。同梱版の読込に失敗した場合のみ cdnjs からフォールバック取得する。オフラインでも同梱版が読めれば PDF 生成可能。
 
 7. セキュリティ（運用上の注意）
 SYNC_API_TOKEN は Worker secret と HTML 内 Bearer で一致させる。Git への平文コミットは避け build 時注入を推奨。クライアント埋め込み Bearer は URL 入手者がソースから読み取りうる（Cloudflare Access 等は将来検討）。
 
-最終更新：2026年7月4日
+最終更新：2026年7月5日

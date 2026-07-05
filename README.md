@@ -11,7 +11,7 @@
 
 - リポジトリ: https://github.com/tcb15-admin/tcb-tools
 - 現行ツール版: **v1.7.4**（`template/config_boys15.json` の `TOOL_VERSION`）
-- 15期マニュアル版: **1.12**（`boys15/docs/TCB-MAN-001_…v1.5.pdf`）
+- 15期マニュアル版: **1.13**（`boys15/docs/TCB-MAN-001_…v1.5.pdf`）
 - 15期: 交代報告の **Web Push 通知**（MGR・🔔）は v1.7.4 から（要 VAPID 設定・`cloudflare-sync/README.md` §14）
 
 ## リポジトリ構成（概要）
@@ -46,9 +46,9 @@ python3 template/build.py
 
 | 文書 | 版 | 場所 |
 |------|-----|------|
-| TCB-OPS-001 GitHub 運用手順書 | 1.7 | [boys15/docs/](./boys15/docs/) |
-| TCB-SPEC-001 仕様書 | 1.9 | [boys15/docs/](./boys15/docs/) |
-| TCB-MAN-001 ユーザーマニュアル | 1.10（[PDF](./boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf)・利用シーン別フロー） | [boys15/docs/](./boys15/docs/) |
+| TCB-OPS-001 GitHub 運用手順書 | 1.9 | [boys15/docs/](./boys15/docs/) |
+| TCB-SPEC-001 仕様書 | 1.11 | [boys15/docs/](./boys15/docs/) |
+| TCB-MAN-001 ユーザーマニュアル | 1.13（[PDF](./boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf)・利用シーン別フロー） | [boys15/docs/](./boys15/docs/) |
 | TCB-MAN-016 16期操作マニュアル | 1.10（**更新停止予定**・16期未使用） | [boys16/docs/](./boys16/docs/) |
 
 16期マニュアル PDF の再生成:
@@ -57,9 +57,9 @@ python3 template/build.py
 cd boys16/docs/scripts && npm install && node build-pdf.mjs
 ```
 
-## 主な機能（v1.7.2）
+## 主な機能（v1.7.4）
 
-- **展開情報の確認・LINE送信** … STEP3 から一画面で PDF プレビュー、送る内容（LINE本文・保護者確認URL・PDF）の選択、**LINEへ展開**（Web Share API）または **PDFを保存**。PDF 送信時は端末にも自動保存（v1.7.2）
+- **展開情報の確認・LINE送信** … STEP3 から一画面で PDF プレビュー、送る内容（LINE本文・保護者確認URL・PDF）の選択、**LINEへ展開**（Web Share API）または **PDFを保存**。端末に残す場合は共有シートの「ファイルに保存」（v1.7.4 で html2pdf 同梱化・iOS 再タップ対応）
 - **前回の結果を元に調整** … STEP1 上部の「前回の結果を元に割振る」または履歴詳細から開始。欠席・当番・班替えの差分だけ自動調整（v1.7.0〜）
 - **最小変更で再調整** … STEP3 からいま表示中の結果を基準に再調整（v1.7.0）
 - **保護者確認ページ** … 実施確定後、閲覧専用 URL を LINE 本文と一緒に展開。保護者からの**交代報告**を道具 MGR が承認／却下（v1.7.0）
@@ -70,6 +70,7 @@ cd boys16/docs/scripts && npm install && node build-pdf.mjs
 - **メンバー対象外** … 休部・コーチ・14期帯同・兄弟所属。マスタの**故障**フラグで割振り表に「故障」タグ
 - **PDF** … A4 1ページ固定、ファイル名 `mmdd_道具割振り｜東海中央XX期.pdf`。ダークモード対応 UI（v1.7.1〜）
 - **PWA** … ホーム画面追加用アイコン・manifest（v1.6.9〜）
+- **Web Push 通知** … 交代報告の新着をヘッダ「🔔 通知」ONでプッシュ通知（v1.7.4〜・要 VAPID 設定）
 - **Cloudflare 同期** … マスタ・履歴の正は Worker + D1（推奨）
 - **UI_SIMPLE**（15/16期） … 公平再分配・履歴1年 PDF 等の上級機能は非表示
 

@@ -10,7 +10,7 @@
 
 | ファイル | 形式 | 用途 |
 |----------|------|------|
-| **TCB-MAN-001_…v1.5.pdf** | PDF | **正本**（配布・印刷・ブックマーク）。中身は版 **1.12**（2026-07-05、ツール v1.7.3・フロー図PDF改ページ対策） |
+| **TCB-MAN-001_…v1.5.pdf** | PDF | **正本**（配布・印刷・ブックマーク）。中身は版 **1.13**（2026-07-05、ツール v1.7.4・スマホPDF/LINE共有の安定化・マスタ削除確認） |
 | [TCB-MAN-001_…v1.5.md](./TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.md) | Markdown | 編集用ソース（フロー図・スクショ含む） |
 | [TCB-MAN-001_…source.txt](./TCB-MAN-001_ユーザーマニュアル_v1.5_source.txt) | テキスト | 改訂履歴・簡易参照用 |
 | [images/](./images/) | PNG | スクショ（**boys15 実画面**） |
@@ -21,8 +21,8 @@
 
 | 文書番号 | ファイル | 版 | 用途 |
 |----------|----------|-----|------|
-| TCB-OPS-001 | [TCB-OPS-001_GitHub運用手順書_v1.7_source.txt](./TCB-OPS-001_GitHub運用手順書_v1.7_source.txt) | 1.7 | GitHub Pages・ビルド・マスタ同期の運用 |
-| TCB-SPEC-001 | [TCB-SPEC-001_仕様書_v1.5_source.txt](./TCB-SPEC-001_仕様書_v1.5_source.txt) | 1.9 | 開発・改修時の技術仕様 |
+| TCB-OPS-001 | [TCB-OPS-001_GitHub運用手順書_v1.7_source.txt](./TCB-OPS-001_GitHub運用手順書_v1.7_source.txt) | 1.9 | GitHub Pages・ビルド・マスタ同期の運用 |
+| TCB-SPEC-001 | [TCB-SPEC-001_仕様書_v1.5_source.txt](./TCB-SPEC-001_仕様書_v1.5_source.txt) | 1.11 | 開発・改修時の技術仕様 |
 
 ## 再ビルド手順
 
