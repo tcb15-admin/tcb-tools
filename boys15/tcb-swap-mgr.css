@@ -53,5 +53,6 @@
   .tcbsw-btn-apply{background:#3a4a8a;}
   .tcbsw-reject-form{background:#2c2c2e;border-color:#38383a;}
   .tcbsw-reject-label,.tcbsw-reject-opt{color:#f5f5f7;}
-  .tcbsw-reject-text{background:#1c1c1e;color:#f5f5f7;border-color:#38383a;}
+  .tcbsw-btn-reject{border-color:rgba(255,90,95,.45);color:#ff9ea2;}
+  .tcbsw-reject-cancel{border-color:#38383a;color:#a1a1ac;}
 }
