@@ -129,8 +129,7 @@ html[data-cohort="15"] header{
   }
   #tgrid .cn{font-size:14px;}
   #skipgrid.mgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-  #skipgrid .mc{padding:10px 8px;min-height:48px;align-items:center;}
-  #skipgrid .cn{font-size:clamp(12px,3.6vw,15px);font-weight:800;line-height:1.2;}
+  #skipgrid .mc{padding:8px 8px;min-height:44px;align-items:center;}
   #agrid .cv,#ogrid .cv,#tgrid .cv{font-size:10px;padding:2px 5px;}
   #agrid .rest-badge,#ogrid .rest-badge,#tgrid .rest-badge,
   #agrid .coach-badge,#ogrid .coach-badge,#tgrid .coach-badge,
@@ -214,7 +213,12 @@ tr.p3-multi-row{background:#fff8e1;}
 .shd2{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:9px;margin:12px 0 8px;font-weight:900;font-size:14px;}
 .shd2.A{background:var(--ta-bg);color:var(--ta);border-left:4px solid var(--ta);}
 .shd2.B{background:var(--tb-bg);color:var(--tb);border-left:4px solid var(--tb);}
-#skipgrid .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:700;flex:1;min-width:0;line-height:1.2;}
+#skipgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(156px,1fr));gap:8px;}
+#skipgrid .mc{flex-wrap:nowrap;align-items:center;padding:8px 8px;min-height:44px;}
+#skipgrid .tcb-skip-cell{flex:1;min-width:0;}
+#skipgrid .tcb-skip-lbl{display:flex;align-items:center;gap:3px;width:100%;min-width:0;}
+#skipgrid .tcb-skip-base{white-space:nowrap;min-width:0;flex:1 1 auto;font-size:13px;font-weight:700;line-height:1.15;}
+.tcb-circled-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;min-width:1.45em;height:1.45em;padding:0 0.22em;box-sizing:border-box;border:1.5px solid currentColor;border-radius:999px;font-size:11px;font-weight:900;line-height:1;letter-spacing:0;font-variant-numeric:tabular-nums;}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
 .sc{border-radius:9px;padding:10px;border:2px solid var(--bdr);}
 .sc.ht{border-color:var(--blue2);background:#f0f7ff;}
@@ -1896,6 +1900,42 @@ function toolPrefixAndCircled(name){
   }
   return {prefix:s, num:0, hasCirc:false};
 }
+/** 道具名表示：丸数字を⑩以降と同系の数字＋枠で統一（番号を末尾に分離して省略しない） */
+function formatToolLabelHtml(name){
+  var info=toolPrefixAndCircled(name);
+  if(!info.hasCirc){
+    return '<span class="tcb-skip-lbl"><span class="tcb-skip-base">'+esc(name)+'</span></span>';
+  }
+  return '<span class="tcb-skip-lbl">'
+    +'<span class="tcb-skip-base">'+esc(info.prefix)+'</span>'
+    +'<span class="tcb-circled-num" aria-hidden="true">'+info.num+'</span>'
+    +'</span>';
+}
+var _skipGridFitT=0;
+function fitSkipGridFonts(){
+  var g=document.getElementById('skipgrid');
+  if(!g)return;
+  g.querySelectorAll('.tcb-skip-lbl').forEach(function(lbl){
+    var base=lbl.querySelector('.tcb-skip-base');
+    var num=lbl.querySelector('.tcb-circled-num');
+    if(!base)return;
+    var cell=lbl.closest('.tcb-skip-cell')||lbl.parentElement;
+    var maxW=cell?cell.clientWidth:0;
+    if(maxW<=0)return;
+    var maxFs=15, minFs=8, fs=maxFs;
+    base.style.fontSize=fs+'px';
+    if(num)num.style.fontSize=Math.max(minFs,Math.round(fs*0.78))+'px';
+    while(fs>minFs&&lbl.scrollWidth>maxW){
+      fs--;
+      base.style.fontSize=fs+'px';
+      if(num)num.style.fontSize=Math.max(minFs,Math.round(fs*0.78))+'px';
+    }
+  });
+}
+window.addEventListener('resize',function(){
+  clearTimeout(_skipGridFitT);
+  _skipGridFitT=setTimeout(fitSkipGridFonts,120);
+});
 function sortMasterTools(){
   TL.sort(function(a,b){
     var pa=toolPrefixAndCircled(a.name), pb=toolPrefixAndCircled(b.name);
@@ -4094,7 +4134,7 @@ function buildSkipGrid(){
     var c=document.createElement('div');
     c.className='mc'+(skipS[t.name]?' abs':'');
     c.style.cssText='border-color:'+(skipS[t.name]?'var(--red)':'var(--bdr)')+';background:'+(skipS[t.name]?'var(--red-l)':'var(--surface-2)')+';';
-    c.innerHTML='<span class="cn">'+esc(t.name)+'</span>';
+    c.innerHTML='<span class="tcb-skip-cell">'+formatToolLabelHtml(t.name)+'</span>';
     if(skipS[t.name]){
       c.innerHTML+='<span class="rest-badge" style="background:var(--red);">除外</span>';
     }
@@ -4106,6 +4146,7 @@ function buildSkipGrid(){
     })(t,c);
     g.appendChild(c);
   });
+  requestAnimationFrame(function(){requestAnimationFrame(fitSkipGridFonts);});
 }
 function buildOGrid(){
   var g=document.getElementById('ogrid'); if(!g)return; g.innerHTML='';
