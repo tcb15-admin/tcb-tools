@@ -84,13 +84,15 @@ html[data-cohort="15"] header{
 .p1-renshu-split-wrap{display:none;margin:0 0 14px;padding:10px 12px;background:#fff8e1;border-radius:8px;border:1px solid #ffe082;font-size:13px;}
 .p1-renshu-split-lbl{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:700;color:#5d4037;line-height:1.5;}
 .p1-renshu-split-lbl input{flex-shrink:0;width:20px;height:20px;margin-top:2px;cursor:pointer;accent-color:var(--ink-heading);}
-.p1-mem-unpublished-wrap{display:none;margin:0;padding:10px 8px;background:#f0f4f8;border-radius:var(--r-ctl);border:1px solid #cfd8dc;font-size:12px;box-sizing:border-box;min-height:var(--tap);}
-#tnarea .tnrow .p1-mem-unpublished-wrap{grid-column:1;grid-row:2;margin:0;}
-.p1-mem-unpublished-lbl{display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;color:var(--ink-heading);line-height:1.25;width:100%;}
-.p1-mem-unpublished-lbl input{flex-shrink:0;width:18px;height:18px;margin:0;cursor:pointer;accent-color:var(--ink-heading);}
-.p1-mem-unpublished-txt{flex:1;min-width:0;line-height:1.25;}
+.p1-mem-unpublished-wrap{display:none;margin:0;padding:3px 5px;background:#f0f4f8;border-radius:8px;border:1px solid #cfd8dc;font-size:11px;box-sizing:border-box;flex-shrink:0;}
+.p1-mem-unpublished-lbl{display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:700;color:var(--ink-heading);line-height:1.2;white-space:nowrap;}
+.p1-mem-unpublished-lbl input{flex-shrink:0;width:16px;height:16px;margin:0;cursor:pointer;accent-color:var(--ink-heading);}
+.p1-mem-unpublished-txt{line-height:1.2;font-size:10px;}
 .tnrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
 .tng{display:flex;align-items:center;gap:6px;min-width:0;}
+.tng-a-row{align-items:stretch;}
+.tng-a-inner{flex:1;min-width:0;display:flex;align-items:center;gap:4px;border:1px solid var(--ta-bd);border-radius:var(--r-ctl);background:#fff;padding-right:4px;overflow:hidden;}
+.tng-a-inner .tninp.A{flex:1;min-width:0;border:none;border-radius:0;background:transparent;padding:11px 8px;}
 .tng label{font-size:12px;font-weight:700;white-space:nowrap;}
 .tninp{padding:11px 12px;border:1px solid var(--bdr);border-radius:var(--r-ctl);font-size:14px;font-family:inherit;width:100%;min-height:var(--tap);background:#fff;}
 .tninp.A{border-color:var(--ta-bd);color:var(--ta);}
@@ -106,7 +108,6 @@ html[data-cohort="15"] header{
 #agrid .cn,#ogrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;}
 #tgrid .tc2{flex-direction:row;align-items:center;flex-wrap:nowrap;gap:4px;}
 #tgrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;font-size:13px;line-height:1.25;}
-#tgrid .tcb-name-tip{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 #tgrid .tbdg{max-width:none;font-size:10px;min-width:26px;height:24px;padding:0 4px;}
 /* スマホ幅は氏名を大きく・2列固定で視認性を確保 */
 @media (max-width:520px){
@@ -207,10 +208,11 @@ tr.rB td{border-left:3px solid var(--tb);}
 .p3-line-share-btn:active{opacity:.92;}
 .p3-line-share-btn:disabled{opacity:.5;cursor:not-allowed;}
 .p3-line-share-ic{width:26px;height:26px;flex-shrink:0;fill:currentColor;}
-.p3-confirm-wrap{margin:0;padding-top:2px;position:relative;width:100%;}
-.p3-confirm-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;padding-right:36px;border:none;border-radius:8px;background:#e65100;color:#fff;font-size:14px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;letter-spacing:-.2px;box-shadow:0 4px 14px rgba(230,81,0,.22);width:100%;max-width:100%;white-space:nowrap;box-sizing:border-box;}
+.p3-confirm-wrap{margin:0;position:relative;width:100%;box-sizing:border-box;}
+.p3-confirm-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 40px 12px 16px;border:none;border-radius:8px;background:#e65100;color:#fff;font-size:15px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;letter-spacing:-.2px;box-shadow:0 4px 14px rgba(230,81,0,.22);width:100%;max-width:100%;white-space:nowrap;box-sizing:border-box;}
 .p3-confirm-btn:active{opacity:.92;}
-.p3-confirm-wrap .tcb-tip{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:1;}
+.p3-confirm-wrap .tcb-tip{position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:1;}
+.p3-result-card-foot{margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr);width:100%;box-sizing:border-box;}
 .tgA{background:var(--ta-bg);color:var(--ta);border:1px solid var(--ta-bd);}
 .tgB{background:var(--tb-bg);color:var(--tb);border:1px solid var(--tb-bd);}
 /* 割振り結果 表：道具名は可変幅、タグ列は固定スロットで縦揃え、写真ボタンは右端 */
@@ -781,8 +783,8 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
     min-height:52px;
   }
   .p3-confirm-btn{
-    font-size:14px;
-    padding:11px 18px;
+    font-size:15px;
+    padding:12px 40px 12px 16px;
   }
   #p3 .ibtn{
     min-height:32px;
@@ -955,6 +957,7 @@ html{color-scheme:light;}
   .p3-cross-handoff-notice{background:rgba(230,81,0,.14);border-left-color:#ff9800;color:#ffccbc;}
   .p3-cross-handoff-notice strong{color:#ffab91;}
   .p3-confirm-btn{background:#e65100;box-shadow:0 4px 14px rgba(230,81,0,.35);}
+  .p3-result-card-foot{border-top-color:var(--bdr);}
   .p3-line-share-btn{border-color:#05a847;box-shadow:inset 0 0 0 2px rgba(255,255,255,.92),0 6px 18px rgba(6,199,85,.32);}
   .p1-renshu-split-wrap{background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.32);}
   .p1-renshu-split-lbl{color:#f0d48a;}
@@ -1297,11 +1300,16 @@ html{color-scheme:light;}
       <div id="tnarea" style="display:block;">
         <div class="ct" style="margin-bottom:8px;margin-top:14px;">&#127991; グループ名（名称変更可）</div>
         <div class="tnrow">
-          <div class="tng"><label class="tng-dot tng-dot-a">&#9679;</label><input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組"></div>
-          <div class="tng"><label class="tng-dot tng-dot-b">&#9679;</label><input class="tninp B" id="tnB" type="text" maxlength="12" value="練習組"></div>
-          <div id="mem-unpublished-wrap" class="p1-mem-unpublished-wrap" style="display:none;">
-            <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">メンバー<br>未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷で<strong>組別（班）を表示しません</strong>。メンバー発表前の下書き用です。" aria-label="説明"></button></label>
+          <div class="tng tng-a-row">
+            <label class="tng-dot tng-dot-a" for="tnA">&#9679;</label>
+            <div class="tng-a-inner">
+              <input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組">
+              <div id="mem-unpublished-wrap" class="p1-mem-unpublished-wrap" style="display:none;">
+                <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷で<strong>組別（班）を表示しません</strong>。メンバー発表前の下書き用です。" aria-label="メンバー未発表の説明"></button></label>
+              </div>
+            </div>
           </div>
+          <div class="tng"><label class="tng-dot tng-dot-b" for="tnB">&#9679;</label><input class="tninp B" id="tnB" type="text" maxlength="12" value="練習組"></div>
         </div>
       </div>
     </div>
@@ -1375,9 +1383,11 @@ html{color-scheme:light;}
         <div class="p3-rebalance-t"><strong>公平に再分配</strong>：チェックした道具と、担当が<strong>未割当</strong>の道具をまとめて対象にします。いま<strong>担当0件</strong>の人を優先し、足りなければ<strong>最も少ない人</strong>へ順に割り当てます（割振り実行と同じ負荷・上限ルール）。<strong>固定担当</strong>の道具は対象外です。</div>
         <button type="button" class="p3-rebalance-btn" id="btn-rebalance-fair">&#9889; 公平に再分配</button>
       </div>
-      <div class="p3-confirm-wrap">
-        <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">割振り確定</button>
-        <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。確定済みの日も、担当を直したあと再度押すと PAST を更新できます。" aria-label="割振り確定の説明"></button>
+      <div class="p3-result-card-foot">
+        <div class="p3-confirm-wrap">
+          <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">割振り確定</button>
+          <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。確定済みの日も、担当を直したあと再度押すと PAST を更新できます。" aria-label="割振り確定の説明"></button>
+        </div>
       </div>
     </div>
     <div class="p3-line-share-wrap">
@@ -1653,11 +1663,14 @@ var renshuSplit=false;
 function needsTeamUI(){
   return pat==='kata'||pat==='ryoho'||(pat==='renshu'&&renshuSplit);
 }
+function showsMemUnpublishedOption(){
+  return pat==='kata';
+}
 function snapMemUnpublished(snap){
   return !!(snap&&(snap.memUnpublished===1||snap.memUnpublished===true));
 }
 function isMemUnpublished(){
-  if(!needsTeamUI())return false;
+  if(!showsMemUnpublishedOption())return false;
   var chk=document.getElementById('chk-mem-unpublished');
   return !!(chk&&chk.checked);
 }
@@ -1666,12 +1679,12 @@ function shareHidesTeamSplit(){
 }
 function syncMemUnpublishedCheckboxToPat(){
   var chk=document.getElementById('chk-mem-unpublished');
-  if(chk&&!needsTeamUI())chk.checked=false;
+  if(chk&&!showsMemUnpublishedOption())chk.checked=false;
 }
 function updateMemUnpublishedWrap(){
   syncMemUnpublishedCheckboxToPat();
   var wrap=document.getElementById('mem-unpublished-wrap');
-  if(wrap)wrap.style.display=needsTeamUI()?'block':'none';
+  if(wrap)wrap.style.display=showsMemUnpublishedOption()?'block':'none';
   var hint=document.getElementById('p3-mem-unpublished-hint');
   if(hint)hint.style.display=(R&&shareHidesTeamSplit())?'block':'none';
 }
@@ -1947,29 +1960,6 @@ function fitGridCellText(cn,box,opts){
     cn.style.lineHeight='1.15';
   }
 }
-function syncNameTipState(cn){
-  if(!cn)return;
-  var text=(cn.textContent||'').trim();
-  if(!text){
-    cn.classList.remove('tcb-name-tip');
-    cn.removeAttribute('data-tip');
-    cn.removeAttribute('title');
-    return;
-  }
-  var cs=window.getComputedStyle(cn);
-  var truncated=cn.scrollWidth>cn.clientWidth+1;
-  if(!truncated&&cs.textOverflow==='ellipsis'&&cs.overflow!=='visible'){
-    truncated=cn.scrollWidth>cn.clientWidth+1;
-  }
-  if(truncated){
-    cn.classList.add('tcb-name-tip');
-    cn.setAttribute('data-tip',text);
-  }else{
-    cn.classList.remove('tcb-name-tip');
-    cn.removeAttribute('data-tip');
-    cn.removeAttribute('title');
-  }
-}
 function fitMemberGridFonts(id){
   var g=document.getElementById(id);
   if(!g)return;
@@ -1977,7 +1967,6 @@ function fitMemberGridFonts(id){
   g.querySelectorAll('.mc, .tc2').forEach(function(box){
     var cn=box.querySelector('.cn');
     fitGridCellText(cn,box,{maxFs:mob?14:14,minFs:7,fullWidth:mob});
-    if(id==='tgrid')syncNameTipState(cn);
   });
 }
 function fitSkipGridFonts(){
@@ -4262,7 +4251,6 @@ function buildTGrid(){
     if(!isEx){
       (function(mm,cc){
         cc.addEventListener('click',function(ev){
-          if(ev.target&&ev.target.closest&&ev.target.closest('.tcb-name-tip'))return;
           tmMap[mm.name]=(tmMap[mm.name]==='B')?'A':'B';
           var nt=tmMap[mm.name];
           cc.className='tc2 t'+nt;
@@ -5416,7 +5404,7 @@ function copyTextToClipboard(text,okMsg){
     if(bubble)bubble.classList.remove('on');
     if(pinned){pinned.classList.remove('on');pinned=null;}
   }
-  function closest(el){return (el&&el.closest)?el.closest('.tcb-tip,.tcb-name-tip'):null;}
+  function closest(el){return (el&&el.closest)?el.closest('.tcb-tip'):null;}
   document.addEventListener('click',function(e){
     var t=closest(e.target);
     if(t){
