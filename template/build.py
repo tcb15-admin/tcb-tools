@@ -194,6 +194,7 @@ def build(target):
         'COHORT_KEY', 'COHORT_LABEL',
         'SYNC_API_BASE_URL', 'SYNC_API_TOKEN',
         'PARENT_VIEW_URL',
+        'MANUAL_URL',
         'PWA_NAME', 'PWA_SHORT_NAME', 'THEME_COLOR',
     ]
 
