@@ -135,6 +135,13 @@ def build_parent_view(target, config, out_dir):
 
     html = html.replace('{{HTML_BODY_CLASS}}', html_body_class(config))
 
+    pages_base = str(config.get('PAGES_BASE_URL', '') or '').rstrip('/')
+    if not pages_base:
+        manual = str(config.get('MANUAL_URL', '') or '')
+        if '/docs/' in manual:
+            pages_base = manual.split('/docs/')[0].rstrip('/')
+    html = html.replace('{{PAGES_BASE_URL}}', pages_base)
+
     parent_keys = [
         'TEAM_NAME', 'TEAM_SHORT_NAME', 'TEAM_SLOGAN', 'COHORT_KEY', 'COHORT_LABEL',
         'SYNC_API_BASE_URL', 'TOOL_VERSION',
