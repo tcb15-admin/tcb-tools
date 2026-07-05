@@ -405,6 +405,30 @@ html.theme-b16 .print-scroll-body{background:#e8ecf4;}
 .hist-dtl-table tr.rB td{border-left:3px solid var(--tb);}
 .hist-dtl-person{width:36%;min-width:100px;font-weight:700;line-height:1.45;}
 .hist-dtl-tools{color:var(--txt);line-height:1.55;font-size:13px;}
+/* 履歴詳細・前回結果：ヘッダ固定＋本文のみスクロール（下部 safe-area・固まり対策） */
+#hist-modal{z-index:510;}
+#hist-detail-modal{z-index:520;}
+#prev-modal{z-index:515;}
+.modal.tcb-scroll-modal{
+  display:flex;flex-direction:column;
+  max-height:min(92vh,calc(100vh - env(safe-area-inset-top,0px) - 8px));
+  max-height:min(92dvh,calc(100dvh - env(safe-area-inset-top,0px) - 8px));
+  overflow:hidden;
+  padding-bottom:0;
+  overscroll-behavior:contain;
+}
+.tcb-scroll-modal-body{
+  flex:1 1 auto;min-height:0;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+  padding-bottom:max(28px,calc(16px + env(safe-area-inset-bottom,0px)));
+}
+.overlay.tcb-modal-under{pointer-events:none;}
+body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
+.overlay.open{touch-action:none;}
+.overlay.open .tcb-scroll-modal-body{touch-action:pan-y;}
 .tcb-hist-mo-openbtn{padding:10px 14px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;font-family:inherit;}
 .tcb-hist-mo-openbtn:active{opacity:.92;}
 .modal.tcb-hist-mo-modal{max-width:min(96vw,1280px)!important;width:100%;}
@@ -527,6 +551,12 @@ html.theme-b16 .print-scroll-body{background:#e8ecf4;}
 .master-tl-ctl-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
 .msel{padding:8px 6px;border:2px solid var(--bdr);border-radius:7px;font-size:13px;min-height:var(--tap);}
 .mdel{background:var(--red-l);color:var(--red);border:none;border-radius:6px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;min-height:var(--tap);}
+/* マスタ削除確認モーダル（iOS PWA でも確実に表示） */
+#tcb-master-del-confirm-modal{z-index:600;align-items:center;padding:max(20px,env(safe-area-inset-top,0px)) 16px max(20px,env(safe-area-inset-bottom,0px));}
+#tcb-master-del-confirm-modal .modal.tcb-master-del-confirm-modal{max-width:420px;border-radius:20px;padding:20px 18px 18px;margin:0;}
+.tcb-master-del-confirm-msg{margin:0 0 16px;font-size:14px;line-height:1.65;color:var(--txt);white-space:pre-wrap;word-break:break-word;}
+.tcb-master-del-confirm-actions{display:flex;gap:10px;}
+.tcb-master-del-confirm-actions .nb,.tcb-master-del-confirm-actions .rbtn{flex:1;min-height:44px;font-size:14px;}
 .madd{background:var(--grn-l);color:var(--grn);border:2px solid var(--grn);border-radius:8px;padding:10px 16px;cursor:pointer;font-size:13px;font-weight:700;margin-top:8px;min-height:var(--tap);}
 .io-btn{padding:8px 12px;border-radius:7px;border:1px solid var(--bdr);background:#f8f9fa;color:var(--txt2);font-size:12px;font-weight:700;cursor:pointer;min-height:var(--tap);}
 .io-btn.imp{border-color:var(--blue2);color:var(--ui-accent);}
@@ -1178,7 +1208,7 @@ html{color-scheme:light;}
 
 <!-- 前回結果モーダル -->
 <div class="overlay" id="prev-modal">
-  <div class="modal">
+  <div class="modal tcb-scroll-modal">
     <button class="mclose" id="prev-modal-close">&#10005;</button>
     <h2 id="prev-modal-title">前回の割振り結果</h2>
     <div class="tcb-prev-modal-actions" id="prev-modal-actions" style="display:none;">
@@ -1186,7 +1216,7 @@ html{color-scheme:light;}
       <button type="button" class="nb nbs" id="btn-prev-modal-close2">閉じる</button>
     </div>
     <div class="tcb-prev-modal-cond" id="prev-modal-cond" style="display:none;"></div>
-    <div id="prev-modal-body"></div>
+    <div class="tcb-scroll-modal-body" id="prev-modal-body"></div>
   </div>
 </div>
 
@@ -1259,6 +1289,19 @@ html{color-scheme:light;}
   </div>
 </div>
 
+<!-- マスタ削除確認モーダル -->
+<div class="overlay" id="tcb-master-del-confirm-modal">
+  <div class="modal tcb-master-del-confirm-modal">
+    <button type="button" class="mclose" id="tcb-master-del-confirm-close" aria-label="閉じる">&#10005;</button>
+    <h2 id="tcb-master-del-confirm-title">削除の確認</h2>
+    <p class="tcb-master-del-confirm-msg" id="tcb-master-del-confirm-msg"></p>
+    <div class="tcb-master-del-confirm-actions">
+      <button type="button" class="nb nbs" id="tcb-master-del-confirm-cancel">キャンセル</button>
+      <button type="button" class="rbtn" id="tcb-master-del-confirm-ok">削除する</button>
+    </div>
+  </div>
+</div>
+
 <!-- 割振り履歴モーダル -->
 <div class="overlay" id="hist-modal">
   <div class="modal">
@@ -1287,7 +1330,7 @@ html{color-scheme:light;}
 
 <!-- 履歴詳細モーダル -->
 <div class="overlay" id="hist-detail-modal">
-  <div class="modal">
+  <div class="modal tcb-scroll-modal">
     <button class="mclose" id="hist-detail-close">&#10005;</button>
     <h2 id="hist-detail-title"></h2>
     <div class="tcb-hist-detail-actions" id="hist-detail-actions">
@@ -1295,8 +1338,8 @@ html{color-scheme:light;}
       <button type="button" class="nb nbs" id="btn-hist-detail-close2">閉じる</button>
     </div>
     <div class="tcb-hist-detail-cond" id="hist-detail-cond"></div>
-    <div id="hist-detail-body"></div>
-</div>
+    <div class="tcb-scroll-modal-body" id="hist-detail-body"></div>
+  </div>
 </div>
 
 <!-- 直近1年（活動日）割振り一覧 -->
@@ -1612,7 +1655,7 @@ var LS_CARRYOUT_CONFIRMED='tcb15CarryoutConfirmed';
 /* GitHub上のマスタJSONのURL（設定後は全端末で自動同期） */
 var GITHUB_MASTER_URL='';
 var SYNC_API_BASE_URL='https://tcb-tools-sync.kazoo-matsu.workers.dev';
-var SYNC_API_TOKEN='tokaicentralboys2012';
+var SYNC_API_TOKEN='__SYNC_API_TOKEN__';
 /* 保護者向け確認ページのURL（空なら同フォルダの kakunin.html を自ページ位置から導出） */
 var PARENT_VIEW_URL='';
 var COHORT_KEY='15';
@@ -2150,32 +2193,43 @@ function confirmLeaveMasterIfDirty(kind){
   syncMasterEditsFromDom();
   if(!isMasterDirty())return true;
   var msg=(kind==='close')
-    ?'マスタの内容がまだ「保存」されていません。このまま閉じますか？\n\n※ この端末上では編集した内容がそのまま使われます。ほかの端末やバックアップへ残すには、マスタで「保存」してください。'
-    :'マスタの内容がまだ「保存」されていません。このままSTEPの別画面に移りますか？\n\n※ この端末上では編集した内容がそのまま使われます。ほかの端末やバックアップへ残すには、マスタに戻って「保存」してください。';
+    ?'マスタの内容がまだ「保存」されていません。このまま閉じますか？\n\n※ 保存していない変更（削除・追加・編集）は破棄され、マスタを開いた時点の内容に戻ります。'
+    :'マスタの内容がまだ「保存」されていません。このままSTEPの別画面に移りますか？\n\n※ 保存していない変更は破棄され、マスタを開いた時点の内容に戻ります。';
   return confirm(msg);
 }
 function markMasterSnapshotClean(){
   _masterSnapAtOpen=captureMasterSnapshotForDirty();
 }
+function revertMasterToSessionOpenCore(){
+  if(!_masterSnapAtOpen)return false;
+  var o;
+  try{o=JSON.parse(_masterSnapAtOpen);}catch(e){return false;}
+  var payload={MB:o.MB,TL:o.TL,DESCS:o.DESCS,PAST:o.PAST};
+  if(Object.prototype.hasOwnProperty.call(o,'DEF_TM'))payload.DEF_TM=o.DEF_TM;
+  applyMasterObj(payload);
+  markMasterSnapshotClean();
+  return true;
+}
+function revertMasterToSessionOpenIfDirty(){
+  syncMasterEditsFromDom();
+  if(!isMasterDirty())return false;
+  return revertMasterToSessionOpenCore();
+}
 /* マスタ画面を開いた直後の内容へ戻す（保存前の誤操作取り消し） */
 function revertMasterToSessionOpen(){
   if(!_masterSnapAtOpen){alert('取り消し用のデータがありません。');return;}
+  syncMasterEditsFromDom();
   if(!isMasterDirty()){
     showMasterAlert('開いた時点から変更されていません。','als');
     return;
   }
   if(!confirm('マスタ画面を開いた時点のメンバー・道具・説明・PAST（およびデフォルト振り分け）に戻します。よろしいですか？'))return;
-  var o;
-  try{o=JSON.parse(_masterSnapAtOpen);}catch(e){
+  if(revertMasterToSessionOpenCore()){
+    buildMasterUI();
+    showMasterAlert('開いた時点の内容に戻しました。','als');
+  }else{
     alert('取り消しデータが壊れているため元に戻せませんでした。');
-    return;
   }
-  var payload={MB:o.MB,TL:o.TL,DESCS:o.DESCS,PAST:o.PAST};
-  if(Object.prototype.hasOwnProperty.call(o,'DEF_TM'))payload.DEF_TM=o.DEF_TM;
-  applyMasterObj(payload);
-  buildMasterUI();
-  markMasterSnapshotClean();
-  showMasterAlert('開いた時点の内容に戻しました。','als');
 }
 /* 端末 localStorage の直近保存を再適用（保存後に編集をやり直したい場合など） */
 function reloadMasterFromDeviceStorage(){
@@ -4272,13 +4326,60 @@ function swTab(tab){
 }
 
 /* ========== モーダル ========== */
+var _tcbModalScrollY=0;
 function openModal(id){
   var el=document.getElementById(id);
-  if(el)el.classList.add('open');
+  if(!el)return;
+  if(!document.querySelector('.overlay.open')){
+    _tcbModalScrollY=window.scrollY||window.pageYOffset||0;
+    document.body.style.top='-'+_tcbModalScrollY+'px';
+    document.body.classList.add('tcb-modal-open');
+  }
+  document.querySelectorAll('.overlay.open').forEach(function(o){
+    if(o.id!==id)o.classList.add('tcb-modal-under');
+  });
+  el.classList.remove('tcb-modal-under');
+  el.classList.add('open');
+  var scrollBody=el.querySelector('.tcb-scroll-modal-body');
+  if(scrollBody)scrollBody.scrollTop=0;
 }
 function closeModal(id){
   var el=document.getElementById(id);
-  if(el)el.classList.remove('open');
+  if(el){
+    el.classList.remove('open');
+    el.classList.remove('tcb-modal-under');
+  }
+  var topOpen=document.querySelector('.overlay.open');
+  if(topOpen){
+    document.querySelectorAll('.overlay.open').forEach(function(o){
+      if(o!==topOpen)o.classList.add('tcb-modal-under');
+      else o.classList.remove('tcb-modal-under');
+    });
+  }else{
+    document.body.classList.remove('tcb-modal-open');
+    document.body.style.top='';
+    window.scrollTo(0,_tcbModalScrollY);
+  }
+}
+var _tcbMasterConfirmCb=null;
+function tcbMasterConfirm(opts){
+  return new Promise(function(resolve){
+    _tcbMasterConfirmCb=resolve;
+    var o=opts||{};
+    var titleEl=document.getElementById('tcb-master-del-confirm-title');
+    var msgEl=document.getElementById('tcb-master-del-confirm-msg');
+    var okEl=document.getElementById('tcb-master-del-confirm-ok');
+    if(titleEl)titleEl.textContent=o.title||'削除の確認';
+    if(msgEl)msgEl.textContent=o.message||'本当に削除してよろしいですか？';
+    if(okEl)okEl.textContent=o.okLabel||'削除する';
+    openModal('tcb-master-del-confirm-modal');
+  });
+}
+function tcbMasterConfirmDone(ok){
+  closeModal('tcb-master-del-confirm-modal');
+  var cb=_tcbMasterConfirmCb;
+  _tcbMasterConfirmCb=null;
+  if(cb)cb(!!ok);
 }
 
 /* ========== グリッド（STEP2） ========== */
@@ -5691,7 +5792,7 @@ function buildMasterMembers(){
     var flagsWrap=document.createElement('div'); flagsWrap.className='master-mbr-flags-wrap';
     flagsWrap.appendChild(rl); flagsWrap.appendChild(cl);
     flagsWrap.appendChild(a14l); flagsWrap.appendChild(sl);
-    var db=document.createElement('button'); db.className='mdel'; db.textContent='削除';
+    var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
     (function(ii,n2,v2,r2,c2,a2,s2){
       n2.addEventListener('change',function(){MB[ii].name=n2.value;buildMasterMembers();});
       v2.addEventListener('change',function(){MB[ii].v=normalizeMemberVehicle(v2.value);});
@@ -5701,8 +5802,13 @@ function buildMasterMembers(){
       s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
       db.addEventListener('click',function(){
         var nm=String((MB[ii]&&MB[ii].name)||n2.value||'').trim()||'このメンバー';
-        if(!confirm('「'+nm+'」をメンバー一覧から削除します。よろしいですか？'))return;
-        MB.splice(ii,1);buildMasterMembers();
+        tcbMasterConfirm({
+          title:'メンバー削除',
+          message:'「'+nm+'」をメンバー一覧から削除します。\nよろしいですか？'
+        }).then(function(ok){
+          if(!ok)return;
+          MB.splice(ii,1);buildMasterMembers();
+        });
       });
     })(i,ni,vs,rc,cc,a14c,sc);
     row.appendChild(ni); row.appendChild(vs); row.appendChild(flagsWrap); row.appendChild(db);
@@ -5771,7 +5877,7 @@ function buildMasterTools(){
     });
     if(!t.fixed)o0.selected=true;
     /* 削除 */
-    var db=document.createElement('button'); db.className='mdel'; db.textContent='削除';
+    var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
     /* イベント */
     (function(idx,n2,s2,w2,r2,r3,k2,b2,f2){
       n2.addEventListener('change',function(){
@@ -5807,12 +5913,17 @@ function buildMasterTools(){
       });
       db.addEventListener('click',function(){
         var nm=String((TL[idx]&&TL[idx].name)||n2.value||'').trim()||'この道具';
-        if(!confirm('「'+nm+'」を道具一覧から削除します。説明・写真も消えます。よろしいですか？'))return;
-        var gone=TL[idx]&&TL[idx].name;
-        TL.splice(idx,1);
-        if(gone!=null&&gone!=='')delete DESCS[gone];
-        pruneDescsOrphans();
-        buildMasterTools();buildMasterDescs();
+        tcbMasterConfirm({
+          title:'道具削除',
+          message:'「'+nm+'」を道具一覧から削除します。\n説明・写真も消えます。よろしいですか？'
+        }).then(function(ok){
+          if(!ok)return;
+          var gone=TL[idx]&&TL[idx].name;
+          TL.splice(idx,1);
+          if(gone!=null&&gone!=='')delete DESCS[gone];
+          pruneDescsOrphans();
+          buildMasterTools();buildMasterDescs();
+        });
       });
     })(i,ni,ss,ws,rs,rrs,kc,bc,fs);
     ctlRow.appendChild(ss); ctlRow.appendChild(ws); ctlRow.appendChild(rs); ctlRow.appendChild(rrs); ctlRow.appendChild(kl); ctlRow.appendChild(bl); ctlRow.appendChild(fs); ctlRow.appendChild(db);
@@ -6330,6 +6441,11 @@ function execHistMonthPdf(){
 }
 
 document.addEventListener('DOMContentLoaded',function(){
+  document.addEventListener('touchmove',function(e){
+    if(!document.body.classList.contains('tcb-modal-open'))return;
+    if(e.target.closest('.tcb-scroll-modal-body,.tcb-hist-mo-scroll,.modal'))return;
+    e.preventDefault();
+  },{passive:false});
   if(typeof TCB_createSyncClient==='function'&&syncHeadersReady()){
     SYNC_CLIENT=TCB_createSyncClient({
       baseUrl:SYNC_API_BASE_URL,
@@ -6512,6 +6628,12 @@ document.addEventListener('DOMContentLoaded',function(){
 
   /* マスタ */
   document.getElementById('btn-master').addEventListener('click',function(){goMaster();});
+  var tcbMdcCancel=document.getElementById('tcb-master-del-confirm-cancel');
+  var tcbMdcOk=document.getElementById('tcb-master-del-confirm-ok');
+  var tcbMdcClose=document.getElementById('tcb-master-del-confirm-close');
+  if(tcbMdcCancel)tcbMdcCancel.addEventListener('click',function(){tcbMasterConfirmDone(false);});
+  if(tcbMdcOk)tcbMdcOk.addEventListener('click',function(){tcbMasterConfirmDone(true);});
+  if(tcbMdcClose)tcbMdcClose.addEventListener('click',function(){tcbMasterConfirmDone(false);});
   document.getElementById('btn-history').addEventListener('click',function(){showHistory();});
   document.getElementById('hist-month-btn').addEventListener('click',function(e){e.stopPropagation();openHistMonthView();});
   /* 履歴モーダル */
