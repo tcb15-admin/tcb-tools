@@ -193,7 +193,8 @@ td{padding:10px 8px;font-size:12px;border-bottom:1px solid var(--bdr);}
 .p3-result-tbl td.p3-col-id,.p3-result-tbl td.p3-col-team,.p3-result-tbl td.p3-col-asgn{text-align:center;vertical-align:middle;}
 .p3-result-tbl td.p3-col-name{text-align:center;vertical-align:middle;}
 .p3-result-tbl td.p3-col-name .p3-tool-cell{display:grid;width:100%;max-width:100%;text-align:left;}
-.p3-team-cell .tag{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;writing-mode:horizontal-tb;min-width:3.2em;padding:2px 8px;font-size:10px;line-height:1.2;}
+/* 班ラベルは列幅内に収め、長い班名は省略表示（列からのはみ出しによるレイアウト崩れ防止） */
+.p3-team-cell .tag{display:block;box-sizing:border-box;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;writing-mode:horizontal-tb;padding:2px 4px;margin:0 auto;text-align:center;font-size:10px;line-height:1.2;}
 tr:last-child td{border-bottom:none;}
 tr.rA td{border-left:3px solid var(--ta);}
 tr.rB td{border-left:3px solid var(--tb);}
@@ -841,23 +842,26 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   .p3-result-tbl{
     table-layout:fixed;
   }
-  .p3-result-tbl th.p3-col-id,
-  .p3-result-tbl td.p3-col-id{
+  /* #p3 table td（ID付き）より特異度を上げないと padding:11px 10px に負けて
+     班ラベルが列からはみ出す（iPhoneでの縦線状のレイアウト崩れの原因） */
+  #p3 .p3-result-tbl th.p3-col-id,
+  #p3 .p3-result-tbl td.p3-col-id{
     width:22px;
     padding:8px 2px;
   }
-  .p3-result-tbl th.p3-col-team,
-  .p3-result-tbl td.p3-col-team{
-    width:34px;
-    padding:8px 2px;
+  #p3 .p3-result-tbl th.p3-col-team,
+  #p3 .p3-result-tbl td.p3-col-team{
+    width:52px;
+    padding:8px 3px;
+    overflow:hidden;
   }
-  .p3-result-tbl th.p3-col-asgn,
-  .p3-result-tbl td.p3-col-asgn{
+  #p3 .p3-result-tbl th.p3-col-asgn,
+  #p3 .p3-result-tbl td.p3-col-asgn{
     width:36%;
     padding:8px 4px;
   }
-  .p3-result-tbl th.p3-col-name,
-  .p3-result-tbl td.p3-col-name{
+  #p3 .p3-result-tbl th.p3-col-name,
+  #p3 .p3-result-tbl td.p3-col-name{
     padding:8px 4px 8px 6px;
   }
   .p3-result-tbl td.p3-col-name{
@@ -959,7 +963,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   .p3-result-tbl th.p3-col-id,
   .p3-result-tbl td.p3-col-id{width:28px;padding:10px 4px;}
   .p3-result-tbl th.p3-col-team,
-  .p3-result-tbl td.p3-col-team{width:36px;padding:10px 4px;}
+  .p3-result-tbl td.p3-col-team{width:52px;padding:10px 4px;}
   .p3-result-tbl th.p3-col-asgn,
   .p3-result-tbl td.p3-col-asgn{width:20%;padding:10px 8px;}
   .p3-result-tbl th.p3-col-name,
