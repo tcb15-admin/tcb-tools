@@ -212,8 +212,25 @@ const fullHtml = `<!DOCTYPE html>
     border-top: 2px dashed #78909c;
     padding: 12px 8px 6px;
     margin: 0 0 8px;
-    page-break-before: always;
-    break-before: page;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  .flowchart-wrap img.flowchart-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .doc-version-tag {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 8px;
+    font-size: 9pt;
+    font-weight: 700;
+    color: #0d47a1;
+    background: #fff;
+    border: 1px solid #1565c0;
+    border-radius: 4px;
   }
   h3 + p + .flowchart-wrap,
   h3 + .flow-continue-up + .flowchart-wrap { margin-top: 6px; }
@@ -224,6 +241,8 @@ const fullHtml = `<!DOCTYPE html>
 <strong>15期道具マネージャー向け — 最新マニュアル（公式参照URL）</strong>
 <a href="${MANUAL_PDF_URL}">${MANUAL_PDF_URL}</a>
 <p style="margin:8px 0 0;font-size:9pt;">通知・引き継ぎ時は<strong>常にこのPDFのURL</strong>を案内してください。内容の更新は同URLで上書きされます。</p>
+<span class="doc-version-tag">文書版 1.12 — フロー図はページ分割済み</span>
+<p style="margin:6px 0 0;font-size:8.5pt;color:#555;">表示が古い場合は PDF を<strong>再ダウンロード</strong>するか、ブラウザでスーパーリロード（Mac: Cmd+Shift+R）してください。</p>
 </div>
 ${body}
 </body>
@@ -253,8 +272,8 @@ await page.evaluate(async () => {
       htmlLabels: true,
       curve: 'linear',
       padding: 14,
-      nodeSpacing: 28,
-      rankSpacing: 38,
+      nodeSpacing: 22,
+      rankSpacing: 30,
       diagramPadding: 10,
     },
   });
@@ -262,6 +281,31 @@ await page.evaluate(async () => {
   if (nodes.length) await mermaid.run({ nodes });
 });
 await new Promise((r) => setTimeout(r, 1500));
+
+/* SVGはPDF印刷時に途中で切れるため、各フロー図をPNG化して1枚の画像として改ページする */
+const wrapCount = await page.$$eval('.flowchart-wrap', (els) => els.length);
+for (let i = 0; i < wrapCount; i++) {
+  const wraps = await page.$$('.flowchart-wrap');
+  const el = wraps[i];
+  if (!el) continue;
+  const b64 = await el.screenshot({ type: 'png', encoding: 'base64' });
+  await page.evaluate(
+    (idx, data) => {
+      const wrap = document.querySelectorAll('.flowchart-wrap')[idx];
+      if (!wrap) return;
+      wrap.innerHTML = '';
+      const img = document.createElement('img');
+      img.className = 'flowchart-img';
+      img.src = 'data:image/png;base64,' + data;
+      img.alt = 'フロー図';
+      wrap.appendChild(img);
+    },
+    i,
+    b64
+  );
+}
+await new Promise((r) => setTimeout(r, 300));
+
 await page.pdf({
   path: OUT,
   format: 'A4',
