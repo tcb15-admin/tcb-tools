@@ -238,6 +238,7 @@ def build(target):
         'tcb-print-pdf.js', 'tcb-sync-api.js',
         'tcb-swap-mgr.js', 'tcb-swap-mgr.css',
         'tcb-push-mgr.js', 'tcb-push-mgr.css',
+        'tcb-pwa-install.js', 'tcb-pwa-install.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )

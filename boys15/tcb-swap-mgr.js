@@ -277,7 +277,13 @@
       var url = ctx.buildParentViewUrl(sid);
       if (ctx.setPublishedUrl) ctx.setPublishedUrl(url);
       var msg = buildRevisedMessage(url);
-      ctx.copyText(msg, '修正版のLINE本文をコピーしました。LINEに貼り付けて送信してください。');
+      var okMsg = '修正版のLINE本文をコピーしました。';
+      if (typeof global.TCB_isMacDesktop === 'function' && global.TCB_isMacDesktop()) {
+        okMsg += 'Mac版LINEはブラウザから直接送信できません。LINEのトークに貼り付けて送信してください。';
+      } else {
+        okMsg += 'LINEに貼り付けて送信してください。';
+      }
+      ctx.copyText(msg, okMsg);
       appliedSession = [];
     }).catch(function (err) {
       console.error(err);

@@ -1,0 +1,122 @@
+/* ホーム画面追加ガイド（tcb-pwa- プレフィクス） */
+.tcb-pwa-hbtn {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.tcb-pwa-hbtn.tcb-pwa-hbtn-on {
+  background: rgba(46, 125, 50, 0.35);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+.tcb-pwa-banner {
+  display: none;
+  margin: 0 12px 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--ui-accent-bg);
+  border: 1px solid var(--ui-accent-bd);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--txt);
+}
+.tcb-pwa-banner.open {
+  display: block;
+}
+.tcb-pwa-banner-hd {
+  font-weight: 700;
+  color: var(--ink-heading);
+  margin-bottom: 4px;
+}
+.tcb-pwa-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.tcb-pwa-banner-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 36px;
+}
+.tcb-pwa-banner-btn:active {
+  opacity: 0.92;
+}
+.tcb-pwa-banner-dismiss {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--txt2);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tcb-pwa-modal-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--txt2);
+  margin-bottom: 14px;
+}
+.tcb-pwa-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tcb-pwa-steps li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bdr);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.tcb-pwa-steps li:last-child {
+  border-bottom: none;
+}
+.tcb-pwa-step-no {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tcb-pwa-note {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--txt2);
+}
+.tcb-pwa-note strong {
+  color: var(--txt);
+}
+.tcb-share-line-hint {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border-left: 3px solid #1565c0;
+  background: #e3f2fd;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #1e3a6a;
+}
+.tcb-share-line-hint:empty {
+  display: none;
+}
