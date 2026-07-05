@@ -88,6 +88,13 @@ def make_icon(crest, cohort, ss=3):
     return canvas.resize((512, 512), Image.LANCZOS)
 
 
+def save_team_logo(crest, folder):
+    """ヘッダー用：期表記なしのチームエンブレムのみ"""
+    size = 320
+    crest_r = crest.resize((size, size), Image.LANCZOS)
+    crest_r.save(os.path.join(folder, 'team-logo.png'))
+
+
 def main():
     crest = load_crest()
     for cohort, folder in TARGETS.items():
@@ -97,7 +104,8 @@ def main():
         icon.resize((192, 192), Image.LANCZOS).save(os.path.join(folder, 'icon-192.png'))
         icon.resize((180, 180), Image.LANCZOS).save(os.path.join(folder, 'apple-touch-icon.png'))
         icon.resize((32, 32), Image.LANCZOS).save(os.path.join(folder, 'favicon-32.png'))
-        print('[OK]', folder, '→ icon-512/192, apple-touch-icon(180), favicon-32')
+        save_team_logo(crest, folder)
+        print('[OK]', folder, '→ icon-512/192, apple-touch-icon(180), favicon-32, team-logo')
 
 
 if __name__ == '__main__':

@@ -31,7 +31,7 @@ html{color-scheme:light;}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased;letter-spacing:.1px;}
 header{background:linear-gradient(135deg,var(--hdr-g1),var(--hdr-g2));padding:12px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px var(--hdr-sh);display:flex;align-items:center;gap:10px;}
 html[data-cohort="15"] header{border-bottom:3px solid #c0000a;box-shadow:0 2px 14px rgba(18,32,80,.2);}
-.logo{width:40px;height:40px;background:transparent;border-radius:8px;object-fit:cover;flex-shrink:0;}
+.logo{width:52px;height:52px;background:transparent;border-radius:10px;object-fit:cover;flex-shrink:0;}
 h1{font-weight:900;font-size:15px;color:#fff;line-height:1.3;flex:1;min-width:0;}
 h1 span{font-size:10px;font-weight:400;color:var(--h1-sub);display:block;margin-top:2px;line-height:1.35;}
 .tcb-cohort-chip{flex-shrink:0;font-size:11px;font-weight:900;letter-spacing:.06em;padding:7px 11px;border-radius:999px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.12);}
@@ -39,12 +39,18 @@ html[data-cohort="15"] .tcb-cohort-chip,html[data-cohort="16"] .tcb-cohort-chip{
 .pv-wrap{max-width:680px;margin:0 auto;padding:16px 14px 48px;}
 .pv-note{background:var(--surface-2);border-left:none;border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--txt2);margin-bottom:16px;line-height:1.65;}
 .pv-note strong{font-weight:700;color:var(--txt);}
-.pv-card{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:18px;margin-bottom:16px;}
+.pv-card{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:18px;margin-bottom:16px;border:1px solid transparent;}
+.pv-card-today{background:linear-gradient(180deg,#eef1f8 0%,var(--card) 42%);border:2px solid var(--ta-bd);box-shadow:0 0 0 1px rgba(18,32,80,.05),0 10px 28px rgba(18,32,80,.10);}
+.pv-card-prev{background:var(--surface-2);border:1px solid var(--bdr);box-shadow:none;}
 .pv-day-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bdr);}
+.pv-card-today .pv-day-head{border-bottom:2px solid var(--ta-bd);padding-bottom:12px;margin-bottom:14px;}
+.pv-card-prev .pv-day-head{border-bottom-style:dashed;opacity:.9;}
 .pv-day-label{font-weight:750;font-size:17px;letter-spacing:-.3px;color:var(--navy);}
+.pv-card-prev .pv-day-label{font-size:15px;font-weight:650;color:var(--txt2);}
 .pv-day-date{font-size:12.5px;color:var(--txt2);}
 .pv-day-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill);background:var(--grn);color:#fff;letter-spacing:.3px;}
-.pv-day-badge.prev{background:#8e8e97;}
+.pv-day-badge-today{font-size:12px;padding:5px 13px;background:var(--navy);letter-spacing:.05em;box-shadow:0 1px 4px rgba(18,32,80,.22);}
+.pv-day-badge.prev{background:#8e8e97;font-size:10px;padding:3px 9px;}
 .pv-person{border:1px solid var(--bdr);border-radius:14px;padding:12px 14px;margin-bottom:10px;}
 .pv-person-name{font-weight:650;font-size:14.5px;color:var(--navy);display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .pv-team-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;}
@@ -63,7 +69,7 @@ html[data-cohort="15"] .tcb-cohort-chip,html[data-cohort="16"] .tcb-cohort-chip{
 .pv-foot{text-align:center;font-size:10px;color:var(--txt2);margin-top:18px;}
 @media (max-width:520px){
   header{padding:10px 12px;padding-top:max(10px, env(safe-area-inset-top, 0px));gap:8px;}
-  header .logo{width:36px;height:36px;}
+  header .logo{width:48px;height:48px;}
   header h1{font-size:14px;min-width:0;}
   header h1 span{font-size:9px;line-height:1.35;}
   .tcb-cohort-chip{font-size:10px;padding:6px 10px;}
@@ -83,6 +89,11 @@ html.theme-b16 header h1 span{color:#64748b;}
   }
   html{color-scheme:dark;}
   .pv-card,.pv-state{border:1px solid var(--bdr);}
+  .pv-card-today{background:linear-gradient(180deg,#22242b 0%,#1c1c1e 45%);border:2px solid #5b6cff;box-shadow:0 0 0 1px rgba(91,108,255,.12),0 6px 20px rgba(0,0,0,.35);}
+  .pv-card-today .pv-day-head{border-bottom-color:#5b6cff;}
+  .pv-day-badge-today{background:#3a4a8a;box-shadow:0 1px 4px rgba(0,0,0,.35);}
+  .pv-card-prev{background:#2c2c2e;border-color:#38383a;}
+  .pv-card-prev .pv-day-label{color:#a1a1ac;}
   .pv-day-label,.pv-person-name{color:#f5f5f7;}
   .pv-note{background:var(--surface-2);}
   html.theme-b16 header{background:#1c1c1e;border-bottom-color:#e5484d;}
@@ -93,7 +104,7 @@ html.theme-b16 header h1 span{color:#64748b;}
 </head>
 <body>
 <header>
-  <img src="apple-touch-icon.png" class="logo" alt="東海中央ボーイズ" width="40" height="40">
+  <img src="team-logo.png" class="logo" alt="東海中央ボーイズ" width="52" height="52">
   <span class="tcb-cohort-chip" aria-label="この画面は15期の道具割振り確認です">15期</span>
   <h1>道具割振り 確認<span id="pv-team" data-slogan="不屈不撓の精神で全員野球">東海中央ボーイズ 15期　｜　不屈不撓の精神で全員野球</span></h1>
 </header>

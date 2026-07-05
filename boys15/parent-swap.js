@@ -81,12 +81,12 @@
   /* ========== データ由来のヘルパ ========== */
   function jerseyNumFromName(name) {
     var n = parseInt(String(name).split('：')[0], 10);
-    return isNaN(n) ? -1 : n;
+    return isNaN(n) ? 99999 : n;
   }
-  function sortNamesByJerseyDesc(names) {
+  function sortNamesByJerseyAsc(names) {
     return names.slice().sort(function (a, b) {
       var na = jerseyNumFromName(a), nb = jerseyNumFromName(b);
-      if (na !== nb) return nb - na;
+      if (na !== nb) return na - nb;
       return a.localeCompare(b, 'ja');
     });
   }
@@ -98,7 +98,7 @@
         if (p) set[p] = true;
       });
     });
-    return sortNamesByJerseyDesc(Object.keys(set));
+    return sortNamesByJerseyAsc(Object.keys(set));
   }
   function primaryDay(data) {
     var days = (data && data.days) || [];
@@ -183,13 +183,18 @@
       if (it.teamLabel && !byPerson[person].teamLabel) byPerson[person].teamLabel = it.teamLabel;
       byPerson[person].tools.push({ tool: it.tool || '', desc: it.desc || '' });
     });
-    order.sort(function (a, b) { return a.localeCompare(b, 'ja'); });
+    order.sort(function (a, b) {
+      var na = jerseyNumFromName(a), nb = jerseyNumFromName(b);
+      if (na !== nb) return na - nb;
+      return a.localeCompare(b, 'ja');
+    });
 
     var role = day.role || (idx === 0 ? 'today' : 'prev');
-    var badge = role === 'today'
-      ? '<span class="pv-day-badge">当日</span>'
+    var isToday = role === 'today';
+    var badge = isToday
+      ? '<span class="pv-day-badge pv-day-badge-today">当日</span>'
       : '<span class="pv-day-badge prev">前回</span>';
-    var html = '<div class="pv-card">'
+    var html = '<div class="pv-card' + (isToday ? ' pv-card-today' : ' pv-card-prev') + '">'
       + '<div class="pv-day-head">' + badge
       + '<span class="pv-day-label">' + esc(day.label || ('活動日 ' + (idx + 1))) + '</span>'
       + (day.date ? '<span class="pv-day-date">' + esc(day.date) + '</span>' : '')
