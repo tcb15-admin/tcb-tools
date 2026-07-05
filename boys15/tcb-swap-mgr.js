@@ -293,15 +293,24 @@
     });
   }
 
-  /* ===== モーダル開閉 ===== */
+  /* ===== モーダル開閉 =====
+     本体の openModal/closeModal（背景スクロールロック・重ね順管理）を優先して使う */
   function openModal() {
-    var m = el('swap-modal');
-    if (m) m.classList.add('open');
+    if (ctx && typeof ctx.openModalById === 'function') {
+      ctx.openModalById('swap-modal');
+    } else {
+      var m = el('swap-modal');
+      if (m) m.classList.add('open');
+    }
     refresh();
   }
   function closeModal() {
-    var m = el('swap-modal');
-    if (m) m.classList.remove('open');
+    if (ctx && typeof ctx.closeModalById === 'function') {
+      ctx.closeModalById('swap-modal');
+    } else {
+      var m = el('swap-modal');
+      if (m) m.classList.remove('open');
+    }
   }
 
   function init(context) {

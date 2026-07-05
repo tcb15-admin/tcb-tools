@@ -409,6 +409,8 @@ html.theme-b16 .print-scroll-body{background:#e8ecf4;}
 #hist-modal{z-index:510;}
 #hist-detail-modal{z-index:520;}
 #prev-modal{z-index:515;}
+/* 履歴モーダルの上に重ねて開くため、hist-modal(510) より上にする */
+#hist-month-overlay{z-index:525;}
 .modal.tcb-scroll-modal{
   display:flex;flex-direction:column;
   max-height:min(92vh,calc(100vh - env(safe-area-inset-top,0px) - 8px));
@@ -1475,8 +1477,8 @@ html{color-scheme:light;}
       </div>
       <div class="p3-result-card-foot">
         <div class="p3-confirm-wrap">
-          <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">割振り確定</button>
-          <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。確定済みの日も、担当を直したあと再度押すと PAST を更新できます。" aria-label="割振り確定の説明"></button>
+          <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">実施確定</button>
+          <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。確定済みの日も、担当を直したあと再度押すと PAST を更新できます。" aria-label="実施確定の説明"></button>
         </div>
       </div>
     </div>
@@ -1825,23 +1827,34 @@ function updateAssignUndoUi(){
   setUndoRedoBtn(u,!!R&&assignUndoStack.length>0);
   setUndoRedoBtn(r,!!R&&assignRedoStack.length>0);
 }
+/* 割振り内容や共有条件が変わったら、準備済みの共有データ・PDFキャッシュを破棄する
+   （古い内容を共有してしまう事故防止） */
+function invalidateShareCaches(){
+  _lineShareReady=null;
+  _assignPdfCache.html=null;
+  _assignPdfCache.blob=null;
+  _assignPdfCache.pending=null;
+}
 function pushAssignHistory(){
   if(!R||!R.map)return;
   assignUndoStack.push(cloneAssignMap(R.map));
   if(assignUndoStack.length>ASSIGN_UNDO_MAX)assignUndoStack.shift();
   assignRedoStack=[];
   updateAssignUndoUi();
+  invalidateShareCaches();
 }
 function undoAssign(){
   if(!R||assignUndoStack.length===0)return;
   assignRedoStack.push(cloneAssignMap(R.map));
   R.map=cloneAssignMap(assignUndoStack.pop());
+  invalidateShareCaches();
   buildTbl();
 }
 function redoAssign(){
   if(!R||assignRedoStack.length===0)return;
   assignUndoStack.push(cloneAssignMap(R.map));
   R.map=cloneAssignMap(assignRedoStack.pop());
+  invalidateShareCaches();
   buildTbl();
 }
 var tnA='試合組', tnB='練習組';
@@ -2381,9 +2394,17 @@ function loadMaster(){
     SYNC_CLIENT.loadState()
       .then(function(obj){
         if(obj&&obj.master){
+          /* マスタ編集中（未保存の変更あり）はリモートで黙って上書きしない */
+          if(isMasterDirty()){
+            if(!confirm('クラウドに保存されたマスタを読み込みます。\n編集中の未保存の変更は破棄されますが、よろしいですか？\n（キャンセル＝編集中の内容を維持。保存すればクラウドへ反映されます）')){
+              showMasterAlert('クラウドからの読込を保留しました。編集中の内容を維持しています。','alw');
+              return;
+            }
+          }
           applyMasterObj(obj.master);
           MASTER_VERSION=parseMasterVersion(obj.version);
           try{ _ls.set(LS_KEY,JSON.stringify({MB:MB,TL:TL,DESCS:DESCS,PAST:PAST,DEF_TM:obj.master.DEF_TM||null})); }catch(e){}
+          markMasterSnapshotClean();
           return refreshHistoryFromServer();
         }
       })
@@ -2610,6 +2631,19 @@ function clearReeditMode(){
 function clearSeedFromPrevMode(){
   clearReeditMode();
   clearCarryAdjustRef();
+}
+/* 前回基準モード中にユーザーが活動パターンを変更した場合：
+   基準スナップと食い違う設定になるなら、確認のうえ基準モードを解除する */
+function confirmPatChangeInSeedMode(newPat,newSplit){
+  var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
+  if(!on)return true;
+  var basePat=seedBaseSnap.pat||'kata';
+  var baseSplit=(seedBaseSnap.renshuSplit===1||seedBaseSnap.renshuSplit===true);
+  var same=(newPat===basePat)&&(newPat!=='renshu'||(!!newSplit)===baseSplit);
+  if(same)return true;
+  if(!confirm('「前回の結果を元に割振る」モード中です。\n活動パターンを基準と変えると前回の結果を引き継げないため、前回基準モードを解除して通常の割振りに戻します。\nよろしいですか？'))return false;
+  clearSeedFromPrevMode();
+  return true;
 }
 function updateSeedModeBanners(){
   var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
@@ -2985,13 +3019,13 @@ function showPrevResult(){
   var la=snap.la||'A', lb=snap.lb||'B';
   var html='';
   if(snap.mode==='team'&&!snapMemUnpublished(snap)){
-    html+='<div class="shd2 A" style="margin-top:0;">'+la+'グループ</div>';
+    html+='<div class="shd2 A" style="margin-top:0;">'+esc(la)+'グループ</div>';
     html+='<table class="prev-table"><thead><tr><th>道具名</th><th>担当者</th></tr></thead><tbody>';
     snap.tools.filter(function(t){return t.team==='A';}).forEach(function(t){
       html+='<tr class="rA"><td>'+esc(t.name)+'</td><td>'+esc(snap.map[t.name]||'未割当')+'</td></tr>';
     });
     html+='</tbody></table>';
-    html+='<div class="shd2 B">'+lb+'グループ</div>';
+    html+='<div class="shd2 B">'+esc(lb)+'グループ</div>';
     html+='<table class="prev-table"><thead><tr><th>道具名</th><th>担当者</th></tr></thead><tbody>';
     snap.tools.filter(function(t){return t.team==='B';}).forEach(function(t){
       html+='<tr class="rB"><td>'+esc(t.name)+'</td><td>'+esc(snap.map[t.name]||'未割当')+'</td></tr>';
@@ -4424,14 +4458,28 @@ function swTab(tab){
 
 /* ========== モーダル ========== */
 var _tcbModalScrollY=0;
+/* print-overlay も含めた「何かモーダル的な全画面UIが開いているか」 */
+function _tcbAnyModalOpen(){
+  if(document.querySelector('.overlay.open'))return true;
+  var p=document.getElementById('print-overlay');
+  return !!(p&&p.classList.contains('open'));
+}
+function _tcbLockBodyScroll(){
+  if(document.body.classList.contains('tcb-modal-open'))return;
+  _tcbModalScrollY=window.scrollY||window.pageYOffset||0;
+  document.body.style.top='-'+_tcbModalScrollY+'px';
+  document.body.classList.add('tcb-modal-open');
+}
+function _tcbUnlockBodyScrollIfIdle(){
+  if(_tcbAnyModalOpen())return;
+  document.body.classList.remove('tcb-modal-open');
+  document.body.style.top='';
+  window.scrollTo(0,_tcbModalScrollY);
+}
 function openModal(id){
   var el=document.getElementById(id);
   if(!el)return;
-  if(!document.querySelector('.overlay.open')){
-    _tcbModalScrollY=window.scrollY||window.pageYOffset||0;
-    document.body.style.top='-'+_tcbModalScrollY+'px';
-    document.body.classList.add('tcb-modal-open');
-  }
+  _tcbLockBodyScroll();
   document.querySelectorAll('.overlay.open').forEach(function(o){
     if(o.id!==id)o.classList.add('tcb-modal-under');
   });
@@ -4453,9 +4501,7 @@ function closeModal(id){
       else o.classList.remove('tcb-modal-under');
     });
   }else{
-    document.body.classList.remove('tcb-modal-open');
-    document.body.style.top='';
-    window.scrollTo(0,_tcbModalScrollY);
+    _tcbUnlockBodyScrollIfIdle();
   }
 }
 var _tcbMasterConfirmCb=null;
@@ -4558,7 +4604,7 @@ function buildTGrid(){
   var hd=document.getElementById('tcard-hd');
   if(hd){
     var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>（青）と<strong>'+esc(lb)+'</strong>（赤）を切り替えます。最初は全員<strong>'+esc(lb)+'</strong>です。会場や試合の並びが変わる日は、<strong>当日の2分け</strong>に合わせて並べ替えてから進めてください。';
-    hd.innerHTML=la+' / '+lb+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
+    hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
       +'<button type="button" class="tcb-tip" data-tip="'+tipText.replace(/"/g,'&quot;')+'" aria-label="説明"></button>';
   }
   MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){
@@ -4658,9 +4704,15 @@ function showInfo(name){
 
 /* ========== 割振り実行 ========== */
 function runAlgo(){
+  invalidateShareCaches();
   var mapSnapBeforeRun=(R&&R.map)?cloneAssignMap(R.map):null;
   var ctx=buildAssignmentContext();
   if(!ctx)return;
+  var ctxToolCount=(ctx.mode==='team')?((ctx.allTools&&ctx.allTools.length)||0):((ctx.tools&&ctx.tools.length)||0);
+  if(!ctxToolCount){
+    alert('割振り対象の道具がありません。\n持出し不要（スキップ）を見直すか、マスタで道具を登録してください。');
+    return;
+  }
   var runSeed=Date.now();
   var usedPrevSeed=false;
   carryAdjustRunNotes=[];
@@ -5866,6 +5918,7 @@ function openPrint(){
   frame.onload=function(){
     try{applyAssignPdfTitles(frame.contentDocument);}catch(e){}
   };
+  _tcbLockBodyScroll();
   overlay.classList.add('open');
 }
 /** 端末環境に応じて送信/保存ボタンと案内文を出し分け、共有用にPDFを事前生成する */
@@ -5878,6 +5931,7 @@ function applyShareUiForEnv(out){
 }
 function closePrint(){
   document.getElementById('print-overlay').classList.remove('open');
+  _tcbUnlockBodyScrollIfIdle();
 }
 function execPrint(){
   if(!R){alert('先に割振りを実行してください。');return;}
@@ -6589,7 +6643,7 @@ function execHistMonthPdf(){
 document.addEventListener('DOMContentLoaded',function(){
   document.addEventListener('touchmove',function(e){
     if(!document.body.classList.contains('tcb-modal-open'))return;
-    if(e.target.closest('.tcb-scroll-modal-body,.tcb-hist-mo-scroll,.modal'))return;
+    if(e.target.closest('.tcb-scroll-modal-body,.tcb-hist-mo-scroll,.modal,#print-overlay'))return;
     e.preventDefault();
   },{passive:false});
   if(typeof TCB_createSyncClient==='function'&&syncHeadersReady()){
@@ -6624,11 +6678,18 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('st3').addEventListener('click',function(){goStep(3);});
 
   /* STEP1 */
-  document.getElementById('btn-kata').addEventListener('click',function(){setPat('kata');});
-  document.getElementById('btn-ryoho').addEventListener('click',function(){setPat('ryoho');});
-  document.getElementById('btn-renshu').addEventListener('click',function(){setPat('renshu');});
+  document.getElementById('btn-kata').addEventListener('click',function(){if(!confirmPatChangeInSeedMode('kata',false))return;setPat('kata');});
+  document.getElementById('btn-ryoho').addEventListener('click',function(){if(!confirmPatChangeInSeedMode('ryoho',false))return;setPat('ryoho');});
+  document.getElementById('btn-renshu').addEventListener('click',function(){
+    var chk=document.getElementById('chk-renshu-split');
+    if(!confirmPatChangeInSeedMode('renshu',!!(chk&&chk.checked)))return;
+    setPat('renshu');
+  });
   var chkRs=document.getElementById('chk-renshu-split');
-  if(chkRs)chkRs.addEventListener('change',function(){applyRenshuSplit(this.checked);});
+  if(chkRs)chkRs.addEventListener('change',function(){
+    if(!confirmPatChangeInSeedMode('renshu',this.checked)){this.checked=!this.checked;return;}
+    applyRenshuSplit(this.checked);
+  });
   var chkMu=document.getElementById('chk-mem-unpublished');
   if(chkMu)chkMu.addEventListener('change',function(){
     updateMemUnpublishedWrap();
@@ -6727,12 +6788,16 @@ document.addEventListener('DOMContentLoaded',function(){
   if(pvUnpub)pvUnpub.addEventListener('click',function(){unpublishParentView();});
   ['share-opt-line','share-opt-url','share-opt-pdf'].forEach(function(id){
     var el=document.getElementById(id);
-    if(el)el.addEventListener('change',function(){refreshSharePanel();});
+    if(el)el.addEventListener('change',function(){
+      _lineShareReady=null;
+      refreshSharePanel();
+    });
   });
   var shareLineIntro=document.getElementById('share-line-intro');
   if(shareLineIntro){
     shareLineIntro.addEventListener('input',function(){
       shareLineIntroDirty=true;
+      _lineShareReady=null;
       refreshSharePanel();
     });
   }
@@ -6753,7 +6818,9 @@ document.addEventListener('DOMContentLoaded',function(){
       publishDay:function(p){return SYNC_CLIENT.publishDay(p);},
       buildParentViewUrl:buildParentViewUrl,
       copyText:copyTextToClipboard,
-      setPublishedUrl:function(url){_parentViewUrl=url;refreshSharePanel();}
+      setPublishedUrl:function(url){_parentViewUrl=url;refreshSharePanel();},
+      openModalById:function(id){openModal(id);},
+      closeModalById:function(id){closeModal(id);}
     });
   }
 
