@@ -10,6 +10,9 @@
   var ASSIGN_MARGIN_MM = 6;
   var CANVAS_SCALE = 2;
   var PX_PER_MM = 96 / 25.4;
+  /** iOS Safari 等の canvas 上限（辺・面積） */
+  var MAX_CANVAS_SIDE = 4096;
+  var MAX_CANVAS_AREA = 16777216;
 
   function getJsPDF() {
     if (typeof jspdf !== 'undefined' && jspdf.jsPDF) return jspdf.jsPDF;
@@ -22,6 +25,45 @@
     return null;
   }
 
+  function isMobileLike() {
+    var ua = navigator.userAgent || '';
+    if (/iPhone|iPad|iPod|Android/i.test(ua)) return true;
+    if (navigator.maxTouchPoints > 0 && window.matchMedia('(pointer:coarse)').matches) return true;
+    return false;
+  }
+
+  /**
+   * キャプチャサイズに応じて scale を下げ、モバイルの canvas 上限超過を防ぐ
+   */
+  function computeSafeCanvasScale(capW, capH, preferred) {
+    preferred = preferred || CANVAS_SCALE;
+    var scale = preferred;
+    var minScale = isMobileLike() ? 0.5 : 1;
+    while (scale >= minScale) {
+      var w = Math.ceil(capW * scale);
+      var h = Math.ceil(capH * scale);
+      if (w <= MAX_CANVAS_SIDE && h <= MAX_CANVAS_SIDE && w * h <= MAX_CANVAS_AREA) {
+        return scale;
+      }
+      scale -= 0.25;
+    }
+    return minScale;
+  }
+
+  function canvasToJpegDataUrl(canvas) {
+    var qualities = [0.92, 0.82, 0.7];
+    var i;
+    for (i = 0; i < qualities.length; i++) {
+      try {
+        var url = canvas.toDataURL('image/jpeg', qualities[i]);
+        if (url && url.length > 32 && url.indexOf('data:image/jpeg') === 0) return url;
+      } catch (e) {
+        /* サイズ超過時は品質を下げて再試行 */
+      }
+    }
+    return '';
+  }
+
   /**
    * 担当表（縦A4）の共有PDF用。
    * html2canvas は grid の fr 単位を正しく描画できないため、CSS クラスで auto レイアウトに切替える。
@@ -31,10 +73,24 @@
     doc.documentElement.classList.add('tcb-pdf-export');
     doc.documentElement.style.width = A4_W_MM + 'mm';
     doc.documentElement.style.height = 'auto';
+    doc.documentElement.style.maxHeight = 'none';
     doc.documentElement.style.overflow = 'visible';
-    doc.body.style.width = A4_W_MM + 'mm';
-    doc.body.style.height = 'auto';
-    doc.body.style.overflow = 'visible';
+    if (doc.body) {
+      doc.body.style.width = A4_W_MM + 'mm';
+      doc.body.style.height = 'auto';
+      doc.body.style.maxHeight = 'none';
+      doc.body.style.overflow = 'visible';
+    }
+    doc.querySelectorAll('.page').forEach(function (page) {
+      page.style.height = 'auto';
+      page.style.minHeight = 'auto';
+      page.style.maxHeight = 'none';
+      page.style.overflow = 'visible';
+    });
+    doc.querySelectorAll('.tcb-print-team-stack,.tcb-print-team-section,.tcb-print-team-cards,.cards').forEach(function (el) {
+      el.style.overflow = 'visible';
+      el.style.maxHeight = 'none';
+    });
   }
 
   function waitForExportReady(doc) {
@@ -60,10 +116,28 @@
     });
   }
 
+  function measureCaptureSize(doc, pageEl) {
+    prepareAssignPdfExport(doc);
+    var capEl = pageEl || doc.querySelector('.page') || doc.body;
+    var capW = capEl.scrollWidth || capEl.offsetWidth || doc.documentElement.scrollWidth;
+    var capH = capEl.scrollHeight || capEl.offsetHeight || doc.documentElement.scrollHeight;
+    if (!capW || !capH) {
+      capW = Math.round(A4_W_MM * PX_PER_MM);
+      capH = capW;
+    }
+    return { capEl: capEl, capW: capW, capH: capH };
+  }
+
+  function syncHiddenIframeSize(iframe, doc, capW, capH) {
+    if (!iframe || !doc) return;
+    iframe.style.width = Math.max(capW, Math.round(A4_W_MM * PX_PER_MM)) + 'px';
+    iframe.style.height = Math.max(capH, 400) + 'px';
+  }
+
   /**
    * キャプチャ結果を A4 1 ページに収めて Blob 化（印刷の @page margin 6mm に合わせる）
    */
-  function assignPortraitCanvasToBlob(canvas) {
+  function assignPortraitCanvasToBlob(canvas, usedScale) {
     var JsPDF = getJsPDF();
     if (!JsPDF) {
       return Promise.reject(new Error('PDFライブラリが読み込まれていません'));
@@ -71,36 +145,41 @@
     if (!canvas || canvas.width < 10 || canvas.height < 10) {
       return Promise.reject(new Error('キャプチャに失敗しました'));
     }
+    usedScale = usedScale || CANVAS_SCALE;
+    var dataUrl = canvasToJpegDataUrl(canvas);
+    if (!dataUrl) {
+      return Promise.reject(new Error('キャプチャ画像の変換に失敗しました'));
+    }
     var pdf = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     var margin = ASSIGN_MARGIN_MM;
     var availW = A4_W_MM - margin * 2;
     var availH = A4_H_MM - margin * 2;
-    var wMm = canvas.width / CANVAS_SCALE / PX_PER_MM;
-    var hMm = canvas.height / CANVAS_SCALE / PX_PER_MM;
+    var wMm = canvas.width / usedScale / PX_PER_MM;
+    var hMm = canvas.height / usedScale / PX_PER_MM;
     var fit = Math.min(availW / wMm, availH / hMm);
     var drawW = wMm * fit;
     var drawH = hMm * fit;
     var x = margin + (availW - drawW) / 2;
     var y = margin;
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, drawW, drawH);
+    pdf.addImage(dataUrl, 'JPEG', x, y, drawW, drawH);
     return Promise.resolve(pdf.output('blob'));
   }
 
-  function captureAssignPortraitBlob(doc, pageEl) {
+  function captureAssignPortraitBlob(doc, pageEl, opts) {
+    opts = opts || {};
     var html2canvasFn = getHtml2Canvas();
     if (!html2canvasFn) {
       return Promise.reject(new Error('PDFライブラリが読み込まれていません'));
     }
-    prepareAssignPdfExport(doc);
     return waitForExportReady(doc).then(function () {
-      var capEl = pageEl || doc.querySelector('.page') || doc.body;
-      var capW = capEl.scrollWidth || capEl.offsetWidth;
-      var capH = capEl.scrollHeight || capEl.offsetHeight;
-      if (!capW || !capH) {
-        return Promise.reject(new Error('キャプチャ対象のサイズを取得できませんでした'));
-      }
+      var measured = measureCaptureSize(doc, pageEl);
+      var capEl = measured.capEl;
+      var capW = measured.capW;
+      var capH = measured.capH;
+      if (opts.iframe) syncHiddenIframeSize(opts.iframe, doc, capW, capH);
+      var scale = computeSafeCanvasScale(capW, capH, opts.scale || CANVAS_SCALE);
       return html2canvasFn(capEl, {
-        scale: CANVAS_SCALE,
+        scale: scale,
         useCORS: true,
         allowTaint: true,
         logging: false,
@@ -111,8 +190,10 @@
         windowWidth: capW,
         windowHeight: capH,
         backgroundColor: '#ffffff'
+      }).then(function (canvas) {
+        return assignPortraitCanvasToBlob(canvas, scale);
       });
-    }).then(assignPortraitCanvasToBlob);
+    });
   }
 
   /**
@@ -124,8 +205,7 @@
     opts = opts || {};
     var orientation = opts.orientation === 'landscape' ? 'landscape' : 'portrait';
     var isAssignPortrait = orientation === 'portrait';
-    var iframeW = (isAssignPortrait ? A4_W_MM : A4_H_MM) + 'mm';
-    var iframeH = isAssignPortrait ? 'auto' : A4_W_MM + 'mm';
+    var iframeW = Math.round(A4_W_MM * PX_PER_MM) + 'px';
 
     return new Promise(function (resolve, reject) {
       if (isAssignPortrait && !getHtml2Canvas()) {
@@ -142,9 +222,7 @@
       iframe.style.cssText =
         'position:fixed;left:-9999px;top:0;width:' +
         iframeW +
-        ';height:' +
-        iframeH +
-        ';border:0;opacity:0;pointer-events:none;';
+        ';height:800px;border:0;opacity:0;pointer-events:none;';
       document.body.appendChild(iframe);
       var finished = false;
       function cleanup() {
@@ -166,7 +244,7 @@
           }
           var pageEl = doc.querySelector('.page') || doc.body;
           if (isAssignPortrait) {
-            captureAssignPortraitBlob(doc, pageEl)
+            captureAssignPortraitBlob(doc, pageEl, { iframe: iframe })
               .then(function (blob) {
                 cleanup();
                 resolve(blob);
@@ -177,22 +255,21 @@
               });
             return;
           }
+          prepareAssignPdfExport(doc);
           pageEl.style.height = 'auto';
           pageEl.style.minHeight = 'auto';
           pageEl.style.maxHeight = 'none';
           pageEl.style.overflow = 'visible';
-          doc.documentElement.style.height = 'auto';
-          doc.documentElement.style.overflow = 'visible';
-          doc.body.style.height = 'auto';
-          doc.body.style.overflow = 'visible';
 
           var capW = pageEl.offsetWidth || iframe.clientWidth;
           var capH = pageEl.offsetHeight || iframe.clientHeight;
+          syncHiddenIframeSize(iframe, doc, capW, capH);
+          var scale = computeSafeCanvasScale(capW, capH, CANVAS_SCALE);
           var opt = {
             margin: [4, 4, 4, 4],
             image: { type: 'jpeg', quality: 0.92 },
             html2canvas: {
-              scale: 2,
+              scale: scale,
               useCORS: true,
               allowTaint: true,
               logging: false,
@@ -226,7 +303,7 @@
       iframe.onload = function () {
         setTimeout(function () {
           requestAnimationFrame(runCapture);
-        }, 150);
+        }, isMobileLike() ? 350 : 150);
       };
       iframe.onerror = function () {
         cleanup();
