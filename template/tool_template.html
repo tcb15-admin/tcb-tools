@@ -145,6 +145,11 @@ html[data-cohort="15"] header{
 table{width:100%;border-collapse:collapse;min-width:320px;}
 th{background:var(--navy);color:#fff;font-size:11px;font-weight:700;padding:10px 8px;text-align:left;white-space:nowrap;}
 td{padding:10px 8px;font-size:12px;border-bottom:1px solid var(--bdr);}
+.p3-result-tbl th.p3-col-id,.p3-result-tbl th.p3-col-name,.p3-result-tbl th.p3-col-team,.p3-result-tbl th.p3-col-asgn{text-align:center;}
+.p3-result-tbl td.p3-col-id,.p3-result-tbl td.p3-col-team,.p3-result-tbl td.p3-col-asgn{text-align:center;vertical-align:middle;}
+.p3-result-tbl td.p3-col-name{text-align:center;vertical-align:middle;}
+.p3-result-tbl td.p3-col-name .p3-tool-cell{display:inline-grid;max-width:100%;text-align:left;}
+.p3-team-cell .tag{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;writing-mode:horizontal-tb;min-width:3.2em;padding:2px 8px;font-size:10px;line-height:1.2;}
 tr:last-child td{border-bottom:none;}
 tr.rA td{border-left:3px solid var(--ta);}
 tr.rB td{border-left:3px solid var(--tb);}
@@ -162,10 +167,9 @@ tr.rB td{border-left:3px solid var(--tb);}
 /* 割振り結果 表：道具名は固定幅、タグ列は固定スロットで縦揃え、写真ボタンは右端 */
 .p3-tool-cell{display:grid;grid-template-columns:clamp(72px,28vw,112px) auto 1fr;gap:6px 8px;align-items:center;}
 .p3-tool-name{min-width:0;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.p3-tool-tags{display:grid;grid-template-columns:24px 24px 24px 36px 36px;gap:4px;align-items:center;}
-.p3-tool-tags.p3-tool-tags-team{grid-template-columns:24px 24px 24px 36px 36px minmax(40px,5em);}
-.p3-tag-slot{display:flex;align-items:center;justify-content:center;min-height:18px;}
-.p3-tool-tags .tag{margin-left:0;white-space:nowrap;}
+.p3-tool-tags{display:grid;grid-template-columns:28px 28px 28px 38px 38px;gap:4px;align-items:center;}
+.p3-tag-slot{display:flex;align-items:center;justify-content:center;min-height:18px;width:100%;}
+.p3-tool-tags .tag{margin-left:0;white-space:nowrap;justify-content:center;min-width:100%;max-width:100%;box-sizing:border-box;padding:1px 3px;font-size:9px;line-height:1.2;}
 .p3-tool-cell .ibtn{justify-self:end;}
 tr.p3-multi-row{background:#fff8e1;}
 .ibtn{background:var(--ui-accent-bg);color:var(--ui-accent);border:1px solid var(--ui-accent-bd);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;padding:3px 8px;vertical-align:middle;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;gap:3px;margin-left:4px;}
@@ -260,7 +264,13 @@ tr.p3-carry-changed-row{background:#fff3e0!important;}
 .print-close-btn{margin-left:auto;flex-shrink:0;padding:8px 14px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-height:40px;font-family:inherit;white-space:nowrap;}
 .tcb-share-panel{margin:0;padding:14px 14px calc(18px + env(safe-area-inset-bottom,0px));background:#f1f5f9;}
 .tcb-share-section{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(18,32,80,.06);}
-.tcb-share-section-hd{font-size:12px;font-weight:700;color:var(--label-3);letter-spacing:.04em;margin-bottom:10px;}
+.tcb-share-section-hd{font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.04em;margin-bottom:10px;}
+.tcb-share-intro-label{font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:6px;}
+.tcb-share-intro{width:100%;min-height:72px;padding:10px 12px;border:1px solid var(--bdr);border-radius:10px;font-size:13px;line-height:1.65;color:var(--txt);font-family:inherit;resize:vertical;background:var(--surface-2);}
+.tcb-share-intro:focus{outline:none;border-color:var(--ui-accent);box-shadow:0 0 0 2px rgba(21,101,192,.15);}
+.tcb-share-intro-reset{margin-top:6px;padding:0;border:none;background:transparent;color:var(--ui-accent);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;}
+.tcb-share-extra{margin:0;padding:10px 12px;background:var(--surface-2);border:1px solid var(--bdr);border-radius:10px;font-size:12px;line-height:1.65;color:var(--txt2);white-space:pre-wrap;word-break:break-word;font-family:inherit;}
+.tcb-share-extra:empty{display:none;}
 .tcb-share-opts{display:flex;flex-direction:column;gap:8px;}
 .tcb-share-opt{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--txt);cursor:pointer;line-height:1.4;}
 .tcb-share-opt input{width:18px;height:18px;accent-color:var(--ui-accent);flex-shrink:0;margin:0;}
@@ -281,6 +291,7 @@ tr.p3-carry-changed-row{background:#fff3e0!important;}
 .p3-share-entry-btn:active{opacity:.92;}
 .p3-share-entry-btn:disabled{opacity:.5;cursor:not-allowed;}
 #print-frame{display:block;width:100%;min-height:min(52vh,420px);border:none;background:#fff;}
+#print-frame.tcb-print-frame-preview{min-height:min(70vh,560px);}
 html.theme-b16 .print-header{
   background:#fff;
   border-bottom:3px solid #c0000a;
@@ -941,8 +952,11 @@ html{color-scheme:light;}
           <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> PDF添付（送信時は端末にも自動保存）</label>
         </div>
         <div class="tcb-share-preview-wrap">
-          <div class="tcb-share-preview-hd">LINE本文プレビュー</div>
-          <pre class="tcb-share-preview" id="share-line-preview"></pre>
+          <div class="tcb-share-intro-label">定型文（編集可）</div>
+          <textarea class="tcb-share-intro" id="share-line-intro" rows="3"></textarea>
+          <button type="button" class="tcb-share-intro-reset" id="share-line-intro-reset">定型文を初期に戻す</button>
+          <div class="tcb-share-intro-label" style="margin-top:10px;">自動追記プレビュー</div>
+          <pre class="tcb-share-extra" id="share-line-extra"></pre>
         </div>
       </div>
       <div class="tcb-share-section">
@@ -1144,11 +1158,11 @@ html{color-scheme:light;}
     </div>
     <div id="ttbl">
       <div class="tbl-wrap">
-        <table><thead><tr>
-          <th>#</th><th>道具名</th>
+        <table class="p3-result-tbl"><thead><tr>
+          <th class="p3-col-id">#</th><th class="p3-col-name">道具名</th>
           <th class="p3-rebal-th tcb-ui-advanced">再配</th>
-          <th id="thteam" style="display:none;">班</th>
-          <th>担当者</th>
+          <th id="thteam" class="p3-col-team" style="display:none;">班</th>
+          <th class="p3-col-asgn">担当者</th>
         </tr></thead><tbody id="tbody"></tbody></table>
       </div>
     </div>
@@ -4224,8 +4238,7 @@ function renderAll(){
   schedulePersistCurrentAllocation();
 }
 
-function buildToolTagSlots(t, tLabel, hideTeam){
-  var teamColMode=R&&R.mode==='team'&&!hideTeam;
+function buildToolTagSlots(t){
   function slot(inner){return '<span class="p3-tag-slot">'+(inner||'')+'</span>';}
   var h='';
   h+=slot(isSuperLongToolSize(t.sz)?'<span class="tag tll">LL</span>':'');
@@ -4233,11 +4246,7 @@ function buildToolTagSlots(t, tLabel, hideTeam){
   h+=slot((t.wt==='Heavy'||t.wt==='Very heavy')?'<span class="tag thv">重</span>':'');
   h+=slot(t.fixed?'<span class="tag tfx">固定</span>':'');
   h+=slot(t.broken?'<span class="tag tbr">故障</span>':'');
-  if(teamColMode){
-    var tm=t.team||'';
-    h+=slot(tm?'<span class="tag tg'+tm+'">'+esc(tLabel)+'</span>':'');
-  }
-  return '<div class="p3-tool-tags'+(teamColMode?' p3-tool-tags-team':'')+'">'+h+'</div>';
+  return '<div class="p3-tool-tags">'+h+'</div>';
 }
 
 function buildTbl(){
@@ -4252,7 +4261,7 @@ function buildTbl(){
     var rawAsgn=R.map[t.name];
     var tm=t.team||'';
     var tLabel=tm?(tm==='A'?(R.la||'A'):(R.lb||'B')):'';
-    var tagSlots=buildToolTagSlots(t, tLabel, hideTeam);
+    var tagSlots=buildToolTagSlots(t);
     var ibtn=DESCS[t.name]
       ?'<button class="ibtn" data-tool="'+esc(t.name)+'">&#128247; 写真</button>':'';
 
@@ -4277,9 +4286,11 @@ function buildTbl(){
     }
     if(isMulti&&!carryAdjustRefSnap)tr.classList.add('p3-multi-row');
     var td1=document.createElement('td');
+    td1.className='p3-col-id';
     td1.style.cssText='color:var(--txt2);font-size:10px;white-space:nowrap;';
     td1.textContent=t.id;
     var td2=document.createElement('td');
+    td2.className='p3-col-name';
     td2.style.cssText='font-weight:700;font-size:12px;';
     td2.innerHTML='<div class="p3-tool-cell"><span class="p3-tool-name">'+esc(t.name)+'</span>'+tagSlots+ibtn+'</div>';
     var tdRb=document.createElement('td');
@@ -4299,6 +4310,7 @@ function buildTbl(){
     })(t.name,rbc);
     tdRb.appendChild(rbc);
     var td4=document.createElement('td');
+    td4.className='p3-col-asgn';
     td4.style.minWidth='100px';
     if(isMulti){
       var mbdg=document.createElement('span');
@@ -4310,6 +4322,7 @@ function buildTbl(){
     tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(tdRb);
     if(R.mode==='team'&&!hideTeam){
       var tdTm=document.createElement('td');
+      tdTm.className='p3-col-team p3-team-cell';
       tdTm.innerHTML='<span class="tag tg'+tm+'">'+esc(tLabel)+'</span>';
       tr.appendChild(tdTm);
     }
@@ -4376,7 +4389,9 @@ function buildMem(){
 }
 
 /* ========== 印刷プレビュー ========== */
-function buildPrintHTML(){
+function buildPrintHTML(opts){
+  opts=opts||{};
+  var isPreview=!!opts.preview;
   if(!R)return null;
   var dv=document.getElementById('adate').value;
   var dd=dv?new Date(dv).toLocaleDateString('ja-JP',{month:'long',day:'numeric'}):'';
@@ -4409,13 +4424,23 @@ function buildPrintHTML(){
   var pcSingle=(R.mode!=='team'||hideTeam)?printPersonCount(printToolsList):0;
   var maxPersonCount=Math.max(pcA,pcB,pcSingle);
   var maxGridRows4=Math.ceil(maxPersonCount/4)||1;
+  var totalTeamPc=(R.mode==='team'&&!hideTeam)?(pcA+pcB):pcSingle;
   var densityLevel=0;
-  if(maxGridRows4>=5||maxToolsPerPerson>=5)densityLevel=3;
-  else if(maxGridRows4>=4||maxToolsPerPerson>=4)densityLevel=2;
-  else if(maxGridRows4>=3||maxToolsPerPerson>=3)densityLevel=1;
+  if(maxGridRows4>=5||maxToolsPerPerson>=5||totalTeamPc>18)densityLevel=3;
+  else if(maxGridRows4>=4||maxToolsPerPerson>=4||totalTeamPc>14)densityLevel=2;
+  else if(maxGridRows4>=3||maxToolsPerPerson>=3||totalTeamPc>10)densityLevel=1;
   var densOff=densityLevel>=3?2:(densityLevel>=2?1:0);
   var printColCount=(densityLevel>=1||maxPersonCount>12)?4:3;
   var gridColsCls=' tcb-print-cols-'+printColCount;
+  var rowsA=(R.mode==='team'&&!hideTeam)?(Math.ceil(pcA/printColCount)||0):0;
+  var rowsB=(R.mode==='team'&&!hideTeam)?(Math.ceil(pcB/printColCount)||0):0;
+  var stackGap=4;
+  if(!isPreview&&R.mode==='team'&&!hideTeam){
+    if(densityLevel>=3)stackGap=2;
+    else if(densityLevel>=2)stackGap=3;
+    else if(rowsA+rowsB<=4)stackGap=2;
+    else if(rowsA+rowsB<=6)stackGap=3;
+  }
   function cardRows(tools,neutralTeam){
     /* 担当者ごとに道具をグループ化 */
     var personTools={};
@@ -4462,8 +4487,7 @@ function buildPrintHTML(){
   }
   var bodyHTML='';
   if(R.mode==='team'&&!hideTeam){
-    /* 左右分割は列幅が極端になり視認性が落ちるため、組ごとに全幅で上下に配置 */
-    bodyHTML='<div class="tcb-print-team-stack">'
+    bodyHTML='<div class="tcb-print-team-stack" style="gap:'+stackGap+'px">'
       +'<div class="tcb-print-team-section">'
       +'<div class="gh ghA">'+esc(la)+'グループ</div><div class="tcb-print-team-cards'+gridColsCls+'">'+cardRows(R.tA,false)+'</div></div>'
       +'<div class="tcb-print-team-section">'
@@ -4479,20 +4503,21 @@ function buildPrintHTML(){
   var exHtml=exNames.length?'<p class="pex">※除外：'+exNames.map(function(n){return esc(n);}).join('、')+'</p>':'';
   /* 変更案内（入れ替え説明）はPDFには載せない。LINE本文のみで要点を案内する方針。 */
   var hasChangePage=false;
-  var pageCls='page'+(densityLevel?' tcb-print-density-'+densityLevel:'');
+  var pageCls='page'+(densityLevel?' tcb-print-density-'+densityLevel:'')+(isPreview?' tcb-print-preview':'');
   var _b16Print=document.documentElement.classList.contains('theme-b16');
   var _ph='#122050';
   var _ps=_b16Print?'#93c5fd':'#90caf9';
   var _pl='#1565c0';
   var _plb=_b16Print?'#e8edf5':'#e3f2fd';
+  var bodyHeightRule=isPreview?'min-height:auto;height:auto;max-height:none;overflow:visible;':'min-height:auto;height:auto;max-height:285mm;overflow:hidden;';
   var css=[
     '*{box-sizing:border-box;margin:0;padding:0;}',
     '@page{size:A4 portrait;margin:6mm;}',
-    'html,body{margin:0;padding:0;width:210mm;'+(hasChangePage?'min-height:285mm;height:auto;overflow:visible;':'height:285mm;max-height:285mm;overflow:hidden;')+'font-family:sans-serif;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
-    '@media print{html,body{width:100%;'+(hasChangePage?'height:auto;max-height:none;overflow:visible;': 'height:100%;max-height:100%;overflow:hidden;')+'}'
+    'html,body{margin:0;padding:0;width:210mm;'+bodyHeightRule+'font-family:sans-serif;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
+    '@media print{html,body{width:100%;'+(isPreview?'height:auto;max-height:none;overflow:visible;':'height:auto;max-height:100%;overflow:hidden;')+'}'
       +'.page{padding:0;page-break-inside:avoid;break-inside:avoid-page;}'
       +(hasChangePage?'.page.tcb-print-change-page{page-break-before:always;break-before:page;page-break-after:auto;break-after:auto;}':'.page{page-break-after:avoid;break-after:avoid-page;}')+'}',
-    '.page{width:100%;height:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;}',
+    '.page{width:100%;'+(isPreview?'min-height:auto;height:auto;max-height:none;':'min-height:auto;height:auto;max-height:100%;')+'display:flex;flex-direction:column;overflow:'+(isPreview?'visible':'hidden')+';box-sizing:border-box;}',
     '.header{background:'+_ph+';color:#fff;border-radius:5px;padding:6px 12px;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-shrink:0;}',
     '.header-logo{width:30px;height:30px;border-radius:5px;object-fit:cover;flex-shrink:0;}',
     '.header-text{flex:1;}',
@@ -4501,9 +4526,9 @@ function buildPrintHTML(){
     '.gh{font-size:10px;font-weight:900;padding:3px 10px;border-radius:4px;margin:4px 0 3px;flex-shrink:0;}',
     '.ghA{background:'+_plb+';color:'+_pl+';border-left:3px solid '+_pl+';}',
     '.ghB{background:#f3e5f5;color:#6a1b9a;border-left:3px solid #6a1b9a;}',
-    '.tcb-print-team-stack{display:flex;flex:1;flex-direction:column;min-height:0;gap:6px;width:100%;overflow:hidden;}',
-    '.tcb-print-team-section{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;width:100%;}',
-    '.tcb-print-team-cards,.cards{flex:1;display:grid;gap:4px;grid-auto-rows:auto;align-content:start;min-height:0;overflow:hidden;}',
+    '.tcb-print-team-stack{display:flex;flex:0 1 auto;flex-direction:column;min-height:0;gap:4px;width:100%;overflow:'+(isPreview?'visible':'hidden')+';justify-content:flex-start;}',
+    '.tcb-print-team-section{display:flex;flex:0 0 auto;flex-direction:column;min-height:0;overflow:'+(isPreview?'visible':'hidden')+';width:100%;}',
+    '.tcb-print-team-cards,.cards{flex:0 0 auto;display:grid;gap:4px;grid-auto-rows:auto;align-content:start;min-height:0;overflow:'+(isPreview?'visible':'hidden')+';}',
     '.tcb-print-cols-3.tcb-print-team-cards,.tcb-print-cols-3.cards{grid-template-columns:repeat(3,1fr);}',
     '.tcb-print-cols-4.tcb-print-team-cards,.tcb-print-cols-4.cards{grid-template-columns:repeat(4,1fr);}',
     '.card{background:#fff;border-radius:4px;overflow:hidden;border:1px solid #e0e0e0;border-left:3px solid #cfd8dc;display:flex;flex-direction:column;min-height:0;}',
@@ -4527,7 +4552,11 @@ function buildPrintHTML(){
     '.tcb-print-change-h{font-size:14px;font-weight:900;color:#4a148c;margin:0 0 8px;padding-bottom:6px;border-bottom:2px solid #ce93d8;}',
     '.tcb-print-change-body{font-size:11px;line-height:1.65;color:#333;white-space:pre-wrap;word-break:break-word;}',
     '.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
-    '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
+    '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}',
+    '.tcb-pdf-export html,.tcb-pdf-export body{height:auto!important;max-height:none!important;overflow:visible!important;}',
+    '.tcb-pdf-export .page{height:auto!important;max-height:none!important;overflow:visible!important;}',
+    '.tcb-pdf-export .tcb-print-team-stack,.tcb-pdf-export .tcb-print-team-section{flex:0 0 auto!important;}',
+    '.tcb-pdf-export .tcb-print-team-cards,.tcb-pdf-export .cards{overflow:visible!important;}'
   ].join('');
   /* mmdd形式のファイル名生成（前回ベース再割当時は当日日付・ローカル日付） */
   var fnDate='';
@@ -4572,22 +4601,41 @@ function parentPublishPayloadReady(){
 function shareUsesRevisedLineMessage(){
   return typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.hasRevisedNotice==='function'&&TCB_SwapMgr.hasRevisedNotice();
 }
-/** 展開パネル用 LINE 本文（プレビュー／送信共通） */
-function buildShareLinePreviewText(opts){
+var shareLineIntroDirty=false;
+function getShareLineIntroText(){
+  var ta=document.getElementById('share-line-intro');
+  if(ta&&ta.value!=null&&String(ta.value).trim())return ta.value;
+  return SHARE_PDF_MESSAGE;
+}
+function resetShareLineIntro(){
+  shareLineIntroDirty=false;
+  var ta=document.getElementById('share-line-intro');
+  if(ta)ta.value=SHARE_PDF_MESSAGE;
+  refreshSharePanel();
+}
+function buildShareLineExtraText(opts){
   opts=opts||{};
   var includeUrl=!!opts.includeUrl;
   var url=String(opts.url||_parentViewUrl||'').trim();
+  if(shareUsesRevisedLineMessage())return '';
+  var parts=[];
+  var lineBody=getCarryAdjustLineBodyPlain();
+  if(lineBody)parts.push(lineBody);
+  if(includeUrl&&url)parts.push('最新の担当確認はこちら\n'+url);
+  return parts.join('\n\n');
+}
+/** 展開パネル用 LINE 本文（プレビュー／送信共通） */
+function buildShareLinePreviewText(opts){
+  opts=opts||{};
   if(shareUsesRevisedLineMessage()){
     if(typeof TCB_SwapMgr.buildRevisedLineMessage==='function'){
-      return TCB_SwapMgr.buildRevisedLineMessage(includeUrl?url:'');
+      var url=String((opts.url||_parentViewUrl||'')).trim();
+      return TCB_SwapMgr.buildRevisedLineMessage(opts.includeUrl?url:'');
     }
   }
-  var text=SHARE_PDF_MESSAGE;
-  var lineBody=getCarryAdjustLineBodyPlain();
-  if(lineBody)text=text+'\n\n'+lineBody;
-  if(includeUrl&&url){
-    text=text+'\n\n最新の担当確認はこちら\n'+url;
-  }
+  var text=getShareLineIntroText();
+  var extra=buildShareLineExtraText(opts);
+  if(extra)text=text+'\n\n'+extra;
   return text;
 }
 function refreshSharePanel(){
@@ -4617,11 +4665,23 @@ function refreshSharePanel(){
     if(!PDF_DELIVERY_ENABLED)pdfInput.checked=false;
   }
   var lineInput=document.getElementById('share-opt-line');
-  var preview=document.getElementById('share-line-preview');
-  if(preview){
-    var showLine=!lineInput||lineInput.checked;
-    var showUrl=urlInput&&urlInput.checked&&syncOn;
-    preview.textContent=showLine?buildShareLinePreviewText({includeUrl:showUrl}):'(LINE本文は送信しません)';
+  var introEl=document.getElementById('share-line-intro');
+  var extraEl=document.getElementById('share-line-extra');
+  var showLine=!lineInput||lineInput.checked;
+  var showUrl=urlInput&&urlInput.checked&&syncOn;
+  if(introEl){
+    if(shareUsesRevisedLineMessage()){
+      introEl.disabled=true;
+      if(typeof TCB_SwapMgr.buildRevisedLineMessage==='function'){
+        introEl.value=TCB_SwapMgr.buildRevisedLineMessage(showUrl?_parentViewUrl:'');
+      }
+    }else{
+      if(!shareLineIntroDirty&&document.activeElement!==introEl)introEl.value=SHARE_PDF_MESSAGE;
+      introEl.disabled=!showLine;
+    }
+  }
+  if(extraEl){
+    extraEl.textContent=(!shareUsesRevisedLineMessage()&&showLine)?buildShareLineExtraText({includeUrl:showUrl}):'';
   }
   var shareBtn=document.getElementById('btn-share-line');
   if(shareBtn){
@@ -4792,7 +4852,7 @@ function executeLineShare(){
   var orig=btn?btn.textContent:'';
   if(btn){btn.disabled=true;btn.textContent='準備中…';}
   setSharePanelStatus('');
-  var out=prepareAssignPdfOutput();
+  var out=prepareAssignPdfOutput(false);
   if(pdfOn&&!out){
     if(btn){btn.disabled=false;btn.textContent=orig;}
     return;
@@ -5058,19 +5118,23 @@ function execAssignPdfBlobSave(out){
   });
 }
 /** 印刷HTML・ファイル名を最新化してプレビューiframeへ反映 */
-function prepareAssignPdfOutput(){
-  var html=buildPrintHTML();
+function prepareAssignPdfOutput(forPreview){
+  var html=buildPrintHTML({preview:!!forPreview});
   if(!html)return null;
   return{
     html:html,
     baseName:getAssignPdfBaseName(),
-    fileName:getAssignPdfFileName()
+    fileName:getAssignPdfFileName(),
+    preview:!!forPreview
   };
 }
 function syncAssignPdfPreview(frame){
-  var out=prepareAssignPdfOutput();
+  var out=prepareAssignPdfOutput(true);
   if(!out)return null;
-  if(frame)frame.srcdoc=out.html;
+  if(frame){
+    frame.classList.add('tcb-print-frame-preview');
+    frame.srcdoc=out.html;
+  }
   return out;
 }
 function openPrint(){
@@ -5094,7 +5158,10 @@ function openPrint(){
 }
 /** 端末環境に応じて送信/保存ボタンと案内文を出し分け、共有用にPDFを事前生成する */
 function applyShareUiForEnv(out){
-  if(PDF_DELIVERY_ENABLED&&out)warmAssignPdfBlob(out.html);
+  if(PDF_DELIVERY_ENABLED){
+    var printOut=prepareAssignPdfOutput(false);
+    if(printOut)warmAssignPdfBlob(printOut.html);
+  }
   refreshSharePanel();
 }
 function closePrint(){
@@ -5103,8 +5170,9 @@ function closePrint(){
 function execPrint(){
   if(!R){alert('先に割振りを実行してください。');return;}
   var frame=document.getElementById('print-frame');
-  var out=syncAssignPdfPreview(frame);
+  var out=prepareAssignPdfOutput(false);
   if(!out)return;
+  if(frame)frame.srcdoc=out.html;
   if(preferAssignPdfBlobSave()){
     execAssignPdfBlobSave(out);
     return;
@@ -5219,6 +5287,11 @@ function buildMasterTools(){
     kl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
     var kc=document.createElement('input'); kc.type='checkbox'; kc.checked=!!t.kata;
     kl.appendChild(kc); kl.appendChild(document.createTextNode('試合'));
+    /* 故障フラグ（割振り表・PDFの「故障」タグ表示） */
+    var bl=document.createElement('label');
+    bl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+    var bc=document.createElement('input'); bc.type='checkbox'; bc.checked=!!(t.broken==1||t.broken==='1');
+    bl.appendChild(bc); bl.appendChild(document.createTextNode('故障'));
     /* 固定担当（コンパクトに1行へ）*/
     var fs=document.createElement('select'); fs.className='msel'; fs.style.minWidth='72px';
     var o0=document.createElement('option'); o0.value=''; o0.textContent='固定:なし'; fs.appendChild(o0);
@@ -5231,7 +5304,7 @@ function buildMasterTools(){
     /* 削除 */
     var db=document.createElement('button'); db.className='mdel'; db.textContent='削除';
     /* イベント */
-    (function(idx,n2,s2,w2,r2,r3,k2,f2){
+    (function(idx,n2,s2,w2,r2,r3,k2,b2,f2){
       n2.addEventListener('change',function(){
         var oldName=TL[idx].name;
         var newName=String(n2.value||'').replace(/\r?\n/g,'').trim();
@@ -5258,6 +5331,7 @@ function buildMasterTools(){
         else delete TL[idx].practiceVenue;
       });
       k2.addEventListener('change',function(){TL[idx].kata=k2.checked?1:0;});
+      b2.addEventListener('change',function(){TL[idx].broken=b2.checked?1:0;});
       f2.addEventListener('change',function(){
         if(f2.value){TL[idx].fixed=1;TL[idx].note=f2.value;}
         else{TL[idx].fixed=0;TL[idx].note=null;}
@@ -5269,8 +5343,8 @@ function buildMasterTools(){
         pruneDescsOrphans();
         buildMasterTools();buildMasterDescs();
       });
-    })(i,ni,ss,ws,rs,rrs,kc,fs);
-    ctlRow.appendChild(ss); ctlRow.appendChild(ws); ctlRow.appendChild(rs); ctlRow.appendChild(rrs); ctlRow.appendChild(kl); ctlRow.appendChild(fs); ctlRow.appendChild(db);
+    })(i,ni,ss,ws,rs,rrs,kc,bc,fs);
+    ctlRow.appendChild(ss); ctlRow.appendChild(ws); ctlRow.appendChild(rs); ctlRow.appendChild(rrs); ctlRow.appendChild(kl); ctlRow.appendChild(bl); ctlRow.appendChild(fs); ctlRow.appendChild(db);
     row.appendChild(nameWrap); row.appendChild(ctlRow);
     el.appendChild(row);
   });
@@ -5913,6 +5987,15 @@ document.addEventListener('DOMContentLoaded',function(){
     var el=document.getElementById(id);
     if(el)el.addEventListener('change',function(){refreshSharePanel();});
   });
+  var shareLineIntro=document.getElementById('share-line-intro');
+  if(shareLineIntro){
+    shareLineIntro.addEventListener('input',function(){
+      shareLineIntroDirty=true;
+      refreshSharePanel();
+    });
+  }
+  var shareLineIntroReset=document.getElementById('share-line-intro-reset');
+  if(shareLineIntroReset)shareLineIntroReset.addEventListener('click',function(){resetShareLineIntro();});
 
   /* 交代報告（MGR）モジュール初期化：内部関数をフックとして注入 */
   if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.init==='function'){
