@@ -156,7 +156,7 @@ html[data-cohort="15"] header{
 .rest-badge,.coach-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
 .rest-badge{background:#90a4ae;}.coach-badge{background:var(--coach);}
 .master-excl-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
-.ac14-badge{background:#5c6bc0;}.sibling-badge{background:#8d6e63;}
+.ac14-badge{background:#5c6bc0;}.sibling-badge{background:#8d6e63;}.nomulti-badge{background:#7b1fa2;}
 .mc.master-excl{border-color:#b0bec5;background:#eceff1;opacity:.6;cursor:default;}
 .tc2{display:flex;align-items:center;gap:5px;padding:9px 10px;border-radius:12px;cursor:pointer;border:1px solid var(--bdr);background:#fff;user-select:none;min-height:var(--tap);flex-wrap:wrap;}
 .tc2:active{opacity:.7;}
@@ -475,7 +475,7 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
 .master-mbr-row .mdel{flex-shrink:0;}
 .master-mbr-flags-wrap{
   display:grid;
-  grid-template-columns:repeat(2,minmax(6.5em,max-content));
+  grid-template-columns:repeat(3,minmax(5.5em,max-content));
   column-gap:14px;
   row-gap:4px;
   flex-shrink:0;
@@ -1080,6 +1080,7 @@ html{color-scheme:light;}
   /* 濃紺(--ta/--navy)をテキストに使う箇所を明るいブルーへ */
   .tcb.A,.tninp.A,.shd2.A,.tgA,.hist-date,.master-section-h3-title,
   .master-desc-card-head,.tcb-actual-hold-sel{color:#cdd8f5;}
+  .ac14-badge,.sibling-badge,.nomulti-badge{color:#fff;}
   /* 赤(--tb)をテキストに使う箇所を明るいレッドへ */
   .tcb.B,.tninp.B,.shd2.B,.tgB{color:#ff9ea2;}
   .tng-dot-a{color:#9fb4e8;}
@@ -1426,7 +1427,7 @@ html{color-scheme:light;}
   <!-- STEP2 -->
   <div class="pnl" id="p2">
     <div class="card">
-      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席などで<strong>この日の割振りから外す人</strong>をタップ。休部・コーチ・14期帯同・兄弟所属は常に対象外です。" aria-label="説明"></button></div>
+      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席などで<strong>この日の割振りから外す人</strong>をタップ。休部・コーチ・14期帯同・兄弟所属は常に対象外です。<strong>1道具まで</strong>の人は割振り対象ですが、自動割振りでは1日1道具までです。" aria-label="説明"></button></div>
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
@@ -1905,14 +1906,51 @@ function normalizeMemberRow(m){
   if(m.coach===undefined)m.coach=0;
   if(m.ac14===undefined)m.ac14=0;
   if(m.sibling===undefined)m.sibling=0;
+  if(m.noMulti===undefined)m.noMulti=0;
   m.rest=normFlag01(m.rest);
   m.coach=normFlag01(m.coach);
   m.ac14=normFlag01(m.ac14);
   m.sibling=normFlag01(m.sibling);
+  m.noMulti=normFlag01(m.noMulti);
   m.v=normalizeMemberVehicle(m.v);
 }
 function memberMasterExcluded(m){
   return !!(m&&(m.rest||m.coach||m.ac14||m.sibling));
+}
+function memberRowByName(name){
+  for(var i=0;i<MB.length;i++){if(MB[i]&&MB[i].name===name)return MB[i];}
+  return null;
+}
+function isMemberNoMulti(m){
+  return !!(m&&normFlag01(m.noMulti)===1);
+}
+function isMemberNoMultiByName(name){
+  return isMemberNoMulti(memberRowByName(name));
+}
+function statePersonAtNoMultiCap(state, personName){
+  if(!isMemberNoMultiByName(personName))return false;
+  var s=state&&state[personName];
+  return !!(s&&(s.cnt|0)>=1);
+}
+function memberCanReceiveAutoTool(state, personName){
+  return !statePersonAtNoMultiCap(state, personName);
+}
+function countAssignMapToolsForPerson(assignMap, personName, excludeToolName){
+  var n=0;
+  Object.keys(assignMap||{}).forEach(function(tn){
+    if(excludeToolName&&tn===excludeToolName)return;
+    if(assignMap[tn]===personName)n++;
+  });
+  return n;
+}
+function listNoMultiOverflowNames(){
+  if(!R||!R.map)return [];
+  var out=[];
+  MB.forEach(function(m){
+    if(!isMemberNoMulti(m))return;
+    if(countAssignMapToolsForPerson(R.map,m.name,null)>=2)out.push(m.name);
+  });
+  return out;
 }
 function parseMasterVersion(v){
   if(v==null||v==='')return 0;
@@ -2195,6 +2233,7 @@ function syncMasterEditsFromDom(){
       if(cbs[1])MB[i].coach=cbs[1].checked?1:0;
       if(cbs[2])MB[i].ac14=cbs[2].checked?1:0;
       if(cbs[3])MB[i].sibling=cbs[3].checked?1:0;
+      if(cbs[4])MB[i].noMulti=cbs[4].checked?1:0;
     }
   }
   var tel=document.getElementById('m-tools');
@@ -3201,6 +3240,18 @@ function buildZeroPrioritySet(snap, memberList){
 }
 function buildPrevSeedBaseAndPool(snap, ctx, ex){
   var prevMap=snap.map;
+  var personCnt={};
+  function canAddToPerson(name){
+    if(!name||ex[name])return false;
+    if(isMemberNoMultiByName(name)&&(personCnt[name]||0)>=1)return false;
+    return true;
+  }
+  function assignToBase(tn, name){
+    if(!canAddToPerson(name))return false;
+    baseMap[tn]=name;
+    personCnt[name]=(personCnt[name]||0)+1;
+    return true;
+  }
   if(ctx.mode==='team'){
     var nA=memberNameSet(ctx.mA), nB=memberNameSet(ctx.mB);
     var baseMap={}, poolSet={};
@@ -3210,11 +3261,13 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
       if(!mem)return;
       var p=prevMap[t.name];
       if(t.fixed&&t.note){
-        if(mem[t.note]&&!ex[t.note]){baseMap[t.name]=t.note;return;}
+        if(mem[t.note]&&assignToBase(t.name,t.note))return;
         poolSet[t.name]=1;return;
       }
-      if(p&&!ex[p]&&mem[p])baseMap[t.name]=p;
-      else poolSet[t.name]=1;
+      if(p&&!ex[p]&&mem[p]){
+        if(assignToBase(t.name,p))return;
+      }
+      poolSet[t.name]=1;
     }
     ctx.tA.forEach(placeTeamTool);
     ctx.tB.forEach(placeTeamTool);
@@ -3225,13 +3278,39 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
   ctx.tools.forEach(function(t){
     var p=prevMap[t.name];
     if(t.fixed&&t.note){
-      if(mem[t.note]&&!ex[t.note]){baseMap[t.name]=t.note;return;}
+      if(mem[t.note]&&assignToBase(t.name,t.note))return;
       poolSet[t.name]=1;return;
     }
-    if(p&&!ex[p]&&mem[p])baseMap[t.name]=p;
-    else poolSet[t.name]=1;
+    if(p&&!ex[p]&&mem[p]){
+      if(assignToBase(t.name,p))return;
+    }
+    poolSet[t.name]=1;
   });
   return {baseMap:baseMap, poolSet:poolSet};
+}
+/* 班入替・お茶引き継ぎ後など：1道具までの人が2件以上 baseMap に載っていたら余剰をプールへ */
+function enforceNoMultiOnBaseMap(baseMap, poolSet, toolList){
+  var byName={};
+  (toolList||[]).forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+  var entries=[];
+  Object.keys(baseMap||{}).forEach(function(tn){
+    entries.push({tn:tn, p:baseMap[tn], t:byName[tn]||{name:tn}});
+  });
+  entries.sort(function(a,b){
+    var af=!!(a.t&&a.t.fixed), bf=!!(b.t&&b.t.fixed);
+    if(af!==bf)return af?-1:1;
+    return String(a.tn).localeCompare(String(b.tn),'ja');
+  });
+  var kept={};
+  entries.forEach(function(e){
+    if(!isMemberNoMultiByName(e.p))return;
+    if(kept[e.p]){
+      poolSet[e.tn]=1;
+      delete baseMap[e.tn];
+    }else{
+      kept[e.p]=1;
+    }
+  });
 }
 /* 班入替時：2人1組で持ち道具を入れ替え、物理的な変更人数を最小化 */
 function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
@@ -3659,6 +3738,7 @@ function applyOchHandoff(baseMap, poolSet, snap, ctx){
     for(var ri=0;ri<receivers.length;ri++){
       var recv=receivers[(recvIdx+ri)%receivers.length];
       if(ctx.mode==='team'&&tm&&!memberInTeamByTmMap(recv,tm))continue;
+      if(isMemberNoMultiByName(recv)&&countAssignMapToolsForPerson(baseMap,recv,null)>=1)continue;
       baseMap[tn]=recv;
       placed=true;
       moved++;
@@ -3728,6 +3808,8 @@ function runAlgoApplyPrevSeed(snap, ctx, runSeed){
   var ex=ctx.ex;
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ex);
+  var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
+  enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, assignPoolFair, {});
   return true;
 }
@@ -3736,8 +3818,10 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
   var ex=ctx.ex;
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ex);
+  var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
   var ochNotes=applyOchHandoff(built.baseMap, built.poolSet, snap, ctx);
   var swapNotes=applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ex);
+  enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
   var zeroSide={};
   if(ctx.mode==='team'){
     zeroSide.A=buildZeroPrioritySet(snap, ctx.mA);
@@ -3864,6 +3948,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
           });
         for(var i=0;i<cands.length;i++){
           var n=cands[i][0], s=cands[i][1], vv=s.v;
+          if(statePersonAtNoMultiCap(state,n))continue;
           if(s.exclusiveRecv)continue;
           if(soloFillOnly&&s.cnt>0)continue;
           if(requireOther&&s.cnt<1)continue;
@@ -3914,7 +3999,8 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
       });
       var tryAssign=function(skipPrevCooldown){
         for(var j=0;j<byCnt.length;j++){
-          var sJ=byCnt[j][1], vv=sJ.v;
+          var sJ=byCnt[j][1], vv=sJ.v, nJ=byCnt[j][0];
+          if(statePersonAtNoMultiCap(state,nJ))continue;
           if(sJ.exclusiveRecv)continue;
           if(soloFillOnly&&sJ.cnt>0)continue;
           if(sJ.cnt>0)continue;
@@ -3933,30 +4019,41 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
         return false;
       };
       if(!tryAssign(false)&&!tryAssign(true)&&byCnt.length){
-        var s2=byCnt[0][1];
-        s2.tools.push(t.name); s2.score+=tls;
-        if(isHv)s2.hv++;
-        if(isSuperLong)s2.sl++;
-        if(isLlen)s2.lc++;
-        s2.cnt++; s2.exclusiveRecv=1;
-        notePoolAssign(byCnt[0][0]);
-        placed=true;
+        var pickEntry=null;
+        for(var bi=0;bi<byCnt.length;bi++){
+          if(statePersonAtNoMultiCap(state,byCnt[bi][0]))continue;
+          pickEntry=byCnt[bi];
+          break;
+        }
+        if(pickEntry){
+          var s2=pickEntry[1];
+          s2.tools.push(t.name); s2.score+=tls;
+          if(isHv)s2.hv++;
+          if(isSuperLong)s2.sl++;
+          if(isLlen)s2.lc++;
+          s2.cnt++; s2.exclusiveRecv=1;
+          notePoolAssign(pickEntry[0]);
+          placed=true;
+        }
       }
     }else{
       var pick=null, pickName=null;
       for(var ii=0;ii<sorted.length;ii++){
+        if(statePersonAtNoMultiCap(state,sorted[ii][0]))continue;
         if(soloFillOnly&&sorted[ii][1].cnt>0)continue;
         if(prevPerson&&sorted[ii][0]===prevPerson)continue;
         if(!sorted[ii][1].exclusiveRecv){ pick=sorted[ii][1]; pickName=sorted[ii][0]; break; }
       }
       if(!pick&&prevPerson){
         for(var iii=0;iii<sorted.length;iii++){
+          if(statePersonAtNoMultiCap(state,sorted[iii][0]))continue;
           if(soloFillOnly&&sorted[iii][1].cnt>0)continue;
           if(!sorted[iii][1].exclusiveRecv){ pick=sorted[iii][1]; pickName=sorted[iii][0]; break; }
         }
       }
       if(!pick){
         for(var iv=0;iv<sorted.length;iv++){
+          if(statePersonAtNoMultiCap(state,sorted[iv][0]))continue;
           if(soloFillOnly&&sorted[iv][1].cnt>0)continue;
           pick=sorted[iv][1]; pickName=sorted[iv][0]; break;
         }
@@ -3974,22 +4071,24 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   }
   return placed;
 }
+function tryApplyFixedToolToState(t, state){
+  if(!t.fixed||!t.note||!state[t.note])return false;
+  if(!memberCanReceiveAutoTool(state,t.note))return false;
+  applyAssignToolToState(state[t.note],t);
+  return true;
+}
 function doAssign(toolList,state,prevAssignMap,runSeed){
   var prevMap=prevAssignMap||null;
   var carryMap=loadCarryoutPrevMap();
   var seed=(runSeed|0)||0;
   var defer=[];
   toolList.forEach(function(t){
-    if(t.fixed&&t.note&&state[t.note])applyAssignToolToState(state[t.note],t);
-    else defer.push(t);
+    if(!tryApplyFixedToolToState(t,state))defer.push(t);
   });
-  /* 固定→高負荷単独→重い順→軽い同乗用アンカーを最後（固定は必ず指定者へ） */
+  /* 固定→高負荷単独→重い順→軽い同乗用アンカーを最後（固定は必ず指定者へ・1道具までの上限内） */
   defer=sortToolsForDefer(defer);
   defer.forEach(function(t){
-    if(t.fixed&&t.note&&state[t.note]){
-      applyAssignToolToState(state[t.note],t);
-      return;
-    }
+    if(tryApplyFixedToolToState(t,state))return;
     assignOneToolToState(t, state, prevMap, carryMap, seed);
   });
   return state;
@@ -4443,6 +4542,10 @@ function tcbMasterConfirmDone(ok){
 }
 
 /* ========== グリッド（STEP2） ========== */
+function memberGridExtraBadgeHtml(m){
+  if(isMemberNoMulti(m))return '<span class="master-excl-badge nomulti-badge">1道具まで</span>';
+  return '';
+}
 function buildAGrid(){
   var g=document.getElementById('agrid'); if(!g)return; g.innerHTML='';
   MB.forEach(function(m){
@@ -4461,7 +4564,7 @@ function buildAGrid(){
       c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="master-excl-badge sibling-badge">兄弟所属</span>';
     }else{
       c.className='mc'+(absS[m.name]?' abs':'');
-      c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="cv v'+m.v+'">'+esc(m.v)+'</span>';
+      c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="cv v'+m.v+'">'+esc(m.v)+'</span>'+memberGridExtraBadgeHtml(m);
       (function(mm,cc){
         cc.addEventListener('click',function(){
           if(absS[mm.name])delete absS[mm.name]; else absS[mm.name]=1;
@@ -4499,7 +4602,7 @@ function buildOGrid(){
   MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){
     var c=document.createElement('div');
     c.className='mc'+(ochS[m.name]?' ocha':'');
-    c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="cv v'+m.v+'">'+esc(m.v)+'</span>';
+    c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="cv v'+m.v+'">'+esc(m.v)+'</span>'+memberGridExtraBadgeHtml(m);
     (function(mm,cc){
       cc.addEventListener('click',function(){
         if(ochS[mm.name])delete ochS[mm.name]; else ochS[mm.name]=1;
@@ -4557,7 +4660,8 @@ function tcHtml(m,tm,la,lb){
   var safeName=esc(m.name);
   return '<span class="tbdg '+bc+'">'+esc(lbl)+'</span>'
        +'<span class="cn">'+safeName+'</span>'
-       +'<span class="cv v'+m.v+'">'+esc(m.v)+'</span>';
+       +'<span class="cv v'+m.v+'">'+esc(m.v)+'</span>'
+       +memberGridExtraBadgeHtml(m);
 }
 function updTC(){
   var ex=exSet();
@@ -4740,6 +4844,12 @@ function renderAll(){
     dUn.textContent='未割当の道具があります（'+unassigned.length+'点）：'+unassigned.join('、')+'。担当者を手動で選ぶか、STEP2の条件を見直して再実行してください。';
     aa.appendChild(dUn);
   }
+  var noMultiOver=listNoMultiOverflowNames();
+  if(noMultiOver.length){
+    var dNm=document.createElement('div'); dNm.className='al alw';
+    dNm.textContent='「1道具まで」の人に2件以上割り当てられています：'+noMultiOver.join('、')+'。手動で調整してください。';
+    aa.appendChild(dNm);
+  }
 
   buildTbl();
   updateSeedModeBanners();
@@ -4855,10 +4965,24 @@ function buildTbl(){
 function chAssign(toolName,newName){
   if(!R)return;
   /* 単独持ち帰り（noMul・極重・ベース一式等）は自動割振りのみ制約。STEP3の担当変更は手動で上書き可 */
+  /* 1道具まで：手動でも2本目を付けられるが警告を表示 */
+  var warnNoMulti='';
+  if(newName&&isMemberNoMultiByName(newName)&&countAssignMapToolsForPerson(R.map,newName,toolName)>=1){
+    warnNoMulti='（注意：'+newName+' は「1道具まで」ですが、手動で2本目を割り当てました）';
+  }
   pushAssignHistory();
   if(newName)R.map[toolName]=newName;
   else delete R.map[toolName];
   buildTbl();
+  if(warnNoMulti){
+    var aa=document.getElementById('aalert');
+    if(aa){
+      var dNm=document.createElement('div');
+      dNm.className='al alw';
+      dNm.textContent=warnNoMulti;
+      aa.insertBefore(dNm,aa.firstChild);
+    }
+  }
 }
 
 /* ========== メンバー別 ========== */
@@ -5906,11 +6030,16 @@ function buildMasterMembers(){
     sl.title='上下期に兄妹がおり当期の割振り対象外';
     var sc=document.createElement('input'); sc.type='checkbox'; sc.checked=!!m.sibling;
     sl.appendChild(sc); sl.appendChild(document.createTextNode('兄弟所属'));
+    var nml=document.createElement('label'); nml.className='master-mbr-flag-lbl';
+    nml.title='自動割振りでは1日1道具まで（固定担当を含む）。夏場など負担を抑えたい保護者向け';
+    var nmc=document.createElement('input'); nmc.type='checkbox'; nmc.checked=!!m.noMulti;
+    nml.appendChild(nmc); nml.appendChild(document.createTextNode('1道具まで'));
     var flagsWrap=document.createElement('div'); flagsWrap.className='master-mbr-flags-wrap';
     flagsWrap.appendChild(rl); flagsWrap.appendChild(cl);
     flagsWrap.appendChild(a14l); flagsWrap.appendChild(sl);
+    flagsWrap.appendChild(nml);
     var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
-    (function(ii,n2,v2,r2,c2,a2,s2){
+    (function(ii,n2,v2,r2,c2,a2,s2,nm2){
       n2.addEventListener('change',function(){
         if(n2.value!==MB[ii].name)migrateMemberNameRefs(MB[ii].name,n2.value);
         MB[ii].name=n2.value;
@@ -5921,6 +6050,7 @@ function buildMasterMembers(){
       c2.addEventListener('change',function(){MB[ii].coach=c2.checked?1:0;});
       a2.addEventListener('change',function(){MB[ii].ac14=a2.checked?1:0;});
       s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
+      nm2.addEventListener('change',function(){MB[ii].noMulti=nm2.checked?1:0;});
       db.addEventListener('click',function(){
         var nm=String((MB[ii]&&MB[ii].name)||n2.value||'').trim()||'このメンバー';
         tcbMasterConfirm({
@@ -5931,7 +6061,7 @@ function buildMasterMembers(){
           MB.splice(ii,1);buildMasterMembers();
         });
       });
-    })(i,ni,vs,rc,cc,a14c,sc);
+    })(i,ni,vs,rc,cc,a14c,sc,nmc);
     row.appendChild(ni); row.appendChild(vs); row.appendChild(flagsWrap); row.appendChild(db);
     el.appendChild(row);
   });
@@ -6853,7 +6983,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnPastReset=document.getElementById('btn-past-reset');
   if(btnPastReset)btnPastReset.addEventListener('click',function(){resetPastToZero();});
   document.getElementById('btn-add-mbr').addEventListener('click',function(){
-    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,coach:0,ac14:0,sibling:0}); buildMasterMembers();
+    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,coach:0,ac14:0,sibling:0,noMulti:0}); buildMasterMembers();
   });
   document.getElementById('btn-add-tool').addEventListener('click',function(){
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id);},0);
