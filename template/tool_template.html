@@ -120,7 +120,7 @@ html[data-cohort="15"] header{
   }
   #agrid .mc,#ogrid .mc,#tgrid .tc2{flex-wrap:wrap;gap:4px 6px;}
   #tgrid .tbdg{order:1;font-size:10px;min-width:28px;height:24px;padding:0 4px;flex-shrink:0;}
-  #tgrid .cv,#agrid .cv,#ogrid .cv,#agrid .rest-badge,#ogrid .rest-badge,#agrid .coach-badge,#ogrid .coach-badge,#agrid .master-excl-badge,#ogrid .master-excl-badge{order:2;margin-left:auto;flex-shrink:0;}
+  #tgrid .cv,#agrid .cv,#ogrid .cv,#agrid .rest-badge,#ogrid .rest-badge,#agrid .quit-badge,#ogrid .quit-badge,#agrid .coach-badge,#ogrid .coach-badge,#agrid .master-excl-badge,#ogrid .master-excl-badge{order:2;margin-left:auto;flex-shrink:0;}
   #agrid .cn,#ogrid .cn,#tgrid .cn{
     order:3;
     flex:0 0 100%;
@@ -140,6 +140,7 @@ html[data-cohort="15"] header{
   #skipgrid .cn{font-weight:800;line-height:1.15;}
   #agrid .cv,#ogrid .cv,#tgrid .cv{font-size:10px;padding:2px 5px;}
   #agrid .rest-badge,#ogrid .rest-badge,#tgrid .rest-badge,
+  #agrid .quit-badge,#ogrid .quit-badge,#tgrid .quit-badge,
   #agrid .coach-badge,#ogrid .coach-badge,#tgrid .coach-badge,
   #agrid .master-excl-badge,#ogrid .master-excl-badge,#tgrid .master-excl-badge{font-size:9px;}
 }
@@ -147,14 +148,14 @@ html[data-cohort="15"] header{
 .mc:active{opacity:.7;}
 .mc.abs{border-color:var(--red);background:var(--red-l);}
 .mc.ocha{border-color:var(--acc);background:#fff8e1;}
-.mc.rest{border-color:#b0bec5;background:#eceff1;opacity:.6;cursor:default;}
+.mc.rest,.mc.quit{border-color:#b0bec5;background:#eceff1;opacity:.6;cursor:default;}
 .mc.coach{border-color:var(--coach-bd);background:var(--coach-bg);opacity:.6;cursor:default;}
 .cn{font-size:12px;font-weight:700;flex:1;overflow:hidden;word-break:break-all;}
 .cv{font-size:9px;font-weight:700;padding:1px 4px;border-radius:4px;color:#fff;flex-shrink:0;}
 /* 車両積載 S軽 M普 Lミニバン LLワゴン */
 .vS{background:#78909c;}.vM{background:#26a69a;}.vL{background:#5c6bc0;}.vLL{background:#ef5350;}
-.rest-badge,.coach-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
-.rest-badge{background:#90a4ae;}.coach-badge{background:var(--coach);}
+.rest-badge,.quit-badge,.coach-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
+.rest-badge{background:#90a4ae;}.quit-badge{background:#78909c;}.coach-badge{background:var(--coach);}
 .master-excl-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
 .ac14-badge{background:#5c6bc0;}.sibling-badge{background:#8d6e63;}.nomulti-badge{background:#7b1fa2;}
 .mc.master-excl{border-color:#b0bec5;background:#eceff1;opacity:.6;cursor:default;}
@@ -1060,7 +1061,7 @@ html{color-scheme:light;}
   .p1-renshu-split-lbl{color:#f0d48a;}
   .tcb-seed-mode-banner{background:var(--surface-2);border-left-color:var(--blue2);color:var(--txt2);}
   .sc.ht{background:var(--surface-2);border-color:var(--blue2);}
-  .mc.rest,.mc.coach,.mc.master-excl{background:var(--surface-2);border-color:var(--bdr);}
+  .mc.rest,.mc.quit,.mc.coach,.mc.master-excl{background:var(--surface-2);border-color:var(--bdr);}
   .p3-carry-adjust-text{background:var(--surface-2);border-color:#7c53b0;color:var(--txt);}
   .tcb-actual-hold-list,.tcb-actual-hold-row{border-color:var(--bdr);}
   /* ログイン画面（インラインstyleのため !important で上書き） */
@@ -1080,7 +1081,7 @@ html{color-scheme:light;}
   /* 濃紺(--ta/--navy)をテキストに使う箇所を明るいブルーへ */
   .tcb.A,.tninp.A,.shd2.A,.tgA,.hist-date,.master-section-h3-title,
   .master-desc-card-head,.tcb-actual-hold-sel{color:#cdd8f5;}
-  .ac14-badge,.sibling-badge,.nomulti-badge{color:#fff;}
+  .ac14-badge,.sibling-badge,.nomulti-badge,.quit-badge,.rest-badge{color:#fff;}
   /* 赤(--tb)をテキストに使う箇所を明るいレッドへ */
   .tcb.B,.tninp.B,.shd2.B,.tgB{color:#ff9ea2;}
   .tng-dot-a{color:#9fb4e8;}
@@ -1427,7 +1428,7 @@ html{color-scheme:light;}
   <!-- STEP2 -->
   <div class="pnl" id="p2">
     <div class="card">
-      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席などで<strong>この日の割振りから外す人</strong>をタップ。休部・コーチ・14期帯同・兄弟所属は常に対象外です。<strong>1道具まで</strong>の人は割振り対象ですが、自動割振りでは1日1道具までです。" aria-label="説明"></button></div>
+      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席などで<strong>この日の割振りから外す人</strong>をタップ。休部・退部・コーチ・14期帯同・兄弟所属は常に対象外です。<strong>1道具まで</strong>の人は割振り対象ですが、自動割振りでは1日1道具までです。" aria-label="説明"></button></div>
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
@@ -1572,7 +1573,7 @@ html{color-scheme:light;}
         </h3>
         <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示は背番号（名前の「番号：」の左側）の昇順です。番号がない行は末尾に並びます。</div>
         <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分（名前の右のプルダウン）：S＝軽自動車、M＝普通車、L＝ミニバン程度、LL＝大型ワゴン程度。</div>
-        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。</div>
+        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>退部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。</div>
         <div id="m-members"></div>
         <button class="madd" id="btn-add-mbr">&#65291; メンバー追加</button>
       </div>
@@ -2002,8 +2003,10 @@ function normalizeMemberRow(m){
   if(m.coach===undefined)m.coach=0;
   if(m.ac14===undefined)m.ac14=0;
   if(m.sibling===undefined)m.sibling=0;
+  if(m.quit===undefined)m.quit=0;
   if(m.noMulti===undefined)m.noMulti=0;
   m.rest=normFlag01(m.rest);
+  m.quit=normFlag01(m.quit);
   m.coach=normFlag01(m.coach);
   m.ac14=normFlag01(m.ac14);
   m.sibling=normFlag01(m.sibling);
@@ -2011,7 +2014,7 @@ function normalizeMemberRow(m){
   m.v=normalizeMemberVehicle(m.v);
 }
 function memberMasterExcluded(m){
-  return !!(m&&(m.rest||m.coach||m.ac14||m.sibling));
+  return !!(m&&(m.rest||m.quit||m.coach||m.ac14||m.sibling));
 }
 function memberRowByName(name){
   for(var i=0;i<MB.length;i++){if(MB[i]&&MB[i].name===name)return MB[i];}
@@ -2192,7 +2195,7 @@ function fitGridCellText(cn,box,opts){
   var fullRow=opts.fullWidth||(mob&&cn.offsetWidth>=box.clientWidth-padX-6);
   var fixed=0;
   if(!fullRow){
-    box.querySelectorAll(':scope > .cv,:scope > .rest-badge,:scope > .coach-badge,:scope > .master-excl-badge,:scope > .tbdg').forEach(function(el){
+    box.querySelectorAll(':scope > .cv,:scope > .rest-badge,:scope > .quit-badge,:scope > .coach-badge,:scope > .master-excl-badge,:scope > .tbdg').forEach(function(el){
       if(el!==cn)fixed+=el.offsetWidth+gap;
     });
   }
@@ -2326,10 +2329,11 @@ function syncMasterEditsFromDom(){
       }
       if(vs)MB[i].v=normalizeMemberVehicle(vs.value);
       if(cbs[0])MB[i].rest=cbs[0].checked?1:0;
-      if(cbs[1])MB[i].coach=cbs[1].checked?1:0;
-      if(cbs[2])MB[i].ac14=cbs[2].checked?1:0;
-      if(cbs[3])MB[i].sibling=cbs[3].checked?1:0;
-      if(cbs[4])MB[i].noMulti=cbs[4].checked?1:0;
+      if(cbs[1])MB[i].quit=cbs[1].checked?1:0;
+      if(cbs[2])MB[i].coach=cbs[2].checked?1:0;
+      if(cbs[3])MB[i].ac14=cbs[3].checked?1:0;
+      if(cbs[4])MB[i].sibling=cbs[4].checked?1:0;
+      if(cbs[5])MB[i].noMulti=cbs[5].checked?1:0;
     }
   }
   var tel=document.getElementById('m-tools');
@@ -4652,6 +4656,9 @@ function buildAGrid(){
     }else if(m.rest){
       c.className='mc rest';
       c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="rest-badge">休部</span>';
+    }else if(m.quit){
+      c.className='mc quit';
+      c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="quit-badge">退部</span>';
     }else if(m.ac14){
       c.className='mc master-excl';
       c.innerHTML='<span class="cn">'+esc(m.name)+'</span><span class="master-excl-badge ac14-badge">14期帯同</span>';
@@ -5840,7 +5847,7 @@ function buildEligibleRosterForSnap(snap){
   var out=[];
   (MB||[]).forEach(function(m){
     if(!m||!m.name)return;
-    if(memberMasterExcluded(m))return;   /* #2 恒久対象外（休部・コーチ・14期帯同・兄弟所属） */
+    if(memberMasterExcluded(m))return;   /* #2 恒久対象外（休部・退部・コーチ・14期帯同・兄弟所属） */
     if(abs[m.name])return;               /* #1 欠席 */
     out.push({name:m.name,ocha:ocha[m.name]?1:0});
   });
@@ -6115,6 +6122,10 @@ function buildMasterMembers(){
     var rl=document.createElement('label'); rl.className='master-mbr-flag-lbl';
     var rc=document.createElement('input'); rc.type='checkbox'; rc.checked=!!m.rest;
     rl.appendChild(rc); rl.appendChild(document.createTextNode('休部'));
+    var ql=document.createElement('label'); ql.className='master-mbr-flag-lbl';
+    ql.title='退部のため割振り対象外（名簿は残す）';
+    var qc=document.createElement('input'); qc.type='checkbox'; qc.checked=!!m.quit;
+    ql.appendChild(qc); ql.appendChild(document.createTextNode('退部'));
     var cl=document.createElement('label'); cl.className='master-mbr-flag-lbl';
     var cc=document.createElement('input'); cc.type='checkbox'; cc.checked=!!m.coach;
     cl.appendChild(cc); cl.appendChild(document.createTextNode('コーチ'));
@@ -6131,11 +6142,11 @@ function buildMasterMembers(){
     var nmc=document.createElement('input'); nmc.type='checkbox'; nmc.checked=!!m.noMulti;
     nml.appendChild(nmc); nml.appendChild(document.createTextNode('1道具まで'));
     var flagsWrap=document.createElement('div'); flagsWrap.className='master-mbr-flags-wrap';
-    flagsWrap.appendChild(rl); flagsWrap.appendChild(cl);
+    flagsWrap.appendChild(rl); flagsWrap.appendChild(ql); flagsWrap.appendChild(cl);
     flagsWrap.appendChild(a14l); flagsWrap.appendChild(sl);
     flagsWrap.appendChild(nml);
     var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
-    (function(ii,n2,v2,r2,c2,a2,s2,nm2){
+    (function(ii,n2,v2,r2,q2,c2,a2,s2,nm2){
       n2.addEventListener('change',function(){
         if(n2.value!==MB[ii].name)migrateMemberNameRefs(MB[ii].name,n2.value);
         MB[ii].name=n2.value;
@@ -6143,6 +6154,7 @@ function buildMasterMembers(){
       });
       v2.addEventListener('change',function(){MB[ii].v=normalizeMemberVehicle(v2.value);});
       r2.addEventListener('change',function(){MB[ii].rest=r2.checked?1:0;});
+      q2.addEventListener('change',function(){MB[ii].quit=q2.checked?1:0;});
       c2.addEventListener('change',function(){MB[ii].coach=c2.checked?1:0;});
       a2.addEventListener('change',function(){MB[ii].ac14=a2.checked?1:0;});
       s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
@@ -6157,7 +6169,7 @@ function buildMasterMembers(){
           MB.splice(ii,1);buildMasterMembers();
         });
       });
-    })(i,ni,vs,rc,cc,a14c,sc,nmc);
+    })(i,ni,vs,rc,qc,cc,a14c,sc,nmc);
     row.appendChild(ni); row.appendChild(vs); row.appendChild(flagsWrap); row.appendChild(db);
     el.appendChild(row);
   });
@@ -7079,7 +7091,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnPastReset=document.getElementById('btn-past-reset');
   if(btnPastReset)btnPastReset.addEventListener('click',function(){resetPastToZero();});
   document.getElementById('btn-add-mbr').addEventListener('click',function(){
-    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,coach:0,ac14:0,sibling:0,noMulti:0}); buildMasterMembers();
+    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,quit:0,coach:0,ac14:0,sibling:0,noMulti:0}); buildMasterMembers();
   });
   document.getElementById('btn-add-tool').addEventListener('click',function(){
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id);},0);
