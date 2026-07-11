@@ -1241,7 +1241,7 @@ html{color-scheme:light;}
   <div class="modal">
     <button class="mclose" id="swap-modal-close">&#10005;</button>
     <h2>&#128236; 交代報告</h2>
-    <div class="tcbsw-modal-desc">保護者から届いた担当交代の報告です。内容を確認し「反映する」または「却下」してください。反映後は STEP3 の「実施確定」→「修正版をLINEで再通知」で保護者へ更新をお知らせください。ヘッダーの「&#128276; 通知」を ON にすると、新着報告をプッシュ通知でも受け取れます（未許可時は &#128236; バッジにフォールバック）。</div>
+    <div class="tcbsw-modal-desc">保護者から届いた担当交代の報告です。内容を確認し「反映する」または「却下」してください。「反映する」と該当日の割振り結果を STEP3 に開き、担当を差し替えます。続けて STEP3 の「実施確定」→展開情報から「修正版をLINEで再通知」してください。ヘッダーの「&#128276; 通知」を ON にすると、新着報告をプッシュ通知でも受け取れます（未許可時は &#128236; バッジにフォールバック）。</div>
     <div id="swap-list" class="tcbsw-list"><div class="tcbsw-empty">読み込み中…</div></div>
   </div>
 </div>
@@ -2675,6 +2675,109 @@ function loadStoredAllocationSnap(){
     if(!raw)return null;
     return enrichStoredSnap(JSON.parse(raw));
   }catch(e){return null;}
+}
+/** 交代報告の dayLabel（例: 7/11(土)）に一致する履歴スナップを返す（実施確定優先） */
+function findHistSnapByDayLabel(dayLabel){
+  var label=String(dayLabel||'').trim();
+  if(!label)return null;
+  var hist=getHistoryCache();
+  var cands=[];
+  for(var i=0;i<hist.length;i++){
+    var h=hist[i];
+    if(!h||!h.date||!h.map||typeof h.map!=='object')continue;
+    if(fmtDayLabelJa(h.date)===label)cands.push(h);
+  }
+  if(!cands.length){
+    var prev=loadStoredAllocationSnap();
+    if(prev&&prev.date&&fmtDayLabelJa(prev.date)===label)return prev;
+    return null;
+  }
+  cands.sort(function(a,b){
+    var ca=a.confirmedAt?1:0, cb=b.confirmedAt?1:0;
+    if(ca!==cb)return cb-ca;
+    var ta=Date.parse(a.confirmedAt||a.savedAt||'')||0;
+    var tb=Date.parse(b.confirmedAt||b.savedAt||'')||0;
+    return tb-ta;
+  });
+  return enrichStoredSnap(cands[0]);
+}
+/** 履歴スナップの tools を STEP3 用に正規化（team / ls を補完） */
+function normalizeToolsForResultLoad(snap){
+  var tools=[];
+  var seen={};
+  function pushTool(src){
+    if(!src||!src.name||seen[src.name])return;
+    var master=null;
+    for(var i=0;i<TL.length;i++){if(TL[i].name===src.name){master=TL[i];break;}}
+    var merged=Object.assign({},master||{},src);
+    if(merged.ls==null)merged.ls=lscore(merged);
+    if(merged.team!=='A'&&merged.team!=='B'){
+      var person=(snap.map||{})[merged.name];
+      var tm=(snap.tmMap||{})[person];
+      if(tm==='A'||tm==='B')merged.team=tm;
+      else if(merged.ryo==='A'||merged.ryo==='B')merged.team=merged.ryo;
+    }
+    tools.push(merged);
+    seen[merged.name]=1;
+  }
+  if(Array.isArray(snap.tools))snap.tools.forEach(pushTool);
+  Object.keys(snap.map||{}).forEach(function(tn){
+    if(seen[tn])return;
+    var master=null;
+    for(var j=0;j<TL.length;j++){if(TL[j].name===tn){master=TL[j];break;}}
+    pushTool(master||{name:tn});
+  });
+  return tools;
+}
+/**
+ * 履歴（または LS_PREV）の割振りを再実行せず STEP3 の R として復元する。
+ * 交代報告の反映や、確定済みの日を開き直して実施確定し直す用途。
+ */
+function loadResultIntoStep3FromSnap(snap){
+  var enriched=enrichStoredSnap(snap);
+  if(!enriched||typeof enriched.map!=='object')return false;
+  clearCarryAdjustRef();
+  seedFromPrev=false;
+  carryAdjustMode=false;
+  carryAdjustRunNotes=[];
+  pdfFileNameUseTodayDate=false;
+  applySnapToActivityUI(enriched,{useTodayDate:false});
+  restoreExclusionStateFromSnap(enriched);
+  var tools=normalizeToolsForResultLoad(enriched);
+  var ex=exSet();
+  var mode=enriched.mode||(needsTeamUI()?'team':'single');
+  var map=cloneAssignMap(enriched.map);
+  if(mode==='team'){
+    var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
+    var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
+    var tA=tools.filter(function(t){return (t.team||'')==='A';});
+    var tB=tools.filter(function(t){return (t.team||'')==='B';});
+    if(!tA.length&&!tB.length){tA=tools.slice();tB=[];}
+    R={
+      mode:'team',tA:tA,tB:tB,mA:mA,mB:mB,
+      allTools:tools.length?tools:tA.concat(tB),
+      map:map,state:{},sA:{},sB:{},
+      ex:ex,la:enriched.la||tnA,lb:enriched.lb||tnB
+    };
+  }else{
+    var members=MB.filter(function(m){return !ex[m.name];});
+    R={
+      mode:'single',tools:tools,members:members,
+      map:map,state:{},ex:ex
+    };
+  }
+  syncAssignStateFromMap();
+  clearAssignHistory();
+  invalidateShareCaches();
+  renderAll();
+  goStep(3);
+  return true;
+}
+/** 交代報告用：dayLabel の割振りを STEP3 に読み込む */
+function loadResultForSwapDayLabel(dayLabel){
+  var snap=findHistSnapByDayLabel(dayLabel);
+  if(!snap)return false;
+  return loadResultIntoStep3FromSnap(snap);
 }
 function formatSnapConditionsHtml(snap){
   if(!snap)return '';
@@ -6981,6 +7084,12 @@ document.addEventListener('DOMContentLoaded',function(){
       chAssign:function(tool,name){chAssign(tool,name);},
       getAdate:function(){var e=document.getElementById('adate');return e?e.value:'';},
       fmtDayLabelJa:fmtDayLabelJa,
+      refreshHistory:function(){return refreshHistoryFromServer();},
+      loadResultForDayLabel:function(dayLabel){return loadResultForSwapDayLabel(dayLabel);},
+      afterSwapApplied:function(){
+        closeModal('swap-modal');
+        if(R)goStep(3);
+      },
       buildParentPublishPayload:buildParentPublishPayload,
       publishDay:function(p){return SYNC_CLIENT.publishDay(p);},
       buildParentViewUrl:buildParentViewUrl,

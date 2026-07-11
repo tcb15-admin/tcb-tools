@@ -118,8 +118,13 @@
         html += '<div class="tcbsw-actions">'
           + '<button type="button" class="tcbsw-btn tcbsw-btn-apply" data-act="apply">反映する</button>'
           + '<button type="button" class="tcbsw-btn tcbsw-btn-reject" data-act="reject">却下</button>'
+          + '<button type="button" class="tcbsw-btn tcbsw-btn-open" data-act="open-day">この日をSTEP3で開く</button>'
           + '</div>'
           + renderRejectForm();
+      } else if (r.status === 'applied') {
+        html += '<div class="tcbsw-actions">'
+          + '<button type="button" class="tcbsw-btn tcbsw-btn-open" data-act="open-day">この日をSTEP3で開く</button>'
+          + '</div>';
       }
       html += '</div>';
     });
@@ -159,28 +164,68 @@
     return { code: 'applied' };
   }
 
-  function markApplied(r) {
+  /** 反映前に、報告日の割振り結果を STEP3 へ用意する（未実行セッションでも履歴から復元） */
+  function ensureResultForReport(r) {
+    var R = ctx.getR();
+    var curLabel = ctx.fmtDayLabelJa(ctx.getAdate());
+    var dayOk = !r.dayLabel || !curLabel || r.dayLabel === curLabel;
+    if (R && R.map && dayOk) return { code: 'ready' };
+    if (typeof ctx.loadResultForDayLabel === 'function' && r.dayLabel) {
+      if (ctx.loadResultForDayLabel(r.dayLabel)) return { code: 'ready', restored: true };
+    }
+    R = ctx.getR();
+    if (!R || !R.map) return { code: 'no_result' };
+    curLabel = ctx.fmtDayLabelJa(ctx.getAdate());
+    if (r.dayLabel && curLabel && r.dayLabel !== curLabel) {
+      return { code: 'day_mismatch', cur: curLabel };
+    }
+    return { code: 'ready' };
+  }
+
+  function finishApplySuccess(r) {
+    if (typeof ctx.afterSwapApplied === 'function') ctx.afterSwapApplied();
     ctx.handleSwapReport({ id: r.id, action: 'apply' }).then(function (res) {
       reports = (res && Array.isArray(res.reports)) ? res.reports : reports;
       setBadge(res && res.pending);
       renderList();
       appliedSession.push({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
-      if (window.confirm('反映を記録しました。\n修正版をLINEで再通知しますか？\n（保護者確認URLを更新し、LINE用の本文をコピーします）\n\n※先に STEP3 の「実施確定」を済ませてください。')) {
-        reNotify();
-      }
+      window.alert('反映しました。\nSTEP3の割振り結果を確認し、「実施確定」を押してください。\nその後、展開情報から修正版をLINEで再通知できます。');
     }).catch(function (err) {
       alert('反映の記録に失敗しました：' + (err && err.message ? err.message : ''));
     });
   }
 
-  function onApply(r) {
-    if (!window.confirm('「' + r.tool + '」の担当を\n' + r.fromPerson + ' → ' + r.toPerson + '\nに反映します。よろしいですか？')) return;
-    var res = tryApplyToResult(r);
-    if (res.code === 'applied') {
-      markApplied(r);
+  function markAppliedStatusOnly(r) {
+    ctx.handleSwapReport({ id: r.id, action: 'apply' }).then(function (res) {
+      reports = (res && Array.isArray(res.reports)) ? res.reports : reports;
+      setBadge(res && res.pending);
+      renderList();
+      appliedSession.push({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
+    }).catch(function (err) {
+      alert('反映の記録に失敗しました：' + (err && err.message ? err.message : ''));
+    });
+  }
+
+  function proceedApply(r) {
+    var prep = ensureResultForReport(r);
+    if (prep.code === 'no_result') {
+      if (window.confirm('該当日（' + (r.dayLabel || '不明') + '）の割振り結果が端末の履歴にありません。\n先にその日の割振りを履歴から開くか、STEP2で「割振りを実行」してください。\n\n受付状況のみ「反映済み」に更新しますか？（割振り結果は自動では変わりません）')) {
+        markAppliedStatusOnly(r);
+      }
       return;
     }
-    // 自動反映できないケースは理由を提示し、サーバ上のみ反映済みにするか確認
+    if (prep.code === 'day_mismatch') {
+      if (window.confirm('表示中の日（' + (prep.cur || '不明') + '）が報告の日（' + (r.dayLabel || '不明') + '）と異なります。\n\n受付状況のみ「反映済み」に更新しますか？')) {
+        markAppliedStatusOnly(r);
+      }
+      return;
+    }
+
+    var res = tryApplyToResult(r);
+    if (res.code === 'applied') {
+      finishApplySuccess(r);
+      return;
+    }
     var msg;
     if (res.code === 'no_result') msg = '現在STEP3の割振り結果が読み込まれていません。';
     else if (res.code === 'day_mismatch') msg = '表示中の日（' + (res.cur || '不明') + '）が報告の日（' + (r.dayLabel || '不明') + '）と異なります。';
@@ -191,13 +236,23 @@
     if (res.code === 'holder_mismatch') {
       if (window.confirm(msg + '\n「' + r.toPerson + '」で上書きしますか？')) {
         ctx.chAssign(r.tool, r.toPerson);
-        markApplied(r);
+        finishApplySuccess(r);
         return;
       }
     }
-    if (window.confirm(msg + '\n\n割振り結果は自動更新されません。対象日をSTEP3で開いて手動変更してください。\n受付状況のみ「反映済み」に更新しますか？')) {
-      markApplied(r);
+    if (window.confirm(msg + '\n\n割振り結果は自動更新されません。STEP3で手動変更してください。\n受付状況のみ「反映済み」に更新しますか？')) {
+      markAppliedStatusOnly(r);
     }
+  }
+
+  function onApply(r) {
+    if (!window.confirm('「' + r.tool + '」の担当を\n' + r.fromPerson + ' → ' + r.toPerson + '\nに反映します。よろしいですか？')) return;
+    var needHist = !ctx.getR() || !ctx.getR().map;
+    if (needHist && typeof ctx.refreshHistory === 'function') {
+      Promise.resolve(ctx.refreshHistory()).then(function () { proceedApply(r); }).catch(function () { proceedApply(r); });
+      return;
+    }
+    proceedApply(r);
   }
 
   function onRejectConfirm(itemEl, r) {
@@ -216,6 +271,33 @@
     });
   }
 
+  function onOpenDay(r) {
+    function doOpen() {
+      if (!r.dayLabel || typeof ctx.loadResultForDayLabel !== 'function') {
+        alert('該当日の割振りを開けませんでした。');
+        return;
+      }
+      if (!ctx.loadResultForDayLabel(r.dayLabel)) {
+        alert('該当日（' + r.dayLabel + '）の割振り結果が履歴にありません。\nクラウド同期や履歴をご確認ください。');
+        return;
+      }
+      if (typeof ctx.afterSwapApplied === 'function') ctx.afterSwapApplied();
+      var R = ctx.getR();
+      if (R && R.map && r.tool && (r.tool in R.map) && R.map[r.tool] === r.fromPerson && r.toPerson) {
+        if (window.confirm('報告どおり「' + r.tool + '」を\n' + r.fromPerson + ' → ' + r.toPerson + '\nに差し替えますか？\n（受付は反映済みでも、割振り側が未更新のときに使います）')) {
+          ctx.chAssign(r.tool, r.toPerson);
+          appliedSession.push({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
+          window.alert('差し替えました。STEP3で「実施確定」を押してください。');
+        }
+      }
+    }
+    if (typeof ctx.refreshHistory === 'function') {
+      Promise.resolve(ctx.refreshHistory()).then(doOpen).catch(doOpen);
+    } else {
+      doOpen();
+    }
+  }
+
   function onListClick(ev) {
     var t = ev.target;
     if (!t) return;
@@ -225,6 +307,7 @@
     if (!r) return;
 
     if (t.getAttribute('data-act') === 'apply') { onApply(r); return; }
+    if (t.getAttribute('data-act') === 'open-day') { onOpenDay(r); return; }
     if (t.getAttribute('data-act') === 'reject') {
       var form = itemEl.querySelector('.tcbsw-reject-form');
       if (form) form.hidden = !form.hidden;
