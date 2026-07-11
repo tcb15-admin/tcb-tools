@@ -361,6 +361,11 @@ tr.p3-carry-changed-row{background:#fff3e0!important;}
 .tcb-share-opt:has(input:disabled){color:#767680;}
 .tcb-share-opt input{width:18px;height:18px;accent-color:#1565c0;flex-shrink:0;margin:0;}
 .tcb-share-opt-note{font-size:11px;color:#48484f;font-weight:400;margin:-4px 0 0 28px;line-height:1.45;}
+.tcb-share-confirm-warn{
+  display:none;font-size:12px;line-height:1.5;margin:4px 0 8px;padding:8px 10px;border-radius:8px;
+  background:#fff3e0;color:#e65100;border:1px solid #ffcc80;font-weight:600;
+}
+.tcb-share-confirm-warn[data-show="1"]{display:block;}
 .tcb-share-preview{margin:0;padding:12px;background:#f2f2f5;border:1px solid #e5e5ea;border-radius:10px;font-size:12px;line-height:1.65;color:#1c1c22;white-space:pre-wrap;word-break:break-word;max-height:min(36vh,240px);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:inherit;}
 .tcb-share-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start;}
 .tcb-share-primary{flex:0 1 auto;padding:14px 22px;border:none;border-radius:12px;background:var(--grn);color:#fff;font-size:15px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;white-space:nowrap;}
@@ -1148,6 +1153,7 @@ html{color-scheme:light;}
   .tcb-share-opt:has(input:disabled){color:#767680;}
   .tcb-share-opt-note,.tcb-share-intro-label,.tcb-share-extra,.tcb-share-status,.tcb-share-ghost,.tcb-share-preview-hd{color:#48484f;}
   .tcb-share-intro,.tcb-share-preview{color:#1c1c22;background:#f2f2f5;border-color:#e5e5ea;}
+  .tcb-share-confirm-warn{background:#fff3e0;color:#e65100;border-color:#ffcc80;}
 }
 
 /* ==== 印刷はどのモードでも常にライト（紙面） ==== */
@@ -1282,6 +1288,7 @@ html{color-scheme:light;}
           <label class="tcb-share-opt" for="share-opt-line"><input type="checkbox" id="share-opt-line" checked> LINE本文</label>
           <label class="tcb-share-opt" for="share-opt-url" id="share-opt-url-wrap"><input type="checkbox" id="share-opt-url" checked> 保護者確認URL</label>
           <p class="tcb-share-opt-note" id="share-opt-url-note">実施確定済みの直近2日分を閲覧専用URLで共有します。</p>
+          <p class="tcb-share-confirm-warn" id="share-confirm-warn">表示中の割振りは未確定（または確定後に変更あり）です。URL付きで送るときは、送信前に実施確定してから公開します。</p>
           <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> PDF添付（端末に残す場合は共有シートで「ファイルに保存」）</label>
         </div>
         <div class="tcb-share-preview-wrap">
@@ -1495,7 +1502,7 @@ html{color-scheme:light;}
       <div class="p3-result-card-foot">
         <div class="p3-confirm-wrap">
           <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">実施確定</button>
-          <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。確定済みの日も、担当を直したあと再度押すと PAST を更新できます。" aria-label="実施確定の説明"></button>
+          <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。<strong>保護者確認URL付きでLINE展開するとき</strong>も、未確定なら送信前に実施確定を求めます。" aria-label="実施確定の説明"></button>
         </div>
       </div>
     </div>
@@ -3050,60 +3057,136 @@ function resetPastToZero(){
   showMasterAlert('PASTをゼロにしました。「保存」を実行してください。','als');
   if(R)renderAll();
 }
-/* 保護者展開後の実績のみ PAST に反映。活動日ごとに1スナップショット（再確定で差し替え） */
-function confirmCarryOutResult(){
-  if(!R){alert('割振り結果がありません。先に割振りを実行してください。');return;}
-  var d=document.getElementById('adate').value;
-  if(!d){alert('活動日を設定してください（STEP 1）。');return;}
-  if(!confirm('表示中の担当割当を、実際の持ち帰り結果として記録します。\n過去回数（PAST）に反映し、次回以降の割振り・ベース担当の直前回避に使います。よろしいですか？'))return;
-  syncAssignMapFromToolTableDom();
-  syncAssignStateFromMap();
-  var mapForCarryout=cloneAssignMap(R.map);
-  if(syncEnabled()){
-    var allTools=(R.mode==='team')?R.allTools:R.tools;
-    SYNC_CLIENT.confirmCarryout({
-      activityDate:d,
-      map:mapForCarryout,
-      tools:allTools
-    }).then(function(res){
-      if(res&&res.past&&typeof res.past==='object'&&!Array.isArray(res.past))PAST=normalizePastObj(res.past);
-      if(res&&res.version!==undefined)MASTER_VERSION=parseMasterVersion(res.version);
-      persistPastToMaster();
-      recordLocalCarryoutMetaOnly(d, mapForCarryout);
-      applyConfirmedMapToHistory(d, mapForCarryout);
+/* 保護者展開後の実績のみ PAST に反映。活動日ごとに1スナップショット（再確定で差し替え）
+   opts.skipPrompt: 確認ダイアログを省略 / opts.silent: 成功バナーを出さない
+   戻り値: Promise（成功時 resolve / キャンセル・失敗時 reject） */
+function confirmCarryOutResult(opts){
+  opts=opts||{};
+  return new Promise(function(resolve,reject){
+    if(!R){
+      if(!opts.silent)alert('割振り結果がありません。先に割振りを実行してください。');
+      reject(new Error('no_result'));
+      return;
+    }
+    var d=document.getElementById('adate').value;
+    if(!d){
+      if(!opts.silent)alert('活動日を設定してください（STEP 1）。');
+      reject(new Error('no_date'));
+      return;
+    }
+    if(!opts.skipPrompt){
+      if(!confirm('表示中の担当割当を、実際の持ち帰り結果として記録します。\n過去回数（PAST）に反映し、次回以降の割振り・ベース担当の直前回避に使います。よろしいですか？')){
+        reject(new Error('cancelled'));
+        return;
+      }
+    }
+    syncAssignMapFromToolTableDom();
+    syncAssignStateFromMap();
+    var mapForCarryout=cloneAssignMap(R.map);
+    function finishOk(msg){
       var snapAfter=buildAllocationSnapshot();
       if(snapAfter)persistAllocationSnapshot(snapAfter);
       renderAll();
-      var aa2=document.getElementById('aalert');
-      if(aa2){
-        var ok2=document.createElement('div');
-        ok2.className='al als';
-        ok2.textContent='実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。';
-        aa2.insertBefore(ok2,aa2.firstChild);
+      if(!opts.silent){
+        var aa=document.getElementById('aalert');
+        if(aa){
+          var ok=document.createElement('div');
+          ok.className='al als';
+          ok.textContent=msg;
+          aa.insertBefore(ok,aa.firstChild);
+        }
       }
-    }).catch(function(err){
-      console.error(err);
-      alert('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。');
-    });
-    return;
+      resolve({date:d,map:mapForCarryout});
+    }
+    if(syncEnabled()){
+      var allTools=(R.mode==='team')?R.allTools:R.tools;
+      SYNC_CLIENT.confirmCarryout({
+        activityDate:d,
+        map:mapForCarryout,
+        tools:allTools
+      }).then(function(res){
+        if(res&&res.past&&typeof res.past==='object'&&!Array.isArray(res.past))PAST=normalizePastObj(res.past);
+        if(res&&res.version!==undefined)MASTER_VERSION=parseMasterVersion(res.version);
+        persistPastToMaster();
+        recordLocalCarryoutMetaOnly(d, mapForCarryout);
+        applyConfirmedMapToHistory(d, mapForCarryout);
+        finishOk('実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。');
+      }).catch(function(err){
+        console.error(err);
+        if(!opts.silent)alert('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。');
+        reject(err||new Error('confirm_failed'));
+      });
+      return;
+    }
+    var meta=loadCarryoutMeta();
+    var prev=meta.byDate[d];
+    if(prev&&prev.map) revertPastFromMap(prev.map);
+    applyPastFromCurrentR();
+    recordLocalCarryoutMetaOnly(d, mapForCarryout);
+    persistPastToMaster();
+    applyConfirmedMapToHistory(d, mapForCarryout);
+    finishOk('実施確定を記録しました（PAST・履歴に反映済み）。マスタを GitHub 等へ同期する場合はマスタ画面の「保存」も実行してください。');
+  });
+}
+/** 担当 map の同等比較（空文字・未定義は未割当として同一視） */
+function assignMapsEqual(a,b){
+  a=a&&typeof a==='object'?a:{};
+  b=b&&typeof b==='object'?b:{};
+  var keys={}, ka=Object.keys(a), kb=Object.keys(b), i;
+  for(i=0;i<ka.length;i++){if(a[ka[i]])keys[ka[i]]=1;}
+  for(i=0;i<kb.length;i++){if(b[kb[i]])keys[kb[i]]=1;}
+  var all=Object.keys(keys);
+  for(i=0;i<all.length;i++){
+    if(String(a[all[i]]||'')!==String(b[all[i]]||''))return false;
   }
-  var meta=loadCarryoutMeta();
-  var prev=meta.byDate[d];
-  if(prev&&prev.map) revertPastFromMap(prev.map);
-  applyPastFromCurrentR();
-  recordLocalCarryoutMetaOnly(d, mapForCarryout);
-  persistPastToMaster();
-  applyConfirmedMapToHistory(d, mapForCarryout);
-  var snapAfter=buildAllocationSnapshot();
-  if(snapAfter)persistAllocationSnapshot(snapAfter);
-  renderAll();
-  var aa=document.getElementById('aalert');
-  if(aa){
-    var ok=document.createElement('div');
-    ok.className='al als';
-    ok.textContent='実施確定を記録しました（PAST・履歴に反映済み）。マスタを GitHub 等へ同期する場合はマスタ画面の「保存」も実行してください。';
-    aa.insertBefore(ok,aa.firstChild);
+  return true;
+}
+/** 活動日の実施確定済みスナップ（confirmedAt 最新） */
+function findConfirmedSnapForDate(activityDate){
+  var d=String(activityDate||'');
+  if(!d)return null;
+  var hist=getHistoryCache(), best=null, bestTs=-1;
+  for(var i=0;i<hist.length;i++){
+    var h=hist[i];
+    if(!h||h.date!==d||!h.confirmedAt||!h.map||typeof h.map!=='object')continue;
+    var t=Date.parse(h.confirmedAt)||0;
+    if(!best||t>=bestTs){best=h;bestTs=t;}
   }
+  return best;
+}
+/**
+ * 保護者URL公開前に実施確定が必要か。
+ * ・表示中の活動日に確定が無い
+ * ・確定後に担当 map が変わっている
+ */
+function currentAssignNeedsConfirmForPublish(){
+  if(!R||!R.map)return true;
+  var ad=document.getElementById('adate');
+  var date=ad?String(ad.value||''):'';
+  if(!date)return true;
+  var confirmed=findConfirmedSnapForDate(date);
+  if(!confirmed)return true;
+  return !assignMapsEqual(R.map, confirmed.map);
+}
+/**
+ * URL公開・URL付きLINEの前に、必要なら実施確定する。
+ * opts.prompt===false で確認ダイアログ省略（呼び出し側で確認済みのとき）。
+ * 戻り値: Promise<boolean> … true=今回確定した / false=既に確定済みでスキップ
+ */
+function ensureConfirmedBeforeUrlPublish(opts){
+  opts=opts||{};
+  if(!R)return Promise.reject(new Error('no_result'));
+  if(!currentAssignNeedsConfirmForPublish())return Promise.resolve(false);
+  if(opts.prompt!==false){
+    var ok=confirm(
+      '表示中の割振りは、まだ実施確定されていないか、確定後に変更があります。\n\n'+
+      '保護者確認URLを最新にするには実施確定が必要です。\n'+
+      '実施確定してから続けますか？\n\n'+
+      '（キャンセル＝中止。URLのチェックを外すと、確定なしで本文・PDFのみ送れます）'
+    );
+    if(!ok)return Promise.reject(new Error('cancelled'));
+  }
+  return confirmCarryOutResult({skipPrompt:true,silent:!!opts.silent}).then(function(){return true;});
 }
 
 /* ========== ユーティリティ ========== */
@@ -5422,23 +5505,29 @@ function buildShareLinePreviewText(opts){
 }
 function refreshSharePanel(){
   var syncOn=syncEnabled();
-  var urlReady=syncOn&&parentPublishPayloadReady();
+  var canOfferUrl=syncOn&&!!R;
   var urlWrap=document.getElementById('share-opt-url-wrap');
   var urlInput=document.getElementById('share-opt-url');
   var urlNote=document.getElementById('share-opt-url-note');
+  var warnEl=document.getElementById('share-confirm-warn');
   var unpublishBtn=document.getElementById('parent-view-unpublish');
   if(urlWrap)urlWrap.style.display=syncOn?'':'none';
   if(urlInput){
     if(!syncOn){urlInput.checked=false;urlInput.disabled=true;}
     else{
-      urlInput.disabled=!urlReady;
-      if(!urlReady)urlInput.checked=false;
+      urlInput.disabled=!canOfferUrl;
+      if(!canOfferUrl)urlInput.checked=false;
     }
   }
   if(urlNote){
-    urlNote.textContent=urlReady
-      ? '実施確定済みの直近2日分を閲覧専用URLで共有します。'
-      : '保護者確認URLは実施確定後に選べます。';
+    urlNote.textContent=canOfferUrl
+      ? '実施確定済みの直近2日分を閲覧専用URLで共有します。未確定・変更ありのときは送信前に実施確定します。'
+      : '保護者確認URLは割振り結果表示後に選べます。';
+  }
+  if(warnEl){
+    var needsWarn=canOfferUrl&&currentAssignNeedsConfirmForPublish();
+    if(needsWarn)warnEl.setAttribute('data-show','1');
+    else warnEl.removeAttribute('data-show');
   }
   if(unpublishBtn)unpublishBtn.style.display=(syncOn&&_parentViewUrl)?'':'none';
   var pdfInput=document.getElementById('share-opt-pdf');
@@ -5507,9 +5596,13 @@ function publishParentViewAsync(){
   });
 }
 function publishParentView(){
-  publishParentViewAsync().then(function(url){
+  if(!R){alert('先に割振りを実行してください。');return;}
+  ensureConfirmedBeforeUrlPublish().then(function(){
+    return publishParentViewAsync();
+  }).then(function(url){
     copyTextToClipboard(url,'保護者向け確認URLを発行し、コピーしました。');
   }).catch(function(err){
+    if(err&&err.message==='cancelled')return;
     if(err&&err.message==='no_confirmed'){
       alert('公開できる確定済みの割振りがありません。\n先に STEP3 の「実施確定」を行ってください。');
       return;
@@ -5756,70 +5849,83 @@ function executeLineShare(){
     setSharePanelStatus('送る内容を1つ以上選んでください。');
     return;
   }
-  if(urlOn&&!parentPublishPayloadReady()){
-    alert('保護者確認URLは実施確定後に送信できます。\n先に STEP3 の「実施確定」を行うか、URLのチェックを外してください。');
-    return;
-  }
   var btn=document.getElementById('btn-share-line');
   var orig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='準備中…';}
-  setSharePanelStatus('');
-  var out=prepareAssignPdfOutput(true);
-  if(pdfOn&&!out){
-    if(btn){btn.disabled=false;btn.textContent=orig;}
+  function runShareAfterConfirmReady(){
+    if(btn){btn.disabled=true;btn.textContent='準備中…';}
+    setSharePanelStatus('');
+    var out=prepareAssignPdfOutput(true);
+    if(pdfOn&&!out){
+      if(btn){btn.disabled=false;btn.textContent=orig;}
+      return;
+    }
+    var urlPromise=urlOn?publishParentViewAsync():Promise.resolve(_parentViewUrl||'');
+    urlPromise.then(function(url){
+      var msg='';
+      if(lineOn){
+        msg=buildShareLinePreviewText({includeUrl:urlOn,url:url});
+      }else if(urlOn&&url){
+        msg='最新の担当確認はこちら\n'+url;
+      }
+      var tasks=[];
+      if(pdfOn){
+        if(typeof TCB_generateAssignPdfBlob!=='function'){throw new Error('no_pdf_module');}
+        tasks.push(resolveAssignPdfBlob(out).catch(function(err){
+          console.warn('PDF生成失敗',err);
+          if(!lineOn&&!urlOn)throw err;
+          return null;
+        }));
+      }else{tasks.push(Promise.resolve(null));}
+      return Promise.all(tasks).then(function(arr){
+        var blob=arr[0];
+        return deliverLineShareBundle({msg:msg,blob:blob,out:out,pdfOn:pdfOn,lineOn:lineOn});
+      }).then(function(){
+        if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.clearRevisedNotice==='function'){
+          TCB_SwapMgr.clearRevisedNotice();
+        }
+        shareLineIntroDirty=false;
+        refreshSharePanel();
+        if(!isIosLikeBrowser()&&!isMacDesktop()&&msg){
+          setSharePanelStatus('LINE展開の準備ができました。共有先で送信を完了してください。');
+        }
+      });
+    }).catch(function(err){
+      if(err&&err.name==='AbortError'){
+        setSharePanelStatus('送信をキャンセルしました。');
+        return;
+      }
+      if(err&&err.message==='no_confirmed'){
+        alert('保護者確認URLは実施確定後に送信できます。');
+        return;
+      }
+      if(err&&err.name==='NotAllowedError'){
+        setSharePanelStatus('準備ができました。もう一度「LINEへ展開」を押すと共有シートが開きます。');
+        return;
+      }
+      console.error(err);
+      var em=lineShareErrorMessage(err);
+      var detail=(err&&err.message&&['no_confirmed','empty pdf','no_pdf_module','no_output','no_share_id','no_url'].indexOf(err.message)<0)?'\n\n詳細: '+err.message:'';
+      alert((em||'LINE展開の準備に失敗しました。時間をおいて再度お試しください。')+detail);
+    }).finally(function(){
+      if(btn){btn.disabled=false;btn.textContent=orig;}
+      refreshSharePanel();
+    });
+  }
+  /* URL付き送信：未確定／確定後変更があれば先に実施確定 */
+  if(urlOn){
+    syncAssignMapFromToolTableDom();
+    ensureConfirmedBeforeUrlPublish().then(function(){
+      runShareAfterConfirmReady();
+    }).catch(function(err){
+      if(err&&err.message==='cancelled'){
+        setSharePanelStatus('送信をキャンセルしました（実施確定が必要です）。');
+        return;
+      }
+      /* confirmCarryOutResult 側でアラート済み */
+    });
     return;
   }
-  var urlPromise=urlOn?publishParentViewAsync():Promise.resolve(_parentViewUrl||'');
-  urlPromise.then(function(url){
-    var msg='';
-    if(lineOn){
-      msg=buildShareLinePreviewText({includeUrl:urlOn,url:url});
-    }else if(urlOn&&url){
-      msg='最新の担当確認はこちら\n'+url;
-    }
-    var tasks=[];
-    if(pdfOn){
-      if(typeof TCB_generateAssignPdfBlob!=='function'){throw new Error('no_pdf_module');}
-      tasks.push(resolveAssignPdfBlob(out).catch(function(err){
-        console.warn('PDF生成失敗',err);
-        if(!lineOn&&!urlOn)throw err;
-        return null;
-      }));
-    }else{tasks.push(Promise.resolve(null));}
-    return Promise.all(tasks).then(function(arr){
-      var blob=arr[0];
-      return deliverLineShareBundle({msg:msg,blob:blob,out:out,pdfOn:pdfOn,lineOn:lineOn});
-    }).then(function(){
-      if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.clearRevisedNotice==='function'){
-        TCB_SwapMgr.clearRevisedNotice();
-      }
-      shareLineIntroDirty=false;
-      refreshSharePanel();
-      if(!isIosLikeBrowser()&&!isMacDesktop()&&msg){
-        setSharePanelStatus('LINE展開の準備ができました。共有先で送信を完了してください。');
-      }
-    });
-  }).catch(function(err){
-    if(err&&err.name==='AbortError'){
-      setSharePanelStatus('送信をキャンセルしました。');
-      return;
-    }
-    if(err&&err.message==='no_confirmed'){
-      alert('保護者確認URLは実施確定後に送信できます。');
-      return;
-    }
-    if(err&&err.name==='NotAllowedError'){
-      setSharePanelStatus('準備ができました。もう一度「LINEへ展開」を押すと共有シートが開きます。');
-      return;
-    }
-    console.error(err);
-    var em=lineShareErrorMessage(err);
-    var detail=(err&&err.message&&['no_confirmed','empty pdf','no_pdf_module','no_output','no_share_id','no_url'].indexOf(err.message)<0)?'\n\n詳細: '+err.message:'';
-    alert((em||'LINE展開の準備に失敗しました。時間をおいて再度お試しください。')+detail);
-  }).finally(function(){
-    if(btn){btn.disabled=false;btn.textContent=orig;}
-    refreshSharePanel();
-  });
+  runShareAfterConfirmReady();
 }
 function shareAssignPdf(){
   var pdfEl=document.getElementById('share-opt-pdf');
@@ -7008,6 +7114,7 @@ document.addEventListener('DOMContentLoaded',function(){
         if(R)goStep(3);
       },
       buildParentPublishPayload:buildParentPublishPayload,
+      ensureConfirmedBeforeUrlPublish:function(){return ensureConfirmedBeforeUrlPublish();},
       publishDay:function(p){return SYNC_CLIENT.publishDay(p);},
       buildParentViewUrl:buildParentViewUrl,
       copyText:copyTextToClipboard,

@@ -360,26 +360,32 @@
 
   function reNotify() {
     if (!ctx || !ctx.syncEnabled()) { alert('この機能はクラウド同期が有効な環境でのみ利用できます。'); return; }
-    var payload = ctx.buildParentPublishPayload();
-    if (!payload || !payload.days || !payload.days.length) {
-      alert('公開できる確定済みの割振りがありません。\n先に STEP3 の「実施確定」を行ってください。');
-      return;
-    }
-    ctx.publishDay(payload).then(function (res) {
-      var sid = res && res.shareId ? res.shareId : '';
-      if (!sid) throw new Error('no_share_id');
-      var url = ctx.buildParentViewUrl(sid);
-      if (ctx.setPublishedUrl) ctx.setPublishedUrl(url);
-      var msg = buildRevisedMessage(url);
-      var okMsg = '修正版のLINE本文をコピーしました。';
-      if (typeof global.TCB_isMacDesktop === 'function' && global.TCB_isMacDesktop()) {
-        okMsg += 'Mac版LINEはブラウザから直接送信できません。LINEのトークに貼り付けて送信してください。';
-      } else {
-        okMsg += 'LINEに貼り付けて送信してください。';
+    var start = (typeof ctx.ensureConfirmedBeforeUrlPublish === 'function')
+      ? ctx.ensureConfirmedBeforeUrlPublish()
+      : Promise.resolve(false);
+    start.then(function () {
+      var payload = ctx.buildParentPublishPayload();
+      if (!payload || !payload.days || !payload.days.length) {
+        alert('公開できる確定済みの割振りがありません。\n先に STEP3 の「実施確定」を行ってください。');
+        return;
       }
-      ctx.copyText(msg, okMsg);
-      appliedSession = [];
+      return ctx.publishDay(payload).then(function (res) {
+        var sid = res && res.shareId ? res.shareId : '';
+        if (!sid) throw new Error('no_share_id');
+        var url = ctx.buildParentViewUrl(sid);
+        if (ctx.setPublishedUrl) ctx.setPublishedUrl(url);
+        var msg = buildRevisedMessage(url);
+        var okMsg = '修正版のLINE本文をコピーしました。';
+        if (typeof global.TCB_isMacDesktop === 'function' && global.TCB_isMacDesktop()) {
+          okMsg += 'Mac版LINEはブラウザから直接送信できません。LINEのトークに貼り付けて送信してください。';
+        } else {
+          okMsg += 'LINEに貼り付けて送信してください。';
+        }
+        ctx.copyText(msg, okMsg);
+        appliedSession = [];
+      });
     }).catch(function (err) {
+      if (err && err.message === 'cancelled') return;
       console.error(err);
       alert('修正版の再公開に失敗しました。通信状況を確認して再度お試しください。');
     });
