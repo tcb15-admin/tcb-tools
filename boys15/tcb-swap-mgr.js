@@ -21,6 +21,15 @@
   var reports = [];
   var appliedSession = []; // 今回セッションで反映した交代（修正版LINE本文用）
 
+  function pushAppliedSession(entry) {
+    if (!entry || !entry.tool) return;
+    for (var i = 0; i < appliedSession.length; i++) {
+      var s = appliedSession[i];
+      if (s.tool === entry.tool && s.from === entry.from && s.to === entry.to) return;
+    }
+    appliedSession.push({ tool: entry.tool, from: entry.from, to: entry.to });
+  }
+
   var REJECT_LABELS = {
     D1: '交代は取りやめになった（申請の取り下げ）',
     D2: '内容を確認できない／要再連絡',
@@ -188,7 +197,7 @@
       reports = (res && Array.isArray(res.reports)) ? res.reports : reports;
       setBadge(res && res.pending);
       renderList();
-      appliedSession.push({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
+      pushAppliedSession({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
       window.alert('反映しました。\nSTEP3の割振り結果を確認し、「実施確定」を押してください。\nその後、展開情報から修正版をLINEで再通知できます。');
     }).catch(function (err) {
       alert('反映の記録に失敗しました：' + (err && err.message ? err.message : ''));
@@ -200,7 +209,7 @@
       reports = (res && Array.isArray(res.reports)) ? res.reports : reports;
       setBadge(res && res.pending);
       renderList();
-      appliedSession.push({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
+      pushAppliedSession({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
     }).catch(function (err) {
       alert('反映の記録に失敗しました：' + (err && err.message ? err.message : ''));
     });
@@ -286,7 +295,7 @@
       if (R && R.map && r.tool && (r.tool in R.map) && R.map[r.tool] === r.fromPerson && r.toPerson) {
         if (window.confirm('報告どおり「' + r.tool + '」を\n' + r.fromPerson + ' → ' + r.toPerson + '\nに差し替えますか？\n（受付は反映済みでも、割振り側が未更新のときに使います）')) {
           ctx.chAssign(r.tool, r.toPerson);
-          appliedSession.push({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
+          pushAppliedSession({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
           window.alert('差し替えました。STEP3で「実施確定」を押してください。');
         }
       }
@@ -330,7 +339,12 @@
     lines.push('【修正版】道具割り振りを更新しました');
     if (appliedSession.length) {
       lines.push('交代を反映しました：');
-      appliedSession.slice(0, 5).forEach(function (s) {
+      var seen = {};
+      appliedSession.forEach(function (s) {
+        if (!s || !s.tool) return;
+        var key = s.tool + '\0' + s.from + '\0' + s.to;
+        if (seen[key]) return;
+        seen[key] = 1;
         lines.push('・「' + s.tool + '」' + s.from + ' → ' + s.to);
       });
     } else {

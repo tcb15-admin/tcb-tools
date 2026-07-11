@@ -350,7 +350,8 @@ tr.p3-carry-changed-row{background:#fff3e0!important;}
 .tcb-share-section{background:#fff;color:#1c1c22;color-scheme:light;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(18,32,80,.06);}
 .tcb-share-section-hd{font-size:12px;font-weight:700;color:#122050;letter-spacing:.04em;margin-bottom:10px;}
 .tcb-share-intro-label{font-size:12px;font-weight:700;color:#48484f;margin-bottom:6px;}
-.tcb-share-intro{width:100%;min-height:72px;padding:10px 12px;border:1px solid #e5e5ea;border-radius:10px;font-size:13px;line-height:1.65;color:#1c1c22;font-family:inherit;resize:vertical;background:#f2f2f5;}
+.tcb-share-intro{width:100%;min-height:72px;padding:10px 12px;border:1px solid #e5e5ea;border-radius:10px;font-size:13px;line-height:1.65;color:#1c1c22;font-family:inherit;resize:vertical;background:#fff;}
+.tcb-share-intro:disabled{background:#f2f2f5;color:#636366;opacity:.9;}
 .tcb-share-intro:focus{outline:none;border-color:#1565c0;box-shadow:0 0 0 2px rgba(21,101,192,.15);}
 .tcb-share-intro-reset{margin-top:6px;padding:0;border:none;background:transparent;color:#1565c0;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;}
 .tcb-share-extra{margin:0;padding:10px 12px;background:#f2f2f5;border:1px solid #e5e5ea;border-radius:10px;font-size:12px;line-height:1.65;color:#48484f;white-space:pre-wrap;word-break:break-word;font-family:inherit;}
@@ -1284,8 +1285,8 @@ html{color-scheme:light;}
           <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> PDF添付（端末に残す場合は共有シートで「ファイルに保存」）</label>
         </div>
         <div class="tcb-share-preview-wrap">
-          <div class="tcb-share-intro-label">定型文（編集可）</div>
-          <textarea class="tcb-share-intro" id="share-line-intro" rows="3"></textarea>
+          <div class="tcb-share-intro-label" id="share-line-intro-label">定型文（編集可）</div>
+          <textarea class="tcb-share-intro" id="share-line-intro" rows="5"></textarea>
           <button type="button" class="tcb-share-intro-reset" id="share-line-intro-reset">定型文を初期に戻す</button>
           <div class="tcb-share-intro-label" style="margin-top:10px;">自動追記プレビュー</div>
           <pre class="tcb-share-extra" id="share-line-extra"></pre>
@@ -5373,15 +5374,26 @@ function shareUsesRevisedLineMessage(){
   return typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.hasRevisedNotice==='function'&&TCB_SwapMgr.hasRevisedNotice();
 }
 var shareLineIntroDirty=false;
+function defaultShareLineIntroText(includeUrl){
+  if(shareUsesRevisedLineMessage()&&typeof TCB_SwapMgr.buildRevisedLineMessage==='function'){
+    var url=includeUrl?String(_parentViewUrl||'').trim():'';
+    return TCB_SwapMgr.buildRevisedLineMessage(url);
+  }
+  return SHARE_PDF_MESSAGE;
+}
 function getShareLineIntroText(){
   var ta=document.getElementById('share-line-intro');
   if(ta&&ta.value!=null&&String(ta.value).trim())return ta.value;
-  return SHARE_PDF_MESSAGE;
+  var urlInput=document.getElementById('share-opt-url');
+  var showUrl=urlInput&&urlInput.checked&&syncEnabled();
+  return defaultShareLineIntroText(!!showUrl);
 }
 function resetShareLineIntro(){
   shareLineIntroDirty=false;
   var ta=document.getElementById('share-line-intro');
-  if(ta)ta.value=SHARE_PDF_MESSAGE;
+  var urlInput=document.getElementById('share-opt-url');
+  var showUrl=urlInput&&urlInput.checked&&syncEnabled();
+  if(ta)ta.value=defaultShareLineIntroText(!!showUrl);
   refreshSharePanel();
 }
 function buildShareLineExtraText(opts){
@@ -5398,11 +5410,10 @@ function buildShareLineExtraText(opts){
 /** 展開パネル用 LINE 本文（プレビュー／送信共通） */
 function buildShareLinePreviewText(opts){
   opts=opts||{};
+  var includeUrl=!!opts.includeUrl;
   if(shareUsesRevisedLineMessage()){
-    if(typeof TCB_SwapMgr.buildRevisedLineMessage==='function'){
-      var url=String((opts.url||_parentViewUrl||'')).trim();
-      return TCB_SwapMgr.buildRevisedLineMessage(opts.includeUrl?url:'');
-    }
+    if(shareLineIntroDirty)return getShareLineIntroText();
+    return defaultShareLineIntroText(includeUrl);
   }
   var text=getShareLineIntroText();
   var extra=buildShareLineExtraText(opts);
@@ -5437,18 +5448,19 @@ function refreshSharePanel(){
   }
   var lineInput=document.getElementById('share-opt-line');
   var introEl=document.getElementById('share-line-intro');
+  var introLabel=document.getElementById('share-line-intro-label');
   var extraEl=document.getElementById('share-line-extra');
   var showLine=!lineInput||lineInput.checked;
   var showUrl=urlInput&&urlInput.checked&&syncOn;
+  if(introLabel){
+    introLabel.textContent=shareUsesRevisedLineMessage()
+      ? '定型文（修正版・編集可）'
+      : '定型文（編集可）';
+  }
   if(introEl){
-    if(shareUsesRevisedLineMessage()){
-      introEl.disabled=true;
-      if(typeof TCB_SwapMgr.buildRevisedLineMessage==='function'){
-        introEl.value=TCB_SwapMgr.buildRevisedLineMessage(showUrl?_parentViewUrl:'');
-      }
-    }else{
-      if(!shareLineIntroDirty&&document.activeElement!==introEl)introEl.value=SHARE_PDF_MESSAGE;
-      introEl.disabled=!showLine;
+    introEl.disabled=!showLine;
+    if(showLine&&!shareLineIntroDirty&&document.activeElement!==introEl){
+      introEl.value=defaultShareLineIntroText(!!showUrl);
     }
   }
   if(extraEl){
@@ -5781,6 +5793,7 @@ function executeLineShare(){
       if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.clearRevisedNotice==='function'){
         TCB_SwapMgr.clearRevisedNotice();
       }
+      shareLineIntroDirty=false;
       refreshSharePanel();
       if(!isIosLikeBrowser()&&!isMacDesktop()&&msg){
         setSharePanelStatus('LINE展開の準備ができました。共有先で送信を完了してください。');
