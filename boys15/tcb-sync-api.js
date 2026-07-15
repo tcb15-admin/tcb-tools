@@ -109,9 +109,78 @@
         payload=payload||{};
         payload.cohort=cohort;
         return req('/api/push/subscribe','POST',payload);
+      },
+      listActivities:function(){
+        return req('/api/attendance/activities?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      upsertActivity:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/attendance/activities','POST',payload);
+      },
+      getActivity:function(id){
+        return req('/api/attendance/activity?cohort='+encodeURIComponent(cohort)+'&id='+encodeURIComponent(id||''),'GET');
+      },
+      publishAttendance:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/attendance/publish','POST',payload);
+      },
+      setAttendanceResponse:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/attendance/response','POST',payload);
+      },
+      listCrossRoleEvents:function(since){
+        var q='/api/attendance/cross-events?cohort='+encodeURIComponent(cohort);
+        if(since)q+='&since='+encodeURIComponent(since);
+        return req(q,'GET');
+      }
+    };
+  }
+
+  /** 保護者向け（トークン不要）。baseUrl のみ必須。 */
+  function createPublicAttendanceClient(opts){
+    opts=opts||{};
+    var base=String(opts.baseUrl||'').replace(/\/+$/,'');
+    if(!base)return null;
+
+    function req(path, method, body){
+      var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+      var timer=ctrl?setTimeout(function(){ctrl.abort();},REQ_TIMEOUT_MS):null;
+      return fetch(base+path,{
+        method:method||'GET',
+        headers:{'Content-Type':'application/json'},
+        body:body?JSON.stringify(body):undefined,
+        signal:ctrl?ctrl.signal:undefined
+      }).then(function(res){
+        return safeJson(res).then(function(payload){
+          if(!res.ok){
+            var msg=(payload&&payload.error)?payload.error:('HTTP '+res.status);
+            throw new Error(msg);
+          }
+          return payload;
+        });
+      }).catch(function(err){
+        if(err&&err.name==='AbortError'){
+          throw new Error('通信がタイムアウトしました（30秒）。電波状況を確認して再度お試しください。');
+        }
+        throw err;
+      }).finally(function(){
+        if(timer)clearTimeout(timer);
+      });
+    }
+
+    return {
+      load:function(sid){
+        return req('/api/public/attendance?sid='+encodeURIComponent(sid||''),'GET');
+      },
+      respond:function(payload){
+        return req('/api/public/attendance-response','POST',payload||{});
       }
     };
   }
 
   global.TCB_createSyncClient=createSyncClient;
+  global.TCB_createPublicAttendanceClient=createPublicAttendanceClient;
 })(window);

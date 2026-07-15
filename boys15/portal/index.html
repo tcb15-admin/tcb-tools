@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja" data-cohort="15">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>東海中央ボーイズ 15期 ポータル</title>
+<meta name="theme-color" content="#122050">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--navy:#122050;--red:#c0000a;--bg:#f5f5f7;--card:#fff;--bdr:#e5e5ea;--txt:#1c1c22;--txt2:#6e6e78;--tap:48px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+.pt-hdr{background:linear-gradient(135deg,#122050,#1a2d68);border-bottom:3px solid var(--red);color:#fff;padding:16px 14px;padding-top:max(16px,env(safe-area-inset-top,0px));}
+.pt-hdr h1{font-size:18px;font-weight:900;}
+.pt-hdr p{font-size:12px;opacity:.85;margin-top:4px;line-height:1.5;}
+.pt-wrap{max-width:720px;margin:0 auto;padding:16px 14px 40px;}
+.pt-note{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:14px;}
+.pt-grid{display:flex;flex-direction:column;gap:10px;}
+.pt-tile{
+  display:block;text-decoration:none;color:inherit;background:var(--card);
+  border:1px solid var(--bdr);border-radius:16px;padding:16px;min-height:var(--tap);
+  box-shadow:0 1px 2px rgba(18,32,80,.04);
+}
+.pt-tile:active{background:#f2f2f5;}
+.pt-tile strong{display:block;font-size:16px;font-weight:900;color:var(--navy);margin-bottom:4px;}
+.pt-tile span{font-size:12px;color:var(--txt2);line-height:1.5;}
+.pt-tile.is-soon{opacity:.55;}
+.pt-tile.is-soon em{font-style:normal;font-size:11px;font-weight:700;color:#9a7b0a;margin-left:6px;}
+.pt-foot{margin-top:18px;font-size:11px;color:var(--txt2);}
+</style>
+</head>
+<body>
+<header class="pt-hdr">
+  <h1>東海中央ボーイズ 15期 ポータル</h1>
+  <p>各役割のマネージャー用入口です。自分の担当アプリへ進んでください。</p>
+</header>
+<main class="pt-wrap">
+  <p class="pt-note">業務は並行して進められます。他担当の変更で影響がある場合は、各アプリ側で「要確認」を表示していく予定です。</p>
+  <div class="pt-grid">
+    <a class="pt-tile" href="../attendance/">
+      <strong>出欠管理</strong>
+      <span>活動の出欠回収・催促文・保護者回答URL</span>
+    </a>
+    <a class="pt-tile" href="../index.html">
+      <strong>道具割り振り</strong>
+      <span>持ち帰り割振り・実施確定・保護者確認・交代報告</span>
+    </a>
+    <div class="pt-tile is-soon">
+      <strong>配車管理<em>準備中</em></strong>
+      <span>車出し・乗車・積み込み（出欠連携予定）</span>
+    </div>
+    <div class="pt-tile is-soon">
+      <strong>お茶当番<em>準備中</em></strong>
+      <span>当番決定と道具側への受け渡し（薄型）</span>
+    </div>
+  </div>
+  <p class="pt-foot">保護者の方はポータルを使いません。LINEで届く回答URLだけをご利用ください。</p>
+</main>
+</body>
+</html>

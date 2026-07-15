@@ -236,7 +236,7 @@ activity_id = 2026-07-20-practice-am  など
 
 各アプリはいつでも開ける。データの整合は **取込・再取得**と、下記の **相互影響通知**で保つ。
 
-### 相互影響通知（推奨・轻量）
+### 相互影響通知（推奨・軽量）
 
 **評価: 良いアイデア。並行運用の穴を塞ぐ本命。**  
 ただし「何でも通知」は疲れさせるので、**影響がある変更だけ・受け手の役割だけ**に絞る。
@@ -484,12 +484,13 @@ activity_id = 2026-07-20-practice-am  など
 
 ## 9. 次の実装着手時の作業順（案）
 
-1. D1 に `activities` / `attendance_*` を追加（**activity_id** を横断キーに）  
-2. Worker に管理 API＋公開回答 API（既存 master は読取共有）  
-3. 出欠を **別ページ**（例: `boys15/attendance/`）として追加。共通 sync クライアントを利用  
-4. 保護者向け公開ページ  
-5. LINE 用テキスト接続・試験運用  
-6. Phase 2 配車（出席者のみ候補）。続けて道具 STEP2 への出欠取込
+**Phase 1 実装着手済み（コード）** — 以下はデプロイ／試験の順。
+
+1. D1 に `migrate_attendance.sql` を適用（`activities` / `attendance_responses` / `cross_role_events`）  
+2. Worker（出欠 API 付き）をデプロイ  
+3. `SYNC_API_TOKEN=… python3 template/build.py boys15` でポータル／出欠を再生成して Pages へ  
+4. ポータル → 出欠で活動作成 → 回答URL発行 → LINE で試験  
+5. Phase 2 配車（出席者のみ候補）へ  
 
 ---
 

@@ -122,6 +122,25 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 - `POST /api/swap-reports/handle` … MGR 反映/却下（Bearer）
 - `POST /api/push/subscribe` … MGR Web Push 購読登録（Bearer）
 
+### 出欠（Phase 1）
+
+マイグレーション: `migrate_attendance.sql`（または新規は `schema.sql`）
+
+- `GET /api/attendance/activities?cohort=` … 活動一覧（件数集計付き・Bearer）
+- `POST /api/attendance/activities` … 活動作成／更新（Bearer）。body: `{cohort, id?, activityDate, startTime?, place?, kind, title?, memo?, status?}`
+- `GET /api/attendance/activity?cohort=&id=` … 詳細＋ロスター（Bearer）
+- `POST /api/attendance/publish` … 保護者回答用 shareId 発行（Bearer）。body: `{cohort, id, rotate?}`
+- `POST /api/attendance/response` … スタッフ代理回答（Bearer）。body: `{cohort, activityId, memberName, status, comment?}`。status: `in|out|maybe|unset`
+- `GET /api/attendance/cross-events?cohort=&since=` … 相互影響イベント（Bearer）
+- `GET /api/public/attendance?sid=` … 保護者読み取り（トークン不要）
+- `POST /api/public/attendance-response` … 保護者回答（トークン不要）。body: `{sid, memberName, status, comment?}`
+
+フロント（ビルド生成）:
+
+- `{世代}/portal/index.html` … 役割ポータル
+- `{世代}/attendance/index.html` … 出欠スタッフ
+- `{世代}/attendance/kaito.html?sid=` … 保護者回答（トークンなし）
+
 ## 10. 競合と上書きルール
 
 - マスタ保存は `expectedVersion` で楽観ロック（競合時 `version_conflict`）

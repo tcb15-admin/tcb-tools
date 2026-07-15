@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja" data-cohort="15">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>東海中央ボーイズ 15期 出欠管理</title>
+<meta name="theme-color" content="#122050">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="attendance.css">
+</head>
+<body class="att-body">
+<header class="att-hdr">
+  <h1>出欠管理<span>東海中央ボーイズ 15期 · 出欠マネージャー</span></h1>
+  <a class="att-hdr-link" href="../portal/">ポータル</a>
+</header>
+
+<div id="att-pw" class="att-pw">
+  <div class="att-pw-card">
+    <h2>出欠管理ログイン</h2>
+    <input id="att-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
+    <button type="button" id="att-pw-btn" class="att-btn att-btn-primary" style="width:100%">入る</button>
+    <p id="att-pw-err" class="att-status err"></p>
+  </div>
+</div>
+
+<main class="att-wrap">
+  <section class="att-card">
+    <h2>活動を作成</h2>
+    <form id="att-create-form">
+      <div class="att-row">
+        <div class="att-field"><label for="att-date">日付</label><input id="att-date" type="date" required></div>
+        <div class="att-field"><label for="att-time">開始</label><input id="att-time" type="time"></div>
+        <div class="att-field"><label for="att-kind">種別</label>
+          <select id="att-kind"><option value="practice">練習</option><option value="game">試合</option><option value="other">その他</option></select>
+        </div>
+      </div>
+      <div class="att-row">
+        <div class="att-field"><label for="att-place">場所</label><input id="att-place" maxlength="120" placeholder="例: ○○グラウンド"></div>
+        <div class="att-field"><label for="att-title">タイトル</label><input id="att-title" maxlength="120" placeholder="例: 週末練習"></div>
+      </div>
+      <div class="att-field"><label for="att-memo">メモ（LINE案内に含める）</label><textarea id="att-memo" maxlength="500"></textarea></div>
+      <div class="att-row" style="margin-top:10px">
+        <button type="submit" class="att-btn att-btn-primary">作成</button>
+        <button type="button" id="att-btn-refresh" class="att-btn att-btn-ghost">再読込</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="att-card">
+    <h2>活動一覧</h2>
+    <div id="att-list"></div>
+  </section>
+
+  <p id="att-detail-empty" class="att-act-meta">一覧から活動を選ぶと、回答状況とLINE用テキストを表示します。</p>
+
+  <section id="att-detail" class="att-hidden">
+    <div class="att-card">
+      <h2 id="att-d-title">詳細</h2>
+      <p id="att-d-meta" class="att-act-meta"></p>
+      <div id="att-d-counts"></div>
+      <div class="att-row" style="margin-top:10px">
+        <button type="button" id="att-btn-publish" class="att-btn att-btn-primary">回答URLを発行</button>
+        <button type="button" id="att-btn-copy-line" class="att-btn att-btn-line">LINE用をコピー</button>
+        <button type="button" id="att-btn-copy-remind" class="att-btn att-btn-ghost">催促文をコピー</button>
+      </div>
+      <p class="att-act-meta" style="margin-top:10px">保護者回答URL</p>
+      <div id="att-share-url" class="att-preview"></div>
+      <p class="att-act-meta" style="margin-top:10px">LINEプレビュー</p>
+      <div id="att-line-preview" class="att-preview"></div>
+    </div>
+    <div class="att-card">
+      <h2>回答一覧（スタッフ代理入力可）</h2>
+      <div id="att-roster" class="att-roster"></div>
+    </div>
+  </section>
+
+  <p id="att-status" class="att-status"></p>
+</main>
+
+<script>
+window.TCB_ATT_CFG={
+  cohort:"15",
+  apiBase:"https://tcb-tools-sync.kazoo-matsu.workers.dev",
+  apiToken:"__SYNC_API_TOKEN__",
+  initialPw:"tcb15",
+  lsPrefix:"tcb15",
+  pagesBase:"https://tcb15-admin.github.io/tcb-tools/boys15",
+  teamName:"東海中央ボーイズ 15期"
+};
+</script>
+<script src="../tcb-sync-api.js"></script>
+<script src="attendance-staff.js"></script>
+</body>
+</html>
