@@ -12,7 +12,7 @@
 </head>
 <body class="att-body">
 <header class="att-hdr">
-  <h1>出欠管理<span>{{TEAM_NAME}} · 出欠マネージャー</span></h1>
+  <h1>出欠管理<span>{{TEAM_NAME}} · MG／親父 LINE 踏襲</span></h1>
   <a class="att-hdr-link" href="../portal/">ポータル</a>
 </header>
 
@@ -27,21 +27,14 @@
 
 <main class="att-wrap">
   <section class="att-card">
-    <h2>活動を作成</h2>
+    <h2>出欠キャンペーンを作成</h2>
+    <p class="att-act-meta" style="margin-bottom:10px">複数日をまとめて作成します（例: 土・日・月）。MG用と親父用で別URLを発行します。</p>
     <form id="att-create-form">
-      <div class="att-row">
-        <div class="att-field"><label for="att-date">日付</label><input id="att-date" type="date" required></div>
-        <div class="att-field"><label for="att-time">開始</label><input id="att-time" type="time"></div>
-        <div class="att-field"><label for="att-kind">種別</label>
-          <select id="att-kind"><option value="practice">練習</option><option value="game">試合</option><option value="other">その他</option></select>
-        </div>
-      </div>
-      <div class="att-row">
-        <div class="att-field"><label for="att-place">場所</label><input id="att-place" maxlength="120" placeholder="例: ○○グラウンド"></div>
-        <div class="att-field"><label for="att-title">タイトル</label><input id="att-title" maxlength="120" placeholder="例: 週末練習"></div>
-      </div>
-      <div class="att-field"><label for="att-memo">メモ（LINE案内に含める）</label><textarea id="att-memo" maxlength="500"></textarea></div>
-      <div class="att-row" style="margin-top:10px">
+      <div class="att-field"><label for="att-title">タイトル</label><input id="att-title" maxlength="120" placeholder="例: 7月18日、19日、20日出欠確認" required></div>
+      <div class="att-field" style="margin-top:8px"><label for="att-memo">案内メモ</label><textarea id="att-memo" maxlength="500" placeholder="集合場所など（任意）"></textarea></div>
+      <div id="att-day-rows" style="margin-top:10px"></div>
+      <div class="att-row" style="margin-top:8px">
+        <button type="button" id="att-add-day" class="att-btn att-btn-ghost">日付を追加</button>
         <button type="submit" class="att-btn att-btn-primary">作成</button>
         <button type="button" id="att-btn-refresh" class="att-btn att-btn-ghost">再読込</button>
       </div>
@@ -49,29 +42,29 @@
   </section>
 
   <section class="att-card">
-    <h2>活動一覧</h2>
+    <h2>キャンペーン一覧</h2>
     <div id="att-list"></div>
   </section>
 
-  <p id="att-detail-empty" class="att-act-meta">一覧から活動を選ぶと、回答状況とLINE用テキストを表示します。</p>
+  <p id="att-detail-empty" class="att-act-meta">一覧から選ぶと、MG／親父のURL・投稿文・回答状況を表示します。</p>
 
   <section id="att-detail" class="att-hidden">
     <div class="att-card">
       <h2 id="att-d-title">詳細</h2>
       <p id="att-d-meta" class="att-act-meta"></p>
-      <div id="att-d-counts"></div>
+      <div id="att-d-counts" class="att-counts"></div>
       <div class="att-row" style="margin-top:10px">
-        <button type="button" id="att-btn-publish" class="att-btn att-btn-primary">回答URLを発行</button>
-        <button type="button" id="att-btn-copy-line" class="att-btn att-btn-line">LINE用をコピー</button>
-        <button type="button" id="att-btn-copy-remind" class="att-btn att-btn-ghost">催促文をコピー</button>
+        <button type="button" id="att-btn-publish" class="att-btn att-btn-primary">MG／親父URLを発行</button>
+        <button type="button" id="att-btn-copy-mg-inv" class="att-btn att-btn-line">MG案内をコピー</button>
+        <button type="button" id="att-btn-copy-fa-inv" class="att-btn att-btn-ghost">親父案内をコピー</button>
       </div>
-      <p class="att-act-meta" style="margin-top:10px">保護者回答URL</p>
-      <div id="att-share-url" class="att-preview"></div>
-      <p class="att-act-meta" style="margin-top:10px">LINEプレビュー</p>
-      <div id="att-line-preview" class="att-preview"></div>
+      <p class="att-act-meta" style="margin-top:10px">MG（母）回答URL</p>
+      <div id="att-url-mg" class="att-preview"></div>
+      <p class="att-act-meta" style="margin-top:10px">親父回答URL</p>
+      <div id="att-url-fa" class="att-preview"></div>
     </div>
     <div class="att-card">
-      <h2>回答一覧（スタッフ代理入力可）</h2>
+      <h2>回答状況</h2>
       <div id="att-roster" class="att-roster"></div>
     </div>
   </section>
@@ -91,6 +84,7 @@ window.TCB_ATT_CFG={
 };
 </script>
 <script src="../tcb-sync-api.js"></script>
+<script src="attendance-line.js"></script>
 <script src="attendance-staff.js"></script>
 </body>
 </html>

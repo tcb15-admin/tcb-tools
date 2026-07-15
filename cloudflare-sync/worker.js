@@ -91,26 +91,30 @@ export default {
         return json(await confirmCarryout(env, body));
       }
       // ===== 出欠（Bearer） =====
-      if (url.pathname === "/api/attendance/activities" && request.method === "GET") {
+      if (url.pathname === "/api/attendance/campaigns" && request.method === "GET") {
         const cohort = (url.searchParams.get("cohort") || "").trim();
-        return json(await listActivities(env, cohort));
+        return json(await listCampaigns(env, cohort));
       }
-      if (url.pathname === "/api/attendance/activities" && request.method === "POST") {
+      if (url.pathname === "/api/attendance/campaigns" && request.method === "POST") {
         const body = await request.json();
-        return json(await upsertActivity(env, body));
+        return json(await upsertCampaign(env, body));
       }
-      if (url.pathname === "/api/attendance/activity" && request.method === "GET") {
+      if (url.pathname === "/api/attendance/campaign" && request.method === "GET") {
         const cohort = (url.searchParams.get("cohort") || "").trim();
         const id = (url.searchParams.get("id") || "").trim();
-        return json(await getActivityDetail(env, cohort, id));
+        return json(await getCampaignDetail(env, cohort, id));
       }
       if (url.pathname === "/api/attendance/publish" && request.method === "POST") {
         const body = await request.json();
-        return json(await publishAttendance(env, body));
+        return json(await publishCampaignShares(env, body));
       }
-      if (url.pathname === "/api/attendance/response" && request.method === "POST") {
+      if (url.pathname === "/api/attendance/mother-response" && request.method === "POST") {
         const body = await request.json();
-        return json(await setAttendanceResponseAdmin(env, body));
+        return json(await setMotherResponseAdmin(env, body));
+      }
+      if (url.pathname === "/api/attendance/father-response" && request.method === "POST") {
+        const body = await request.json();
+        return json(await setFatherResponseAdmin(env, body));
       }
       if (url.pathname === "/api/attendance/cross-events" && request.method === "GET") {
         const cohort = (url.searchParams.get("cohort") || "").trim();
@@ -691,9 +695,9 @@ async function notifySwapReportPush(env, cohortRaw, report) {
   return { sent };
 }
 
-// ===== 出欠・活動 =====
+// ===== 出欠（MG LINE / 親父 LINE・複数日キャンペーン） =====
 
-const ATT_STATUSES = new Set(["in", "out", "maybe", "unset"]);
+const MARKS = new Set(["o", "x", "t", "unset"]); // ○ ✕ △ 未
 const ATT_KINDS = new Set(["practice", "game", "other"]);
 
 function genId() {
@@ -728,295 +732,457 @@ async function loadMasterMembers(env, cohort) {
     .map((m) => ({
       name: String((m && m.name) || "").trim(),
       excluded: memberExcluded(m),
-      rest: isTruthyFlag(m && m.rest) ? 1 : 0,
-      quit: isTruthyFlag(m && m.quit) ? 1 : 0,
-      coach: isTruthyFlag(m && m.coach) ? 1 : 0,
-      ac14: isTruthyFlag(m && m.ac14) ? 1 : 0,
-      sibling: isTruthyFlag(m && m.sibling) ? 1 : 0,
     }))
     .filter((m) => m.name);
 }
 
-function mapActivityRow(row) {
+function parseJsonObj(raw) {
+  try {
+    const o = JSON.parse(raw || "{}");
+    return o && typeof o === "object" ? o : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function normMark(v) {
+  const s = String(v || "unset").trim().toLowerCase();
+  if (s === "◯" || s === "○" || s === "o" || s === "yes" || s === "in") return "o";
+  if (s === "✕" || s === "×" || s === "x" || s === "no" || s === "out") return "x";
+  if (s === "△" || s === "t" || s === "maybe" || s === "三角") return "t";
+  return "unset";
+}
+
+function markChar(m) {
+  if (m === "o") return "◯";
+  if (m === "x") return "✕";
+  if (m === "t") return "△";
+  return "―";
+}
+
+function mapCampaign(row) {
   if (!row) return null;
   return {
     id: String(row.id || ""),
     cohort: String(row.cohort || ""),
-    activityDate: String(row.activity_date || ""),
-    startTime: String(row.start_time || ""),
-    place: String(row.place || ""),
-    kind: String(row.kind || "practice"),
     title: String(row.title || ""),
     memo: String(row.memo || ""),
-    shareId: row.share_id ? String(row.share_id) : "",
     status: String(row.status || "open"),
+    shareIdMg: row.share_id_mg ? String(row.share_id_mg) : "",
+    shareIdFather: row.share_id_father ? String(row.share_id_father) : "",
     responsesUpdatedAt: row.responses_updated_at ? String(row.responses_updated_at) : "",
     createdAt: String(row.created_at || ""),
     updatedAt: String(row.updated_at || ""),
   };
 }
 
-function summarizeResponses(rows) {
-  const counts = { in: 0, out: 0, maybe: 0, unset: 0, answered: 0 };
-  const list = (rows || []).map((r) => {
-    const st = String(r.status || "unset");
-    const status = ATT_STATUSES.has(st) ? st : "unset";
-    if (status !== "unset") counts.answered += 1;
-    counts[status] = (counts[status] || 0) + 1;
-    return {
-      memberName: String(r.member_name || ""),
-      status: status,
-      comment: String(r.comment || ""),
-      updatedAt: String(r.updated_at || ""),
-    };
-  });
-  return { counts: counts, responses: list };
-}
-
-async function listActivities(env, cohortRaw) {
-  const cohort = mustCohort(cohortRaw);
-  const rs = await env.DB.prepare(
-    "SELECT * FROM activities WHERE cohort = ? ORDER BY activity_date DESC, created_at DESC LIMIT 60"
-  )
-    .bind(cohort)
-    .all();
-  const activities = [];
-  for (const row of rs.results || []) {
-    const act = mapActivityRow(row);
-    const agg = await env.DB.prepare(
-      "SELECT status, COUNT(*) AS c FROM attendance_responses WHERE activity_id = ? GROUP BY status"
-    )
-      .bind(act.id)
-      .all();
-    const counts = { in: 0, out: 0, maybe: 0, unset: 0, answered: 0 };
-    for (const a of agg.results || []) {
-      const st = String(a.status || "unset");
-      const n = Number(a.c) || 0;
-      if (ATT_STATUSES.has(st)) counts[st] = n;
-      if (st !== "unset") counts.answered += n;
-    }
-    act.counts = counts;
-    activities.push(act);
-  }
-  return { activities: activities };
-}
-
-async function upsertActivity(env, body) {
-  const cohort = mustCohort(body.cohort);
-  const now = new Date().toISOString();
-  const activityDate = String(body.activityDate || "").trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) throw new Error("activity_date_invalid");
-  const kind = String(body.kind || "practice").trim();
-  if (!ATT_KINDS.has(kind)) throw new Error("kind_invalid");
-  const startTime = String(body.startTime || "").trim().slice(0, 16);
-  const place = String(body.place || "").trim().slice(0, 120);
-  const title = String(body.title || "").trim().slice(0, 120);
-  const memo = String(body.memo || "").trim().slice(0, 500);
-  const status = body.status === "closed" ? "closed" : "open";
-  let id = String(body.id || "").trim();
-
-  if (id) {
-    const cur = await env.DB.prepare("SELECT id FROM activities WHERE id = ? AND cohort = ?")
-      .bind(id, cohort)
-      .first();
-    if (!cur) throw new Error("activity_not_found");
-    await env.DB.prepare(
-      "UPDATE activities SET activity_date = ?, start_time = ?, place = ?, kind = ?, title = ?, memo = ?, status = ?, updated_at = ? WHERE id = ? AND cohort = ?"
-    )
-      .bind(activityDate, startTime, place, kind, title, memo, status, now, id, cohort)
-      .run();
-  } else {
-    id = genId();
-    await env.DB.prepare(
-      "INSERT INTO activities (id, cohort, activity_date, start_time, place, kind, title, memo, share_id, status, responses_updated_at, created_at, updated_at) " +
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?, ?)"
-    )
-      .bind(id, cohort, activityDate, startTime, place, kind, title, memo, status, now, now)
-      .run();
-  }
-  return { ok: true, activity: await getActivityDetail(env, cohort, id).then((d) => d.activity) };
-}
-
-async function getActivityDetail(env, cohortRaw, idRaw) {
-  const cohort = mustCohort(cohortRaw);
-  const id = String(idRaw || "").trim();
-  if (!id) throw new Error("activity_id_required");
-  const row = await env.DB.prepare("SELECT * FROM activities WHERE id = ? AND cohort = ?")
-    .bind(id, cohort)
-    .first();
-  if (!row) throw new Error("activity_not_found");
-  const act = mapActivityRow(row);
-  const rs = await env.DB.prepare(
-    "SELECT member_name, status, comment, updated_at FROM attendance_responses WHERE activity_id = ?"
-  )
-    .bind(id)
-    .all();
-  const sum = summarizeResponses(rs.results || []);
-  const members = await loadMasterMembers(env, cohort);
-  const byName = {};
-  for (const r of sum.responses) byName[r.memberName] = r;
-
-  const roster = members
-    .filter((m) => !m.excluded)
-    .map((m) => {
-      const r = byName[m.name];
-      return {
-        name: m.name,
-        status: r ? r.status : "unset",
-        comment: r ? r.comment : "",
-        updatedAt: r ? r.updatedAt : "",
-      };
-    });
-
-  const counts = { in: 0, out: 0, maybe: 0, unset: 0, answered: 0 };
-  for (const m of roster) {
-    counts[m.status] = (counts[m.status] || 0) + 1;
-    if (m.status !== "unset") counts.answered += 1;
-  }
-  act.counts = counts;
+function mapDay(row) {
   return {
-    activity: act,
-    roster: roster,
-    memberTotal: roster.length,
-    excludedMembers: members.filter((m) => m.excluded).map((m) => m.name),
+    id: String(row.id || ""),
+    activityDate: String(row.activity_date || ""),
+    startTime: String(row.start_time || ""),
+    place: String(row.place || ""),
+    kind: String(row.kind || "practice"),
+    label: String(row.label || ""),
+    sortOrder: Number(row.sort_order) || 0,
   };
 }
 
-async function publishAttendance(env, body) {
-  const cohort = mustCohort(body.cohort);
-  const id = String(body.id || "").trim();
-  if (!id) throw new Error("activity_id_required");
-  const row = await env.DB.prepare("SELECT * FROM activities WHERE id = ? AND cohort = ?")
-    .bind(id, cohort)
-    .first();
-  if (!row) throw new Error("activity_not_found");
-  const now = new Date().toISOString();
-  let shareId = row.share_id ? String(row.share_id) : "";
-  if (!shareId || body.rotate) shareId = genShareId();
-  await env.DB.prepare("UPDATE activities SET share_id = ?, updated_at = ? WHERE id = ? AND cohort = ?")
-    .bind(shareId, now, id, cohort)
-    .run();
-  return { ok: true, shareId: shareId, updatedAt: now, activityId: id };
+function sanitizeMotherDay(raw, dateKey) {
+  const d = raw && typeof raw === "object" ? raw : {};
+  const mode = String(d.mode || "on") === "off" ? "off" : "on";
+  if (mode === "off") {
+    return { mode: "off", note: String(d.note || "").trim().slice(0, 120) };
+  }
+  const seatsRaw = d.seats;
+  let seats = null;
+  if (seatsRaw !== undefined && seatsRaw !== null && String(seatsRaw).trim() !== "") {
+    seats = Math.max(0, Math.min(99, parseInt(String(seatsRaw), 10) || 0));
+  }
+  return {
+    mode: "on",
+    father: normMark(d.father),
+    mother: normMark(d.mother),
+    siblings: String(d.siblings || "").trim().slice(0, 80),
+    other: String(d.other || "").trim().slice(0, 80),
+    carOk: normMark(d.carOk),
+    carModel: String(d.carModel || "").trim().slice(0, 40),
+    seats: seats,
+    send: String(d.send || "").trim().slice(0, 80),
+    pickup: String(d.pickup || "").trim().slice(0, 80),
+    note: String(d.note || "").trim().slice(0, 120),
+  };
 }
 
-async function writeAttendanceResponse(env, activity, memberName, status, comment, source) {
-  const st = String(status || "").trim();
-  if (!ATT_STATUSES.has(st) || st === "unset") {
-    // unset = delete response row（未回答に戻す）
-    if (st === "unset") {
-      await env.DB.prepare("DELETE FROM attendance_responses WHERE activity_id = ? AND member_name = ?")
-        .bind(activity.id, memberName)
-        .run();
-    } else {
-      throw new Error("status_invalid");
+function sanitizeMotherPayload(payload, dayDates) {
+  const src = payload && typeof payload === "object" ? payload : {};
+  const daysIn = src.days && typeof src.days === "object" ? src.days : {};
+  const days = {};
+  for (const dt of dayDates) {
+    if (Object.prototype.hasOwnProperty.call(daysIn, dt)) {
+      days[dt] = sanitizeMotherDay(daysIn[dt], dt);
     }
-  } else {
-    const now = new Date().toISOString();
-    const id = genId();
-    const cmt = String(comment || "").trim().slice(0, 200);
-    await env.DB.prepare(
-      "INSERT INTO attendance_responses (id, activity_id, cohort, member_name, status, comment, updated_at) " +
-        "VALUES (?, ?, ?, ?, ?, ?, ?) " +
-        "ON CONFLICT(activity_id, member_name) DO UPDATE SET status = excluded.status, comment = excluded.comment, updated_at = excluded.updated_at"
-    )
-      .bind(id, activity.id, activity.cohort, memberName, st, cmt, now)
-      .run();
   }
-  const now2 = new Date().toISOString();
-  await env.DB.prepare("UPDATE activities SET responses_updated_at = ?, updated_at = ? WHERE id = ?")
-    .bind(now2, now2, activity.id)
-    .run();
+  return { days: days };
+}
 
-  const summary =
-    source === "public"
-      ? `${memberName} が出欠を更新（${st}）`
-      : `出欠更新: ${memberName} → ${st}`;
+function sanitizeFatherPayload(payload, dayDates) {
+  const src = payload && typeof payload === "object" ? payload : {};
+  const daysIn = src.days && typeof src.days === "object" ? src.days : {};
+  const days = {};
+  for (const dt of dayDates) {
+    if (Object.prototype.hasOwnProperty.call(daysIn, dt)) {
+      days[dt] = normMark(daysIn[dt]);
+    }
+  }
+  return { days: days };
+}
+
+async function loadCampaignDays(env, campaignId) {
+  const rs = await env.DB.prepare(
+    "SELECT * FROM attendance_days WHERE campaign_id = ? ORDER BY sort_order ASC, activity_date ASC"
+  )
+    .bind(campaignId)
+    .all();
+  return (rs.results || []).map(mapDay);
+}
+
+async function bumpCampaignAndEvent(env, campaign, summary, eventType) {
+  const now = new Date().toISOString();
+  await env.DB.prepare(
+    "UPDATE attendance_campaigns SET responses_updated_at = ?, updated_at = ? WHERE id = ?"
+  )
+    .bind(now, now, campaign.id)
+    .run();
   await env.DB.prepare(
     "INSERT INTO cross_role_events (id, cohort, activity_id, source_role, event_type, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
   )
-    .bind(genId(), activity.cohort, activity.id, "attendance", "attendance_changed", summary, now2)
+    .bind(genId(), campaign.cohort, campaign.id, "attendance", eventType || "attendance_changed", summary, now)
     .run();
-
-  // 古いイベントを間引く（世代あたり直近200件）
   await env.DB.prepare(
     "DELETE FROM cross_role_events WHERE cohort = ? AND id NOT IN (" +
       "SELECT id FROM cross_role_events WHERE cohort = ? ORDER BY created_at DESC LIMIT 200)"
   )
-    .bind(activity.cohort, activity.cohort)
+    .bind(campaign.cohort, campaign.cohort)
     .run();
-
-  return { ok: true, responsesUpdatedAt: now2 };
+  return now;
 }
 
-async function setAttendanceResponseAdmin(env, body) {
+async function listCampaigns(env, cohortRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const rs = await env.DB.prepare(
+    "SELECT * FROM attendance_campaigns WHERE cohort = ? ORDER BY created_at DESC LIMIT 40"
+  )
+    .bind(cohort)
+    .all();
+  const campaigns = [];
+  for (const row of rs.results || []) {
+    const c = mapCampaign(row);
+    const days = await loadCampaignDays(env, c.id);
+    c.days = days;
+    const mgN = await env.DB.prepare(
+      "SELECT COUNT(*) AS n FROM attendance_mother_responses WHERE campaign_id = ?"
+    )
+      .bind(c.id)
+      .first();
+    const faN = await env.DB.prepare(
+      "SELECT COUNT(*) AS n FROM attendance_father_responses WHERE campaign_id = ?"
+    )
+      .bind(c.id)
+      .first();
+    c.motherAnswered = Number(mgN && mgN.n) || 0;
+    c.fatherAnswered = Number(faN && faN.n) || 0;
+    campaigns.push(c);
+  }
+  return { campaigns: campaigns };
+}
+
+async function upsertCampaign(env, body) {
   const cohort = mustCohort(body.cohort);
-  const activityId = String(body.activityId || body.id || "").trim();
-  const memberName = String(body.memberName || "").trim();
-  if (!activityId || !memberName) throw new Error("activity_or_member_required");
-  const row = await env.DB.prepare("SELECT * FROM activities WHERE id = ? AND cohort = ?")
-    .bind(activityId, cohort)
+  const now = new Date().toISOString();
+  const title = String(body.title || "").trim().slice(0, 120);
+  const memo = String(body.memo || "").trim().slice(0, 500);
+  const status = body.status === "closed" ? "closed" : "open";
+  const daysIn = Array.isArray(body.days) ? body.days : [];
+  if (!daysIn.length) throw new Error("days_required");
+  if (daysIn.length > 14) throw new Error("days_too_many");
+
+  const days = daysIn.map((d, i) => {
+    const activityDate = String((d && d.activityDate) || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) throw new Error("activity_date_invalid");
+    const kind = String((d && d.kind) || "practice").trim();
+    if (!ATT_KINDS.has(kind)) throw new Error("kind_invalid");
+    return {
+      activityDate,
+      startTime: String((d && d.startTime) || "").trim().slice(0, 16),
+      place: String((d && d.place) || "").trim().slice(0, 120),
+      kind,
+      label: String((d && d.label) || "").trim().slice(0, 40),
+      sortOrder: i,
+    };
+  });
+
+  let id = String(body.id || "").trim();
+  if (id) {
+    const cur = await env.DB.prepare("SELECT id FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+      .bind(id, cohort)
+      .first();
+    if (!cur) throw new Error("campaign_not_found");
+    await env.DB.prepare(
+      "UPDATE attendance_campaigns SET title = ?, memo = ?, status = ?, updated_at = ? WHERE id = ? AND cohort = ?"
+    )
+      .bind(title, memo, status, now, id, cohort)
+      .run();
+    await env.DB.prepare("DELETE FROM attendance_days WHERE campaign_id = ?").bind(id).run();
+  } else {
+    id = genId();
+    await env.DB.prepare(
+      "INSERT INTO attendance_campaigns (id, cohort, title, memo, status, share_id_mg, share_id_father, responses_updated_at, created_at, updated_at) " +
+        "VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?)"
+    )
+      .bind(id, cohort, title, memo, status, now, now)
+      .run();
+  }
+
+  for (const d of days) {
+    await env.DB.prepare(
+      "INSERT INTO attendance_days (id, campaign_id, cohort, activity_date, start_time, place, kind, label, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    )
+      .bind(genId(), id, cohort, d.activityDate, d.startTime, d.place, d.kind, d.label, d.sortOrder)
+      .run();
+  }
+
+  return getCampaignDetail(env, cohort, id);
+}
+
+async function getCampaignDetail(env, cohortRaw, idRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const id = String(idRaw || "").trim();
+  if (!id) throw new Error("campaign_id_required");
+  const row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
     .first();
-  if (!row) throw new Error("activity_not_found");
-  const members = await loadMasterMembers(env, cohort);
+  if (!row) throw new Error("campaign_not_found");
+  const campaign = mapCampaign(row);
+  const days = await loadCampaignDays(env, id);
+  campaign.days = days;
+  const members = (await loadMasterMembers(env, cohort)).filter((m) => !m.excluded);
+
+  const mgRs = await env.DB.prepare(
+    "SELECT member_name, payload_json, updated_at FROM attendance_mother_responses WHERE campaign_id = ?"
+  )
+    .bind(id)
+    .all();
+  const faRs = await env.DB.prepare(
+    "SELECT member_name, payload_json, updated_at FROM attendance_father_responses WHERE campaign_id = ?"
+  )
+    .bind(id)
+    .all();
+
+  const mgMap = {};
+  for (const r of mgRs.results || []) {
+    mgMap[String(r.member_name)] = {
+      payload: parseJsonObj(r.payload_json),
+      updatedAt: String(r.updated_at || ""),
+    };
+  }
+  const faMap = {};
+  for (const r of faRs.results || []) {
+    faMap[String(r.member_name)] = {
+      payload: parseJsonObj(r.payload_json),
+      updatedAt: String(r.updated_at || ""),
+    };
+  }
+
+  const roster = members.map((m) => ({
+    name: m.name,
+    mother: mgMap[m.name] || null,
+    father: faMap[m.name] || null,
+  }));
+
+  return {
+    campaign: campaign,
+    roster: roster,
+    memberTotal: members.length,
+    motherAnswered: roster.filter((r) => !!r.mother).length,
+    fatherAnswered: roster.filter((r) => !!r.father).length,
+  };
+}
+
+async function publishCampaignShares(env, body) {
+  const cohort = mustCohort(body.cohort);
+  const id = String(body.id || "").trim();
+  if (!id) throw new Error("campaign_id_required");
+  const row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!row) throw new Error("campaign_not_found");
+  const now = new Date().toISOString();
+  const track = String(body.track || "both"); // mg | father | both
+  let shareMg = row.share_id_mg ? String(row.share_id_mg) : "";
+  let shareFa = row.share_id_father ? String(row.share_id_father) : "";
+  if (track === "mg" || track === "both") {
+    if (!shareMg || body.rotate) shareMg = genShareId();
+  }
+  if (track === "father" || track === "both") {
+    if (!shareFa || body.rotate) shareFa = genShareId();
+  }
+  await env.DB.prepare(
+    "UPDATE attendance_campaigns SET share_id_mg = ?, share_id_father = ?, updated_at = ? WHERE id = ? AND cohort = ?"
+  )
+    .bind(shareMg || null, shareFa || null, now, id, cohort)
+    .run();
+  return {
+    ok: true,
+    shareIdMg: shareMg,
+    shareIdFather: shareFa,
+    updatedAt: now,
+    campaignId: id,
+  };
+}
+
+async function findCampaignByShare(env, sid) {
+  const sidN = String(sid || "").trim();
+  if (!sidN || !/^[0-9a-f]{16,64}$/.test(sidN)) throw new Error("invalid_share_id");
+  let row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE share_id_mg = ?").bind(sidN).first();
+  if (row) return { row: row, track: "mg" };
+  row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE share_id_father = ?").bind(sidN).first();
+  if (row) return { row: row, track: "father" };
+  throw new Error("not_found");
+}
+
+async function saveMotherResponse(env, campaignRow, memberName, payload, source) {
+  const campaign = mapCampaign(campaignRow);
+  const days = await loadCampaignDays(env, campaign.id);
+  const dayDates = days.map((d) => d.activityDate);
+  const members = await loadMasterMembers(env, campaign.cohort);
   const hit = members.find((m) => m.name === memberName && !m.excluded);
   if (!hit) throw new Error("member_not_found");
-  const activity = mapActivityRow(row);
-  await writeAttendanceResponse(env, activity, memberName, body.status, body.comment, "admin");
-  return getActivityDetail(env, cohort, activityId);
+  const clean = sanitizeMotherPayload(payload, dayDates);
+  const now = new Date().toISOString();
+  await env.DB.prepare(
+    "INSERT INTO attendance_mother_responses (id, campaign_id, cohort, member_name, payload_json, updated_at) VALUES (?, ?, ?, ?, ?, ?) " +
+      "ON CONFLICT(campaign_id, member_name) DO UPDATE SET payload_json = excluded.payload_json, updated_at = excluded.updated_at"
+  )
+    .bind(genId(), campaign.id, campaign.cohort, memberName, JSON.stringify(clean), now)
+    .run();
+  await bumpCampaignAndEvent(env, campaign, `MG回答更新: ${memberName}`, "attendance_mg_changed");
+  return clean;
+}
+
+async function saveFatherResponse(env, campaignRow, memberName, payload, source) {
+  const campaign = mapCampaign(campaignRow);
+  const days = await loadCampaignDays(env, campaign.id);
+  const dayDates = days.map((d) => d.activityDate);
+  const members = await loadMasterMembers(env, campaign.cohort);
+  const hit = members.find((m) => m.name === memberName && !m.excluded);
+  if (!hit) throw new Error("member_not_found");
+  const clean = sanitizeFatherPayload(payload, dayDates);
+  const now = new Date().toISOString();
+  await env.DB.prepare(
+    "INSERT INTO attendance_father_responses (id, campaign_id, cohort, member_name, payload_json, updated_at) VALUES (?, ?, ?, ?, ?, ?) " +
+      "ON CONFLICT(campaign_id, member_name) DO UPDATE SET payload_json = excluded.payload_json, updated_at = excluded.updated_at"
+  )
+    .bind(genId(), campaign.id, campaign.cohort, memberName, JSON.stringify(clean), now)
+    .run();
+  await bumpCampaignAndEvent(env, campaign, `親父回答更新: ${memberName}`, "attendance_father_changed");
+  return clean;
+}
+
+async function setMotherResponseAdmin(env, body) {
+  const cohort = mustCohort(body.cohort);
+  const id = String(body.campaignId || body.id || "").trim();
+  const memberName = String(body.memberName || "").trim();
+  if (!id || !memberName) throw new Error("campaign_or_member_required");
+  const row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!row) throw new Error("campaign_not_found");
+  await saveMotherResponse(env, row, memberName, body.payload || {}, "admin");
+  return getCampaignDetail(env, cohort, id);
+}
+
+async function setFatherResponseAdmin(env, body) {
+  const cohort = mustCohort(body.cohort);
+  const id = String(body.campaignId || body.id || "").trim();
+  const memberName = String(body.memberName || "").trim();
+  if (!id || !memberName) throw new Error("campaign_or_member_required");
+  const row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!row) throw new Error("campaign_not_found");
+  await saveFatherResponse(env, row, memberName, body.payload || {}, "admin");
+  return getCampaignDetail(env, cohort, id);
 }
 
 async function getPublicAttendance(env, sidRaw) {
-  const sid = String(sidRaw || "").trim();
-  if (!sid || !/^[0-9a-f]{16,64}$/.test(sid)) throw new Error("invalid_share_id");
-  const row = await env.DB.prepare("SELECT * FROM activities WHERE share_id = ?")
-    .bind(sid)
-    .first();
-  if (!row) throw new Error("not_found");
-  if (String(row.status || "") === "closed") {
-    return { ok: true, closed: 1, activity: mapActivityRow(row), roster: [] };
+  const found = await findCampaignByShare(env, sidRaw);
+  const campaign = mapCampaign(found.row);
+  if (campaign.status === "closed") {
+    return { ok: true, closed: 1, track: found.track, campaign: campaign, days: [], members: [] };
   }
-  const detail = await getActivityDetail(env, row.cohort, row.id);
+  const days = await loadCampaignDays(env, campaign.id);
+  const members = (await loadMasterMembers(env, campaign.cohort))
+    .filter((m) => !m.excluded)
+    .map((m) => m.name);
+
+  let responded = {};
+  if (found.track === "mg") {
+    const rs = await env.DB.prepare(
+      "SELECT member_name, payload_json FROM attendance_mother_responses WHERE campaign_id = ?"
+    )
+      .bind(campaign.id)
+      .all();
+    for (const r of rs.results || []) responded[String(r.member_name)] = parseJsonObj(r.payload_json);
+  } else {
+    const rs = await env.DB.prepare(
+      "SELECT member_name, payload_json FROM attendance_father_responses WHERE campaign_id = ?"
+    )
+      .bind(campaign.id)
+      .all();
+    for (const r of rs.results || []) responded[String(r.member_name)] = parseJsonObj(r.payload_json);
+  }
+
   return {
     ok: true,
     closed: 0,
-    activity: detail.activity,
-    roster: detail.roster.map((m) => ({
-      name: m.name,
-      status: m.status,
-      comment: m.comment,
-    })),
-    memberTotal: (detail.memberTotal | 0),
+    track: found.track,
+    campaign: {
+      id: campaign.id,
+      title: campaign.title,
+      memo: campaign.memo,
+      status: campaign.status,
+    },
+    days: days,
+    members: members,
+    responses: responded,
   };
 }
 
 async function setAttendanceResponsePublic(env, body) {
   const sid = String((body && body.sid) || "").trim();
-  if (!sid || !/^[0-9a-f]{16,64}$/.test(sid)) throw new Error("invalid_share_id");
   const memberName = String((body && body.memberName) || "").trim();
   if (!memberName) throw new Error("member_required");
-  const row = await env.DB.prepare("SELECT * FROM activities WHERE share_id = ?")
-    .bind(sid)
-    .first();
-  if (!row) throw new Error("not_found");
-  if (String(row.status || "") === "closed") throw new Error("activity_closed");
+  const found = await findCampaignByShare(env, sid);
+  if (String(found.row.status || "") === "closed") throw new Error("campaign_closed");
 
-  // 連続投稿の簡易抑制（同一 share + member で 8 秒以内は拒否）
+  // 連打抑制
+  const table = found.track === "mg" ? "attendance_mother_responses" : "attendance_father_responses";
   const recent = await env.DB.prepare(
-    "SELECT updated_at FROM attendance_responses WHERE activity_id = ? AND member_name = ?"
+    `SELECT updated_at FROM ${table} WHERE campaign_id = ? AND member_name = ?`
   )
-    .bind(row.id, memberName)
+    .bind(found.row.id, memberName)
     .first();
   if (recent && recent.updated_at) {
     const t = Date.parse(String(recent.updated_at));
     if (!Number.isNaN(t) && Date.now() - t < 8000) throw new Error("too_fast");
   }
 
-  const members = await loadMasterMembers(env, row.cohort);
-  const hit = members.find((m) => m.name === memberName && !m.excluded);
-  if (!hit) throw new Error("member_not_found");
-
-  const activity = mapActivityRow(row);
-  await writeAttendanceResponse(env, activity, memberName, body.status, body.comment, "public");
+  if (found.track === "mg") {
+    await saveMotherResponse(env, found.row, memberName, body.payload || {}, "public");
+  } else {
+    await saveFatherResponse(env, found.row, memberName, body.payload || {}, "public");
+  }
   return getPublicAttendance(env, sid);
 }
 
@@ -1049,4 +1215,3 @@ async function listCrossRoleEvents(env, cohortRaw, sinceRaw) {
   }));
   return { events: events };
 }
-

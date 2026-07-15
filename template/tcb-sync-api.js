@@ -110,26 +110,31 @@
         payload.cohort=cohort;
         return req('/api/push/subscribe','POST',payload);
       },
-      listActivities:function(){
-        return req('/api/attendance/activities?cohort='+encodeURIComponent(cohort),'GET');
+      listCampaigns:function(){
+        return req('/api/attendance/campaigns?cohort='+encodeURIComponent(cohort),'GET');
       },
-      upsertActivity:function(payload){
+      upsertCampaign:function(payload){
         payload=payload||{};
         payload.cohort=cohort;
-        return req('/api/attendance/activities','POST',payload);
+        return req('/api/attendance/campaigns','POST',payload);
       },
-      getActivity:function(id){
-        return req('/api/attendance/activity?cohort='+encodeURIComponent(cohort)+'&id='+encodeURIComponent(id||''),'GET');
+      getCampaign:function(id){
+        return req('/api/attendance/campaign?cohort='+encodeURIComponent(cohort)+'&id='+encodeURIComponent(id||''),'GET');
       },
       publishAttendance:function(payload){
         payload=payload||{};
         payload.cohort=cohort;
         return req('/api/attendance/publish','POST',payload);
       },
-      setAttendanceResponse:function(payload){
+      setMotherResponse:function(payload){
         payload=payload||{};
         payload.cohort=cohort;
-        return req('/api/attendance/response','POST',payload);
+        return req('/api/attendance/mother-response','POST',payload);
+      },
+      setFatherResponse:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/attendance/father-response','POST',payload);
       },
       listCrossRoleEvents:function(since){
         var q='/api/attendance/cross-events?cohort='+encodeURIComponent(cohort);

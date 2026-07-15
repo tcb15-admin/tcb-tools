@@ -63,45 +63,70 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 
 CREATE INDEX IF NOT EXISTS idx_push_cohort ON push_subscriptions(cohort);
 
--- 出欠・活動（Phase 1）
-CREATE TABLE IF NOT EXISTS activities (
+-- 出欠 Phase1（MG / 親父・複数日）
+CREATE TABLE IF NOT EXISTS attendance_campaigns (
   id TEXT PRIMARY KEY,
   cohort TEXT NOT NULL,
-  activity_date TEXT NOT NULL,
-  start_time TEXT NOT NULL DEFAULT '',
-  place TEXT NOT NULL DEFAULT '',
-  kind TEXT NOT NULL DEFAULT 'practice',
   title TEXT NOT NULL DEFAULT '',
   memo TEXT NOT NULL DEFAULT '',
-  share_id TEXT,
   status TEXT NOT NULL DEFAULT 'open',
+  share_id_mg TEXT,
+  share_id_father TEXT,
   responses_updated_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_activities_cohort_date
-  ON activities(cohort, activity_date DESC);
+CREATE INDEX IF NOT EXISTS idx_att_camp_cohort
+  ON attendance_campaigns(cohort, created_at DESC);
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_activities_share
-  ON activities(share_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_att_camp_share_mg
+  ON attendance_campaigns(share_id_mg);
 
-CREATE TABLE IF NOT EXISTS attendance_responses (
+CREATE UNIQUE INDEX IF NOT EXISTS idx_att_camp_share_father
+  ON attendance_campaigns(share_id_father);
+
+CREATE TABLE IF NOT EXISTS attendance_days (
   id TEXT PRIMARY KEY,
-  activity_id TEXT NOT NULL,
+  campaign_id TEXT NOT NULL,
   cohort TEXT NOT NULL,
-  member_name TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'unset',
-  comment TEXT NOT NULL DEFAULT '',
-  updated_at TEXT NOT NULL,
-  UNIQUE(activity_id, member_name)
+  activity_date TEXT NOT NULL,
+  start_time TEXT NOT NULL DEFAULT '',
+  place TEXT NOT NULL DEFAULT '',
+  kind TEXT NOT NULL DEFAULT 'practice',
+  label TEXT NOT NULL DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  UNIQUE(campaign_id, activity_date)
 );
 
-CREATE INDEX IF NOT EXISTS idx_att_resp_activity
-  ON attendance_responses(activity_id);
+CREATE INDEX IF NOT EXISTS idx_att_days_camp
+  ON attendance_days(campaign_id, sort_order, activity_date);
 
-CREATE INDEX IF NOT EXISTS idx_att_resp_cohort
-  ON attendance_responses(cohort, updated_at DESC);
+CREATE TABLE IF NOT EXISTS attendance_mother_responses (
+  id TEXT PRIMARY KEY,
+  campaign_id TEXT NOT NULL,
+  cohort TEXT NOT NULL,
+  member_name TEXT NOT NULL,
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL,
+  UNIQUE(campaign_id, member_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_att_mg_camp
+  ON attendance_mother_responses(campaign_id);
+
+CREATE TABLE IF NOT EXISTS attendance_father_responses (
+  id TEXT PRIMARY KEY,
+  campaign_id TEXT NOT NULL,
+  cohort TEXT NOT NULL,
+  member_name TEXT NOT NULL,
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL,
+  UNIQUE(campaign_id, member_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_att_fa_camp
+  ON attendance_father_responses(campaign_id);
 
 CREATE TABLE IF NOT EXISTS cross_role_events (
   id TEXT PRIMARY KEY,

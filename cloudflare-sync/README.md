@@ -122,24 +122,25 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 - `POST /api/swap-reports/handle` … MGR 反映/却下（Bearer）
 - `POST /api/push/subscribe` … MGR Web Push 購読登録（Bearer）
 
-### 出欠（Phase 1）
+### 出欠（Phase 1 / MG・親父2系統）
 
-マイグレーション: `migrate_attendance.sql`（または新規は `schema.sql`）
+マイグレーション: `migrate_attendance.sql`（**旧・単純出欠テーブルは置き換え**）
 
-- `GET /api/attendance/activities?cohort=` … 活動一覧（件数集計付き・Bearer）
-- `POST /api/attendance/activities` … 活動作成／更新（Bearer）。body: `{cohort, id?, activityDate, startTime?, place?, kind, title?, memo?, status?}`
-- `GET /api/attendance/activity?cohort=&id=` … 詳細＋ロスター（Bearer）
-- `POST /api/attendance/publish` … 保護者回答用 shareId 発行（Bearer）。body: `{cohort, id, rotate?}`
-- `POST /api/attendance/response` … スタッフ代理回答（Bearer）。body: `{cohort, activityId, memberName, status, comment?}`。status: `in|out|maybe|unset`
+- `GET /api/attendance/campaigns?cohort=` … キャンペーン一覧（Bearer）
+- `POST /api/attendance/campaigns` … 作成／更新。body: `{cohort, id?, title, memo?, status?, days:[{activityDate,startTime?,place?,kind?}]}`
+- `GET /api/attendance/campaign?cohort=&id=` … 詳細＋母／親父回答（Bearer）
+- `POST /api/attendance/publish` … shareId 発行。body: `{cohort, id, track?:mg|father|both, rotate?}` → `shareIdMg` / `shareIdFather`
+- `POST /api/attendance/mother-response` … スタッフ代理・MG回答（Bearer）
+- `POST /api/attendance/father-response` … スタッフ代理・親父回答（Bearer）
 - `GET /api/attendance/cross-events?cohort=&since=` … 相互影響イベント（Bearer）
-- `GET /api/public/attendance?sid=` … 保護者読み取り（トークン不要）
-- `POST /api/public/attendance-response` … 保護者回答（トークン不要）。body: `{sid, memberName, status, comment?}`
+- `GET /api/public/attendance?sid=` … 保護者（トークン不要）。sid が MG／親父のどちらかで track 判定
+- `POST /api/public/attendance-response` … 保護者回答。body: `{sid, memberName, payload}`
 
-フロント（ビルド生成）:
+フロント:
 
-- `{世代}/portal/index.html` … 役割ポータル
+- `{世代}/portal/index.html`
 - `{世代}/attendance/index.html` … 出欠スタッフ
-- `{世代}/attendance/kaito.html?sid=` … 保護者回答（トークンなし）
+- `{世代}/attendance/kaito.html?sid=` … 保護者（MG／親父は sid で切替）
 
 ## 10. 競合と上書きルール
 
