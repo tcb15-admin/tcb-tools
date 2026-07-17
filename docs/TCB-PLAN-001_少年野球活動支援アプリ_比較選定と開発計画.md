@@ -563,13 +563,13 @@ activity_id = 2026-07-20-practice-am  など
 
 ## 9. 次の実装着手時の作業順（案）
 
-**Phase 1 実装着手済み（コード）** — 以下はデプロイ／試験の順。
+**Phase 1 実装済み（試験運用へ）** — 手順は `boys15/docs/TCB-OPS-ATT-001_出欠試験運用手順.md`。
 
-1. D1 に `migrate_attendance.sql` を適用（`activities` / `attendance_responses` / `cross_role_events`）  
-2. Worker（出欠 API 付き）をデプロイ  
-3. `SYNC_API_TOKEN=… python3 template/build.py boys15` でポータル／出欠を再生成して Pages へ  
-4. ポータル → 出欠で活動作成 → 回答URL発行 → LINE で試験  
-5. Phase 2 配車（出席者のみ候補）へ  
+1. D1 に `migrate_attendance.sql` を適用  
+2. Worker をデプロイ  
+3. `SYNC_API_TOKEN=… python3 template/build.py boys15` → Pages  
+4. 試験シナリオ（同手順書 §4）を実施  
+5. OK なら本番1回並行運用 → 配車 Phase 2  
 
 ---
 

@@ -16,6 +16,8 @@
   var sid=qs('sid');
   var client=null;
   var data=null;
+  var submitting=false;
+  var LS_PREF='tcb_att_pref_'+(cfg.cohort||'15');
 
   function setStatus(msg, isErr){
     var el=$('att-status');
@@ -31,12 +33,32 @@
     return client;
   }
 
+  function loadPrefs(){
+    try{
+      var raw=localStorage.getItem(LS_PREF);
+      if(!raw)return {};
+      var o=JSON.parse(raw);
+      return o&&typeof o==='object'?o:{};
+    }catch(e){return {};}
+  }
+
+  function savePrefs(partial){
+    try{
+      var cur=loadPrefs();
+      Object.keys(partial||{}).forEach(function(k){cur[k]=partial[k];});
+      localStorage.setItem(LS_PREF, JSON.stringify(cur));
+    }catch(e){}
+  }
+
   function markBtns(name, current, datescope){
     var cur=current||'unset';
-    return ['o','t','x'].map(function(m){
-      var label=m==='o'?'◯':(m==='t'?'△':'✕');
-      var on=cur===m?' is-on-'+(m==='o'?'in':(m==='x'?'out':'maybe')):'';
-      return '<button type="button" class="'+on.trim()+'" data-mark-field="'+name+'" data-mark="'+m+'" data-date="'+esc(datescope||'')+'">'+label+'</button>';
+    return [
+      {m:'o', label:'◯ 出'},
+      {m:'t', label:'△ 未定'},
+      {m:'x', label:'✕ 欠'}
+    ].map(function(item){
+      var on=cur===item.m?' is-on-'+(item.m==='o'?'in':(item.m==='x'?'out':'maybe')):'';
+      return '<button type="button" class="'+on.trim()+'" data-mark-field="'+name+'" data-mark="'+item.m+'" data-date="'+esc(datescope||'')+'">'+item.label+'</button>';
     }).join('');
   }
 
@@ -54,14 +76,16 @@
       return;
     }
 
+    var prefs=loadPrefs();
     var opts=(data.members||[]).map(function(n){
       var done=data.responses&&data.responses[n]?'（回答済）':'';
-      return '<option value="'+esc(n)+'">'+esc(n)+done+'</option>';
+      var sel=prefs.memberName===n?' selected':'';
+      return '<option value="'+esc(n)+'"'+sel+'>'+esc(n)+done+'</option>';
     }).join('');
 
     var note=track==='mg'
-      ? '選手（お子さま）を選び、日ごとに母フォーム（父／母／配車など）を入力してください。送信後、MG LINE用の投稿文をコピーできます。'
-      : '選手を選び、日ごとに◯／△／✕を選んで送信してください。送信後、親父LINE用の本文をコピーできます。※当面はLINEスケジュールへの回答も従来どおりお願いします。';
+      ? '① 選手を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてMG LINEへ。車種などは前回の入力を覚えます。'
+      : '① 選手を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーして親父LINEへ。※当面はLINEスケジュールも従来どおりお願いします。';
 
     var daysHtml=(data.days||[]).map(function(d){
       return track==='mg'?renderMgDay(d):renderFaDay(d);
@@ -73,18 +97,62 @@
       +'</div>'
       +'<div class="att-parent-note">'+note+'</div>'
       +'<div class="att-card">'
-      +'<label for="att-pick" style="font-size:12px;font-weight:700;color:#6e6e78">選手名</label>'
-      +'<select id="att-pick" class="att-pick"><option value="">選択してください</option>'+opts+'</select>'
-      +daysHtml
-      +'<button type="button" id="att-submit" class="att-btn att-btn-primary" style="width:100%;margin-top:10px">送信する</button>'
+      +'<div class="att-step"><span class="att-step-num">1</span><label for="att-pick">選手名を選ぶ</label></div>'
+      +'<select id="att-pick" class="att-pick" aria-label="選手名"><option value="">選択してください</option>'+opts+'</select>'
+      +'<p id="att-pick-hint" class="att-act-meta">選手を選ぶと、下の入力欄が使えます。</p>'
       +'</div>'
+      +'<div id="att-form-panel" class="att-form-panel att-form-locked" aria-disabled="true">'
+      +'<div class="att-card">'
+      +'<div class="att-step"><span class="att-step-num">2</span><span>日ごとの回答</span></div>'
+      +daysHtml
+      +'</div>'
+      +'<div class="att-sticky-actions">'
+      +'<button type="button" id="att-submit" class="att-btn att-btn-primary" style="width:100%" disabled>送信する</button>'
+      +'</div></div>'
       +'<div id="att-result" class="att-card att-hidden">'
-      +'<h2>LINE投稿用テキスト</h2>'
-      +'<pre id="att-line-out" class="att-preview"></pre>'
-      +'<button type="button" id="att-copy" class="att-btn att-btn-line" style="width:100%;margin-top:8px">コピー</button>'
+      +'<div class="att-step"><span class="att-step-num">3</span><span>LINE投稿用テキスト</span></div>'
+      +'<p class="att-act-meta" style="margin:8px 0">コピーして、該当のLINEグループへ貼り付けてください。</p>'
+      +'<pre id="att-line-out" class="att-preview" tabindex="0"></pre>'
+      +'<div class="att-row" style="margin-top:8px">'
+      +'<button type="button" id="att-copy" class="att-btn att-btn-line" style="flex:1">コピー</button>'
+      +'<button type="button" id="att-share" class="att-btn att-btn-ghost" style="flex:1">共有</button>'
+      +'</div>'
+      +'<p id="att-copy-hint" class="att-act-meta" style="margin-top:8px"></p>'
       +'</div>';
 
     wireDayToggles();
+    var pick=$('att-pick');
+    if(pick&&pick.value){
+      unlockForm();
+      fillExisting(pick.value);
+      applyPrefsToForm();
+    }else{
+      lockForm();
+    }
+  }
+
+  function lockForm(){
+    var panel=$('att-form-panel');
+    var btn=$('att-submit');
+    var hint=$('att-pick-hint');
+    if(panel){
+      panel.classList.add('att-form-locked');
+      panel.setAttribute('aria-disabled','true');
+    }
+    if(btn)btn.disabled=true;
+    if(hint)hint.classList.remove('att-hidden');
+  }
+
+  function unlockForm(){
+    var panel=$('att-form-panel');
+    var btn=$('att-submit');
+    var hint=$('att-pick-hint');
+    if(panel){
+      panel.classList.remove('att-form-locked');
+      panel.setAttribute('aria-disabled','false');
+    }
+    if(btn&&!submitting)btn.disabled=false;
+    if(hint)hint.classList.add('att-hidden');
   }
 
   function renderMgDay(d){
@@ -98,16 +166,16 @@
       +'<div class="att-on-block" data-date="'+esc(dt)+'">'
       +'<p class="att-act-meta">①父</p><div class="att-seg">'+markBtns('father','unset',dt)+'</div>'
       +'<p class="att-act-meta">①母</p><div class="att-seg">'+markBtns('mother','unset',dt)+'</div>'
-      +'<div class="att-field"><label>②兄弟</label><input data-f="siblings" data-date="'+esc(dt)+'" value="なし"></div>'
-      +'<div class="att-field"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―"></div>'
+      +'<div class="att-field"><label>②兄弟</label><input data-f="siblings" data-date="'+esc(dt)+'" value="なし" autocomplete="off"></div>'
+      +'<div class="att-field"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―" autocomplete="off"></div>'
       +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+markBtns('carOk','unset',dt)+'</div>'
-      +'<div class="att-field"><label>④車種</label><input data-f="carModel" data-date="'+esc(dt)+'" placeholder="例: RAV4"></div>'
-      +'<div class="att-field"><label>⑤乗車可能人数</label><input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2"></div>'
-      +'<div class="att-field"><label>⑥送り</label><input data-f="send" data-date="'+esc(dt)+'" placeholder="例: 父（RAV4）"></div>'
-      +'<div class="att-field"><label>⑦迎え</label><input data-f="pickup" data-date="'+esc(dt)+'" placeholder="例: 父（RAV4）"></div>'
+      +'<div class="att-field"><label>④車種</label><input data-f="carModel" data-date="'+esc(dt)+'" placeholder="例: RAV4" autocomplete="off"></div>'
+      +'<div class="att-field"><label>⑤乗車可能人数</label><input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2" autocomplete="off"></div>'
+      +'<div class="att-field"><label>⑥送り</label><input data-f="send" data-date="'+esc(dt)+'" placeholder="例: 父（RAV4）" autocomplete="off"></div>'
+      +'<div class="att-field"><label>⑦迎え</label><input data-f="pickup" data-date="'+esc(dt)+'" placeholder="例: 父（RAV4）" autocomplete="off"></div>'
       +'</div>'
       +'<div class="att-off-block att-hidden" data-date="'+esc(dt)+'">'
-      +'<div class="att-field"><label>休みの理由</label><input data-f="offNote" data-date="'+esc(dt)+'" placeholder="例: 学校行事"></div>'
+      +'<div class="att-field"><label>休みの理由</label><input data-f="offNote" data-date="'+esc(dt)+'" placeholder="例: 学校行事" autocomplete="off"></div>'
       +'</div></div>';
   }
 
@@ -122,6 +190,7 @@
   function wireDayToggles(){
     $('att-main').querySelectorAll('button.att-mode').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if(isFormLocked())return;
         var dt=btn.getAttribute('data-date');
         var mode=btn.getAttribute('data-mode');
         var wrap=btn.closest('.att-member');
@@ -142,6 +211,7 @@
     });
     $('att-main').querySelectorAll('button[data-mark]').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if(isFormLocked())return;
         var field=btn.getAttribute('data-mark-field');
         var dt=btn.getAttribute('data-date');
         var seg=btn.parentElement;
@@ -152,6 +222,11 @@
         btn.className='is-on-'+(m==='o'?'in':(m==='x'?'out':'maybe'));
       });
     });
+  }
+
+  function isFormLocked(){
+    var panel=$('att-form-panel');
+    return !!(panel&&panel.classList.contains('att-form-locked'));
   }
 
   function selectedMark(wrap, field, dt){
@@ -204,6 +279,21 @@
     return {days:days};
   }
 
+  function hasUnsetAnswers(payload){
+    var days=payload&&payload.days?payload.days:{};
+    var keys=Object.keys(days);
+    if(!keys.length)return true;
+    if(data.track==='father'){
+      return keys.some(function(k){return !days[k]||days[k]==='unset';});
+    }
+    return keys.some(function(k){
+      var row=days[k];
+      if(!row)return true;
+      if(row.mode==='off')return false;
+      return row.father==='unset'||row.mother==='unset'||row.carOk==='unset';
+    });
+  }
+
   function fillExisting(name){
     var prev=data.responses&&data.responses[name];
     if(!prev||!prev.days)return;
@@ -238,10 +328,97 @@
         });
         ['siblings','other','carModel','seats','send','pickup'].forEach(function(f){
           var el=wrap.querySelector('[data-f="'+f+'"][data-date="'+dt+'"]');
-          if(el&&row[f]!=null)el.value=row[f];
+          if(el&&row[f]!=null&&row[f]!=='')el.value=row[f];
         });
       }
     });
+  }
+
+  /** サーバー未回答の日に、端末に覚えた車情報を埋める */
+  function applyPrefsToForm(){
+    if(data.track!=='mg')return;
+    var prefs=loadPrefs();
+    (data.days||[]).forEach(function(d){
+      var dt=d.activityDate;
+      var wrap=document.querySelector('.att-member[data-day="'+dt+'"]');
+      if(!wrap)return;
+      var onBlock=wrap.querySelector('.att-on-block');
+      if(!onBlock||onBlock.classList.contains('att-hidden'))return;
+      [['carModel','carModel'],['seats','seats'],['send','send'],['pickup','pickup']].forEach(function(pair){
+        var el=wrap.querySelector('[data-f="'+pair[0]+'"][data-date="'+dt+'"]');
+        if(el&&!el.value&&prefs[pair[1]])el.value=prefs[pair[1]];
+      });
+    });
+  }
+
+  function persistPrefsFromPayload(name, payload){
+    var patch={memberName:name};
+    if(data.track==='mg'&&payload&&payload.days){
+      Object.keys(payload.days).forEach(function(dt){
+        var row=payload.days[dt];
+        if(!row||row.mode==='off')return;
+        if(row.carModel)patch.carModel=row.carModel;
+        if(row.seats!=null&&String(row.seats)!=='')patch.seats=String(row.seats);
+        if(row.send)patch.send=row.send;
+        if(row.pickup)patch.pickup=row.pickup;
+      });
+    }
+    savePrefs(patch);
+  }
+
+  function setBusy(on){
+    submitting=!!on;
+    var btn=$('att-submit');
+    if(!btn)return;
+    if(on){
+      btn.disabled=true;
+      btn.textContent='送信中…';
+      btn.classList.add('att-btn-busy');
+    }else{
+      btn.disabled=isFormLocked();
+      btn.textContent='送信する';
+      btn.classList.remove('att-btn-busy');
+    }
+  }
+
+  async function copyText(text){
+    var hint=$('att-copy-hint');
+    var pre=$('att-line-out');
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text);
+        setStatus('コピーしました。LINEに貼り付けてください');
+        if(hint)hint.textContent='クリップボードにコピー済みです。';
+        return true;
+      }
+      throw new Error('no_clipboard');
+    }catch(e){
+      if(pre){
+        try{
+          var range=document.createRange();
+          range.selectNodeContents(pre);
+          var sel=window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }catch(e2){}
+      }
+      setStatus('自動コピーできないため、上の文を長押ししてコピーしてください', true);
+      if(hint)hint.textContent='文面を選択しました。長押し→コピーでLINEへ貼れます。';
+      return false;
+    }
+  }
+
+  async function shareText(text){
+    if(navigator.share){
+      try{
+        await navigator.share({text:text});
+        setStatus('共有シートを開きました');
+        return;
+      }catch(e){
+        if(e&&e.name==='AbortError')return;
+      }
+    }
+    await copyText(text);
   }
 
   async function load(){
@@ -251,46 +428,89 @@
     setStatus('読み込み中…');
     data=await c.load(sid);
     render();
-    setStatus('入力できます');
+    setStatus('選手名を選んで回答を始めてください');
   }
 
   async function submit(){
+    if(submitting)return;
     var c=ensureClient();
     if(!c)return;
     var name=($('att-pick')&&$('att-pick').value)||'';
-    if(!name){setStatus('選手名を選んでください', true);return;}
+    if(!name){
+      setStatus('先に選手名を選んでください', true);
+      var pick=$('att-pick');
+      if(pick)pick.focus();
+      return;
+    }
     var payload=data.track==='mg'?collectMgPayload():collectFaPayload();
-    setStatus('送信中…');
-    data=await c.respond({sid:sid, memberName:name, payload:payload});
-    render();
-    if($('att-pick'))$('att-pick').value=name;
+    if(hasUnsetAnswers(payload)){
+      var ok=window.confirm('まだ選んでいない項目（◯△✕など）があります。このまま送信しますか？');
+      if(!ok)return;
+    }
+    setBusy(true);
+    setStatus('送信中…しばらくお待ちください');
+    try{
+      data=await c.respond({sid:sid, memberName:name, payload:payload});
+      persistPrefsFromPayload(name, payload);
+      render();
+      if($('att-pick'))$('att-pick').value=name;
+      unlockForm();
+      fillExisting(name);
+      applyPrefsToForm();
+      var text=data.track==='mg'
+        ? F.formatMotherLine(name, data.days, payload)
+        : F.formatFatherLine(name, data.days, payload);
+      var result=$('att-result');
+      var out=$('att-line-out');
+      if(result)result.classList.remove('att-hidden');
+      if(out)out.textContent=text;
+      setStatus('受け付けました。下の投稿文をコピーしてLINEへ貼ってください');
+      if(result&&result.scrollIntoView){
+        setTimeout(function(){result.scrollIntoView({behavior:'smooth', block:'start'});}, 50);
+      }
+    }finally{
+      setBusy(false);
+    }
+  }
+
+  function onPickChanged(){
+    var pick=$('att-pick');
+    var name=pick?pick.value:'';
+    if(!name){
+      lockForm();
+      setStatus('選手名を選んで回答を始めてください');
+      return;
+    }
+    unlockForm();
+    savePrefs({memberName:name});
     fillExisting(name);
-    var text=data.track==='mg'
-      ? F.formatMotherLine(name, data.days, payload)
-      : F.formatFatherLine(name, data.days, payload);
-    $('att-result').classList.remove('att-hidden');
-    $('att-line-out').textContent=text;
-    setStatus('受け付けました。下の投稿文をLINEへコピーしてください');
+    applyPrefsToForm();
+    setStatus(name+' の回答を入力できます');
   }
 
   document.addEventListener('DOMContentLoaded', function(){
     $('att-main').addEventListener('change', function(ev){
-      if(ev.target&&ev.target.id==='att-pick'&&ev.target.value){
-        fillExisting(ev.target.value);
-      }
+      if(ev.target&&ev.target.id==='att-pick')onPickChanged();
     });
     $('att-main').addEventListener('click', function(ev){
-      if(ev.target&&ev.target.id==='att-submit'){
+      var t=ev.target;
+      if(!t)return;
+      if(t.id==='att-submit'||(t.closest&&t.closest('#att-submit'))){
         submit().catch(function(e){
           var msg=e.message||String(e);
           if(msg==='too_fast')msg='連続送信のため少し待ってください';
+          if(msg==='campaign_closed')msg='受付が終了しています';
           setStatus(msg, true);
+          setBusy(false);
         });
       }
-      if(ev.target&&ev.target.id==='att-copy'){
-        var t=$('att-line-out').textContent||'';
-        navigator.clipboard.writeText(t).then(function(){setStatus('コピーしました');})
-          .catch(function(){setStatus('コピーに失敗しました', true);});
+      if(t.id==='att-copy'||(t.closest&&t.closest('#att-copy'))){
+        var text=($('att-line-out')&&$('att-line-out').textContent)||'';
+        copyText(text);
+      }
+      if(t.id==='att-share'||(t.closest&&t.closest('#att-share'))){
+        var text2=($('att-line-out')&&$('att-line-out').textContent)||'';
+        shareText(text2);
       }
     });
     load().catch(function(e){setStatus(e.message||String(e), true);});

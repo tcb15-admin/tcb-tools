@@ -208,10 +208,30 @@
 
   async function copyText(t){
     try{
-      await navigator.clipboard.writeText(t);
-      setStatus('コピーしました');
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(t);
+        setStatus('コピーしました');
+        return;
+      }
+      throw new Error('no_clipboard');
     }catch(e){
-      setStatus('コピーに失敗しました', true);
+      try{
+        var ta=document.createElement('textarea');
+        ta.value=t;
+        ta.setAttribute('readonly','');
+        ta.style.position='fixed';
+        ta.style.top='0';
+        ta.style.left='0';
+        ta.style.opacity='0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        var ok=document.execCommand('copy');
+        document.body.removeChild(ta);
+        if(ok){setStatus('コピーしました');return;}
+      }catch(e2){}
+      setStatus('コピーに失敗しました。表示中の文面を長押ししてコピーしてください', true);
+      window.prompt('コピーできませんでした。次の文面を選択してコピーしてください:', t);
     }
   }
 
