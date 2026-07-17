@@ -167,16 +167,6 @@
       el.className='att-respondent-guide att-guide-info';
       return;
     }
-    if(trackInfo().form==='family'&&role==='mother'){
-      el.textContent='「父側の保護者」は自動で「なし」にしています。父も来る場合は変更してください。';
-      el.className='att-respondent-guide att-guide-info';
-      return;
-    }
-    if(trackInfo().form==='family'&&role==='father'){
-      el.textContent='「母側の保護者」は自動で「なし」にしています。母も来る場合は変更してください。';
-      el.className='att-respondent-guide att-guide-info';
-      return;
-    }
     el.textContent='';
     el.className='att-respondent-guide att-hidden';
   }
@@ -286,11 +276,13 @@
     if(prefs.respondentRole&&allowedIds.indexOf(prefs.respondentRole)>=0){
       setRespondentUI(prefs.respondentRole);
     }
+    syncParentMarkSlots();
     var pick=$('att-pick');
     if(pick&&pick.value){
       fillExisting(pick.value);
       applyPrefsToForm();
-      applyRespondentDefaults(false);
+    }else{
+      syncParentMarkSlots();
     }
     syncFormLock();
   }
@@ -324,12 +316,9 @@
       +'<button type="button" class="att-mode" data-mode="off" data-date="'+esc(dt)+'">欠席</button>'
       +'</div>'
       +'<div class="att-on-block" data-date="'+esc(dt)+'">'
-      +'<p class="att-act-meta">①父側の保護者 <span class="att-hint-inline">いない場合は「なし」</span></p>'
-      +'<div class="att-seg">'+markBtns('father','unset',dt,true)+'</div>'
-      +'<p class="att-act-meta">①母側の保護者 <span class="att-hint-inline">いない場合は「なし」</span></p>'
-      +'<div class="att-seg">'+markBtns('mother','unset',dt,true)+'</div>'
+      +'<div class="att-parent-mark-slot" data-date="'+esc(dt)+'"></div>'
       +'<div class="att-field"><label>②兄弟</label><input data-f="siblings" data-date="'+esc(dt)+'" value="なし" autocomplete="off"></div>'
-      +'<div class="att-field"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―" autocomplete="off"></div>'
+      +'<div class="att-field att-other-default"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―" autocomplete="off"></div>'
       +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+ynBtns('carOk','unset',dt)+'</div>'
       +'<div class="att-field"><label>④車種</label><input data-f="carModel" data-date="'+esc(dt)+'" placeholder="例: RAV4" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑤乗車可能人数</label><input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2" autocomplete="off"></div>'
@@ -341,12 +330,60 @@
       +'</div></div>';
   }
 
+  /** 回答者に応じて①を片方だけ表示（いない側は投稿文で ―） */
+  function parentMarkSlotHtml(dt, role){
+    if(!role){
+      return '<p class="att-act-meta">① 先に回答者を選ぶと入力できます</p>';
+    }
+    if(role==='mother'){
+      return '<p class="att-act-meta">①母の出欠</p><div class="att-seg">'+markBtns('selfMark','unset',dt,false)+'</div>';
+    }
+    if(role==='father'){
+      return '<p class="att-act-meta">①父の出欠</p><div class="att-seg">'+markBtns('selfMark','unset',dt,false)+'</div>';
+    }
+    return '<div class="att-field"><label>①同行する方</label>'
+      +'<input data-f="companion" data-date="'+esc(dt)+'" placeholder="例: 祖母　空欄可" autocomplete="off"></div>'
+      +'<p class="att-act-meta" style="margin-top:4px">投稿文の①は父・母とも「―」、②その他に上記が入ります。</p>';
+  }
+
+  function syncParentMarkSlots(){
+    if(trackInfo().form!=='family')return;
+    var role=getRespondent();
+    document.querySelectorAll('.att-parent-mark-slot').forEach(function(slot){
+      var dt=slot.getAttribute('data-date')||'';
+      slot.innerHTML=parentMarkSlotHtml(dt, role);
+    });
+    document.querySelectorAll('.att-other-default').forEach(function(el){
+      if(role==='other')el.classList.add('att-hidden');
+      else el.classList.remove('att-hidden');
+    });
+    wireMarkButtons();
+  }
+
   function renderMarksDay(d){
     var dt=d.activityDate;
     return '<div class="att-member" data-day="'+esc(dt)+'">'
       +'<div class="att-member-name">'+(F.dayHead?F.dayHead(dt):esc(dt))+'</div>'
       +'<div class="att-seg">'+markBtns('dayMark','unset',dt)+'</div>'
       +'</div>';
+  }
+
+  function wireMarkButtons(){
+    $('att-main').querySelectorAll('button[data-mark]').forEach(function(btn){
+      if(btn.getAttribute('data-wired')==='1')return;
+      btn.setAttribute('data-wired','1');
+      btn.addEventListener('click', function(){
+        if(isFormLocked())return;
+        var field=btn.getAttribute('data-mark-field');
+        var dt=btn.getAttribute('data-date');
+        var seg=btn.parentElement;
+        seg.querySelectorAll('button[data-mark-field="'+field+'"]').forEach(function(b){
+          if(b.getAttribute('data-date')===dt)b.className='';
+        });
+        var m=btn.getAttribute('data-mark');
+        btn.className=markOnClass(m);
+      });
+    });
   }
 
   function wireDayToggles(){
@@ -371,19 +408,7 @@
         }
       });
     });
-    $('att-main').querySelectorAll('button[data-mark]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        if(isFormLocked())return;
-        var field=btn.getAttribute('data-mark-field');
-        var dt=btn.getAttribute('data-date');
-        var seg=btn.parentElement;
-        seg.querySelectorAll('button[data-mark-field="'+field+'"]').forEach(function(b){
-          if(b.getAttribute('data-date')===dt)b.className='';
-        });
-        var m=btn.getAttribute('data-mark');
-        btn.className=markOnClass(m);
-      });
-    });
+    wireMarkButtons();
   }
 
   function isFormLocked(){
@@ -407,30 +432,8 @@
     return el?String(el.value||'').trim():'';
   }
 
-  /**
-   * 回答者に応じて父／母欄の初期値をセット。
-   * force=true のときは回答者変更時に「なし」側を上書き。
-   */
-  function applyRespondentDefaults(force){
-    if(trackInfo().form!=='family')return;
-    var role=getRespondent();
-    if(role!=='mother'&&role!=='father')return;
-    var field=role==='mother'?'father':'mother';
-    (data.days||[]).forEach(function(d){
-      var dt=d.activityDate;
-      var wrap=document.querySelector('.att-member[data-day="'+dt+'"]');
-      if(!wrap)return;
-      var onBlock=wrap.querySelector('.att-on-block');
-      if(!onBlock||onBlock.classList.contains('att-hidden'))return;
-      if(!force&&selectedMark(wrap,field,dt)!=='unset')return;
-      var btn=wrap.querySelector('button[data-mark-field="'+field+'"][data-date="'+dt+'"][data-mark="n"]');
-      if(!btn)return;
-      wrap.querySelectorAll('button[data-mark-field="'+field+'"][data-date="'+dt+'"]').forEach(function(x){x.className='';});
-      btn.className=markOnClass('n');
-    });
-  }
-
   function collectFamilyPayload(){
+    var role=getRespondent();
     var days={};
     (data.days||[]).forEach(function(d){
       var dt=d.activityDate;
@@ -440,22 +443,33 @@
       var mode=modeBtn&&modeBtn.getAttribute('data-mode')==='off'?'off':'on';
       if(mode==='off'){
         days[dt]={mode:'off', note:fieldVal(wrap,'offNote',dt)};
-      }else{
-        days[dt]={
-          mode:'on',
-          father:selectedMark(wrap,'father',dt),
-          mother:selectedMark(wrap,'mother',dt),
-          siblings:fieldVal(wrap,'siblings',dt)||'なし',
-          other:fieldVal(wrap,'other',dt)||'―',
-          carOk:selectedMark(wrap,'carOk',dt),
-          carModel:fieldVal(wrap,'carModel',dt),
-          seats:fieldVal(wrap,'seats',dt),
-          send:fieldVal(wrap,'send',dt),
-          pickup:fieldVal(wrap,'pickup',dt)
-        };
+        return;
       }
+      var self=selectedMark(wrap,'selfMark',dt);
+      var father='n';
+      var mother='n';
+      var other=fieldVal(wrap,'other',dt)||'―';
+      if(role==='mother'){
+        mother=self;
+      }else if(role==='father'){
+        father=self;
+      }else if(role==='other'){
+        var companion=fieldVal(wrap,'companion',dt);
+        other=companion||'―';
+      }
+      days[dt]={
+        mode:'on',
+        father:father,
+        mother:mother,
+        siblings:fieldVal(wrap,'siblings',dt)||'なし',
+        other:other,
+        carOk:selectedMark(wrap,'carOk',dt),
+        carModel:fieldVal(wrap,'carModel',dt),
+        seats:fieldVal(wrap,'seats',dt),
+        send:fieldVal(wrap,'send',dt),
+        pickup:fieldVal(wrap,'pickup',dt)
+      };
     });
-    var role=getRespondent();
     return {
       days:days,
       respondentRole:role,
@@ -490,11 +504,15 @@
     if(trackInfo().form!=='family'){
       return keys.some(function(k){return !days[k]||days[k]==='unset';});
     }
+    var role=payload.respondentRole||getRespondent();
     return keys.some(function(k){
       var row=days[k];
       if(!row)return true;
       if(row.mode==='off')return false;
-      return row.father==='unset'||row.mother==='unset'||row.carOk==='unset';
+      if(row.carOk==='unset')return true;
+      if(role==='mother')return row.mother==='unset';
+      if(role==='father')return row.father==='unset';
+      return false;
     });
   }
 
@@ -523,6 +541,8 @@
       return;
     }
     if(!prev.days)return;
+    syncParentMarkSlots();
+    var role=getRespondent()||prev.respondentRole||'';
     (data.days||[]).forEach(function(d){
       var dt=d.activityDate;
       var row=prev.days[dt];
@@ -537,11 +557,21 @@
       }else{
         var onBtn=wrap.querySelector('button.att-mode[data-mode="on"]');
         if(onBtn)onBtn.click();
-        ['father','mother','carOk'].forEach(function(f){
-          if(!row[f]||row[f]==='unset')return;
-          var b=wrap.querySelector('button[data-mark-field="'+f+'"][data-date="'+dt+'"][data-mark="'+row[f]+'"]');
-          if(b)b.click();
-        });
+        var selfMk='unset';
+        if(role==='mother'&&row.mother&&row.mother!=='n')selfMk=row.mother;
+        else if(role==='father'&&row.father&&row.father!=='n')selfMk=row.father;
+        if(selfMk!=='unset'){
+          var sb=wrap.querySelector('button[data-mark-field="selfMark"][data-date="'+dt+'"][data-mark="'+selfMk+'"]');
+          if(sb)sb.click();
+        }
+        if(role==='other'){
+          var comp=wrap.querySelector('[data-f="companion"][data-date="'+dt+'"]');
+          if(comp&&row.other&&row.other!=='―')comp.value=row.other;
+        }
+        if(row.carOk&&row.carOk!=='unset'){
+          var cb=wrap.querySelector('button[data-mark-field="carOk"][data-date="'+dt+'"][data-mark="'+row.carOk+'"]');
+          if(cb)cb.click();
+        }
         ['siblings','other','carModel','seats','send','pickup'].forEach(function(f){
           var el=wrap.querySelector('[data-f="'+f+'"][data-date="'+dt+'"]');
           if(el&&row[f]!=null&&row[f]!=='')el.value=row[f];
@@ -727,7 +757,7 @@
       patch.otherRoleLabel=oel?String(oel.value||'').trim():'';
     }
     savePrefs(patch);
-    applyRespondentDefaults(true);
+    syncParentMarkSlots();
     syncFormLock();
     var name=($('att-pick')&&$('att-pick').value)||'';
     if(name)setStatus(name+' の回答を入力できます');
