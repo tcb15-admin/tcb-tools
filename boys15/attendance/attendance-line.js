@@ -105,17 +105,6 @@
     lines.push(url||'（URL未発行）');
     lines.push('');
     lines.push('回答後、生成される文面をこのグループへ投稿してください。');
-    lines.push('');
-    lines.push('【回答の目安】');
-    if(trackForm==='marks'){
-      lines.push('・父子家庭 → この親父 LINE と MG LINE の両方');
-      lines.push('・母子家庭 → 回答不要（MG LINEのみでOK）');
-      lines.push('・その他（祖父母など） → 必要な場合のみ');
-    }else{
-      lines.push('・母子家庭 → このMG LINEのみ');
-      lines.push('・父子家庭 → このMG LINE と 親父 LINE の両方');
-      lines.push('・共働きなど → ご家庭の分担に合わせて');
-    }
     if(extraNote)lines.push(extraNote);
     return lines.join('\n');
   }

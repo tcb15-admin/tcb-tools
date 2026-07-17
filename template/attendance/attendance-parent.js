@@ -131,49 +131,28 @@
     return '';
   }
 
-  /** 母が親父LINEを開いた場合は回答不要 */
-  function isMotherOnMarksTrack(role){
-    return trackInfo().form==='marks'&&role==='mother';
-  }
-
-  function guideFor(role){
-    var form=trackInfo().form;
-    if(!role){
-      return {text:'回答者（父／母／その他）を選んでください。', kind:'info'};
-    }
-    if(form==='family'){
-      if(role==='mother'){
-        return {text:'母子家庭の方は、このMG LINEのみでOKです。父側は「― なし」になります。', kind:'ok'};
-      }
-      if(role==='father'){
-        return {text:'父子家庭の方は、このMG LINEに加え、親父 LINE にも回答してください。母側は「― なし」になります。', kind:'warn'};
-      }
-      return {text:'ご家庭の分担に合わせて入力してください。いない方は「― なし」を選べます。', kind:'info'};
-    }
-    /* marks = 親父 LINE */
-    if(role==='mother'){
-      return {text:'母子家庭の方は親父 LINE への回答は不要です。MG LINE の案内URLから回答してください。', kind:'err'};
-    }
-    if(role==='father'){
-      return {text:'父子家庭の方は、この親父 LINE に加え、MG LINE（詳細）にも回答してください。', kind:'warn'};
-    }
-    return {text:'必要な場合のみ回答してください。母子家庭はMG LINEのみ、父子家庭は両方です。', kind:'info'};
-  }
-
   function updateGuide(){
     var el=$('att-respondent-guide');
     if(!el)return;
-    var g=guideFor(getRespondent());
-    el.textContent=g.text;
-    el.className='att-respondent-guide att-guide-'+g.kind;
+    var role=getRespondent();
+    if(!role){
+      el.textContent='回答者（父／母／その他）を選んでください。';
+      el.className='att-respondent-guide att-guide-info';
+      return;
+    }
+    if(trackInfo().form==='family'&&(role==='mother'||role==='father')){
+      el.textContent='いない側は「― なし」になります。必要なら変更できます。';
+      el.className='att-respondent-guide att-guide-info';
+      return;
+    }
+    el.textContent='';
+    el.className='att-respondent-guide att-hidden';
   }
 
   function canUnlockForm(){
     var name=($('att-pick')&&$('att-pick').value)||'';
     var role=getRespondent();
-    if(!name||!role)return false;
-    if(isMotherOnMarksTrack(role))return false;
-    return true;
+    return !!(name&&role);
   }
 
   function syncFormLock(){
@@ -182,16 +161,8 @@
     updateGuide();
     var btn=$('att-submit');
     if(btn&&!submitting){
-      if(isMotherOnMarksTrack(getRespondent())){
-        btn.disabled=true;
-        btn.textContent='このフォームでは回答不要';
-      }else if(!canUnlockForm()){
-        btn.disabled=true;
-        btn.textContent='送信する';
-      }else{
-        btn.disabled=false;
-        btn.textContent='送信する';
-      }
+      btn.disabled=!canUnlockForm();
+      btn.textContent='送信する';
     }
   }
 
@@ -236,10 +207,8 @@
 
     var note=(t.form==='family')
       ? '① 選手と回答者を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
-        +'\n※母子家庭はこのMG LINEのみ。父子家庭は親父LINEにも回答してください。'
         +(t.note?'\n'+t.note:'')
       : '① 選手と回答者を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
-        +'\n※父子家庭向けです。母子家庭はMG LINEのみでOK（このフォームは不要）。'
         +(t.note?'\n'+t.note:'');
 
     var daysHtml=(data.days||[]).map(function(d){
@@ -274,7 +243,6 @@
       +'<button type="button" id="att-share" class="att-btn att-btn-ghost" style="flex:1">共有</button>'
       +'</div>'
       +'<p id="att-copy-hint" class="att-act-meta" style="margin-top:8px"></p>'
-      +'<p id="att-post-hint" class="att-act-meta" style="margin-top:8px"></p>'
       +'</div>';
 
     wireDayToggles();
@@ -632,20 +600,6 @@
     await copyText(text);
   }
 
-  function postSubmitHint(role){
-    var el=$('att-post-hint');
-    if(!el)return;
-    if(trackInfo().form==='family'&&role==='father'){
-      el.textContent='続けて、親父 LINE の案内URLからも回答してください（父子家庭）。';
-      el.classList.remove('att-hidden');
-    }else if(trackInfo().form==='marks'&&role==='father'){
-      el.textContent='MG LINE（詳細）側も未回答なら、そちらの案内URLからも回答してください。';
-      el.classList.remove('att-hidden');
-    }else{
-      el.textContent='';
-    }
-  }
-
   async function load(){
     var c=ensureClient();
     if(!c)return;
@@ -670,10 +624,6 @@
     }
     if(!role){
       setStatus('回答者（父／母／その他）を選んでください', true);
-      return;
-    }
-    if(isMotherOnMarksTrack(role)){
-      setStatus('母子家庭の方は親父 LINE への回答は不要です。MG LINE から回答してください。', true);
       return;
     }
     var payload=collectPayload();
@@ -701,7 +651,6 @@
       var out=$('att-line-out');
       if(result)result.classList.remove('att-hidden');
       if(out)out.textContent=text;
-      postSubmitHint(role);
       setStatus('受け付けました。下の投稿文をコピーしてLINEへ貼ってください');
       if(result&&result.scrollIntoView){
         setTimeout(function(){result.scrollIntoView({behavior:'smooth', block:'start'});}, 50);
@@ -723,7 +672,6 @@
     syncFormLock();
     if(!name)setStatus('選手名と回答者を選んで回答を始めてください');
     else if(!getRespondent())setStatus('回答者（父／母／その他）を選んでください');
-    else if(isMotherOnMarksTrack(getRespondent()))setStatus('母子家庭の方はこのフォームへの回答は不要です', true);
     else setStatus(name+' の回答を入力できます');
   }
 
@@ -738,8 +686,7 @@
     applyRespondentDefaults(true);
     syncFormLock();
     var name=($('att-pick')&&$('att-pick').value)||'';
-    if(isMotherOnMarksTrack(role))setStatus('母子家庭の方はこのフォームへの回答は不要です', true);
-    else if(name)setStatus(name+' の回答を入力できます');
+    if(name)setStatus(name+' の回答を入力できます');
     else setStatus('選手名を選んでください');
   }
 
