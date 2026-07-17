@@ -15,9 +15,30 @@
 
   var cfg=window.TCB_ATT_CFG||{};
   var F=window.TCB_AttFormat||{};
+  var TRACKS=cfg.tracks||{
+    a:{label:'A',short:'A',form:'family',role:'',note:''},
+    b:{label:'B',short:'B',form:'marks',role:'',note:''}
+  };
   var LS_OK=(cfg.lsPrefix||'tcb15')+'_att_ok';
   var sync=null;
-  var state={campaigns:[], detail:null, selectedId:''};
+  var state={campaigns:[], detail:null, selectedId:'', unanswered:{a:[],b:[]}};
+
+  var ERR_JA={
+    unauthorized:'認証に失敗しました（トークン設定を確認してください）',
+    cohort_required:'世代キーが未設定です',
+    campaign_not_found:'キャンペーンが見つかりません',
+    days_required:'日付を1つ以上入力してください',
+    days_too_many:'日付が多すぎます（最大14日）',
+    activity_date_invalid:'日付の形式が不正です',
+    kind_invalid:'種別が不正です',
+    member_not_found:'選手がマスタに見つかりません',
+    track_invalid:'トラック指定が不正です',
+    version_conflict:'他の端末で更新されています。再読込してください'
+  };
+  function jaErr(e){
+    var m=(e&&e.message)?e.message:String(e||'');
+    return ERR_JA[m]||m;
+  }
 
   function setStatus(msg, isErr){
     var el=$('att-status');
@@ -93,14 +114,23 @@
     box.innerHTML=state.campaigns.map(function(c){
       var days=(c.days||[]).map(function(d){return d.activityDate;}).join(' / ');
       var active=c.id===state.selectedId?' is-active':'';
+      var ans=c.answered||{};
       return '<div class="att-act-item'+active+'" data-id="'+esc(c.id)+'">'
-        +'<div class="att-act-title">'+esc(c.title||'（無題）')+'</div>'
+        +'<div class="att-act-title">'+esc(c.title||'（無題）')
+        +(c.status==='closed'?' <span class="att-pill">受付終了</span>':'')
+        +'</div>'
         +'<div class="att-act-meta">'+esc(days)+'</div>'
         +'<div class="att-counts">'
-        +'<span class="ok">MG '+(c.motherAnswered||0)+'</span>'
-        +'<span class="maybe">親父 '+(c.fatherAnswered||0)+'</span>'
+        +'<span class="ok">'+esc(TRACKS.a.short)+' '+(ans.a||0)+'</span>'
+        +'<span class="maybe">'+esc(TRACKS.b.short)+' '+(ans.b||0)+'</span>'
         +'</div></div>';
     }).join('');
+  }
+
+  function trackLineText(trackKey, name, days, payload){
+    var t=TRACKS[trackKey]||{};
+    if(t.form==='family')return F.formatFamilyLine(name, days, payload);
+    return F.formatMarksLine(name, days, payload, t.role||'');
   }
 
   function renderDetail(){
@@ -115,45 +145,34 @@
     if(empty)empty.classList.add('att-hidden');
     if(panel)panel.classList.remove('att-hidden');
     var c=d.campaign;
+    var ans=d.answered||{};
     $('att-d-title').textContent=c.title||'出欠';
     $('att-d-meta').textContent=(c.days||[]).map(function(x){return x.activityDate;}).join(' ・ ');
     $('att-d-counts').innerHTML=
-      '<span class="ok">MG回答 '+(d.motherAnswered||0)+'/'+(d.memberTotal||0)+'</span>'+
-      '<span class="maybe">親父回答 '+(d.fatherAnswered||0)+'/'+(d.memberTotal||0)+'</span>';
+      '<span class="ok">'+esc(TRACKS.a.short)+'回答 '+(ans.a||0)+'/'+(d.memberTotal||0)+'</span>'+
+      '<span class="maybe">'+esc(TRACKS.b.short)+'回答 '+(ans.b||0)+'/'+(d.memberTotal||0)+'</span>';
     var closed=c.status==='closed';
     $('att-status-badge').textContent=closed?'状態: 受付終了（保護者は新規回答不可）':'状態: 受付中';
     var toggle=$('att-btn-toggle-status');
     if(toggle)toggle.textContent=closed?'受付を再開する':'受付を終了する';
-    $('att-url-mg').textContent=parentUrl(c.shareIdMg)||'（未発行）';
-    $('att-url-fa').textContent=parentUrl(c.shareIdFather)||'（未発行）';
+    $('att-url-a').textContent=parentUrl(c.shareIdA)||'（未発行）';
+    $('att-url-b').textContent=parentUrl(c.shareIdB)||'（未発行）';
 
-    var unansweredMg=[];
-    var unansweredFa=[];
+    var unA=[], unB=[];
     $('att-roster').innerHTML=(d.roster||[]).map(function(r){
-      var mg=r.mother?'済':'未';
-      var fa=r.father?'済':'未';
-      if(!r.mother)unansweredMg.push(r.name);
-      if(!r.father)unansweredFa.push(r.name);
-      var mgCls=r.mother?'ok':'none';
-      var faCls=r.father?'ok':'none';
-      var mgText='';
-      var faText='';
-      if(r.mother&&F.formatMotherLine){
-        mgText=F.formatMotherLine(r.name, c.days, r.mother.payload);
-      }
-      if(r.father&&F.formatFatherLine){
-        faText=F.formatFatherLine(r.name, c.days, r.father.payload);
-      }
+      if(!r.a)unA.push(r.name);
+      if(!r.b)unB.push(r.name);
+      var aText=r.a?trackLineText('a', r.name, c.days, r.a.payload):'';
+      var bText=r.b?trackLineText('b', r.name, c.days, r.b.payload):'';
       return '<div class="att-member">'
         +'<div class="att-member-name">'+esc(r.name)
-        +' <span class="att-pill '+mgCls+'">MG:'+mg+'</span> '
-        +'<span class="att-pill '+faCls+'">親父:'+fa+'</span></div>'
-        +(mgText?'<details><summary class="att-act-meta">MG投稿文</summary><pre class="att-preview">'+esc(mgText)+'</pre></details>':'')
-        +(faText?'<details><summary class="att-act-meta">親父投稿文</summary><pre class="att-preview">'+esc(faText)+'</pre></details>':'')
+        +' <span class="att-pill '+(r.a?'ok':'none')+'">'+esc(TRACKS.a.short)+':'+(r.a?'済':'未')+'</span> '
+        +'<span class="att-pill '+(r.b?'ok':'none')+'">'+esc(TRACKS.b.short)+':'+(r.b?'済':'未')+'</span></div>'
+        +(aText?'<details><summary class="att-act-meta">'+esc(TRACKS.a.short)+'投稿文</summary><pre class="att-preview">'+esc(aText)+'</pre></details>':'')
+        +(bText?'<details><summary class="att-act-meta">'+esc(TRACKS.b.short)+'投稿文</summary><pre class="att-preview">'+esc(bText)+'</pre></details>':'')
         +'</div>';
     }).join('');
-    state.unansweredMg=unansweredMg;
-    state.unansweredFa=unansweredFa;
+    state.unanswered={a:unA, b:unB};
   }
 
   async function refreshList(){
@@ -203,7 +222,7 @@
     setStatus('URL発行中…');
     await client.publishAttendance({id:state.selectedId, track:'both'});
     await openCampaign(state.selectedId);
-    setStatus('MG／親父の回答URLを発行しました');
+    setStatus('回答URLを発行しました（'+TRACKS.a.short+'／'+TRACKS.b.short+'）');
   }
 
   async function copyText(t){
@@ -257,35 +276,35 @@
     addDayRow();
     $('att-add-day').addEventListener('click', function(){addDayRow();});
     $('att-create-form').addEventListener('submit', function(ev){
-      createCampaign(ev).catch(function(e){setStatus(e.message||String(e), true);});
+      createCampaign(ev).catch(function(e){setStatus(jaErr(e), true);});
     });
     $('att-list').addEventListener('click', function(ev){
       var item=ev.target.closest('.att-act-item');
       if(!item)return;
-      openCampaign(item.getAttribute('data-id')).catch(function(e){setStatus(e.message||String(e), true);});
+      openCampaign(item.getAttribute('data-id')).catch(function(e){setStatus(jaErr(e), true);});
     });
     $('att-btn-publish').addEventListener('click', function(){
-      publish().catch(function(e){setStatus(e.message||String(e), true);});
+      publish().catch(function(e){setStatus(jaErr(e), true);});
     });
-    $('att-btn-copy-mg-inv').addEventListener('click', function(){
+    $('att-btn-copy-a-inv').addEventListener('click', function(){
       if(!state.detail)return;
       var c=state.detail.campaign;
-      copyText(F.formatMgInvite(c, parentUrl(c.shareIdMg)));
+      copyText(F.formatInvite(TRACKS.a.label, c, parentUrl(c.shareIdA), TRACKS.a.note||''));
     });
-    $('att-btn-copy-fa-inv').addEventListener('click', function(){
+    $('att-btn-copy-b-inv').addEventListener('click', function(){
       if(!state.detail)return;
       var c=state.detail.campaign;
-      copyText(F.formatFatherInvite(c, parentUrl(c.shareIdFather)));
+      copyText(F.formatInvite(TRACKS.b.label, c, parentUrl(c.shareIdB), TRACKS.b.note||''));
     });
-    $('att-btn-remind-mg').addEventListener('click', function(){
-      if(!state.detail||!F.formatRemind)return;
+    $('att-btn-remind-a').addEventListener('click', function(){
+      if(!state.detail)return;
       var c=state.detail.campaign;
-      copyText(F.formatRemind('mg', c, parentUrl(c.shareIdMg), state.unansweredMg||[]));
+      copyText(F.formatRemind(TRACKS.a.label, c, parentUrl(c.shareIdA), state.unanswered.a||[]));
     });
-    $('att-btn-remind-fa').addEventListener('click', function(){
-      if(!state.detail||!F.formatRemind)return;
+    $('att-btn-remind-b').addEventListener('click', function(){
+      if(!state.detail)return;
       var c=state.detail.campaign;
-      copyText(F.formatRemind('father', c, parentUrl(c.shareIdFather), state.unansweredFa||[]));
+      copyText(F.formatRemind(TRACKS.b.label, c, parentUrl(c.shareIdB), state.unanswered.b||[]));
     });
     $('att-btn-toggle-status').addEventListener('click', function(){
       var client=ensureSync();
@@ -299,18 +318,18 @@
         .then(function(){
           setStatus(next==='closed'?'受付を終了しました':'受付を再開しました');
         })
-        .catch(function(e){setStatus(e.message||String(e), true);});
+        .catch(function(e){setStatus(jaErr(e), true);});
     });
     $('att-btn-refresh').addEventListener('click', function(){
       var p=state.selectedId?openCampaign(state.selectedId):refreshList();
-      Promise.resolve(p).catch(function(e){setStatus(e.message||String(e), true);});
+      Promise.resolve(p).catch(function(e){setStatus(jaErr(e), true);});
     });
     $('att-pw-btn').addEventListener('click', tryLogin);
     $('att-pw-inp').addEventListener('keydown', function(ev){if(ev.key==='Enter')tryLogin();});
   }
 
   function bootApp(){
-    refreshList().catch(function(e){setStatus(e.message||String(e), true);});
+    refreshList().catch(function(e){setStatus(jaErr(e), true);});
   }
 
   document.addEventListener('DOMContentLoaded', function(){

@@ -1,6 +1,13 @@
 (function(global){
   'use strict';
 
+  /*
+   * LINE 投稿文フォーマッタ（出欠）
+   * トラックは汎用キー a / b。チーム固有の呼称（例: MG LINE／親父 LINE）や
+   * 役職語尾（例: 「父」）は呼び出し側が config（TCB_ATT_CFG.tracks）から渡す。
+   * 文面テンプレート自体の完全な設定化（他チーム展開）は将来課題。
+   */
+
   function markChar(m){
     if(m==='o')return '◯';
     if(m==='x')return '✕';
@@ -29,11 +36,15 @@
     return String(parseInt(m[3],10))+'日（'+wd(dateStr)+'）';
   }
 
-  /** 母（MG LINE）投稿文。現行フォーマットを踏襲 */
-  function formatMotherLine(memberName, days, payload){
+  function shortName(memberName){
+    return String(memberName||'').replace(/^\d+：/, '').trim()||memberName;
+  }
+
+  /** 詳細（family）フォームの投稿文。15期 MG LINE の現行書式を踏襲 */
+  function formatFamilyLine(memberName, days, payload){
     var p=payload&&payload.days?payload.days:{};
     var lines=[];
-    lines.push(String(memberName||'').replace(/^\d+：/, '').trim() || memberName);
+    lines.push(shortName(memberName));
     lines.push('');
     (days||[]).forEach(function(d){
       var dt=d.activityDate;
@@ -62,58 +73,42 @@
     return lines.join('\n');
   }
 
-  /** 親父 LINE 本文。現行フォーマットを踏襲（スケジュール回答は別途案内） */
-  function formatFatherLine(memberName, days, payload){
+  /** 簡易（marks）フォームの投稿文。15期 親父 LINE の現行書式を踏襲 */
+  function formatMarksLine(memberName, days, payload, roleSuffix){
     var p=payload&&payload.days?payload.days:{};
-    var short=String(memberName||'').replace(/^\d+：/, '').trim() || memberName;
     var lines=[];
     lines.push('おはようございます。');
-    lines.push(short+'　父');
+    lines.push(shortName(memberName)+(roleSuffix?'　'+roleSuffix:''));
     (days||[]).forEach(function(d){
       var dt=d.activityDate;
-      var mk=p[dt];
-      lines.push(dayHead(dt)+' '+markChar(mk));
+      lines.push(dayHead(dt)+' '+markChar(p[dt]));
     });
     lines.push('宜しくお願いします。');
     return lines.join('\n');
   }
 
-  function formatMgInvite(campaign, url){
+  /** グループ向け案内文（トラック共通・ラベルと補足は config から） */
+  function formatInvite(trackLabel, campaign, url, extraNote){
     var days=campaign&&campaign.days?campaign.days:[];
     var title=campaign&&campaign.title?campaign.title:'出欠確認';
-    var lines=['【MG LINE：出欠・配車のお願い】', title, ''];
+    var lines=['【'+(trackLabel||'出欠')+'：出欠のお願い】', title, ''];
     if(days.length){
       lines.push('対象日: '+days.map(function(d){return dayHead(d.activityDate);}).join(' / '));
       lines.push('');
     }
     if(campaign&&campaign.memo){lines.push(campaign.memo);lines.push('');}
-    lines.push('▼回答フォーム（お母さま用）');
+    lines.push('▼回答フォーム');
     lines.push(url||'（URL未発行）');
     lines.push('');
-    lines.push('回答後、必要に応じて生成された文面をこのグループへ投稿してください。');
+    lines.push('回答後、生成される文面をこのグループへ投稿してください。');
+    if(extraNote)lines.push(extraNote);
     return lines.join('\n');
   }
 
-  function formatFatherInvite(campaign, url){
-    var days=campaign&&campaign.days?campaign.days:[];
+  /** 催促文（未回答者つき） */
+  function formatRemind(trackLabel, campaign, url, unansweredNames){
     var title=campaign&&campaign.title?campaign.title:'出欠確認';
-    var lines=['【親父 LINE：出欠のお願い】', title, ''];
-    if(days.length){
-      lines.push('対象日: '+days.map(function(d){return dayHead(d.activityDate);}).join(' / '));
-      lines.push('');
-    }
-    lines.push('▼回答フォーム（お父さま用）');
-    lines.push(url||'（URL未発行）');
-    lines.push('');
-    lines.push('※当面は LINEスケジュールへの回答も従来どおりお願いします。');
-    lines.push('フォーム回答後、生成される本文をこのグループへ投稿できます。');
-    return lines.join('\n');
-  }
-
-  function formatRemind(track, campaign, url, unansweredNames){
-    var title=campaign&&campaign.title?campaign.title:'出欠確認';
-    var label=track==='mg'?'MG LINE':'親父 LINE';
-    var lines=['【出欠リマインド／'+label+'】', title, ''];
+    var lines=['【出欠リマインド／'+(trackLabel||'')+'】', title, ''];
     if(url){
       lines.push('▼回答はこちら');
       lines.push(url);
@@ -134,10 +129,9 @@
     markChar:markChar,
     dayHead:dayHead,
     dayHeadShort:dayHeadShort,
-    formatMotherLine:formatMotherLine,
-    formatFatherLine:formatFatherLine,
-    formatMgInvite:formatMgInvite,
-    formatFatherInvite:formatFatherInvite,
+    formatFamilyLine:formatFamilyLine,
+    formatMarksLine:formatMarksLine,
+    formatInvite:formatInvite,
     formatRemind:formatRemind
   };
 })(window);

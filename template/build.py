@@ -144,6 +144,37 @@ def build_portal_and_attendance(target, config, out_dir):
     """ポータルと出欠アプリ（スタッフ／保護者）を世代ディレクトリへ出力。"""
     pages_base = pages_base_url(config)
     cohort = str(config.get('COHORT_KEY', ''))
+
+    # 出欠トラック設定（チーム固有の呼称・フォーム種別は config で上書き可能）
+    att_defaults = {
+        'ATT_TRACK_A_LABEL': 'MG LINE（母）',
+        'ATT_TRACK_B_LABEL': '親父 LINE（父）',
+        'ATT_TRACK_A_SHORT': 'MG',
+        'ATT_TRACK_B_SHORT': '親父',
+        'ATT_TRACK_A_FORM': 'family',
+        'ATT_TRACK_B_FORM': 'marks',
+        'ATT_TRACK_B_ROLE': '父',
+        'ATT_TRACK_A_NOTE': '',
+        'ATT_TRACK_B_NOTE': '※当面は LINEスケジュールへの回答も従来どおりお願いします。',
+    }
+    att = {k: str(config.get(k, v)) for k, v in att_defaults.items()}
+    tracks = {
+        'a': {
+            'label': att['ATT_TRACK_A_LABEL'],
+            'short': att['ATT_TRACK_A_SHORT'],
+            'form': att['ATT_TRACK_A_FORM'],
+            'role': '',
+            'note': att['ATT_TRACK_A_NOTE'],
+        },
+        'b': {
+            'label': att['ATT_TRACK_B_LABEL'],
+            'short': att['ATT_TRACK_B_SHORT'],
+            'form': att['ATT_TRACK_B_FORM'],
+            'role': att['ATT_TRACK_B_ROLE'],
+            'note': att['ATT_TRACK_B_NOTE'],
+        },
+    }
+
     mapping = {
         'COHORT_KEY': cohort,
         'COHORT_LABEL': str(config.get('COHORT_LABEL', '')),
@@ -161,7 +192,9 @@ def build_portal_and_attendance(target, config, out_dir):
         'INITIAL_PW_JSON': json.dumps(str(config.get('INITIAL_PW', '')), ensure_ascii=False),
         'LS_PREFIX_JSON': json.dumps(str(config.get('LS_PREFIX', '')), ensure_ascii=False),
         'PAGES_BASE_URL_JSON': json.dumps(pages_base, ensure_ascii=False),
+        'ATT_TRACKS_JSON': json.dumps(tracks, ensure_ascii=False),
     }
+    mapping.update(att)
 
     portal_dir = os.path.join(out_dir, 'portal')
     att_dir = os.path.join(out_dir, 'attendance')

@@ -131,15 +131,10 @@
         payload.cohort=cohort;
         return req('/api/attendance/campaign-status','POST',payload);
       },
-      setMotherResponse:function(payload){
+      setTrackResponse:function(payload){
         payload=payload||{};
         payload.cohort=cohort;
-        return req('/api/attendance/mother-response','POST',payload);
-      },
-      setFatherResponse:function(payload){
-        payload=payload||{};
-        payload.cohort=cohort;
-        return req('/api/attendance/father-response','POST',payload);
+        return req('/api/attendance/response','POST',payload);
       },
       listCrossRoleEvents:function(since){
         var q='/api/attendance/cross-events?cohort='+encodeURIComponent(cohort);

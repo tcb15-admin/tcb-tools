@@ -112,13 +112,9 @@ export default {
         const body = await request.json();
         return json(await setCampaignStatus(env, body));
       }
-      if (url.pathname === "/api/attendance/mother-response" && request.method === "POST") {
+      if (url.pathname === "/api/attendance/response" && request.method === "POST") {
         const body = await request.json();
-        return json(await setMotherResponseAdmin(env, body));
-      }
-      if (url.pathname === "/api/attendance/father-response" && request.method === "POST") {
-        const body = await request.json();
-        return json(await setFatherResponseAdmin(env, body));
+        return json(await setTrackResponseAdmin(env, body));
       }
       if (url.pathname === "/api/attendance/cross-events" && request.method === "GET") {
         const cohort = (url.searchParams.get("cohort") || "").trim();
@@ -699,10 +695,15 @@ async function notifySwapReportPush(env, cohortRaw, report) {
   return { sent };
 }
 
-// ===== 出欠（MG LINE / 親父 LINE・複数日キャンペーン） =====
+// ===== 出欠（複数日キャンペーン・2トラック汎用） =====
+// トラックは汎用キー a / b。チーム固有の呼称（15期: a=MG LINE・b=親父 LINE）や
+// 表示文言はフロントの config で注入し、サーバー／DB には持ち込まない。
 
 const MARKS = new Set(["o", "x", "t", "unset"]); // ○ ✕ △ 未
 const ATT_KINDS = new Set(["practice", "game", "other"]);
+const ATT_TRACKS = new Set(["a", "b"]);
+// トラックごとの入力形式。将来チーム設定（cohort 単位）に外出しする想定
+const TRACK_FORMS = { a: "family", b: "marks" };
 
 function genId() {
   return genShareId();
@@ -753,15 +754,14 @@ function normMark(v) {
   const s = String(v || "unset").trim().toLowerCase();
   if (s === "◯" || s === "○" || s === "o" || s === "yes" || s === "in") return "o";
   if (s === "✕" || s === "×" || s === "x" || s === "no" || s === "out") return "x";
-  if (s === "△" || s === "t" || s === "maybe" || s === "三角") return "t";
+  if (s === "△" || s === "t" || s === "maybe") return "t";
   return "unset";
 }
 
-function markChar(m) {
-  if (m === "o") return "◯";
-  if (m === "x") return "✕";
-  if (m === "t") return "△";
-  return "―";
+function mustTrack(v) {
+  const t = String(v || "").trim().toLowerCase();
+  if (!ATT_TRACKS.has(t)) throw new Error("track_invalid");
+  return t;
 }
 
 function mapCampaign(row) {
@@ -772,8 +772,8 @@ function mapCampaign(row) {
     title: String(row.title || ""),
     memo: String(row.memo || ""),
     status: String(row.status || "open"),
-    shareIdMg: row.share_id_mg ? String(row.share_id_mg) : "",
-    shareIdFather: row.share_id_father ? String(row.share_id_father) : "",
+    shareIdA: row.share_id_a ? String(row.share_id_a) : "",
+    shareIdB: row.share_id_b ? String(row.share_id_b) : "",
     responsesUpdatedAt: row.responses_updated_at ? String(row.responses_updated_at) : "",
     createdAt: String(row.created_at || ""),
     updatedAt: String(row.updated_at || ""),
@@ -792,7 +792,7 @@ function mapDay(row) {
   };
 }
 
-function sanitizeMotherDay(raw, dateKey) {
+function sanitizeFamilyDay(raw) {
   const d = raw && typeof raw === "object" ? raw : {};
   const mode = String(d.mode || "on") === "off" ? "off" : "on";
   if (mode === "off") {
@@ -818,26 +818,14 @@ function sanitizeMotherDay(raw, dateKey) {
   };
 }
 
-function sanitizeMotherPayload(payload, dayDates) {
+function sanitizeTrackPayload(track, payload, dayDates) {
+  const form = TRACK_FORMS[track] || "marks";
   const src = payload && typeof payload === "object" ? payload : {};
   const daysIn = src.days && typeof src.days === "object" ? src.days : {};
   const days = {};
   for (const dt of dayDates) {
-    if (Object.prototype.hasOwnProperty.call(daysIn, dt)) {
-      days[dt] = sanitizeMotherDay(daysIn[dt], dt);
-    }
-  }
-  return { days: days };
-}
-
-function sanitizeFatherPayload(payload, dayDates) {
-  const src = payload && typeof payload === "object" ? payload : {};
-  const daysIn = src.days && typeof src.days === "object" ? src.days : {};
-  const days = {};
-  for (const dt of dayDates) {
-    if (Object.prototype.hasOwnProperty.call(daysIn, dt)) {
-      days[dt] = normMark(daysIn[dt]);
-    }
+    if (!Object.prototype.hasOwnProperty.call(daysIn, dt)) continue;
+    days[dt] = form === "family" ? sanitizeFamilyDay(daysIn[dt]) : normMark(daysIn[dt]);
   }
   return { days: days };
 }
@@ -872,6 +860,20 @@ async function bumpCampaignAndEvent(env, campaign, summary, eventType) {
   return now;
 }
 
+async function countTrackResponses(env, campaignId) {
+  const rs = await env.DB.prepare(
+    "SELECT track, COUNT(*) AS n FROM attendance_track_responses WHERE campaign_id = ? GROUP BY track"
+  )
+    .bind(campaignId)
+    .all();
+  const counts = { a: 0, b: 0 };
+  for (const r of rs.results || []) {
+    const t = String(r.track || "");
+    if (t === "a" || t === "b") counts[t] = Number(r.n) || 0;
+  }
+  return counts;
+}
+
 async function listCampaigns(env, cohortRaw) {
   const cohort = mustCohort(cohortRaw);
   const rs = await env.DB.prepare(
@@ -882,20 +884,8 @@ async function listCampaigns(env, cohortRaw) {
   const campaigns = [];
   for (const row of rs.results || []) {
     const c = mapCampaign(row);
-    const days = await loadCampaignDays(env, c.id);
-    c.days = days;
-    const mgN = await env.DB.prepare(
-      "SELECT COUNT(*) AS n FROM attendance_mother_responses WHERE campaign_id = ?"
-    )
-      .bind(c.id)
-      .first();
-    const faN = await env.DB.prepare(
-      "SELECT COUNT(*) AS n FROM attendance_father_responses WHERE campaign_id = ?"
-    )
-      .bind(c.id)
-      .first();
-    c.motherAnswered = Number(mgN && mgN.n) || 0;
-    c.fatherAnswered = Number(faN && faN.n) || 0;
+    c.days = await loadCampaignDays(env, c.id);
+    c.answered = await countTrackResponses(env, c.id);
     campaigns.push(c);
   }
   return { campaigns: campaigns };
@@ -941,7 +931,7 @@ async function upsertCampaign(env, body) {
   } else {
     id = genId();
     await env.DB.prepare(
-      "INSERT INTO attendance_campaigns (id, cohort, title, memo, status, share_id_mg, share_id_father, responses_updated_at, created_at, updated_at) " +
+      "INSERT INTO attendance_campaigns (id, cohort, title, memo, status, share_id_a, share_id_b, responses_updated_at, created_at, updated_at) " +
         "VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?)"
     )
       .bind(id, cohort, title, memo, status, now, now)
@@ -968,31 +958,20 @@ async function getCampaignDetail(env, cohortRaw, idRaw) {
     .first();
   if (!row) throw new Error("campaign_not_found");
   const campaign = mapCampaign(row);
-  const days = await loadCampaignDays(env, id);
-  campaign.days = days;
+  campaign.days = await loadCampaignDays(env, id);
   const members = (await loadMasterMembers(env, cohort)).filter((m) => !m.excluded);
 
-  const mgRs = await env.DB.prepare(
-    "SELECT member_name, payload_json, updated_at FROM attendance_mother_responses WHERE campaign_id = ?"
-  )
-    .bind(id)
-    .all();
-  const faRs = await env.DB.prepare(
-    "SELECT member_name, payload_json, updated_at FROM attendance_father_responses WHERE campaign_id = ?"
+  const rs = await env.DB.prepare(
+    "SELECT track, member_name, payload_json, updated_at FROM attendance_track_responses WHERE campaign_id = ?"
   )
     .bind(id)
     .all();
 
-  const mgMap = {};
-  for (const r of mgRs.results || []) {
-    mgMap[String(r.member_name)] = {
-      payload: parseJsonObj(r.payload_json),
-      updatedAt: String(r.updated_at || ""),
-    };
-  }
-  const faMap = {};
-  for (const r of faRs.results || []) {
-    faMap[String(r.member_name)] = {
+  const byTrack = { a: {}, b: {} };
+  for (const r of rs.results || []) {
+    const t = String(r.track || "");
+    if (t !== "a" && t !== "b") continue;
+    byTrack[t][String(r.member_name)] = {
       payload: parseJsonObj(r.payload_json),
       updatedAt: String(r.updated_at || ""),
     };
@@ -1000,16 +979,18 @@ async function getCampaignDetail(env, cohortRaw, idRaw) {
 
   const roster = members.map((m) => ({
     name: m.name,
-    mother: mgMap[m.name] || null,
-    father: faMap[m.name] || null,
+    a: byTrack.a[m.name] || null,
+    b: byTrack.b[m.name] || null,
   }));
 
   return {
     campaign: campaign,
     roster: roster,
     memberTotal: members.length,
-    motherAnswered: roster.filter((r) => !!r.mother).length,
-    fatherAnswered: roster.filter((r) => !!r.father).length,
+    answered: {
+      a: roster.filter((r) => !!r.a).length,
+      b: roster.filter((r) => !!r.b).length,
+    },
   };
 }
 
@@ -1022,24 +1003,24 @@ async function publishCampaignShares(env, body) {
     .first();
   if (!row) throw new Error("campaign_not_found");
   const now = new Date().toISOString();
-  const track = String(body.track || "both"); // mg | father | both
-  let shareMg = row.share_id_mg ? String(row.share_id_mg) : "";
-  let shareFa = row.share_id_father ? String(row.share_id_father) : "";
-  if (track === "mg" || track === "both") {
-    if (!shareMg || body.rotate) shareMg = genShareId();
+  const track = String(body.track || "both"); // a | b | both
+  let shareA = row.share_id_a ? String(row.share_id_a) : "";
+  let shareB = row.share_id_b ? String(row.share_id_b) : "";
+  if (track === "a" || track === "both") {
+    if (!shareA || body.rotate) shareA = genShareId();
   }
-  if (track === "father" || track === "both") {
-    if (!shareFa || body.rotate) shareFa = genShareId();
+  if (track === "b" || track === "both") {
+    if (!shareB || body.rotate) shareB = genShareId();
   }
   await env.DB.prepare(
-    "UPDATE attendance_campaigns SET share_id_mg = ?, share_id_father = ?, updated_at = ? WHERE id = ? AND cohort = ?"
+    "UPDATE attendance_campaigns SET share_id_a = ?, share_id_b = ?, updated_at = ? WHERE id = ? AND cohort = ?"
   )
-    .bind(shareMg || null, shareFa || null, now, id, cohort)
+    .bind(shareA || null, shareB || null, now, id, cohort)
     .run();
   return {
     ok: true,
-    shareIdMg: shareMg,
-    shareIdFather: shareFa,
+    shareIdA: shareA,
+    shareIdB: shareB,
     updatedAt: now,
     campaignId: id,
   };
@@ -1064,74 +1045,48 @@ async function setCampaignStatus(env, body) {
 async function findCampaignByShare(env, sid) {
   const sidN = String(sid || "").trim();
   if (!sidN || !/^[0-9a-f]{16,64}$/.test(sidN)) throw new Error("invalid_share_id");
-  let row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE share_id_mg = ?").bind(sidN).first();
-  if (row) return { row: row, track: "mg" };
-  row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE share_id_father = ?").bind(sidN).first();
-  if (row) return { row: row, track: "father" };
+  let row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE share_id_a = ?").bind(sidN).first();
+  if (row) return { row: row, track: "a" };
+  row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE share_id_b = ?").bind(sidN).first();
+  if (row) return { row: row, track: "b" };
   throw new Error("not_found");
 }
 
-async function saveMotherResponse(env, campaignRow, memberName, payload, source) {
+async function saveTrackResponse(env, campaignRow, track, memberName, payload) {
   const campaign = mapCampaign(campaignRow);
   const days = await loadCampaignDays(env, campaign.id);
   const dayDates = days.map((d) => d.activityDate);
   const members = await loadMasterMembers(env, campaign.cohort);
   const hit = members.find((m) => m.name === memberName && !m.excluded);
   if (!hit) throw new Error("member_not_found");
-  const clean = sanitizeMotherPayload(payload, dayDates);
+  const clean = sanitizeTrackPayload(track, payload, dayDates);
   const now = new Date().toISOString();
   await env.DB.prepare(
-    "INSERT INTO attendance_mother_responses (id, campaign_id, cohort, member_name, payload_json, updated_at) VALUES (?, ?, ?, ?, ?, ?) " +
-      "ON CONFLICT(campaign_id, member_name) DO UPDATE SET payload_json = excluded.payload_json, updated_at = excluded.updated_at"
+    "INSERT INTO attendance_track_responses (id, campaign_id, cohort, track, member_name, payload_json, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) " +
+      "ON CONFLICT(campaign_id, track, member_name) DO UPDATE SET payload_json = excluded.payload_json, updated_at = excluded.updated_at"
   )
-    .bind(genId(), campaign.id, campaign.cohort, memberName, JSON.stringify(clean), now)
+    .bind(genId(), campaign.id, campaign.cohort, track, memberName, JSON.stringify(clean), now)
     .run();
-  await bumpCampaignAndEvent(env, campaign, `MG回答更新: ${memberName}`, "attendance_mg_changed");
+  await bumpCampaignAndEvent(
+    env,
+    campaign,
+    `出欠回答更新[${track}]: ${memberName}`,
+    "attendance_changed"
+  );
   return clean;
 }
 
-async function saveFatherResponse(env, campaignRow, memberName, payload, source) {
-  const campaign = mapCampaign(campaignRow);
-  const days = await loadCampaignDays(env, campaign.id);
-  const dayDates = days.map((d) => d.activityDate);
-  const members = await loadMasterMembers(env, campaign.cohort);
-  const hit = members.find((m) => m.name === memberName && !m.excluded);
-  if (!hit) throw new Error("member_not_found");
-  const clean = sanitizeFatherPayload(payload, dayDates);
-  const now = new Date().toISOString();
-  await env.DB.prepare(
-    "INSERT INTO attendance_father_responses (id, campaign_id, cohort, member_name, payload_json, updated_at) VALUES (?, ?, ?, ?, ?, ?) " +
-      "ON CONFLICT(campaign_id, member_name) DO UPDATE SET payload_json = excluded.payload_json, updated_at = excluded.updated_at"
-  )
-    .bind(genId(), campaign.id, campaign.cohort, memberName, JSON.stringify(clean), now)
-    .run();
-  await bumpCampaignAndEvent(env, campaign, `親父回答更新: ${memberName}`, "attendance_father_changed");
-  return clean;
-}
-
-async function setMotherResponseAdmin(env, body) {
+async function setTrackResponseAdmin(env, body) {
   const cohort = mustCohort(body.cohort);
   const id = String(body.campaignId || body.id || "").trim();
   const memberName = String(body.memberName || "").trim();
+  const track = mustTrack(body.track);
   if (!id || !memberName) throw new Error("campaign_or_member_required");
   const row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE id = ? AND cohort = ?")
     .bind(id, cohort)
     .first();
   if (!row) throw new Error("campaign_not_found");
-  await saveMotherResponse(env, row, memberName, body.payload || {}, "admin");
-  return getCampaignDetail(env, cohort, id);
-}
-
-async function setFatherResponseAdmin(env, body) {
-  const cohort = mustCohort(body.cohort);
-  const id = String(body.campaignId || body.id || "").trim();
-  const memberName = String(body.memberName || "").trim();
-  if (!id || !memberName) throw new Error("campaign_or_member_required");
-  const row = await env.DB.prepare("SELECT * FROM attendance_campaigns WHERE id = ? AND cohort = ?")
-    .bind(id, cohort)
-    .first();
-  if (!row) throw new Error("campaign_not_found");
-  await saveFatherResponse(env, row, memberName, body.payload || {}, "admin");
+  await saveTrackResponse(env, row, track, memberName, body.payload || {});
   return getCampaignDetail(env, cohort, id);
 }
 
@@ -1146,22 +1101,13 @@ async function getPublicAttendance(env, sidRaw) {
     .filter((m) => !m.excluded)
     .map((m) => m.name);
 
-  let responded = {};
-  if (found.track === "mg") {
-    const rs = await env.DB.prepare(
-      "SELECT member_name, payload_json FROM attendance_mother_responses WHERE campaign_id = ?"
-    )
-      .bind(campaign.id)
-      .all();
-    for (const r of rs.results || []) responded[String(r.member_name)] = parseJsonObj(r.payload_json);
-  } else {
-    const rs = await env.DB.prepare(
-      "SELECT member_name, payload_json FROM attendance_father_responses WHERE campaign_id = ?"
-    )
-      .bind(campaign.id)
-      .all();
-    for (const r of rs.results || []) responded[String(r.member_name)] = parseJsonObj(r.payload_json);
-  }
+  const rs = await env.DB.prepare(
+    "SELECT member_name, payload_json FROM attendance_track_responses WHERE campaign_id = ? AND track = ?"
+  )
+    .bind(campaign.id, found.track)
+    .all();
+  const responded = {};
+  for (const r of rs.results || []) responded[String(r.member_name)] = parseJsonObj(r.payload_json);
 
   return {
     ok: true,
@@ -1186,23 +1132,18 @@ async function setAttendanceResponsePublic(env, body) {
   const found = await findCampaignByShare(env, sid);
   if (String(found.row.status || "") === "closed") throw new Error("campaign_closed");
 
-  // 連打抑制
-  const table = found.track === "mg" ? "attendance_mother_responses" : "attendance_father_responses";
+  // 連打抑制（同一キャンペーン・トラック・選手で8秒以内は拒否）
   const recent = await env.DB.prepare(
-    `SELECT updated_at FROM ${table} WHERE campaign_id = ? AND member_name = ?`
+    "SELECT updated_at FROM attendance_track_responses WHERE campaign_id = ? AND track = ? AND member_name = ?"
   )
-    .bind(found.row.id, memberName)
+    .bind(found.row.id, found.track, memberName)
     .first();
   if (recent && recent.updated_at) {
     const t = Date.parse(String(recent.updated_at));
     if (!Number.isNaN(t) && Date.now() - t < 8000) throw new Error("too_fast");
   }
 
-  if (found.track === "mg") {
-    await saveMotherResponse(env, found.row, memberName, body.payload || {}, "public");
-  } else {
-    await saveFatherResponse(env, found.row, memberName, body.payload || {}, "public");
-  }
+  await saveTrackResponse(env, found.row, found.track, memberName, body.payload || {});
   return getPublicAttendance(env, sid);
 }
 

@@ -13,11 +13,33 @@
 
   var cfg=window.TCB_ATT_CFG||{};
   var F=window.TCB_AttFormat||{};
+  var TRACKS=cfg.tracks||{
+    a:{label:'A',short:'A',form:'family',role:'',note:''},
+    b:{label:'B',short:'B',form:'marks',role:'',note:''}
+  };
   var sid=qs('sid');
   var client=null;
   var data=null;
   var submitting=false;
   var LS_PREF='tcb_att_pref_'+(cfg.cohort||'15');
+
+  var ERR_JA={
+    invalid_share_id:'URLが正しくありません。案内のリンクを開き直してください',
+    not_found:'この回答ページは見つかりません。最新の案内URLをご確認ください',
+    campaign_closed:'受付が終了しています',
+    member_required:'先に選手名を選んでください',
+    member_not_found:'選手が名簿に見つかりません。管理担当へご連絡ください',
+    too_fast:'連続送信のため、少し待ってから再度お試しください'
+  };
+  function jaErr(e){
+    var m=(e&&e.message)?e.message:String(e||'');
+    return ERR_JA[m]||m;
+  }
+
+  function trackInfo(){
+    var t=(data&&data.track)||'a';
+    return TRACKS[t]||TRACKS.a;
+  }
 
   function setStatus(msg, isErr){
     var el=$('att-status');
@@ -67,9 +89,9 @@
       $('att-main').innerHTML='<div class="att-card"><p>出欠情報を表示できません。</p></div>';
       return;
     }
-    var track=data.track;
+    var t=trackInfo();
     var title=data.campaign.title||'出欠確認';
-    $('att-hdr-title').innerHTML=(track==='mg'?'MG（母）回答':'親父回答')+'<span>'+esc(cfg.teamName||'')+'</span>';
+    $('att-hdr-title').innerHTML=esc(t.label||'出欠')+' 回答<span>'+esc(cfg.teamName||'')+'</span>';
 
     if(data.closed==1||data.closed==='1'){
       $('att-main').innerHTML='<div class="att-card"><h2>'+esc(title)+'</h2><p>受付終了しています。</p></div>';
@@ -83,19 +105,19 @@
       return '<option value="'+esc(n)+'"'+sel+'>'+esc(n)+done+'</option>';
     }).join('');
 
-    var note=track==='mg'
-      ? '① 選手を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてMG LINEへ。車種などは前回の入力を覚えます。'
-      : '① 選手を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーして親父LINEへ。※当面はLINEスケジュールも従来どおりお願いします。';
+    var note=(t.form==='family')
+      ? '① 選手を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。車種などは前回の入力を覚えます。'
+      : '① 選手を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'+(t.note?'\n'+t.note:'');
 
     var daysHtml=(data.days||[]).map(function(d){
-      return track==='mg'?renderMgDay(d):renderFaDay(d);
+      return t.form==='family'?renderFamilyDay(d):renderMarksDay(d);
     }).join('');
 
     $('att-main').innerHTML=
       '<div class="att-card"><h2>'+esc(title)+'</h2>'
       +(data.campaign.memo?'<p class="att-act-meta">'+esc(data.campaign.memo)+'</p>':'')
       +'</div>'
-      +'<div class="att-parent-note">'+note+'</div>'
+      +'<div class="att-parent-note">'+esc(note).replace(/\n/g,'<br>')+'</div>'
       +'<div class="att-card">'
       +'<div class="att-step"><span class="att-step-num">1</span><label for="att-pick">選手名を選ぶ</label></div>'
       +'<select id="att-pick" class="att-pick" aria-label="選手名"><option value="">選択してください</option>'+opts+'</select>'
@@ -155,7 +177,7 @@
     if(hint)hint.classList.add('att-hidden');
   }
 
-  function renderMgDay(d){
+  function renderFamilyDay(d){
     var dt=d.activityDate;
     return '<div class="att-member" data-day="'+esc(dt)+'">'
       +'<div class="att-member-name">'+(F.dayHead?F.dayHead(dt):esc(dt))+'</div>'
@@ -179,11 +201,11 @@
       +'</div></div>';
   }
 
-  function renderFaDay(d){
+  function renderMarksDay(d){
     var dt=d.activityDate;
     return '<div class="att-member" data-day="'+esc(dt)+'">'
       +'<div class="att-member-name">'+(F.dayHead?F.dayHead(dt):esc(dt))+'</div>'
-      +'<div class="att-seg">'+markBtns('fatherDay','unset',dt)+'</div>'
+      +'<div class="att-seg">'+markBtns('dayMark','unset',dt)+'</div>'
       +'</div>';
   }
 
@@ -240,7 +262,7 @@
     return el?String(el.value||'').trim():'';
   }
 
-  function collectMgPayload(){
+  function collectFamilyPayload(){
     var days={};
     (data.days||[]).forEach(function(d){
       var dt=d.activityDate;
@@ -268,22 +290,26 @@
     return {days:days};
   }
 
-  function collectFaPayload(){
+  function collectMarksPayload(){
     var days={};
     (data.days||[]).forEach(function(d){
       var dt=d.activityDate;
       var wrap=document.querySelector('.att-member[data-day="'+dt+'"]');
       if(!wrap)return;
-      days[dt]=selectedMark(wrap,'fatherDay',dt);
+      days[dt]=selectedMark(wrap,'dayMark',dt);
     });
     return {days:days};
+  }
+
+  function collectPayload(){
+    return trackInfo().form==='family'?collectFamilyPayload():collectMarksPayload();
   }
 
   function hasUnsetAnswers(payload){
     var days=payload&&payload.days?payload.days:{};
     var keys=Object.keys(days);
     if(!keys.length)return true;
-    if(data.track==='father'){
+    if(trackInfo().form!=='family'){
       return keys.some(function(k){return !days[k]||days[k]==='unset';});
     }
     return keys.some(function(k){
@@ -297,12 +323,12 @@
   function fillExisting(name){
     var prev=data.responses&&data.responses[name];
     if(!prev||!prev.days)return;
-    if(data.track==='father'){
+    if(trackInfo().form!=='family'){
       (data.days||[]).forEach(function(d){
         var dt=d.activityDate;
         var mk=prev.days[dt];
         if(!mk||mk==='unset')return;
-        var btn=document.querySelector('button[data-mark-field="fatherDay"][data-date="'+dt+'"][data-mark="'+mk+'"]');
+        var btn=document.querySelector('button[data-mark-field="dayMark"][data-date="'+dt+'"][data-mark="'+mk+'"]');
         if(btn)btn.click();
       });
       return;
@@ -334,9 +360,9 @@
     });
   }
 
-  /** サーバー未回答の日に、端末に覚えた車情報を埋める */
+  /** サーバー未回答の日に、端末に覚えた車情報を埋める（family フォームのみ） */
   function applyPrefsToForm(){
-    if(data.track!=='mg')return;
+    if(trackInfo().form!=='family')return;
     var prefs=loadPrefs();
     (data.days||[]).forEach(function(d){
       var dt=d.activityDate;
@@ -344,16 +370,16 @@
       if(!wrap)return;
       var onBlock=wrap.querySelector('.att-on-block');
       if(!onBlock||onBlock.classList.contains('att-hidden'))return;
-      [['carModel','carModel'],['seats','seats'],['send','send'],['pickup','pickup']].forEach(function(pair){
-        var el=wrap.querySelector('[data-f="'+pair[0]+'"][data-date="'+dt+'"]');
-        if(el&&!el.value&&prefs[pair[1]])el.value=prefs[pair[1]];
+      ['carModel','seats','send','pickup'].forEach(function(f){
+        var el=wrap.querySelector('[data-f="'+f+'"][data-date="'+dt+'"]');
+        if(el&&!el.value&&prefs[f])el.value=prefs[f];
       });
     });
   }
 
   function persistPrefsFromPayload(name, payload){
     var patch={memberName:name};
-    if(data.track==='mg'&&payload&&payload.days){
+    if(trackInfo().form==='family'&&payload&&payload.days){
       Object.keys(payload.days).forEach(function(dt){
         var row=payload.days[dt];
         if(!row||row.mode==='off')return;
@@ -442,7 +468,7 @@
       if(pick)pick.focus();
       return;
     }
-    var payload=data.track==='mg'?collectMgPayload():collectFaPayload();
+    var payload=collectPayload();
     if(hasUnsetAnswers(payload)){
       var ok=window.confirm('まだ選んでいない項目（◯△✕など）があります。このまま送信しますか？');
       if(!ok)return;
@@ -457,9 +483,10 @@
       unlockForm();
       fillExisting(name);
       applyPrefsToForm();
-      var text=data.track==='mg'
-        ? F.formatMotherLine(name, data.days, payload)
-        : F.formatFatherLine(name, data.days, payload);
+      var t=trackInfo();
+      var text=t.form==='family'
+        ? F.formatFamilyLine(name, data.days, payload)
+        : F.formatMarksLine(name, data.days, payload, t.role||'');
       var result=$('att-result');
       var out=$('att-line-out');
       if(result)result.classList.remove('att-hidden');
@@ -497,10 +524,7 @@
       if(!t)return;
       if(t.id==='att-submit'||(t.closest&&t.closest('#att-submit'))){
         submit().catch(function(e){
-          var msg=e.message||String(e);
-          if(msg==='too_fast')msg='連続送信のため少し待ってください';
-          if(msg==='campaign_closed')msg='受付が終了しています';
-          setStatus(msg, true);
+          setStatus(jaErr(e), true);
           setBusy(false);
         });
       }
@@ -513,6 +537,6 @@
         shareText(text2);
       }
     });
-    load().catch(function(e){setStatus(e.message||String(e), true);});
+    load().catch(function(e){setStatus(jaErr(e), true);});
   });
 })();

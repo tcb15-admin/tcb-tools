@@ -63,15 +63,16 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 
 CREATE INDEX IF NOT EXISTS idx_push_cohort ON push_subscriptions(cohort);
 
--- 出欠 Phase1（MG / 親父・複数日）
+-- 出欠 Phase1（複数日キャンペーン・2トラック汎用設計）
+-- 出欠キャンペーン（例: 7/18・19・20 の出欠確認）
 CREATE TABLE IF NOT EXISTS attendance_campaigns (
   id TEXT PRIMARY KEY,
   cohort TEXT NOT NULL,
   title TEXT NOT NULL DEFAULT '',
   memo TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'open',
-  share_id_mg TEXT,
-  share_id_father TEXT,
+  share_id_a TEXT,
+  share_id_b TEXT,
   responses_updated_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -80,12 +81,13 @@ CREATE TABLE IF NOT EXISTS attendance_campaigns (
 CREATE INDEX IF NOT EXISTS idx_att_camp_cohort
   ON attendance_campaigns(cohort, created_at DESC);
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_att_camp_share_mg
-  ON attendance_campaigns(share_id_mg);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_att_camp_share_a
+  ON attendance_campaigns(share_id_a);
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_att_camp_share_father
-  ON attendance_campaigns(share_id_father);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_att_camp_share_b
+  ON attendance_campaigns(share_id_b);
 
+-- キャンペーン内の日付（複数日）
 CREATE TABLE IF NOT EXISTS attendance_days (
   id TEXT PRIMARY KEY,
   campaign_id TEXT NOT NULL,
@@ -102,32 +104,28 @@ CREATE TABLE IF NOT EXISTS attendance_days (
 CREATE INDEX IF NOT EXISTS idx_att_days_camp
   ON attendance_days(campaign_id, sort_order, activity_date);
 
-CREATE TABLE IF NOT EXISTS attendance_mother_responses (
+-- トラック別回答（track = 'a' | 'b'）
+-- form=family（a・15期はMG）payload 例:
+--   {"days":{"2026-07-18":{"mode":"off","note":"学校行事"},
+--            "2026-07-19":{"mode":"on","father":"o","mother":"o","siblings":"なし","other":"—",
+--                          "carOk":"o","carModel":"RAV4","seats":2,"send":"父（RAV4）","pickup":"父（RAV4）"}}}
+-- form=marks（b・15期は親父）payload 例:
+--   {"days":{"2026-07-18":"o","2026-07-19":"t","2026-07-20":"x"}}
+CREATE TABLE IF NOT EXISTS attendance_track_responses (
   id TEXT PRIMARY KEY,
   campaign_id TEXT NOT NULL,
   cohort TEXT NOT NULL,
+  track TEXT NOT NULL,
   member_name TEXT NOT NULL,
   payload_json TEXT NOT NULL DEFAULT '{}',
   updated_at TEXT NOT NULL,
-  UNIQUE(campaign_id, member_name)
+  UNIQUE(campaign_id, track, member_name)
 );
 
-CREATE INDEX IF NOT EXISTS idx_att_mg_camp
-  ON attendance_mother_responses(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_att_track_camp
+  ON attendance_track_responses(campaign_id, track);
 
-CREATE TABLE IF NOT EXISTS attendance_father_responses (
-  id TEXT PRIMARY KEY,
-  campaign_id TEXT NOT NULL,
-  cohort TEXT NOT NULL,
-  member_name TEXT NOT NULL,
-  payload_json TEXT NOT NULL DEFAULT '{}',
-  updated_at TEXT NOT NULL,
-  UNIQUE(campaign_id, member_name)
-);
-
-CREATE INDEX IF NOT EXISTS idx_att_fa_camp
-  ON attendance_father_responses(campaign_id);
-
+-- 相互影響イベント（他役割向け）
 CREATE TABLE IF NOT EXISTS cross_role_events (
   id TEXT PRIMARY KEY,
   cohort TEXT NOT NULL,
