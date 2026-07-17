@@ -23,11 +23,20 @@
   var submitting=false;
   var LS_PREF='tcb_att_pref_'+(cfg.cohort||'15');
 
-  var RESPONDENTS=[
-    {id:'mother', label:'母'},
-    {id:'father', label:'父'},
-    {id:'other', label:'その他'}
-  ];
+  /** 親父LINE（marks）に母は回答しない想定のため母を出さない */
+  function respondentsForForm(form){
+    if(form==='marks'){
+      return [
+        {id:'father', label:'父'},
+        {id:'other', label:'その他'}
+      ];
+    }
+    return [
+      {id:'mother', label:'母'},
+      {id:'father', label:'父'},
+      {id:'other', label:'その他'}
+    ];
+  }
 
   var ERR_JA={
     invalid_share_id:'URLが正しくありません。案内のリンクを開き直してください',
@@ -143,12 +152,18 @@
     return '';
   }
 
+  function respondentPrompt(){
+    return trackInfo().form==='marks'
+      ? '回答者（父／その他）を選んでください。'
+      : '回答者（父／母／その他）を選んでください。';
+  }
+
   function updateGuide(){
     var el=$('att-respondent-guide');
     if(!el)return;
     var role=getRespondent();
     if(!role){
-      el.textContent='回答者（父／母／その他）を選んでください。';
+      el.textContent=respondentPrompt();
       el.className='att-respondent-guide att-guide-info';
       return;
     }
@@ -179,8 +194,12 @@
   }
 
   function renderRespondentBlock(prefs){
+    var form=trackInfo().form;
+    var allowed=respondentsForForm(form);
     var cur=prefs.respondentRole||'';
-    var btns=RESPONDENTS.map(function(r){
+    var allowedIds=allowed.map(function(r){return r.id;});
+    if(cur&&allowedIds.indexOf(cur)<0)cur='';
+    var btns=allowed.map(function(r){
       var on=cur===r.id?' is-on':'';
       return '<button type="button" class="att-respondent'+on+'" data-respondent="'+r.id+'" aria-pressed="'+(cur===r.id?'true':'false')+'">'+esc(r.label)+'</button>';
     }).join('');
@@ -475,10 +494,13 @@
     var prev=data.responses&&data.responses[name];
     if(!prev)return;
     if(prev.respondentRole){
-      setRespondentUI(prev.respondentRole);
-      if(prev.respondentRole==='other'&&prev.roleSuffix&&prev.roleSuffix!=='その他'){
-        var oel=$('att-other-role');
-        if(oel)oel.value=String(prev.roleSuffix);
+      var allowed=respondentsForForm(trackInfo().form).map(function(r){return r.id;});
+      if(allowed.indexOf(prev.respondentRole)>=0){
+        setRespondentUI(prev.respondentRole);
+        if(prev.respondentRole==='other'&&prev.roleSuffix&&prev.roleSuffix!=='その他'){
+          var oel=$('att-other-role');
+          if(oel)oel.value=String(prev.roleSuffix);
+        }
       }
     }
     if(trackInfo().form!=='family'){
@@ -635,7 +657,7 @@
       return;
     }
     if(!role){
-      setStatus('回答者（父／母／その他）を選んでください', true);
+      setStatus(respondentPrompt(), true);
       return;
     }
     var payload=collectPayload();
@@ -683,11 +705,13 @@
     }
     syncFormLock();
     if(!name)setStatus('選手名と回答者を選んで回答を始めてください');
-    else if(!getRespondent())setStatus('回答者（父／母／その他）を選んでください');
+    else if(!getRespondent())setStatus(respondentPrompt());
     else setStatus(name+' の回答を入力できます');
   }
 
   function onRespondentChosen(role){
+    var allowed=respondentsForForm(trackInfo().form).map(function(r){return r.id;});
+    if(allowed.indexOf(role)<0)return;
     setRespondentUI(role);
     var patch={respondentRole:role};
     if(role==='other'){
