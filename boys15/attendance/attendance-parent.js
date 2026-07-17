@@ -713,7 +713,6 @@
       if(payload.respondentRole)setRespondentUI(payload.respondentRole);
       fillExisting(name);
       applyPrefsToForm();
-      applyRespondentDefaults(false);
       syncFormLock();
       var t=trackInfo();
       var text=t.form==='family'
@@ -739,7 +738,6 @@
       savePrefs({memberName:name});
       fillExisting(name);
       applyPrefsToForm();
-      applyRespondentDefaults(false);
     }
     syncFormLock();
     if(!name)setStatus('選手名と回答者を選んで回答を始めてください');
