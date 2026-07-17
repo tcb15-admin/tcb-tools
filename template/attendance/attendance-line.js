@@ -65,7 +65,7 @@
       lines.push('②兄弟：'+(row.siblings||'なし')+' / その他：'+(row.other||'―'));
       lines.push('③配車の可否 ：'+(row.carOk==='o'?'可':(row.carOk==='x'?'否':'―')));
       lines.push('④車種：'+(row.carModel||'―'));
-      lines.push('⑤乗車可能人数：'+(row.seats!=null?row.seats+'名':'―'));
+      lines.push('⑤空き座席：'+(row.seats!=null&&String(row.seats)!==''?String(row.seats)+'名（運転手・同乗者除く）':'―'));
       lines.push('⑥送り：'+(row.send||'―'));
       lines.push('⑦迎え：'+(row.pickup||'―'));
       lines.push('');

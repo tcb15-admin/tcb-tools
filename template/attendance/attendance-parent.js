@@ -317,11 +317,24 @@
       +'</div>'
       +'<div class="att-on-block" data-date="'+esc(dt)+'">'
       +'<div class="att-parent-mark-slot" data-date="'+esc(dt)+'"></div>'
-      +'<div class="att-field"><label>②兄弟</label><input data-f="siblings" data-date="'+esc(dt)+'" value="なし" autocomplete="off"></div>'
+      +'<p class="att-act-meta">②兄弟の同行</p>'
+      +'<div class="att-seg att-sib-seg" data-date="'+esc(dt)+'">'
+      +'<button type="button" class="is-on-none" data-sib="none" data-date="'+esc(dt)+'">なし</button>'
+      +'<button type="button" data-sib="yes" data-date="'+esc(dt)+'">あり</button>'
+      +'</div>'
+      +'<div class="att-field att-sib-detail att-hidden" data-date="'+esc(dt)+'">'
+      +'<label for="att-sib-'+esc(dt)+'">内容（人数・続柄など）</label>'
+      +'<input id="att-sib-'+esc(dt)+'" data-f="siblingsDetail" data-date="'+esc(dt)+'" placeholder="例: 弟1名　／　妹（低学年）" autocomplete="off">'
+      +'<p class="att-hint-inline" style="margin-top:4px;display:block">例のように書いてください。名前だけでOKです。</p>'
+      +'</div>'
       +'<div class="att-field att-other-default"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―" autocomplete="off"></div>'
       +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+ynBtns('carOk','unset',dt)+'</div>'
       +'<div class="att-field"><label>④車種</label><input data-f="carModel" data-date="'+esc(dt)+'" placeholder="例: RAV4" autocomplete="off"></div>'
-      +'<div class="att-field"><label>⑤乗車可能人数</label><input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2" autocomplete="off"></div>'
+      +'<div class="att-field">'
+      +'<label>⑤空き座席数</label>'
+      +'<p class="att-hint-inline" style="display:block;margin-bottom:4px">運転手と、すでに乗る家族を除いて、あと何人乗せられるか</p>'
+      +'<input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2（あと2人）" autocomplete="off">'
+      +'</div>'
       +'<div class="att-field"><label>⑥送り</label><input data-f="send" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖母 など" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑦迎え</label><input data-f="pickup" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖父 など" autocomplete="off"></div>'
       +'</div>'
@@ -386,6 +399,33 @@
     });
   }
 
+  function setSiblingMode(wrap, dt, mode){
+    var seg=wrap.querySelector('.att-sib-seg[data-date="'+dt+'"]');
+    var detail=wrap.querySelector('.att-sib-detail[data-date="'+dt+'"]');
+    if(!seg)return;
+    seg.querySelectorAll('button[data-sib]').forEach(function(b){
+      b.className=b.getAttribute('data-sib')===mode?(mode==='none'?'is-on-none':'is-on-in'):'';
+    });
+    if(detail){
+      if(mode==='yes')detail.classList.remove('att-hidden');
+      else detail.classList.add('att-hidden');
+    }
+  }
+
+  function wireSiblingButtons(){
+    $('att-main').querySelectorAll('button[data-sib]').forEach(function(btn){
+      if(btn.getAttribute('data-wired')==='1')return;
+      btn.setAttribute('data-wired','1');
+      btn.addEventListener('click', function(){
+        if(isFormLocked())return;
+        var dt=btn.getAttribute('data-date');
+        var wrap=btn.closest('.att-member');
+        if(!wrap)return;
+        setSiblingMode(wrap, dt, btn.getAttribute('data-sib')||'none');
+      });
+    });
+  }
+
   function wireDayToggles(){
     $('att-main').querySelectorAll('button.att-mode').forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -409,6 +449,7 @@
       });
     });
     wireMarkButtons();
+    wireSiblingButtons();
   }
 
   function isFormLocked(){
@@ -457,11 +498,14 @@
         var companion=fieldVal(wrap,'companion',dt);
         other=companion||'―';
       }
+      var sibYes=!!wrap.querySelector('button[data-sib="yes"][data-date="'+dt+'"].is-on-in');
+      var sibDetail=fieldVal(wrap,'siblingsDetail',dt);
+      var siblings=sibYes?(sibDetail||'あり'):'なし';
       days[dt]={
         mode:'on',
         father:father,
         mother:mother,
-        siblings:fieldVal(wrap,'siblings',dt)||'なし',
+        siblings:siblings,
         other:other,
         carOk:selectedMark(wrap,'carOk',dt),
         carModel:fieldVal(wrap,'carModel',dt),
@@ -572,7 +616,15 @@
           var cb=wrap.querySelector('button[data-mark-field="carOk"][data-date="'+dt+'"][data-mark="'+row.carOk+'"]');
           if(cb)cb.click();
         }
-        ['siblings','other','carModel','seats','send','pickup'].forEach(function(f){
+        var sibVal=String(row.siblings||'').trim();
+        if(sibVal&&sibVal!=='なし'){
+          setSiblingMode(wrap, dt, 'yes');
+          var sibIn=wrap.querySelector('[data-f="siblingsDetail"][data-date="'+dt+'"]');
+          if(sibIn)sibIn.value=sibVal==='あり'?'':sibVal;
+        }else{
+          setSiblingMode(wrap, dt, 'none');
+        }
+        ['other','carModel','seats','send','pickup'].forEach(function(f){
           var el=wrap.querySelector('[data-f="'+f+'"][data-date="'+dt+'"]');
           if(el&&row[f]!=null&&row[f]!=='')el.value=row[f];
         });
