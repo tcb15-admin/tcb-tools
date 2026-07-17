@@ -102,6 +102,18 @@
     }).join('');
   }
 
+  /** 配車の可否: 可／否のみ */
+  function ynBtns(name, current, datescope){
+    var cur=current||'unset';
+    return [
+      {m:'o', label:'可'},
+      {m:'x', label:'否'}
+    ].map(function(item){
+      var on=cur===item.m?' '+markOnClass(item.m):'';
+      return '<button type="button" class="'+on.trim()+'" data-mark-field="'+name+'" data-mark="'+item.m+'" data-date="'+esc(datescope||'')+'">'+item.label+'</button>';
+    }).join('');
+  }
+
   function getRespondent(){
     var on=document.querySelector('#att-respondent-seg button.att-respondent.is-on');
     return on?String(on.getAttribute('data-respondent')||''):'';
@@ -131,49 +143,28 @@
     return '';
   }
 
-  /** 母が親父LINEを開いた場合は回答不要 */
-  function isMotherOnMarksTrack(role){
-    return trackInfo().form==='marks'&&role==='mother';
-  }
-
-  function guideFor(role){
-    var form=trackInfo().form;
-    if(!role){
-      return {text:'回答者（父／母／その他）を選んでください。', kind:'info'};
-    }
-    if(form==='family'){
-      if(role==='mother'){
-        return {text:'母子家庭の方は、このMG LINEのみでOKです。父側は「― なし」になります。', kind:'ok'};
-      }
-      if(role==='father'){
-        return {text:'父子家庭の方は、このMG LINEに加え、親父 LINE にも回答してください。母側は「― なし」になります。', kind:'warn'};
-      }
-      return {text:'ご家庭の分担に合わせて入力してください。いない方は「― なし」を選べます。', kind:'info'};
-    }
-    /* marks = 親父 LINE */
-    if(role==='mother'){
-      return {text:'母子家庭の方は親父 LINE への回答は不要です。MG LINE の案内URLから回答してください。', kind:'err'};
-    }
-    if(role==='father'){
-      return {text:'父子家庭の方は、この親父 LINE に加え、MG LINE（詳細）にも回答してください。', kind:'warn'};
-    }
-    return {text:'必要な場合のみ回答してください。母子家庭はMG LINEのみ、父子家庭は両方です。', kind:'info'};
-  }
-
   function updateGuide(){
     var el=$('att-respondent-guide');
     if(!el)return;
-    var g=guideFor(getRespondent());
-    el.textContent=g.text;
-    el.className='att-respondent-guide att-guide-'+g.kind;
+    var role=getRespondent();
+    if(!role){
+      el.textContent='回答者（父／母／その他）を選んでください。';
+      el.className='att-respondent-guide att-guide-info';
+      return;
+    }
+    if(trackInfo().form==='family'&&(role==='mother'||role==='father')){
+      el.textContent='いない側は「― なし」になります。必要なら変更できます。';
+      el.className='att-respondent-guide att-guide-info';
+      return;
+    }
+    el.textContent='';
+    el.className='att-respondent-guide att-hidden';
   }
 
   function canUnlockForm(){
     var name=($('att-pick')&&$('att-pick').value)||'';
     var role=getRespondent();
-    if(!name||!role)return false;
-    if(isMotherOnMarksTrack(role))return false;
-    return true;
+    return !!(name&&role);
   }
 
   function syncFormLock(){
@@ -182,16 +173,8 @@
     updateGuide();
     var btn=$('att-submit');
     if(btn&&!submitting){
-      if(isMotherOnMarksTrack(getRespondent())){
-        btn.disabled=true;
-        btn.textContent='このフォームでは回答不要';
-      }else if(!canUnlockForm()){
-        btn.disabled=true;
-        btn.textContent='送信する';
-      }else{
-        btn.disabled=false;
-        btn.textContent='送信する';
-      }
+      btn.disabled=!canUnlockForm();
+      btn.textContent='送信する';
     }
   }
 
@@ -236,10 +219,8 @@
 
     var note=(t.form==='family')
       ? '① 選手と回答者を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
-        +'\n※母子家庭はこのMG LINEのみ。父子家庭は親父LINEにも回答してください。'
         +(t.note?'\n'+t.note:'')
       : '① 選手と回答者を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
-        +'\n※父子家庭向けです。母子家庭はMG LINEのみでOK（このフォームは不要）。'
         +(t.note?'\n'+t.note:'');
 
     var daysHtml=(data.days||[]).map(function(d){
@@ -274,7 +255,6 @@
       +'<button type="button" id="att-share" class="att-btn att-btn-ghost" style="flex:1">共有</button>'
       +'</div>'
       +'<p id="att-copy-hint" class="att-act-meta" style="margin-top:8px"></p>'
-      +'<p id="att-post-hint" class="att-act-meta" style="margin-top:8px"></p>'
       +'</div>';
 
     wireDayToggles();
@@ -313,8 +293,8 @@
     return '<div class="att-member" data-day="'+esc(dt)+'">'
       +'<div class="att-member-name">'+(F.dayHead?F.dayHead(dt):esc(dt))+'</div>'
       +'<div class="att-seg" style="margin-bottom:8px">'
-      +'<button type="button" class="att-mode is-on-in" data-mode="on" data-date="'+esc(dt)+'">出席連絡</button>'
-      +'<button type="button" class="att-mode" data-mode="off" data-date="'+esc(dt)+'">休み</button>'
+      +'<button type="button" class="att-mode is-on-in" data-mode="on" data-date="'+esc(dt)+'">出席</button>'
+      +'<button type="button" class="att-mode" data-mode="off" data-date="'+esc(dt)+'">欠席</button>'
       +'</div>'
       +'<div class="att-on-block" data-date="'+esc(dt)+'">'
       +'<p class="att-act-meta">①父側の保護者 <span class="att-hint-inline">いない場合は「なし」</span></p>'
@@ -323,14 +303,14 @@
       +'<div class="att-seg">'+markBtns('mother','unset',dt,true)+'</div>'
       +'<div class="att-field"><label>②兄弟</label><input data-f="siblings" data-date="'+esc(dt)+'" value="なし" autocomplete="off"></div>'
       +'<div class="att-field"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―" autocomplete="off"></div>'
-      +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+markBtns('carOk','unset',dt,false)+'</div>'
+      +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+ynBtns('carOk','unset',dt)+'</div>'
       +'<div class="att-field"><label>④車種</label><input data-f="carModel" data-date="'+esc(dt)+'" placeholder="例: RAV4" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑤乗車可能人数</label><input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑥送り</label><input data-f="send" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖母 など" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑦迎え</label><input data-f="pickup" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖父 など" autocomplete="off"></div>'
       +'</div>'
       +'<div class="att-off-block att-hidden" data-date="'+esc(dt)+'">'
-      +'<div class="att-field"><label>休みの理由</label><input data-f="offNote" data-date="'+esc(dt)+'" placeholder="例: 学校行事" autocomplete="off"></div>'
+      +'<div class="att-field"><label>欠席の理由</label><input data-f="offNote" data-date="'+esc(dt)+'" placeholder="例: 学校行事" autocomplete="off"></div>'
       +'</div></div>';
   }
 
@@ -632,20 +612,6 @@
     await copyText(text);
   }
 
-  function postSubmitHint(role){
-    var el=$('att-post-hint');
-    if(!el)return;
-    if(trackInfo().form==='family'&&role==='father'){
-      el.textContent='続けて、親父 LINE の案内URLからも回答してください（父子家庭）。';
-      el.classList.remove('att-hidden');
-    }else if(trackInfo().form==='marks'&&role==='father'){
-      el.textContent='MG LINE（詳細）側も未回答なら、そちらの案内URLからも回答してください。';
-      el.classList.remove('att-hidden');
-    }else{
-      el.textContent='';
-    }
-  }
-
   async function load(){
     var c=ensureClient();
     if(!c)return;
@@ -670,10 +636,6 @@
     }
     if(!role){
       setStatus('回答者（父／母／その他）を選んでください', true);
-      return;
-    }
-    if(isMotherOnMarksTrack(role)){
-      setStatus('母子家庭の方は親父 LINE への回答は不要です。MG LINE から回答してください。', true);
       return;
     }
     var payload=collectPayload();
@@ -701,7 +663,6 @@
       var out=$('att-line-out');
       if(result)result.classList.remove('att-hidden');
       if(out)out.textContent=text;
-      postSubmitHint(role);
       setStatus('受け付けました。下の投稿文をコピーしてLINEへ貼ってください');
       if(result&&result.scrollIntoView){
         setTimeout(function(){result.scrollIntoView({behavior:'smooth', block:'start'});}, 50);
@@ -723,7 +684,6 @@
     syncFormLock();
     if(!name)setStatus('選手名と回答者を選んで回答を始めてください');
     else if(!getRespondent())setStatus('回答者（父／母／その他）を選んでください');
-    else if(isMotherOnMarksTrack(getRespondent()))setStatus('母子家庭の方はこのフォームへの回答は不要です', true);
     else setStatus(name+' の回答を入力できます');
   }
 
@@ -738,8 +698,7 @@
     applyRespondentDefaults(true);
     syncFormLock();
     var name=($('att-pick')&&$('att-pick').value)||'';
-    if(isMotherOnMarksTrack(role))setStatus('母子家庭の方はこのフォームへの回答は不要です', true);
-    else if(name)setStatus(name+' の回答を入力できます');
+    if(name)setStatus(name+' の回答を入力できます');
     else setStatus('選手名を選んでください');
   }
 
