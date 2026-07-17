@@ -91,7 +91,8 @@ body.att-body{
 .att-seg button.is-on-maybe{background:#fff8e1;border-color:#f0d78c;color:#9a7b0a;}
 .att-seg button.is-on-none{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-txt2);}
 .att-seg button.is-on-unset{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-heading);}
-.att-hint-inline{font-weight:500;color:var(--att-txt2);font-size:12px;}
+.att-hint-inline{font-weight:500;color:var(--att-txt2);font-size:12px;line-height:1.45;}
+.att-sib-detail{margin-top:6px;}
 .att-respondent-seg button.att-respondent{
   flex:1;min-width:88px;
 }

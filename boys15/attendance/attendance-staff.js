@@ -26,7 +26,7 @@
   var ERR_JA={
     unauthorized:'認証に失敗しました（トークン設定を確認してください）',
     cohort_required:'世代キーが未設定です',
-    campaign_not_found:'キャンペーンが見つかりません',
+    campaign_not_found:'出欠が見つかりません',
     days_required:'日付を1つ以上入力してください',
     days_too_many:'日付が多すぎます（最大14日）',
     activity_date_invalid:'日付の形式が不正です',
@@ -108,7 +108,7 @@
   function renderList(){
     var box=$('att-list');
     if(!state.campaigns.length){
-      box.innerHTML='<p class="att-act-meta">キャンペーンがありません。</p>';
+      box.innerHTML='<p class="att-act-meta">まだ出欠がありません。上で作成してください。</p>';
       return;
     }
     box.innerHTML=state.campaigns.map(function(c){
@@ -213,7 +213,7 @@
     });
     await refreshList();
     if(res.campaign&&res.campaign.id)await openCampaign(res.campaign.id);
-    setStatus('キャンペーンを作成しました');
+    setStatus('出欠確認を作成しました');
   }
 
   async function publish(){

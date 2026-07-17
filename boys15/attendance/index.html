@@ -27,7 +27,7 @@
 
 <main class="att-wrap">
   <section class="att-card">
-    <h2>出欠キャンペーンを作成</h2>
+    <h2>出欠確認を作成</h2>
     <p class="att-act-meta" style="margin-bottom:10px">複数日をまとめて作成します（例: 土・日・月）。MG用と親父用で別URLを発行します。</p>
     <form id="att-create-form">
       <div class="att-field"><label for="att-title">タイトル</label><input id="att-title" maxlength="120" placeholder="例: 7月18日、19日、20日出欠確認" required></div>
@@ -42,11 +42,11 @@
   </section>
 
   <section class="att-card">
-    <h2>キャンペーン一覧</h2>
+    <h2>出欠一覧</h2>
     <div id="att-list"></div>
   </section>
 
-  <p id="att-detail-empty" class="att-act-meta">一覧から選ぶと、各系統のURL・投稿文・回答状況を表示します。</p>
+  <p id="att-detail-empty" class="att-act-meta">一覧から選ぶと、各LINE用のURL・投稿文・回答状況を表示します。</p>
 
   <section id="att-detail" class="att-hidden">
     <div class="att-card">
@@ -64,9 +64,9 @@
         <button type="button" id="att-btn-toggle-status" class="att-btn att-btn-ghost">受付を終了する</button>
       </div>
       <p id="att-status-badge" class="att-act-meta" style="margin-top:8px"></p>
-      <p class="att-act-meta" style="margin-top:10px">MG LINE（詳細） 回答URL</p>
+      <p class="att-act-meta" style="margin-top:10px">MG LINE 回答URL</p>
       <div id="att-url-a" class="att-preview"></div>
-      <p class="att-act-meta" style="margin-top:10px">親父 LINE（簡易） 回答URL</p>
+      <p class="att-act-meta" style="margin-top:10px">親父 LINE 回答URL</p>
       <div id="att-url-b" class="att-preview"></div>
     </div>
     <div class="att-card">
@@ -87,7 +87,7 @@ window.TCB_ATT_CFG={
   lsPrefix:"tcb15",
   pagesBase:"https://tcb15-admin.github.io/tcb-tools/boys15",
   teamName:"東海中央ボーイズ 15期",
-  tracks:{"a": {"label": "MG LINE（詳細）", "short": "MG", "form": "family", "role": "", "note": ""}, "b": {"label": "親父 LINE（簡易）", "short": "親父", "form": "marks", "role": "", "note": "※当面は LINEスケジュールへの回答も従来どおりお願いします。"}}
+  tracks:{"a": {"label": "MG LINE", "short": "MG", "form": "family", "role": "", "note": ""}, "b": {"label": "親父 LINE", "short": "親父", "form": "marks", "role": "", "note": "※当面は LINEスケジュールへの回答も従来どおりお願いします。"}}
 };
 </script>
 <script src="../tcb-sync-api.js"></script>
