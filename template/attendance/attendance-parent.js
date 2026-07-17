@@ -277,7 +277,10 @@
       +'</div>';
 
     wireDayToggles();
-    if(prefs.respondentRole)setRespondentUI(prefs.respondentRole);
+    var allowedIds=respondentsForForm(t.form).map(function(r){return r.id;});
+    if(prefs.respondentRole&&allowedIds.indexOf(prefs.respondentRole)>=0){
+      setRespondentUI(prefs.respondentRole);
+    }
     var pick=$('att-pick');
     if(pick&&pick.value){
       fillExisting(pick.value);
