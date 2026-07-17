@@ -108,6 +108,10 @@ export default {
         const body = await request.json();
         return json(await publishCampaignShares(env, body));
       }
+      if (url.pathname === "/api/attendance/campaign-status" && request.method === "POST") {
+        const body = await request.json();
+        return json(await setCampaignStatus(env, body));
+      }
       if (url.pathname === "/api/attendance/mother-response" && request.method === "POST") {
         const body = await request.json();
         return json(await setMotherResponseAdmin(env, body));
@@ -1039,6 +1043,22 @@ async function publishCampaignShares(env, body) {
     updatedAt: now,
     campaignId: id,
   };
+}
+
+async function setCampaignStatus(env, body) {
+  const cohort = mustCohort(body.cohort);
+  const id = String(body.id || "").trim();
+  if (!id) throw new Error("campaign_id_required");
+  const status = body.status === "closed" ? "closed" : "open";
+  const row = await env.DB.prepare("SELECT id FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!row) throw new Error("campaign_not_found");
+  const now = new Date().toISOString();
+  await env.DB.prepare("UPDATE attendance_campaigns SET status = ?, updated_at = ? WHERE id = ? AND cohort = ?")
+    .bind(status, now, id, cohort)
+    .run();
+  return getCampaignDetail(env, cohort, id);
 }
 
 async function findCampaignByShare(env, sid) {

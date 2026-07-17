@@ -120,12 +120,20 @@
     $('att-d-counts').innerHTML=
       '<span class="ok">MG回答 '+(d.motherAnswered||0)+'/'+(d.memberTotal||0)+'</span>'+
       '<span class="maybe">親父回答 '+(d.fatherAnswered||0)+'/'+(d.memberTotal||0)+'</span>';
+    var closed=c.status==='closed';
+    $('att-status-badge').textContent=closed?'状態: 受付終了（保護者は新規回答不可）':'状態: 受付中';
+    var toggle=$('att-btn-toggle-status');
+    if(toggle)toggle.textContent=closed?'受付を再開する':'受付を終了する';
     $('att-url-mg').textContent=parentUrl(c.shareIdMg)||'（未発行）';
     $('att-url-fa').textContent=parentUrl(c.shareIdFather)||'（未発行）';
 
+    var unansweredMg=[];
+    var unansweredFa=[];
     $('att-roster').innerHTML=(d.roster||[]).map(function(r){
       var mg=r.mother?'済':'未';
       var fa=r.father?'済':'未';
+      if(!r.mother)unansweredMg.push(r.name);
+      if(!r.father)unansweredFa.push(r.name);
       var mgCls=r.mother?'ok':'none';
       var faCls=r.father?'ok':'none';
       var mgText='';
@@ -144,6 +152,8 @@
         +(faText?'<details><summary class="att-act-meta">親父投稿文</summary><pre class="att-preview">'+esc(faText)+'</pre></details>':'')
         +'</div>';
     }).join('');
+    state.unansweredMg=unansweredMg;
+    state.unansweredFa=unansweredFa;
   }
 
   async function refreshList(){
@@ -246,6 +256,30 @@
       if(!state.detail)return;
       var c=state.detail.campaign;
       copyText(F.formatFatherInvite(c, parentUrl(c.shareIdFather)));
+    });
+    $('att-btn-remind-mg').addEventListener('click', function(){
+      if(!state.detail||!F.formatRemind)return;
+      var c=state.detail.campaign;
+      copyText(F.formatRemind('mg', c, parentUrl(c.shareIdMg), state.unansweredMg||[]));
+    });
+    $('att-btn-remind-fa').addEventListener('click', function(){
+      if(!state.detail||!F.formatRemind)return;
+      var c=state.detail.campaign;
+      copyText(F.formatRemind('father', c, parentUrl(c.shareIdFather), state.unansweredFa||[]));
+    });
+    $('att-btn-toggle-status').addEventListener('click', function(){
+      var client=ensureSync();
+      if(!client||!state.selectedId||!state.detail)return;
+      var cur=state.detail.campaign.status==='closed'?'closed':'open';
+      var next=cur==='closed'?'open':'closed';
+      setStatus(next==='closed'?'受付を終了しています…':'受付を再開しています…');
+      client.setCampaignStatus({id:state.selectedId, status:next})
+        .then(function(){return openCampaign(state.selectedId);})
+        .then(function(){return refreshList();})
+        .then(function(){
+          setStatus(next==='closed'?'受付を終了しました':'受付を再開しました');
+        })
+        .catch(function(e){setStatus(e.message||String(e), true);});
     });
     $('att-btn-refresh').addEventListener('click', function(){
       var p=state.selectedId?openCampaign(state.selectedId):refreshList();

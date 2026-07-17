@@ -126,6 +126,11 @@
         payload.cohort=cohort;
         return req('/api/attendance/publish','POST',payload);
       },
+      setCampaignStatus:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/attendance/campaign-status','POST',payload);
+      },
       setMotherResponse:function(payload){
         payload=payload||{};
         payload.cohort=cohort;

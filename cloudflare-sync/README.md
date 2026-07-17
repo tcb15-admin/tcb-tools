@@ -130,6 +130,7 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 - `POST /api/attendance/campaigns` … 作成／更新。body: `{cohort, id?, title, memo?, status?, days:[{activityDate,startTime?,place?,kind?}]}`
 - `GET /api/attendance/campaign?cohort=&id=` … 詳細＋母／親父回答（Bearer）
 - `POST /api/attendance/publish` … shareId 発行。body: `{cohort, id, track?:mg|father|both, rotate?}` → `shareIdMg` / `shareIdFather`
+- `POST /api/attendance/campaign-status` … 受付 open/closed。body: `{cohort, id, status}`
 - `POST /api/attendance/mother-response` … スタッフ代理・MG回答（Bearer）
 - `POST /api/attendance/father-response` … スタッフ代理・親父回答（Bearer）
 - `GET /api/attendance/cross-events?cohort=&since=` … 相互影響イベント（Bearer）

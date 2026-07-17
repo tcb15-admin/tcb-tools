@@ -110,6 +110,26 @@
     return lines.join('\n');
   }
 
+  function formatRemind(track, campaign, url, unansweredNames){
+    var title=campaign&&campaign.title?campaign.title:'出欠確認';
+    var label=track==='mg'?'MG LINE':'親父 LINE';
+    var lines=['【出欠リマインド／'+label+'】', title, ''];
+    if(url){
+      lines.push('▼回答はこちら');
+      lines.push(url);
+      lines.push('');
+    }
+    if(!unansweredNames||!unansweredNames.length){
+      lines.push('現在、未回答の方はいません。');
+    }else{
+      lines.push('未回答:');
+      lines.push(unansweredNames.join('、'));
+      lines.push('');
+      lines.push('お手数ですがご回答お願いします。');
+    }
+    return lines.join('\n');
+  }
+
   global.TCB_AttFormat={
     markChar:markChar,
     dayHead:dayHead,
@@ -117,6 +137,7 @@
     formatMotherLine:formatMotherLine,
     formatFatherLine:formatFatherLine,
     formatMgInvite:formatMgInvite,
-    formatFatherInvite:formatFatherInvite
+    formatFatherInvite:formatFatherInvite,
+    formatRemind:formatRemind
   };
 })(window);
