@@ -147,15 +147,15 @@ def build_portal_and_attendance(target, config, out_dir):
 
     # 出欠トラック設定（チーム固有の呼称・フォーム種別は config で上書き可能）
     att_defaults = {
-        'ATT_TRACK_A_LABEL': 'MG LINE（母）',
-        'ATT_TRACK_B_LABEL': '親父 LINE（父）',
+        'ATT_TRACK_A_LABEL': 'MG LINE（詳細）',
+        'ATT_TRACK_B_LABEL': '親父 LINE（簡易）',
         'ATT_TRACK_A_SHORT': 'MG',
         'ATT_TRACK_B_SHORT': '親父',
         'ATT_TRACK_A_FORM': 'family',
         'ATT_TRACK_B_FORM': 'marks',
-        'ATT_TRACK_B_ROLE': '父',
-        'ATT_TRACK_A_NOTE': '',
-        'ATT_TRACK_B_NOTE': '※当面は LINEスケジュールへの回答も従来どおりお願いします。',
+        'ATT_TRACK_B_ROLE': '',
+        'ATT_TRACK_A_NOTE': '※母子家庭はこのMG LINEのみ。父子家庭は親父LINEにも回答してください。',
+        'ATT_TRACK_B_NOTE': '※父子家庭向け（MG LINEにも回答）。母子家庭は回答不要です。当面は LINEスケジュールへの回答も従来どおりお願いします。',
     }
     att = {k: str(config.get(k, v)) for k, v in att_defaults.items()}
     tracks = {

@@ -12,6 +12,7 @@
     if(m==='o')return '◯';
     if(m==='x')return '✕';
     if(m==='t')return '△';
+    if(m==='n')return '―'; /* なし／該当なし（ひとり親など） */
     return '―';
   }
 
@@ -73,12 +74,15 @@
     return lines.join('\n');
   }
 
-  /** 簡易（marks）フォームの投稿文。15期 親父 LINE の現行書式を踏襲 */
+  /** 簡易（marks）フォームの投稿文。15期 親父 LINE の現行書式を踏襲（続柄は任意） */
   function formatMarksLine(memberName, days, payload, roleSuffix){
     var p=payload&&payload.days?payload.days:{};
+    var role=(payload&&payload.roleSuffix!=null&&String(payload.roleSuffix)!=='')
+      ? String(payload.roleSuffix).trim()
+      : String(roleSuffix||'').trim();
     var lines=[];
     lines.push('おはようございます。');
-    lines.push(shortName(memberName)+(roleSuffix?'　'+roleSuffix:''));
+    lines.push(shortName(memberName)+(role?'　'+role:''));
     (days||[]).forEach(function(d){
       var dt=d.activityDate;
       lines.push(dayHead(dt)+' '+markChar(p[dt]));
@@ -88,7 +92,7 @@
   }
 
   /** グループ向け案内文（トラック共通・ラベルと補足は config から） */
-  function formatInvite(trackLabel, campaign, url, extraNote){
+  function formatInvite(trackLabel, campaign, url, extraNote, trackForm){
     var days=campaign&&campaign.days?campaign.days:[];
     var title=campaign&&campaign.title?campaign.title:'出欠確認';
     var lines=['【'+(trackLabel||'出欠')+'：出欠のお願い】', title, ''];
@@ -101,6 +105,17 @@
     lines.push(url||'（URL未発行）');
     lines.push('');
     lines.push('回答後、生成される文面をこのグループへ投稿してください。');
+    lines.push('');
+    lines.push('【回答の目安】');
+    if(trackForm==='marks'){
+      lines.push('・父子家庭 → この親父 LINE と MG LINE の両方');
+      lines.push('・母子家庭 → 回答不要（MG LINEのみでOK）');
+      lines.push('・その他（祖父母など） → 必要な場合のみ');
+    }else{
+      lines.push('・母子家庭 → このMG LINEのみ');
+      lines.push('・父子家庭 → このMG LINE と 親父 LINE の両方');
+      lines.push('・共働きなど → ご家庭の分担に合わせて');
+    }
     if(extraNote)lines.push(extraNote);
     return lines.join('\n');
   }
