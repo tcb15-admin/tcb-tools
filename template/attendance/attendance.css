@@ -91,6 +91,19 @@ body.att-body{
 .att-seg button.is-on-none{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-txt2);}
 .att-seg button.is-on-unset{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-navy);}
 .att-hint-inline{font-weight:500;color:var(--att-txt2);font-size:12px;}
+.att-respondent-seg button.att-respondent{
+  flex:1;min-width:88px;
+}
+.att-respondent-seg button.att-respondent.is-on{
+  background:var(--att-navy);border-color:var(--att-navy);color:#fff;
+}
+.att-respondent-guide{
+  font-size:13px;line-height:1.55;border-radius:10px;padding:10px 12px;
+}
+.att-guide-info{background:var(--att-surface);color:var(--att-txt2);}
+.att-guide-ok{background:#e7f5ea;color:var(--att-grn);font-weight:700;}
+.att-guide-warn{background:#fff8e1;color:#9a7b0a;font-weight:700;}
+.att-guide-err{background:#fdecec;color:var(--att-red);font-weight:700;}
 .att-preview{
   white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.65;
   background:#f2f2f5;border-radius:12px;padding:12px;max-height:280px;overflow:auto;
@@ -142,4 +155,10 @@ body.att-body{
   .att-seg button.is-on-out{background:#3a1e1e;border-color:#7a3a3a;color:#ff9ea2;}
   .att-seg button.is-on-maybe{background:#3a3210;border-color:#9a7b0a;color:#ffd60a;}
   .att-seg button.is-on-none{background:#2c2c2e;border-color:#48484a;color:#a1a1ac;}
+  .att-respondent-seg button.att-respondent.is-on{
+    background:#9fb4e8;border-color:#9fb4e8;color:#0b1224;
+  }
+  .att-guide-ok{background:#14301c;color:#30d158;}
+  .att-guide-warn{background:#3a3210;color:#ffd60a;}
+  .att-guide-err{background:#3a1e1e;color:#ff9ea2;}
 }

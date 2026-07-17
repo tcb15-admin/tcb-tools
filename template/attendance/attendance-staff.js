@@ -289,12 +289,12 @@
     $('att-btn-copy-a-inv').addEventListener('click', function(){
       if(!state.detail)return;
       var c=state.detail.campaign;
-      copyText(F.formatInvite(TRACKS.a.label, c, parentUrl(c.shareIdA), TRACKS.a.note||''));
+      copyText(F.formatInvite(TRACKS.a.label, c, parentUrl(c.shareIdA), TRACKS.a.note||'', TRACKS.a.form));
     });
     $('att-btn-copy-b-inv').addEventListener('click', function(){
       if(!state.detail)return;
       var c=state.detail.campaign;
-      copyText(F.formatInvite(TRACKS.b.label, c, parentUrl(c.shareIdB), TRACKS.b.note||''));
+      copyText(F.formatInvite(TRACKS.b.label, c, parentUrl(c.shareIdB), TRACKS.b.note||'', TRACKS.b.form));
     });
     $('att-btn-remind-a').addEventListener('click', function(){
       if(!state.detail)return;

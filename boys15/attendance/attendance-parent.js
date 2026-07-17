@@ -23,6 +23,12 @@
   var submitting=false;
   var LS_PREF='tcb_att_pref_'+(cfg.cohort||'15');
 
+  var RESPONDENTS=[
+    {id:'mother', label:'母'},
+    {id:'father', label:'父'},
+    {id:'other', label:'その他'}
+  ];
+
   var ERR_JA={
     invalid_share_id:'URLが正しくありません。案内のリンクを開き直してください',
     not_found:'この回答ページは見つかりません。最新の案内URLをご確認ください',
@@ -36,8 +42,9 @@
     return ERR_JA[m]||m;
   }
 
+  function trackKey(){return (data&&data.track)||'a';}
   function trackInfo(){
-    var t=(data&&data.track)||'a';
+    var t=trackKey();
     return TRACKS[t]||TRACKS.a;
   }
 
@@ -95,6 +102,117 @@
     }).join('');
   }
 
+  function getRespondent(){
+    var on=document.querySelector('#att-respondent-seg button.att-respondent.is-on');
+    return on?String(on.getAttribute('data-respondent')||''):'';
+  }
+
+  function setRespondentUI(role){
+    document.querySelectorAll('#att-respondent-seg button.att-respondent').forEach(function(btn){
+      var on=btn.getAttribute('data-respondent')===role;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', on?'true':'false');
+    });
+    var otherWrap=$('att-other-role-wrap');
+    if(otherWrap){
+      if(role==='other')otherWrap.classList.remove('att-hidden');
+      else otherWrap.classList.add('att-hidden');
+    }
+  }
+
+  function roleSuffixFromRespondent(role){
+    if(role==='father')return '父';
+    if(role==='mother')return '母';
+    if(role==='other'){
+      var el=$('att-other-role');
+      var custom=el?String(el.value||'').trim():'';
+      return custom||'その他';
+    }
+    return '';
+  }
+
+  /** 母が親父LINEを開いた場合は回答不要 */
+  function isMotherOnMarksTrack(role){
+    return trackInfo().form==='marks'&&role==='mother';
+  }
+
+  function guideFor(role){
+    var form=trackInfo().form;
+    if(!role){
+      return {text:'回答者（父／母／その他）を選んでください。', kind:'info'};
+    }
+    if(form==='family'){
+      if(role==='mother'){
+        return {text:'母子家庭の方は、このMG LINEのみでOKです。父側は「― なし」になります。', kind:'ok'};
+      }
+      if(role==='father'){
+        return {text:'父子家庭の方は、このMG LINEに加え、親父 LINE にも回答してください。母側は「― なし」になります。', kind:'warn'};
+      }
+      return {text:'ご家庭の分担に合わせて入力してください。いない方は「― なし」を選べます。', kind:'info'};
+    }
+    /* marks = 親父 LINE */
+    if(role==='mother'){
+      return {text:'母子家庭の方は親父 LINE への回答は不要です。MG LINE の案内URLから回答してください。', kind:'err'};
+    }
+    if(role==='father'){
+      return {text:'父子家庭の方は、この親父 LINE に加え、MG LINE（詳細）にも回答してください。', kind:'warn'};
+    }
+    return {text:'必要な場合のみ回答してください。母子家庭はMG LINEのみ、父子家庭は両方です。', kind:'info'};
+  }
+
+  function updateGuide(){
+    var el=$('att-respondent-guide');
+    if(!el)return;
+    var g=guideFor(getRespondent());
+    el.textContent=g.text;
+    el.className='att-respondent-guide att-guide-'+g.kind;
+  }
+
+  function canUnlockForm(){
+    var name=($('att-pick')&&$('att-pick').value)||'';
+    var role=getRespondent();
+    if(!name||!role)return false;
+    if(isMotherOnMarksTrack(role))return false;
+    return true;
+  }
+
+  function syncFormLock(){
+    if(canUnlockForm())unlockForm();
+    else lockForm();
+    updateGuide();
+    var btn=$('att-submit');
+    if(btn&&!submitting){
+      if(isMotherOnMarksTrack(getRespondent())){
+        btn.disabled=true;
+        btn.textContent='このフォームでは回答不要';
+      }else if(!canUnlockForm()){
+        btn.disabled=true;
+        btn.textContent='送信する';
+      }else{
+        btn.disabled=false;
+        btn.textContent='送信する';
+      }
+    }
+  }
+
+  function renderRespondentBlock(prefs){
+    var cur=prefs.respondentRole||'';
+    var btns=RESPONDENTS.map(function(r){
+      var on=cur===r.id?' is-on':'';
+      return '<button type="button" class="att-respondent'+on+'" data-respondent="'+r.id+'" aria-pressed="'+(cur===r.id?'true':'false')+'">'+esc(r.label)+'</button>';
+    }).join('');
+    var otherVal=prefs.otherRoleLabel||'';
+    return '<div class="att-step" style="margin-top:14px"><span class="att-step-num">1b</span><span>回答者を選ぶ</span></div>'
+      +'<div id="att-respondent-seg" class="att-seg att-respondent-seg" role="group" aria-label="回答者">'
+      +btns
+      +'</div>'
+      +'<div id="att-other-role-wrap" class="att-field'+(cur==='other'?'':' att-hidden')+'" style="margin-top:8px">'
+      +'<label for="att-other-role">続柄の表記（任意）</label>'
+      +'<input id="att-other-role" maxlength="20" placeholder="例: 祖母／祖父　空欄なら「その他」" value="'+esc(otherVal)+'" autocomplete="off">'
+      +'</div>'
+      +'<p id="att-respondent-guide" class="att-respondent-guide att-guide-info" style="margin-top:10px"></p>';
+  }
+
   function render(){
     if(!data||!data.campaign){
       $('att-main').innerHTML='<div class="att-card"><p>出欠情報を表示できません。</p></div>';
@@ -117,20 +235,16 @@
     }).join('');
 
     var note=(t.form==='family')
-      ? '① 選手を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。車種などは前回の入力を覚えます。'
-        +(t.note?'\n'+t.note:'\n※ひとり親・どちらか一方だけのご家庭は、いない方を「― なし」にしてください。')
-      : '① 選手を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
-        +(t.note?'\n'+t.note:'\n※保護者のどなたでも回答できます。');
+      ? '① 選手と回答者を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
+        +'\n※母子家庭はこのMG LINEのみ。父子家庭は親父LINEにも回答してください。'
+        +(t.note?'\n'+t.note:'')
+      : '① 選手と回答者を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
+        +'\n※父子家庭向けです。母子家庭はMG LINEのみでOK（このフォームは不要）。'
+        +(t.note?'\n'+t.note:'');
 
     var daysHtml=(data.days||[]).map(function(d){
       return t.form==='family'?renderFamilyDay(d):renderMarksDay(d);
     }).join('');
-
-    var roleBlock=t.form==='marks'
-      ? '<div class="att-field" style="margin-top:10px"><label for="att-role-suffix">続柄（任意）</label>'
-        +'<input id="att-role-suffix" maxlength="20" placeholder="例: 父／母　空欄でも可" value="'+esc(prefs.roleSuffix!=null?prefs.roleSuffix:(t.role||''))+'" autocomplete="off">'
-        +'<p class="att-act-meta" style="margin-top:4px">投稿文の名前の後ろに付きます。不要なら空欄のまま。</p></div>'
-      : '';
 
     $('att-main').innerHTML=
       '<div class="att-card"><h2>'+esc(title)+'</h2>'
@@ -140,8 +254,8 @@
       +'<div class="att-card">'
       +'<div class="att-step"><span class="att-step-num">1</span><label for="att-pick">選手名を選ぶ</label></div>'
       +'<select id="att-pick" class="att-pick" aria-label="選手名"><option value="">選択してください</option>'+opts+'</select>'
-      +'<p id="att-pick-hint" class="att-act-meta">選手を選ぶと、下の入力欄が使えます。</p>'
-      +roleBlock
+      +'<p id="att-pick-hint" class="att-act-meta">選手と回答者を選ぶと、下の入力欄が使えます。</p>'
+      +renderRespondentBlock(prefs)
       +'</div>'
       +'<div id="att-form-panel" class="att-form-panel att-form-locked" aria-disabled="true">'
       +'<div class="att-card">'
@@ -160,40 +274,37 @@
       +'<button type="button" id="att-share" class="att-btn att-btn-ghost" style="flex:1">共有</button>'
       +'</div>'
       +'<p id="att-copy-hint" class="att-act-meta" style="margin-top:8px"></p>'
+      +'<p id="att-post-hint" class="att-act-meta" style="margin-top:8px"></p>'
       +'</div>';
 
     wireDayToggles();
+    if(prefs.respondentRole)setRespondentUI(prefs.respondentRole);
     var pick=$('att-pick');
     if(pick&&pick.value){
-      unlockForm();
       fillExisting(pick.value);
       applyPrefsToForm();
-    }else{
-      lockForm();
+      applyRespondentDefaults(false);
     }
+    syncFormLock();
   }
 
   function lockForm(){
     var panel=$('att-form-panel');
-    var btn=$('att-submit');
     var hint=$('att-pick-hint');
     if(panel){
       panel.classList.add('att-form-locked');
       panel.setAttribute('aria-disabled','true');
     }
-    if(btn)btn.disabled=true;
     if(hint)hint.classList.remove('att-hidden');
   }
 
   function unlockForm(){
     var panel=$('att-form-panel');
-    var btn=$('att-submit');
     var hint=$('att-pick-hint');
     if(panel){
       panel.classList.remove('att-form-locked');
       panel.setAttribute('aria-disabled','false');
     }
-    if(btn&&!submitting)btn.disabled=false;
     if(hint)hint.classList.add('att-hidden');
   }
 
@@ -289,6 +400,29 @@
     return el?String(el.value||'').trim():'';
   }
 
+  /**
+   * 回答者に応じて父／母欄の初期値をセット。
+   * force=true のときは回答者変更時に「なし」側を上書き。
+   */
+  function applyRespondentDefaults(force){
+    if(trackInfo().form!=='family')return;
+    var role=getRespondent();
+    if(role!=='mother'&&role!=='father')return;
+    var field=role==='mother'?'father':'mother';
+    (data.days||[]).forEach(function(d){
+      var dt=d.activityDate;
+      var wrap=document.querySelector('.att-member[data-day="'+dt+'"]');
+      if(!wrap)return;
+      var onBlock=wrap.querySelector('.att-on-block');
+      if(!onBlock||onBlock.classList.contains('att-hidden'))return;
+      if(!force&&selectedMark(wrap,field,dt)!=='unset')return;
+      var btn=wrap.querySelector('button[data-mark-field="'+field+'"][data-date="'+dt+'"][data-mark="n"]');
+      if(!btn)return;
+      wrap.querySelectorAll('button[data-mark-field="'+field+'"][data-date="'+dt+'"]').forEach(function(x){x.className='';});
+      btn.className=markOnClass('n');
+    });
+  }
+
   function collectFamilyPayload(){
     var days={};
     (data.days||[]).forEach(function(d){
@@ -314,7 +448,12 @@
         };
       }
     });
-    return {days:days};
+    var role=getRespondent();
+    return {
+      days:days,
+      respondentRole:role,
+      roleSuffix:roleSuffixFromRespondent(role)
+    };
   }
 
   function collectMarksPayload(){
@@ -325,9 +464,12 @@
       if(!wrap)return;
       days[dt]=selectedMark(wrap,'dayMark',dt);
     });
-    var roleEl=$('att-role-suffix');
-    var roleSuffix=roleEl?String(roleEl.value||'').trim():'';
-    return {days:days, roleSuffix:roleSuffix};
+    var role=getRespondent();
+    return {
+      days:days,
+      respondentRole:role,
+      roleSuffix:roleSuffixFromRespondent(role)
+    };
   }
 
   function collectPayload(){
@@ -352,9 +494,14 @@
   function fillExisting(name){
     var prev=data.responses&&data.responses[name];
     if(!prev)return;
+    if(prev.respondentRole){
+      setRespondentUI(prev.respondentRole);
+      if(prev.respondentRole==='other'&&prev.roleSuffix&&prev.roleSuffix!=='その他'){
+        var oel=$('att-other-role');
+        if(oel)oel.value=String(prev.roleSuffix);
+      }
+    }
     if(trackInfo().form!=='family'){
-      var roleEl=$('att-role-suffix');
-      if(roleEl&&prev.roleSuffix!=null)roleEl.value=String(prev.roleSuffix||'');
       if(!prev.days)return;
       (data.days||[]).forEach(function(d){
         var dt=d.activityDate;
@@ -412,9 +559,12 @@
 
   function persistPrefsFromPayload(name, payload){
     var patch={memberName:name};
-    if(trackInfo().form==='marks'&&payload){
-      patch.roleSuffix=payload.roleSuffix!=null?String(payload.roleSuffix):'';
+    if(payload&&payload.respondentRole)patch.respondentRole=payload.respondentRole;
+    if(payload&&payload.respondentRole==='other'){
+      var oel=$('att-other-role');
+      patch.otherRoleLabel=oel?String(oel.value||'').trim():'';
     }
+    if(payload&&payload.roleSuffix!=null)patch.roleSuffix=String(payload.roleSuffix);
     if(trackInfo().form==='family'&&payload&&payload.days){
       Object.keys(payload.days).forEach(function(dt){
         var row=payload.days[dt];
@@ -437,9 +587,8 @@
       btn.textContent='送信中…';
       btn.classList.add('att-btn-busy');
     }else{
-      btn.disabled=isFormLocked();
-      btn.textContent='送信する';
       btn.classList.remove('att-btn-busy');
+      syncFormLock();
     }
   }
 
@@ -483,6 +632,20 @@
     await copyText(text);
   }
 
+  function postSubmitHint(role){
+    var el=$('att-post-hint');
+    if(!el)return;
+    if(trackInfo().form==='family'&&role==='father'){
+      el.textContent='続けて、親父 LINE の案内URLからも回答してください（父子家庭）。';
+      el.classList.remove('att-hidden');
+    }else if(trackInfo().form==='marks'&&role==='father'){
+      el.textContent='MG LINE（詳細）側も未回答なら、そちらの案内URLからも回答してください。';
+      el.classList.remove('att-hidden');
+    }else{
+      el.textContent='';
+    }
+  }
+
   async function load(){
     var c=ensureClient();
     if(!c)return;
@@ -490,7 +653,7 @@
     setStatus('読み込み中…');
     data=await c.load(sid);
     render();
-    setStatus('選手名を選んで回答を始めてください');
+    setStatus('選手名と回答者を選んで回答を始めてください');
   }
 
   async function submit(){
@@ -498,10 +661,19 @@
     var c=ensureClient();
     if(!c)return;
     var name=($('att-pick')&&$('att-pick').value)||'';
+    var role=getRespondent();
     if(!name){
       setStatus('先に選手名を選んでください', true);
       var pick=$('att-pick');
       if(pick)pick.focus();
+      return;
+    }
+    if(!role){
+      setStatus('回答者（父／母／その他）を選んでください', true);
+      return;
+    }
+    if(isMotherOnMarksTrack(role)){
+      setStatus('母子家庭の方は親父 LINE への回答は不要です。MG LINE から回答してください。', true);
       return;
     }
     var payload=collectPayload();
@@ -516,17 +688,20 @@
       persistPrefsFromPayload(name, payload);
       render();
       if($('att-pick'))$('att-pick').value=name;
-      unlockForm();
+      if(payload.respondentRole)setRespondentUI(payload.respondentRole);
       fillExisting(name);
       applyPrefsToForm();
+      applyRespondentDefaults(false);
+      syncFormLock();
       var t=trackInfo();
       var text=t.form==='family'
         ? F.formatFamilyLine(name, data.days, payload)
-        : F.formatMarksLine(name, data.days, payload, (payload&&payload.roleSuffix)!=null?payload.roleSuffix:(t.role||''));
+        : F.formatMarksLine(name, data.days, payload, payload.roleSuffix||'');
       var result=$('att-result');
       var out=$('att-line-out');
       if(result)result.classList.remove('att-hidden');
       if(out)out.textContent=text;
+      postSubmitHint(role);
       setStatus('受け付けました。下の投稿文をコピーしてLINEへ貼ってください');
       if(result&&result.scrollIntoView){
         setTimeout(function(){result.scrollIntoView({behavior:'smooth', block:'start'});}, 50);
@@ -539,25 +714,51 @@
   function onPickChanged(){
     var pick=$('att-pick');
     var name=pick?pick.value:'';
-    if(!name){
-      lockForm();
-      setStatus('選手名を選んで回答を始めてください');
-      return;
+    if(name){
+      savePrefs({memberName:name});
+      fillExisting(name);
+      applyPrefsToForm();
+      applyRespondentDefaults(false);
     }
-    unlockForm();
-    savePrefs({memberName:name});
-    fillExisting(name);
-    applyPrefsToForm();
-    setStatus(name+' の回答を入力できます');
+    syncFormLock();
+    if(!name)setStatus('選手名と回答者を選んで回答を始めてください');
+    else if(!getRespondent())setStatus('回答者（父／母／その他）を選んでください');
+    else if(isMotherOnMarksTrack(getRespondent()))setStatus('母子家庭の方はこのフォームへの回答は不要です', true);
+    else setStatus(name+' の回答を入力できます');
+  }
+
+  function onRespondentChosen(role){
+    setRespondentUI(role);
+    var patch={respondentRole:role};
+    if(role==='other'){
+      var oel=$('att-other-role');
+      patch.otherRoleLabel=oel?String(oel.value||'').trim():'';
+    }
+    savePrefs(patch);
+    applyRespondentDefaults(true);
+    syncFormLock();
+    var name=($('att-pick')&&$('att-pick').value)||'';
+    if(isMotherOnMarksTrack(role))setStatus('母子家庭の方はこのフォームへの回答は不要です', true);
+    else if(name)setStatus(name+' の回答を入力できます');
+    else setStatus('選手名を選んでください');
   }
 
   document.addEventListener('DOMContentLoaded', function(){
     $('att-main').addEventListener('change', function(ev){
-      if(ev.target&&ev.target.id==='att-pick')onPickChanged();
+      if(!ev.target)return;
+      if(ev.target.id==='att-pick')onPickChanged();
+      if(ev.target.id==='att-other-role'){
+        savePrefs({otherRoleLabel:String(ev.target.value||'').trim()});
+      }
     });
     $('att-main').addEventListener('click', function(ev){
       var t=ev.target;
       if(!t)return;
+      var resp=t.closest?t.closest('button.att-respondent'):null;
+      if(resp){
+        onRespondentChosen(resp.getAttribute('data-respondent')||'');
+        return;
+      }
       if(t.id==='att-submit'||(t.closest&&t.closest('#att-submit'))){
         submit().catch(function(e){
           setStatus(jaErr(e), true);
