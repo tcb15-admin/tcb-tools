@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja" data-cohort="{{COHORT_KEY}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>{{TEAM_NAME}} 配車管理</title>
+<meta name="theme-color" content="#122050">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="carpool.css">
+</head>
+<body class="cp-body">
+<header class="cp-hdr">
+  <h1>配車管理<span>{{TEAM_NAME}}</span></h1>
+  <a class="cp-hdr-link" href="../portal/">ポータル</a>
+</header>
+
+<div id="cp-pw" class="cp-pw">
+  <div class="cp-pw-card">
+    <h2>配車管理ログイン</h2>
+    <input id="cp-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
+    <button type="button" id="cp-pw-btn" class="cp-btn cp-btn-primary" style="width:100%">入る</button>
+    <p id="cp-pw-err" class="cp-status err"></p>
+  </div>
+</div>
+
+<main class="cp-wrap">
+  <section class="cp-card">
+    <h2>配車表を作成</h2>
+    <p class="cp-meta">出欠（MG）の車情報を候補として取り込み、現行PDFに近い表を手組みします。</p>
+    <div class="cp-field"><label for="cp-title">タイトル</label><input id="cp-title" maxlength="120" placeholder="例: 15期 配車表" value="{{TEAM_SHORT_NAME}} 配車表"></div>
+    <div class="cp-row">
+      <div class="cp-field"><label for="cp-date">日付</label><input id="cp-date" type="date"></div>
+      <div class="cp-field"><label for="cp-camp">出欠（任意）</label><select id="cp-camp"><option value="">（選ばない）</option></select></div>
+    </div>
+    <div class="cp-row">
+      <div class="cp-field"><label for="cp-from">出発地</label><input id="cp-from" placeholder="例: 東海市役所"></div>
+      <div class="cp-field"><label for="cp-to">到着地</label><input id="cp-to" placeholder="例: 渥美球場"></div>
+    </div>
+    <div class="cp-row" style="margin-top:10px">
+      <button type="button" id="cp-btn-create" class="cp-btn cp-btn-primary">作成</button>
+      <button type="button" id="cp-btn-refresh" class="cp-btn cp-btn-ghost">再読込</button>
+    </div>
+  </section>
+
+  <section class="cp-card">
+    <h2>配車表一覧</h2>
+    <div id="cp-list"></div>
+  </section>
+
+  <p id="cp-detail-empty" class="cp-meta">一覧から選ぶと編集できます。</p>
+
+  <section id="cp-detail" class="cp-hidden">
+    <div class="cp-card">
+      <h2 id="cp-d-title">配車表</h2>
+      <div class="cp-row">
+        <div class="cp-field"><label for="cp-d-title-inp">タイトル</label><input id="cp-d-title-inp"></div>
+        <div class="cp-field"><label for="cp-d-date">日付</label><input id="cp-d-date" type="date"></div>
+      </div>
+      <div class="cp-row">
+        <div class="cp-field"><label for="cp-d-from">出発地</label><input id="cp-d-from"></div>
+        <div class="cp-field"><label for="cp-d-to">到着地</label><input id="cp-d-to"></div>
+      </div>
+      <div class="cp-counts" id="cp-counts"></div>
+      <div class="cp-row" style="margin-top:10px">
+        <button type="button" id="cp-btn-save" class="cp-btn cp-btn-primary">保存</button>
+        <button type="button" id="cp-btn-add-row" class="cp-btn cp-btn-ghost">行を追加</button>
+        <button type="button" id="cp-btn-load-cand" class="cp-btn cp-btn-ghost">MG候補を取込</button>
+        <button type="button" id="cp-btn-pdf" class="cp-btn cp-btn-line">PDF出力</button>
+      </div>
+      <p id="cp-cand-box" class="cp-cand cp-hidden"></p>
+    </div>
+
+    <div class="cp-card cp-table-card">
+      <div class="cp-table-scroll">
+        <table class="cp-table" id="cp-table">
+          <thead>
+            <tr>
+              <th>順</th><th>分類</th><th>車種</th><th>担当</th><th>運転手</th><th>助手席</th>
+              <th>後部①</th><th>後部②</th><th>後部③</th><th>後部④</th><th>後部⑤</th><th>備考</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="cp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="cp-print" class="cp-print" aria-hidden="true"></div>
+  </section>
+
+  <p id="cp-status" class="cp-status"></p>
+</main>
+
+<script>
+window.TCB_CP_CFG={
+  cohort:{{COHORT_KEY_JSON}},
+  apiBase:{{SYNC_API_BASE_URL_JSON}},
+  apiToken:{{SYNC_API_TOKEN_JSON}},
+  initialPw:{{INITIAL_PW_JSON}},
+  lsPrefix:{{LS_PREFIX_JSON}},
+  teamName:{{TEAM_NAME_JSON}},
+  teamShort:{{TEAM_SHORT_NAME_JSON}}
+};
+</script>
+<script src="../tcb-sync-api.js"></script>
+<!-- PDF: 道具ツールと同じ個別3ファイル（bundle版は使わない） -->
+<script src="../jspdf.umd.min.js"></script>
+<script src="../html2canvas.min.js"></script>
+<script src="../html2pdf.min.js"></script>
+<script src="carpool-staff.js"></script>
+</body>
+</html>

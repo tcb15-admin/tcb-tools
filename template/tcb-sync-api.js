@@ -140,6 +140,25 @@
         var q='/api/attendance/cross-events?cohort='+encodeURIComponent(cohort);
         if(since)q+='&since='+encodeURIComponent(since);
         return req(q,'GET');
+      },
+      listCarpoolSheets:function(){
+        return req('/api/carpool/sheets?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      getCarpoolSheet:function(id){
+        return req('/api/carpool/sheet?cohort='+encodeURIComponent(cohort)+'&id='+encodeURIComponent(id||''),'GET');
+      },
+      upsertCarpoolSheet:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/carpool/sheets','POST',payload);
+      },
+      getCarpoolCandidates:function(campaignId, date){
+        return req(
+          '/api/carpool/candidates?cohort='+encodeURIComponent(cohort)
+            +'&campaignId='+encodeURIComponent(campaignId||'')
+            +'&date='+encodeURIComponent(date||''),
+          'GET'
+        );
       }
     };
   }
