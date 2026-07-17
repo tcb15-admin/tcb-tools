@@ -167,8 +167,13 @@
       el.className='att-respondent-guide att-guide-info';
       return;
     }
-    if(trackInfo().form==='family'&&(role==='mother'||role==='father')){
-      el.textContent='いない側は「― なし」になります。必要なら変更できます。';
+    if(trackInfo().form==='family'&&role==='mother'){
+      el.textContent='「父側の保護者」は自動で「なし」にしています。父も来る場合は変更してください。';
+      el.className='att-respondent-guide att-guide-info';
+      return;
+    }
+    if(trackInfo().form==='family'&&role==='father'){
+      el.textContent='「母側の保護者」は自動で「なし」にしています。母も来る場合は変更してください。';
       el.className='att-respondent-guide att-guide-info';
       return;
     }
