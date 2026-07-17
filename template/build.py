@@ -147,8 +147,8 @@ def build_portal_and_attendance(target, config, out_dir):
 
     # 出欠トラック設定（チーム固有の呼称・フォーム種別は config で上書き可能）
     att_defaults = {
-        'ATT_TRACK_A_LABEL': 'MG LINE（詳細）',
-        'ATT_TRACK_B_LABEL': '親父 LINE（簡易）',
+        'ATT_TRACK_A_LABEL': 'MG LINE',
+        'ATT_TRACK_B_LABEL': '親父 LINE',
         'ATT_TRACK_A_SHORT': 'MG',
         'ATT_TRACK_B_SHORT': '親父',
         'ATT_TRACK_A_FORM': 'family',
