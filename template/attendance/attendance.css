@@ -113,8 +113,7 @@ body.att-body{
 .att-pw{
   position:fixed;inset:0;background:rgba(18,32,80,.72);display:flex;align-items:center;justify-content:center;z-index:100;
 }
-.att-pw-card{background:#fff;border-radius:16px;padding:28px 20px;width:92%;max-width:360px;text-align:center;}
-.att-pw-card{color:var(--att-txt);}
+.att-pw-card{background:var(--att-card);border-radius:16px;padding:28px 20px;width:92%;max-width:360px;text-align:center;color:var(--att-txt);}
 .att-pw-card h2{font-size:16px;margin-bottom:12px;color:var(--att-heading);}
 .att-pw-card input{width:100%;min-height:46px;border:1px solid var(--att-bdr);border-radius:10px;padding:10px;font:inherit;font-size:16px;margin-bottom:10px;background:var(--att-card);color:var(--att-txt);}
 .att-hidden{display:none !important;}
