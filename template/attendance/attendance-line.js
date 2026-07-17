@@ -12,6 +12,7 @@
     if(m==='o')return '◯';
     if(m==='x')return '✕';
     if(m==='t')return '△';
+    if(m==='n')return '―'; /* なし／該当なし（ひとり親など） */
     return '―';
   }
 
@@ -73,12 +74,15 @@
     return lines.join('\n');
   }
 
-  /** 簡易（marks）フォームの投稿文。15期 親父 LINE の現行書式を踏襲 */
+  /** 簡易（marks）フォームの投稿文。15期 親父 LINE の現行書式を踏襲（続柄は任意） */
   function formatMarksLine(memberName, days, payload, roleSuffix){
     var p=payload&&payload.days?payload.days:{};
+    var role=(payload&&payload.roleSuffix!=null&&String(payload.roleSuffix)!=='')
+      ? String(payload.roleSuffix).trim()
+      : String(roleSuffix||'').trim();
     var lines=[];
     lines.push('おはようございます。');
-    lines.push(shortName(memberName)+(roleSuffix?'　'+roleSuffix:''));
+    lines.push(shortName(memberName)+(role?'　'+role:''));
     (days||[]).forEach(function(d){
       var dt=d.activityDate;
       lines.push(dayHead(dt)+' '+markChar(p[dt]));
@@ -101,6 +105,7 @@
     lines.push(url||'（URL未発行）');
     lines.push('');
     lines.push('回答後、生成される文面をこのグループへ投稿してください。');
+    lines.push('※保護者のどなたでも回答できます（ひとり親のご家庭も含みます）。');
     if(extraNote)lines.push(extraNote);
     return lines.join('\n');
   }

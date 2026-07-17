@@ -88,7 +88,9 @@ body.att-body{
 .att-seg button.is-on-in{background:#e7f5ea;border-color:#9ccc9f;color:var(--att-grn);}
 .att-seg button.is-on-out{background:#fdecec;border-color:#e6a3a3;color:var(--att-red);}
 .att-seg button.is-on-maybe{background:#fff8e1;border-color:#f0d78c;color:#9a7b0a;}
+.att-seg button.is-on-none{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-txt2);}
 .att-seg button.is-on-unset{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-navy);}
+.att-hint-inline{font-weight:500;color:var(--att-txt2);font-size:12px;}
 .att-preview{
   white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.65;
   background:#f2f2f5;border-radius:12px;padding:12px;max-height:280px;overflow:auto;
@@ -139,4 +141,5 @@ body.att-body{
   .att-seg button.is-on-in{background:#14301c;border-color:#2e7d32;color:#30d158;}
   .att-seg button.is-on-out{background:#3a1e1e;border-color:#7a3a3a;color:#ff9ea2;}
   .att-seg button.is-on-maybe{background:#3a3210;border-color:#9a7b0a;color:#ffd60a;}
+  .att-seg button.is-on-none{background:#2c2c2e;border-color:#48484a;color:#a1a1ac;}
 }

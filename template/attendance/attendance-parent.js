@@ -72,14 +72,25 @@
     }catch(e){}
   }
 
-  function markBtns(name, current, datescope){
+  function markOnClass(m){
+    if(m==='o')return 'is-on-in';
+    if(m==='x')return 'is-on-out';
+    if(m==='t')return 'is-on-maybe';
+    if(m==='n')return 'is-on-none';
+    return '';
+  }
+
+  /** allowNone: ひとり親向け「― なし」（父／母欄のみ） */
+  function markBtns(name, current, datescope, allowNone){
     var cur=current||'unset';
-    return [
+    var items=[
       {m:'o', label:'◯ 出'},
       {m:'t', label:'△ 未定'},
       {m:'x', label:'✕ 欠'}
-    ].map(function(item){
-      var on=cur===item.m?' is-on-'+(item.m==='o'?'in':(item.m==='x'?'out':'maybe')):'';
+    ];
+    if(allowNone)items.push({m:'n', label:'― なし'});
+    return items.map(function(item){
+      var on=cur===item.m?' '+markOnClass(item.m):'';
       return '<button type="button" class="'+on.trim()+'" data-mark-field="'+name+'" data-mark="'+item.m+'" data-date="'+esc(datescope||'')+'">'+item.label+'</button>';
     }).join('');
   }
@@ -107,11 +118,19 @@
 
     var note=(t.form==='family')
       ? '① 選手を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。車種などは前回の入力を覚えます。'
-      : '① 選手を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'+(t.note?'\n'+t.note:'');
+        +(t.note?'\n'+t.note:'\n※ひとり親・どちらか一方だけのご家庭は、いない方を「― なし」にしてください。')
+      : '① 選手を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
+        +(t.note?'\n'+t.note:'\n※保護者のどなたでも回答できます。');
 
     var daysHtml=(data.days||[]).map(function(d){
       return t.form==='family'?renderFamilyDay(d):renderMarksDay(d);
     }).join('');
+
+    var roleBlock=t.form==='marks'
+      ? '<div class="att-field" style="margin-top:10px"><label for="att-role-suffix">続柄（任意）</label>'
+        +'<input id="att-role-suffix" maxlength="20" placeholder="例: 父／母　空欄でも可" value="'+esc(prefs.roleSuffix!=null?prefs.roleSuffix:(t.role||''))+'" autocomplete="off">'
+        +'<p class="att-act-meta" style="margin-top:4px">投稿文の名前の後ろに付きます。不要なら空欄のまま。</p></div>'
+      : '';
 
     $('att-main').innerHTML=
       '<div class="att-card"><h2>'+esc(title)+'</h2>'
@@ -122,6 +141,7 @@
       +'<div class="att-step"><span class="att-step-num">1</span><label for="att-pick">選手名を選ぶ</label></div>'
       +'<select id="att-pick" class="att-pick" aria-label="選手名"><option value="">選択してください</option>'+opts+'</select>'
       +'<p id="att-pick-hint" class="att-act-meta">選手を選ぶと、下の入力欄が使えます。</p>'
+      +roleBlock
       +'</div>'
       +'<div id="att-form-panel" class="att-form-panel att-form-locked" aria-disabled="true">'
       +'<div class="att-card">'
@@ -186,15 +206,17 @@
       +'<button type="button" class="att-mode" data-mode="off" data-date="'+esc(dt)+'">休み</button>'
       +'</div>'
       +'<div class="att-on-block" data-date="'+esc(dt)+'">'
-      +'<p class="att-act-meta">①父</p><div class="att-seg">'+markBtns('father','unset',dt)+'</div>'
-      +'<p class="att-act-meta">①母</p><div class="att-seg">'+markBtns('mother','unset',dt)+'</div>'
+      +'<p class="att-act-meta">①父側の保護者 <span class="att-hint-inline">いない場合は「なし」</span></p>'
+      +'<div class="att-seg">'+markBtns('father','unset',dt,true)+'</div>'
+      +'<p class="att-act-meta">①母側の保護者 <span class="att-hint-inline">いない場合は「なし」</span></p>'
+      +'<div class="att-seg">'+markBtns('mother','unset',dt,true)+'</div>'
       +'<div class="att-field"><label>②兄弟</label><input data-f="siblings" data-date="'+esc(dt)+'" value="なし" autocomplete="off"></div>'
       +'<div class="att-field"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―" autocomplete="off"></div>'
-      +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+markBtns('carOk','unset',dt)+'</div>'
+      +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+markBtns('carOk','unset',dt,false)+'</div>'
       +'<div class="att-field"><label>④車種</label><input data-f="carModel" data-date="'+esc(dt)+'" placeholder="例: RAV4" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑤乗車可能人数</label><input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2" autocomplete="off"></div>'
-      +'<div class="att-field"><label>⑥送り</label><input data-f="send" data-date="'+esc(dt)+'" placeholder="例: 父（RAV4）" autocomplete="off"></div>'
-      +'<div class="att-field"><label>⑦迎え</label><input data-f="pickup" data-date="'+esc(dt)+'" placeholder="例: 父（RAV4）" autocomplete="off"></div>'
+      +'<div class="att-field"><label>⑥送り</label><input data-f="send" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖母 など" autocomplete="off"></div>'
+      +'<div class="att-field"><label>⑦迎え</label><input data-f="pickup" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖父 など" autocomplete="off"></div>'
       +'</div>'
       +'<div class="att-off-block att-hidden" data-date="'+esc(dt)+'">'
       +'<div class="att-field"><label>休みの理由</label><input data-f="offNote" data-date="'+esc(dt)+'" placeholder="例: 学校行事" autocomplete="off"></div>'
@@ -241,7 +263,7 @@
           if(b.getAttribute('data-date')===dt)b.className='';
         });
         var m=btn.getAttribute('data-mark');
-        btn.className='is-on-'+(m==='o'?'in':(m==='x'?'out':'maybe'));
+        btn.className=markOnClass(m);
       });
     });
   }
@@ -252,7 +274,12 @@
   }
 
   function selectedMark(wrap, field, dt){
-    var on=wrap.querySelector('button[data-mark-field="'+field+'"][data-date="'+dt+'"].is-on-in,button[data-mark-field="'+field+'"][data-date="'+dt+'"].is-on-out,button[data-mark-field="'+field+'"][data-date="'+dt+'"].is-on-maybe');
+    var on=wrap.querySelector(
+      'button[data-mark-field="'+field+'"][data-date="'+dt+'"].is-on-in,'
+      +'button[data-mark-field="'+field+'"][data-date="'+dt+'"].is-on-out,'
+      +'button[data-mark-field="'+field+'"][data-date="'+dt+'"].is-on-maybe,'
+      +'button[data-mark-field="'+field+'"][data-date="'+dt+'"].is-on-none'
+    );
     if(!on)return 'unset';
     return on.getAttribute('data-mark')||'unset';
   }
@@ -298,7 +325,9 @@
       if(!wrap)return;
       days[dt]=selectedMark(wrap,'dayMark',dt);
     });
-    return {days:days};
+    var roleEl=$('att-role-suffix');
+    var roleSuffix=roleEl?String(roleEl.value||'').trim():'';
+    return {days:days, roleSuffix:roleSuffix};
   }
 
   function collectPayload(){
@@ -322,8 +351,11 @@
 
   function fillExisting(name){
     var prev=data.responses&&data.responses[name];
-    if(!prev||!prev.days)return;
+    if(!prev)return;
     if(trackInfo().form!=='family'){
+      var roleEl=$('att-role-suffix');
+      if(roleEl&&prev.roleSuffix!=null)roleEl.value=String(prev.roleSuffix||'');
+      if(!prev.days)return;
       (data.days||[]).forEach(function(d){
         var dt=d.activityDate;
         var mk=prev.days[dt];
@@ -333,6 +365,7 @@
       });
       return;
     }
+    if(!prev.days)return;
     (data.days||[]).forEach(function(d){
       var dt=d.activityDate;
       var row=prev.days[dt];
@@ -379,6 +412,9 @@
 
   function persistPrefsFromPayload(name, payload){
     var patch={memberName:name};
+    if(trackInfo().form==='marks'&&payload){
+      patch.roleSuffix=payload.roleSuffix!=null?String(payload.roleSuffix):'';
+    }
     if(trackInfo().form==='family'&&payload&&payload.days){
       Object.keys(payload.days).forEach(function(dt){
         var row=payload.days[dt];
@@ -486,7 +522,7 @@
       var t=trackInfo();
       var text=t.form==='family'
         ? F.formatFamilyLine(name, data.days, payload)
-        : F.formatMarksLine(name, data.days, payload, t.role||'');
+        : F.formatMarksLine(name, data.days, payload, (payload&&payload.roleSuffix)!=null?payload.roleSuffix:(t.role||''));
       var result=$('att-result');
       var out=$('att-line-out');
       if(result)result.classList.remove('att-hidden');
