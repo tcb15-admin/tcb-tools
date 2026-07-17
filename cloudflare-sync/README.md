@@ -122,6 +122,28 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 - `POST /api/swap-reports/handle` … MGR 反映/却下（Bearer）
 - `POST /api/push/subscribe` … MGR Web Push 購読登録（Bearer）
 
+### 出欠（Phase 1 / 2トラック汎用設計）
+
+マイグレーション: `migrate_attendance.sql`（**旧テーブルは置き換え**）
+
+トラックは汎用キー **a / b**（15期は a=MG LINE・b=親父 LINE）。チーム固有の呼称・フォーム種別（family=家族詳細／marks=◯△✕）は **フロント config（`ATT_TRACK_*`）** で注入し、DB・API には持ち込まない（多チーム展開対応）。
+
+- `GET /api/attendance/campaigns?cohort=` … キャンペーン一覧（Bearer）
+- `POST /api/attendance/campaigns` … 作成／更新。body: `{cohort, id?, title, memo?, status?, days:[{activityDate,startTime?,place?,kind?}]}`
+- `GET /api/attendance/campaign?cohort=&id=` … 詳細＋トラック別回答（Bearer）
+- `POST /api/attendance/publish` … shareId 発行。body: `{cohort, id, track?:a|b|both, rotate?}` → `shareIdA` / `shareIdB`
+- `POST /api/attendance/campaign-status` … 受付 open/closed。body: `{cohort, id, status}`
+- `POST /api/attendance/response` … スタッフ代理回答（Bearer）。body: `{cohort, campaignId, memberName, track, payload}`
+- `GET /api/attendance/cross-events?cohort=&since=` … 相互影響イベント（Bearer）
+- `GET /api/public/attendance?sid=` … 保護者（トークン不要）。sid がどちらのトラックかで track 判定
+- `POST /api/public/attendance-response` … 保護者回答。body: `{sid, memberName, payload}`
+
+フロント:
+
+- `{世代}/portal/index.html`
+- `{世代}/attendance/index.html` … 出欠スタッフ
+- `{世代}/attendance/kaito.html?sid=` … 保護者（トラックは sid で切替）
+
 ## 10. 競合と上書きルール
 
 - マスタ保存は `expectedVersion` で楽観ロック（競合時 `version_conflict`）

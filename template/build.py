@@ -18,6 +18,9 @@ import json, os, sys, re, shutil
 TEMPLATE_FILE = 'template/tool_template.html'
 PARENT_TEMPLATE_FILE = 'template/parent_view_template.html'
 PARENT_OUTPUT_NAME = 'kakunin.html'
+ATT_STAFF_TEMPLATE = 'template/attendance/staff_template.html'
+ATT_PARENT_TEMPLATE = 'template/attendance/parent_template.html'
+PORTAL_TEMPLATE = 'template/portal/portal_template.html'
 MASTER_BLOCK_START = '/*DEFAULT_MASTER_BLOCK*/'
 MASTER_BLOCK_END = '/*END_DEFAULT_MASTER_BLOCK*/'
 CONFIGS = {
@@ -120,6 +123,136 @@ def build_manifest(target, config, out_dir):
     return True
 
 
+def pages_base_url(config):
+    pages_base = str(config.get('PAGES_BASE_URL', '') or '').rstrip('/')
+    if pages_base:
+        return pages_base
+    manual = str(config.get('MANUAL_URL', '') or '')
+    if '/docs/' in manual:
+        return manual.split('/docs/')[0].rstrip('/')
+    return ''
+
+
+def apply_placeholders(html, mapping):
+    for key, val in mapping.items():
+        html = html.replace('{{' + key + '}}', str(val))
+    remaining = re.findall(r'\{\{[^}]+\}\}', html)
+    return html, remaining
+
+
+def build_portal_and_attendance(target, config, out_dir):
+    """ポータルと出欠アプリ（スタッフ／保護者）を世代ディレクトリへ出力。"""
+    pages_base = pages_base_url(config)
+    cohort = str(config.get('COHORT_KEY', ''))
+
+    # 出欠トラック設定（チーム固有の呼称・フォーム種別は config で上書き可能）
+    att_defaults = {
+        'ATT_TRACK_A_LABEL': 'MG LINE（母）',
+        'ATT_TRACK_B_LABEL': '親父 LINE（父）',
+        'ATT_TRACK_A_SHORT': 'MG',
+        'ATT_TRACK_B_SHORT': '親父',
+        'ATT_TRACK_A_FORM': 'family',
+        'ATT_TRACK_B_FORM': 'marks',
+        'ATT_TRACK_B_ROLE': '父',
+        'ATT_TRACK_A_NOTE': '',
+        'ATT_TRACK_B_NOTE': '※当面は LINEスケジュールへの回答も従来どおりお願いします。',
+    }
+    att = {k: str(config.get(k, v)) for k, v in att_defaults.items()}
+    tracks = {
+        'a': {
+            'label': att['ATT_TRACK_A_LABEL'],
+            'short': att['ATT_TRACK_A_SHORT'],
+            'form': att['ATT_TRACK_A_FORM'],
+            'role': '',
+            'note': att['ATT_TRACK_A_NOTE'],
+        },
+        'b': {
+            'label': att['ATT_TRACK_B_LABEL'],
+            'short': att['ATT_TRACK_B_SHORT'],
+            'form': att['ATT_TRACK_B_FORM'],
+            'role': att['ATT_TRACK_B_ROLE'],
+            'note': att['ATT_TRACK_B_NOTE'],
+        },
+    }
+
+    mapping = {
+        'COHORT_KEY': cohort,
+        'COHORT_LABEL': str(config.get('COHORT_LABEL', '')),
+        'TEAM_NAME': str(config.get('TEAM_NAME', '')),
+        'TEAM_SHORT_NAME': str(config.get('TEAM_SHORT_NAME', '')),
+        'SYNC_API_BASE_URL': str(config.get('SYNC_API_BASE_URL', '')),
+        'TOOL_VERSION': str(config.get('TOOL_VERSION', '')),
+        'INITIAL_PW': str(config.get('INITIAL_PW', '')),
+        'LS_PREFIX': str(config.get('LS_PREFIX', '')),
+        'PAGES_BASE_URL': pages_base,
+        'COHORT_KEY_JSON': json.dumps(cohort, ensure_ascii=False),
+        'TEAM_NAME_JSON': json.dumps(str(config.get('TEAM_NAME', '')), ensure_ascii=False),
+        'SYNC_API_BASE_URL_JSON': json.dumps(str(config.get('SYNC_API_BASE_URL', '')), ensure_ascii=False),
+        'SYNC_API_TOKEN_JSON': json.dumps(str(config.get('SYNC_API_TOKEN', '')), ensure_ascii=False),
+        'INITIAL_PW_JSON': json.dumps(str(config.get('INITIAL_PW', '')), ensure_ascii=False),
+        'LS_PREFIX_JSON': json.dumps(str(config.get('LS_PREFIX', '')), ensure_ascii=False),
+        'PAGES_BASE_URL_JSON': json.dumps(pages_base, ensure_ascii=False),
+        'ATT_TRACKS_JSON': json.dumps(tracks, ensure_ascii=False),
+    }
+    mapping.update(att)
+
+    portal_dir = os.path.join(out_dir, 'portal')
+    att_dir = os.path.join(out_dir, 'attendance')
+    os.makedirs(portal_dir, exist_ok=True)
+    os.makedirs(att_dir, exist_ok=True)
+
+    # ポータル
+    if os.path.exists(PORTAL_TEMPLATE):
+        with open(PORTAL_TEMPLATE, encoding='utf-8') as f:
+            html = f.read()
+        html, rem = apply_placeholders(html, mapping)
+        if rem:
+            print(f'[WARN] {target}(portal): 未置換 {set(rem)}')
+        with open(os.path.join(portal_dir, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(html)
+        print(f'[OK] {target}(portal) → {portal_dir}/index.html')
+
+    # 出欠スタッフ（トークン埋め込みあり・Git に平文を載せない運用は既存と同様）
+    if os.path.exists(ATT_STAFF_TEMPLATE):
+        with open(ATT_STAFF_TEMPLATE, encoding='utf-8') as f:
+            html = f.read()
+        html, rem = apply_placeholders(html, mapping)
+        if rem:
+            print(f'[WARN] {target}(attendance staff): 未置換 {set(rem)}')
+        with open(os.path.join(att_dir, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(html)
+        print(f'[OK] {target}(attendance) → {att_dir}/index.html')
+
+    # 出欠保護者（トークンを絶対に埋め込まない）
+    if os.path.exists(ATT_PARENT_TEMPLATE):
+        with open(ATT_PARENT_TEMPLATE, encoding='utf-8') as f:
+            html = f.read()
+        if 'SYNC_API_TOKEN' in html or 'apiToken' in html:
+            print(f'[ERROR] {target}: 出欠保護者ページにトークン参照があります。中止します。')
+            return False
+        html, rem = apply_placeholders(html, mapping)
+        if rem:
+            print(f'[WARN] {target}(attendance parent): 未置換 {set(rem)}')
+        with open(os.path.join(att_dir, 'kaito.html'), 'w', encoding='utf-8') as f:
+            f.write(html)
+        print(f'[OK] {target}(attendance parent) → {att_dir}/kaito.html')
+
+    # 出欠アセット
+    att_assets = (
+        'attendance.css',
+        'attendance-staff.js',
+        'attendance-parent.js',
+        'attendance-line.js',
+    )
+    att_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'attendance')
+    for name in att_assets:
+        src = os.path.join(att_src_dir, name)
+        if os.path.isfile(src):
+            shutil.copy2(src, os.path.join(att_dir, name))
+
+    return True
+
+
 def build_parent_view(target, config, out_dir):
     """保護者向け確認ページ（kakunin.html）を生成。トークンは絶対に埋め込まない。"""
     if not os.path.exists(PARENT_TEMPLATE_FILE):
@@ -135,11 +268,7 @@ def build_parent_view(target, config, out_dir):
 
     html = html.replace('{{HTML_BODY_CLASS}}', html_body_class(config))
 
-    pages_base = str(config.get('PAGES_BASE_URL', '') or '').rstrip('/')
-    if not pages_base:
-        manual = str(config.get('MANUAL_URL', '') or '')
-        if '/docs/' in manual:
-            pages_base = manual.split('/docs/')[0].rstrip('/')
+    pages_base = pages_base_url(config)
     html = html.replace('{{PAGES_BASE_URL}}', pages_base)
 
     parent_keys = [
@@ -267,6 +396,9 @@ def build(target):
 
     # 保護者向け確認ページ（案2 Step2-1）
     build_parent_view(target, config, out_dir)
+
+    # 役割ポータル＋出欠アプリ
+    build_portal_and_attendance(target, config, out_dir)
     return True
 
 

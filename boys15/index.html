@@ -1210,6 +1210,7 @@ html{color-scheme:light;}
       <button class="hbtn tcbpush-hbtn" id="btn-push-notify" style="display:none;" title="新着交代報告をプッシュ通知で受け取る">&#128276; 通知</button>
       <button class="hbtn tcb-pwa-hbtn" id="btn-pwa-install" type="button" title="iPhone/iPad のホーム画面に追加する手順"><span class="tcb-hdr-lbl-full">&#128242; ホーム画面に追加</span><span class="tcb-hdr-lbl-short">&#128242; 追加</span></button>
       <a class="hbtn tcb-hdr-manual-link" id="hdr-manual-link" href="#" target="_blank" rel="noopener noreferrer" hidden aria-label="操作マニュアル（PDF）を開く"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg>マニュアル</a>
+      <a class="hbtn tcb-hdr-portal-link" id="hdr-portal-link" href="portal/" aria-label="役割ポータルを開く">ポータル</a>
     </div>
     <div id="tool-version" style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px;text-align:right;"></div>
   </div>
@@ -6959,7 +6960,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.7.4';
+  if(vEl)vEl.textContent='v1.8.4';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');

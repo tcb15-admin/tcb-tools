@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja" data-cohort="{{COHORT_KEY}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>{{TEAM_NAME}} 出欠回答</title>
+<meta name="theme-color" content="#122050">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="attendance.css">
+</head>
+<body class="att-body">
+<header class="att-hdr">
+  <h1 id="att-hdr-title">出欠回答<span>{{TEAM_NAME}}</span></h1>
+</header>
+<main class="att-wrap">
+  <div id="att-main"></div>
+  <p id="att-status" class="att-status"></p>
+</main>
+<script>
+window.TCB_ATT_CFG={
+  cohort:{{COHORT_KEY_JSON}},
+  apiBase:{{SYNC_API_BASE_URL_JSON}},
+  pagesBase:{{PAGES_BASE_URL_JSON}},
+  teamName:{{TEAM_NAME_JSON}},
+  tracks:{{ATT_TRACKS_JSON}}
+};
+</script>
+<script src="../tcb-sync-api.js"></script>
+<script src="attendance-line.js"></script>
+<script src="attendance-parent.js"></script>
+</body>
+</html>

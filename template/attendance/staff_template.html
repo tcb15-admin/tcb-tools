@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja" data-cohort="{{COHORT_KEY}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>{{TEAM_NAME}} 出欠管理</title>
+<meta name="theme-color" content="#122050">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="attendance.css">
+</head>
+<body class="att-body">
+<header class="att-hdr">
+  <h1>出欠管理<span>{{TEAM_NAME}} · {{ATT_TRACK_A_SHORT}}／{{ATT_TRACK_B_SHORT}} 2系統</span></h1>
+  <a class="att-hdr-link" href="../portal/">ポータル</a>
+</header>
+
+<div id="att-pw" class="att-pw">
+  <div class="att-pw-card">
+    <h2>出欠管理ログイン</h2>
+    <input id="att-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
+    <button type="button" id="att-pw-btn" class="att-btn att-btn-primary" style="width:100%">入る</button>
+    <p id="att-pw-err" class="att-status err"></p>
+  </div>
+</div>
+
+<main class="att-wrap">
+  <section class="att-card">
+    <h2>出欠キャンペーンを作成</h2>
+    <p class="att-act-meta" style="margin-bottom:10px">複数日をまとめて作成します（例: 土・日・月）。{{ATT_TRACK_A_SHORT}}用と{{ATT_TRACK_B_SHORT}}用で別URLを発行します。</p>
+    <form id="att-create-form">
+      <div class="att-field"><label for="att-title">タイトル</label><input id="att-title" maxlength="120" placeholder="例: 7月18日、19日、20日出欠確認" required></div>
+      <div class="att-field" style="margin-top:8px"><label for="att-memo">案内メモ</label><textarea id="att-memo" maxlength="500" placeholder="集合場所など（任意）"></textarea></div>
+      <div id="att-day-rows" style="margin-top:10px"></div>
+      <div class="att-row" style="margin-top:8px">
+        <button type="button" id="att-add-day" class="att-btn att-btn-ghost">日付を追加</button>
+        <button type="submit" class="att-btn att-btn-primary">作成</button>
+        <button type="button" id="att-btn-refresh" class="att-btn att-btn-ghost">再読込</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="att-card">
+    <h2>キャンペーン一覧</h2>
+    <div id="att-list"></div>
+  </section>
+
+  <p id="att-detail-empty" class="att-act-meta">一覧から選ぶと、各系統のURL・投稿文・回答状況を表示します。</p>
+
+  <section id="att-detail" class="att-hidden">
+    <div class="att-card">
+      <h2 id="att-d-title">詳細</h2>
+      <p id="att-d-meta" class="att-act-meta"></p>
+      <div id="att-d-counts" class="att-counts"></div>
+      <div class="att-row" style="margin-top:10px">
+        <button type="button" id="att-btn-publish" class="att-btn att-btn-primary">回答URLを発行</button>
+        <button type="button" id="att-btn-copy-a-inv" class="att-btn att-btn-line">{{ATT_TRACK_A_SHORT}}案内をコピー</button>
+        <button type="button" id="att-btn-copy-b-inv" class="att-btn att-btn-ghost">{{ATT_TRACK_B_SHORT}}案内をコピー</button>
+      </div>
+      <div class="att-row" style="margin-top:8px">
+        <button type="button" id="att-btn-remind-a" class="att-btn att-btn-ghost">{{ATT_TRACK_A_SHORT}}催促をコピー</button>
+        <button type="button" id="att-btn-remind-b" class="att-btn att-btn-ghost">{{ATT_TRACK_B_SHORT}}催促をコピー</button>
+        <button type="button" id="att-btn-toggle-status" class="att-btn att-btn-ghost">受付を終了する</button>
+      </div>
+      <p id="att-status-badge" class="att-act-meta" style="margin-top:8px"></p>
+      <p class="att-act-meta" style="margin-top:10px">{{ATT_TRACK_A_LABEL}} 回答URL</p>
+      <div id="att-url-a" class="att-preview"></div>
+      <p class="att-act-meta" style="margin-top:10px">{{ATT_TRACK_B_LABEL}} 回答URL</p>
+      <div id="att-url-b" class="att-preview"></div>
+    </div>
+    <div class="att-card">
+      <h2>回答状況</h2>
+      <div id="att-roster" class="att-roster"></div>
+    </div>
+  </section>
+
+  <p id="att-status" class="att-status"></p>
+</main>
+
+<script>
+window.TCB_ATT_CFG={
+  cohort:{{COHORT_KEY_JSON}},
+  apiBase:{{SYNC_API_BASE_URL_JSON}},
+  apiToken:{{SYNC_API_TOKEN_JSON}},
+  initialPw:{{INITIAL_PW_JSON}},
+  lsPrefix:{{LS_PREFIX_JSON}},
+  pagesBase:{{PAGES_BASE_URL_JSON}},
+  teamName:{{TEAM_NAME_JSON}},
+  tracks:{{ATT_TRACKS_JSON}}
+};
+</script>
+<script src="../tcb-sync-api.js"></script>
+<script src="attendance-line.js"></script>
+<script src="attendance-staff.js"></script>
+</body>
+</html>

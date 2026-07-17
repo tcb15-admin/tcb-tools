@@ -23,6 +23,8 @@
 |----------|----------|-----|------|
 | TCB-OPS-001 | [TCB-OPS-001_GitHub運用手順書_v1.7_source.txt](./TCB-OPS-001_GitHub運用手順書_v1.7_source.txt) | 1.9 | GitHub Pages・ビルド・マスタ同期の運用 |
 | TCB-SPEC-001 | [TCB-SPEC-001_仕様書_v1.5_source.txt](./TCB-SPEC-001_仕様書_v1.5_source.txt) | 1.11 | 開発・改修時の技術仕様 |
+| TCB-OPS-ATT-001 | [TCB-OPS-ATT-001_出欠試験運用手順.md](./TCB-OPS-ATT-001_出欠試験運用手順.md) | 1.0 | 出欠アプリ（MG／親父）試験運用 |
+| — | [15期出欠試験_通知文.md](./15期出欠試験_通知文.md) | — | 出欠試験の通知文テンプレート |
 
 ## 再ビルド手順
 

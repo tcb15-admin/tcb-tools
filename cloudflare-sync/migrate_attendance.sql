@@ -1,69 +1,23 @@
-CREATE TABLE IF NOT EXISTS tool_state (
-  cohort TEXT PRIMARY KEY,
-  version INTEGER NOT NULL DEFAULT 0,
-  master_json TEXT NOT NULL,
-  carryout_meta_json TEXT NOT NULL DEFAULT '{"byDate":{}}',
-  updated_at TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS history_events (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  cohort TEXT NOT NULL,
-  activity_date TEXT NOT NULL,
-  saved_at TEXT NOT NULL,
-  snap_json TEXT NOT NULL,
-  UNIQUE(cohort, activity_date)
-);
-
-CREATE INDEX IF NOT EXISTS idx_history_cohort_saved ON history_events(cohort, saved_at DESC);
-
--- 保護者向け確認ページ（案2 Step2-1）: 世代ごとに1本の固定 shareId で直近確定分を読み取り公開する
-CREATE TABLE IF NOT EXISTS published_days (
-  cohort TEXT PRIMARY KEY,
-  share_id TEXT NOT NULL UNIQUE,
-  view_json TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'active',
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_published_share ON published_days(share_id);
-
--- 交代報告機能（保護者→道具MGR）: 保護者確認画面から申請された担当交代の結果報告
-CREATE TABLE IF NOT EXISTS swap_reports (
-  id TEXT PRIMARY KEY,
-  cohort TEXT NOT NULL,
-  share_id TEXT NOT NULL,
-  day_key TEXT NOT NULL,
-  day_label TEXT NOT NULL DEFAULT '',
-  tool TEXT NOT NULL,
-  from_person TEXT NOT NULL,
-  to_person TEXT NOT NULL,
-  reporter TEXT,
-  comment TEXT,
-  status TEXT NOT NULL DEFAULT 'pending',
-  reject_code TEXT,
-  reject_reason TEXT,
-  created_at TEXT NOT NULL,
-  handled_at TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_swap_cohort_status ON swap_reports(cohort, status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_swap_share ON swap_reports(share_id, created_at DESC);
-
--- Web Push 購読（道具MGRのみ）: 新着交代報告のプッシュ通知
-CREATE TABLE IF NOT EXISTS push_subscriptions (
-  id TEXT PRIMARY KEY,
-  cohort TEXT NOT NULL,
-  endpoint TEXT NOT NULL UNIQUE,
-  p256dh TEXT NOT NULL,
-  auth TEXT NOT NULL,
-  created_at TEXT NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_push_cohort ON push_subscriptions(cohort);
-
 -- 出欠 Phase1（複数日キャンペーン・2トラック汎用設計）
+-- 適用例:
+--   npx wrangler d1 execute tcb-tools-sync --remote --file=./migrate_attendance.sql
+--
+-- 設計メモ（多チーム展開前提）:
+--   ・「MG LINE／親父 LINE」等のチーム固有の呼称は DB に持たない。
+--     トラックは汎用キー a / b で保持し、表示名・フォーム種別はフロント config で注入する。
+--   ・cohort はテナントキー（現在は 15/16。将来はチームIDに拡張可能）。
+-- 注意: 旧テーブル（activities / attendance_responses / attendance_mother_responses /
+--       attendance_father_responses）は未本番前提で置き換える。
+
+DROP TABLE IF EXISTS attendance_responses;
+DROP TABLE IF EXISTS activities;
+DROP TABLE IF EXISTS attendance_father_responses;
+DROP TABLE IF EXISTS attendance_mother_responses;
+DROP TABLE IF EXISTS attendance_track_responses;
+DROP TABLE IF EXISTS attendance_days;
+DROP TABLE IF EXISTS attendance_campaigns;
+DROP TABLE IF EXISTS cross_role_events;
+
 -- 出欠キャンペーン（例: 7/18・19・20 の出欠確認）
 CREATE TABLE IF NOT EXISTS attendance_campaigns (
   id TEXT PRIMARY KEY,
