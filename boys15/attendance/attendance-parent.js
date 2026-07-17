@@ -102,6 +102,18 @@
     }).join('');
   }
 
+  /** 配車の可否: 可／否のみ */
+  function ynBtns(name, current, datescope){
+    var cur=current||'unset';
+    return [
+      {m:'o', label:'可'},
+      {m:'x', label:'否'}
+    ].map(function(item){
+      var on=cur===item.m?' '+markOnClass(item.m):'';
+      return '<button type="button" class="'+on.trim()+'" data-mark-field="'+name+'" data-mark="'+item.m+'" data-date="'+esc(datescope||'')+'">'+item.label+'</button>';
+    }).join('');
+  }
+
   function getRespondent(){
     var on=document.querySelector('#att-respondent-seg button.att-respondent.is-on');
     return on?String(on.getAttribute('data-respondent')||''):'';
@@ -281,8 +293,8 @@
     return '<div class="att-member" data-day="'+esc(dt)+'">'
       +'<div class="att-member-name">'+(F.dayHead?F.dayHead(dt):esc(dt))+'</div>'
       +'<div class="att-seg" style="margin-bottom:8px">'
-      +'<button type="button" class="att-mode is-on-in" data-mode="on" data-date="'+esc(dt)+'">出席連絡</button>'
-      +'<button type="button" class="att-mode" data-mode="off" data-date="'+esc(dt)+'">休み</button>'
+      +'<button type="button" class="att-mode is-on-in" data-mode="on" data-date="'+esc(dt)+'">出席</button>'
+      +'<button type="button" class="att-mode" data-mode="off" data-date="'+esc(dt)+'">欠席</button>'
       +'</div>'
       +'<div class="att-on-block" data-date="'+esc(dt)+'">'
       +'<p class="att-act-meta">①父側の保護者 <span class="att-hint-inline">いない場合は「なし」</span></p>'
@@ -291,14 +303,14 @@
       +'<div class="att-seg">'+markBtns('mother','unset',dt,true)+'</div>'
       +'<div class="att-field"><label>②兄弟</label><input data-f="siblings" data-date="'+esc(dt)+'" value="なし" autocomplete="off"></div>'
       +'<div class="att-field"><label>②その他</label><input data-f="other" data-date="'+esc(dt)+'" value="―" autocomplete="off"></div>'
-      +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+markBtns('carOk','unset',dt,false)+'</div>'
+      +'<p class="att-act-meta">③配車の可否</p><div class="att-seg">'+ynBtns('carOk','unset',dt)+'</div>'
       +'<div class="att-field"><label>④車種</label><input data-f="carModel" data-date="'+esc(dt)+'" placeholder="例: RAV4" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑤乗車可能人数</label><input data-f="seats" data-date="'+esc(dt)+'" inputmode="numeric" placeholder="例: 2" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑥送り</label><input data-f="send" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖母 など" autocomplete="off"></div>'
       +'<div class="att-field"><label>⑦迎え</label><input data-f="pickup" data-date="'+esc(dt)+'" placeholder="例: 母（RAV4）／祖父 など" autocomplete="off"></div>'
       +'</div>'
       +'<div class="att-off-block att-hidden" data-date="'+esc(dt)+'">'
-      +'<div class="att-field"><label>休みの理由</label><input data-f="offNote" data-date="'+esc(dt)+'" placeholder="例: 学校行事" autocomplete="off"></div>'
+      +'<div class="att-field"><label>欠席の理由</label><input data-f="offNote" data-date="'+esc(dt)+'" placeholder="例: 学校行事" autocomplete="off"></div>'
       +'</div></div>';
   }
 

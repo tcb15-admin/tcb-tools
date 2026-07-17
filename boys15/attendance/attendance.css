@@ -1,6 +1,7 @@
 /* 出欠アプリ固有スタイル（既存セレクタと衝突しないよう att- 接頭辞） */
 :root{
   --att-navy:#122050;
+  --att-heading:#122050;
   --att-red:#c0000a;
   --att-grn:#2e7d32;
   --att-bg:#f5f5f7;
@@ -35,7 +36,7 @@ body.att-body{
   background:var(--att-card);border-radius:16px;border:1px solid var(--att-bdr);
   padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(18,32,80,.04);
 }
-.att-card h2{font-size:15px;font-weight:800;color:var(--att-navy);margin-bottom:10px;}
+.att-card h2{font-size:15px;font-weight:800;color:var(--att-heading);margin-bottom:10px;}
 .att-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
 .att-field{flex:1 1 140px;display:flex;flex-direction:column;gap:4px;margin-top:6px;}
 .att-field label{font-size:12px;font-weight:700;color:var(--att-txt2);}
@@ -51,7 +52,7 @@ body.att-body{
 }
 .att-btn-primary{background:var(--att-navy);color:#fff;}
 .att-btn-line{background:#06c755;color:#fff;}
-.att-btn-ghost{background:var(--att-surface);color:var(--att-navy);}
+.att-btn-ghost{background:var(--att-surface);color:var(--att-heading);}
 .att-btn:disabled{opacity:.55;cursor:not-allowed;}
 .att-btn-busy{position:relative;}
 .att-act-item{
@@ -60,11 +61,11 @@ body.att-body{
 }
 .att-act-item:active{background:#f2f2f5;}
 .att-act-item.is-active{border-color:#aab6d4;box-shadow:inset 0 0 0 1px #aab6d4;}
-.att-act-title{font-weight:800;color:var(--att-navy);font-size:14px;}
+.att-act-title{font-weight:800;color:var(--att-heading);font-size:14px;}
 .att-act-meta{font-size:13px;color:var(--att-txt2);line-height:1.5;}
 .att-pill{
   display:inline-flex;align-items:center;font-size:11px;font-weight:700;
-  padding:3px 8px;border-radius:999px;background:var(--att-surface);color:var(--att-navy);
+  padding:3px 8px;border-radius:999px;background:var(--att-surface);color:var(--att-heading);
 }
 .att-counts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
 .att-counts span{font-size:12px;font-weight:700;padding:4px 8px;border-radius:8px;background:#f2f2f5;}
@@ -79,17 +80,17 @@ body.att-body{
   border:1px solid var(--att-bdr);border-radius:12px;padding:12px;
   display:flex;flex-direction:column;gap:8px;margin-top:10px;
 }
-.att-member-name{font-weight:750;font-size:15px;color:var(--att-navy);}
+.att-member-name{font-weight:750;font-size:15px;color:var(--att-heading);}
 .att-seg{display:flex;gap:6px;flex-wrap:wrap;}
 .att-seg button{
   flex:1;min-width:72px;min-height:44px;border-radius:10px;border:1px solid var(--att-bdr);
-  background:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer;padding:8px 6px;
+  background:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer;padding:8px 6px;color:var(--att-txt);
 }
 .att-seg button.is-on-in{background:#e7f5ea;border-color:#9ccc9f;color:var(--att-grn);}
 .att-seg button.is-on-out{background:#fdecec;border-color:#e6a3a3;color:var(--att-red);}
 .att-seg button.is-on-maybe{background:#fff8e1;border-color:#f0d78c;color:#9a7b0a;}
 .att-seg button.is-on-none{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-txt2);}
-.att-seg button.is-on-unset{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-navy);}
+.att-seg button.is-on-unset{background:var(--att-surface);border-color:#c5c9d6;color:var(--att-heading);}
 .att-hint-inline{font-weight:500;color:var(--att-txt2);font-size:12px;}
 .att-respondent-seg button.att-respondent{
   flex:1;min-width:88px;
@@ -113,8 +114,9 @@ body.att-body{
   position:fixed;inset:0;background:rgba(18,32,80,.72);display:flex;align-items:center;justify-content:center;z-index:100;
 }
 .att-pw-card{background:#fff;border-radius:16px;padding:28px 20px;width:92%;max-width:360px;text-align:center;}
-.att-pw-card h2{font-size:16px;margin-bottom:12px;color:var(--att-navy);}
-.att-pw-card input{width:100%;min-height:46px;border:1px solid var(--att-bdr);border-radius:10px;padding:10px;font:inherit;font-size:16px;margin-bottom:10px;}
+.att-pw-card{color:var(--att-txt);}
+.att-pw-card h2{font-size:16px;margin-bottom:12px;color:var(--att-heading);}
+.att-pw-card input{width:100%;min-height:46px;border:1px solid var(--att-bdr);border-radius:10px;padding:10px;font:inherit;font-size:16px;margin-bottom:10px;background:var(--att-card);color:var(--att-txt);}
 .att-hidden{display:none !important;}
 
 .att-parent-note{
@@ -122,7 +124,7 @@ body.att-body{
 }
 .att-pick{width:100%;margin-bottom:8px;}
 .att-step{
-  display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--att-navy);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--att-heading);margin-bottom:8px;
 }
 .att-step-num{
   display:inline-flex;align-items:center;justify-content:center;
@@ -140,25 +142,31 @@ body.att-body{
 @media (prefers-color-scheme:dark){
   :root{
     --att-bg:#000;--att-card:#1c1c1e;--att-bdr:#38383a;
-    --att-txt:#f5f5f7;--att-txt2:#a1a1ac;--att-surface:#2c2c2e;
+    --att-txt:#f5f5f7;--att-txt2:#c7c7cc;--att-surface:#2c2c2e;
+    --att-heading:#d7e0f8;
+    --att-navy:#8fa6e0;
   }
   .att-field input,.att-field select,.att-field textarea,.att-pick,.att-seg button{
     background:#2c2c2e;color:var(--att-txt);border-color:#48484a;
   }
-  .att-preview{background:#2c2c2e;}
+  .att-preview{background:#2c2c2e;color:var(--att-txt);}
   .att-act-item{background:#1c1c1e;}
-  .att-btn-ghost{background:#2c2c2e;color:#9fb4e8;}
+  .att-btn-primary{background:#8fa6e0;color:#0b1224;}
+  .att-btn-ghost{background:#2c2c2e;color:var(--att-heading);}
+  .att-pw-card{background:var(--att-card);}
+  .att-step-num{background:#8fa6e0;color:#0b1224;}
   .att-sticky-actions{
     background:linear-gradient(180deg,rgba(0,0,0,0),#000 28%);
   }
   .att-seg button.is-on-in{background:#14301c;border-color:#2e7d32;color:#30d158;}
   .att-seg button.is-on-out{background:#3a1e1e;border-color:#7a3a3a;color:#ff9ea2;}
   .att-seg button.is-on-maybe{background:#3a3210;border-color:#9a7b0a;color:#ffd60a;}
-  .att-seg button.is-on-none{background:#2c2c2e;border-color:#48484a;color:#a1a1ac;}
+  .att-seg button.is-on-none{background:#2c2c2e;border-color:#48484a;color:#c7c7cc;}
   .att-respondent-seg button.att-respondent.is-on{
-    background:#9fb4e8;border-color:#9fb4e8;color:#0b1224;
+    background:#8fa6e0;border-color:#8fa6e0;color:#0b1224;
   }
   .att-guide-ok{background:#14301c;color:#30d158;}
   .att-guide-warn{background:#3a3210;color:#ffd60a;}
   .att-guide-err{background:#3a1e1e;color:#ff9ea2;}
+  .att-counts span{background:#2c2c2e;color:var(--att-txt);}
 }
