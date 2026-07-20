@@ -1,0 +1,27 @@
+/* グループ保有（任意登録）— セレクタは tcb-ghold- プレフィックス */
+
+.tcb-ghold-card{display:none;margin-top:10px;}
+.tcb-ghold-card.on{display:block;}
+.tcb-ghold-status{font-size:12px;line-height:1.55;color:var(--txt2);margin:0 0 10px;}
+.tcb-ghold-status.tcb-ghold-on{color:#1b5e20;font-weight:700;}
+.tcb-ghold-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.tcb-ghold-actions button{flex:1;min-width:140px;}
+
+.tcb-ghold-desc{font-size:12px;line-height:1.6;color:var(--txt2);margin-bottom:10px;}
+.tcb-ghold-note{font-size:11px;line-height:1.55;color:#1565c0;margin-bottom:10px;}
+.tcb-ghold-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.tcb-ghold-toolbar button{flex:1;min-width:120px;font-size:12px;}
+.tcb-ghold-list{max-height:48vh;overflow:auto;margin:0 0 12px;border:1px solid #eee;border-radius:8px;}
+.tcb-ghold-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f0f0f0;}
+.tcb-ghold-row:last-child{border-bottom:none;}
+.tcb-ghold-tool{flex:1;font-size:13px;color:var(--ink-heading);font-weight:700;word-break:break-word;}
+.tcb-ghold-sel{flex:0 0 42%;max-width:42%;font-family:inherit;font-size:13px;padding:6px 4px;border:2px solid var(--bdr);border-radius:7px;min-height:var(--tap);background:#f8f9fa;color:var(--ink-heading);}
+.tcb-ghold-btns{display:flex;gap:8px;}
+.tcb-ghold-btns button{flex:1;}
+
+@media (prefers-color-scheme: dark){
+  .tcb-ghold-list,.tcb-ghold-row{border-color:var(--bdr);}
+  .tcb-ghold-note{color:#90caf9;}
+  .tcb-ghold-status.tcb-ghold-on{color:#a5d6a7;}
+  .tcb-ghold-sel{background:var(--surface-2);color:#cdd8f5;}
+}

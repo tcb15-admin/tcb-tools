@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="tcb-swap-mgr.css">
 <link rel="stylesheet" href="tcb-push-mgr.css">
 <link rel="stylesheet" href="tcb-pwa-install.css">
+<link rel="stylesheet" href="tcb-group-hold.css">
 <style>
 :root{
   /* チームカラー：濃紺＋赤＋白（15期既定）／16期は html.theme-b16 で画面は白ベース＋紺×赤（ヘッダのみ白バック）
@@ -1269,6 +1270,25 @@ html{color-scheme:light;}
   </div>
 </div>
 
+<!-- グループ保有（任意）モーダル -->
+<div class="overlay" id="tcb-ghold-modal">
+  <div class="modal">
+    <button class="mclose" id="tcb-ghold-modal-close">&#10005;</button>
+    <h2>グループ保有の登録</h2>
+    <p class="tcb-ghold-desc">いま各グループが<strong>現地で持っている道具</strong>を登録します。登録すると、割振りはそのグループのメンバーにのみ行います（グループ間で道具を動かさない運用向け）。</p>
+    <p class="tcb-ghold-note">毎回必須ではありません。場所が分かれているときなど、必要なときだけ使ってください。「この内容で使う」で有効になります。</p>
+    <div class="tcb-ghold-toolbar">
+      <button type="button" class="nb nbs" id="btn-tcb-ghold-from-prev">前回結果から推測</button>
+      <button type="button" class="nb nbs" id="btn-tcb-ghold-from-master">マスタ設定から初期化</button>
+    </div>
+    <div class="tcb-ghold-list" id="tcb-ghold-list"></div>
+    <div class="tcb-ghold-btns">
+      <button type="button" class="rbtn" id="btn-tcb-ghold-save">この内容で使う</button>
+      <button type="button" class="nb nbs" id="btn-tcb-ghold-cancel">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- 展開情報確認・LINE送信 -->
 <div id="print-overlay">
   <div class="print-header">
@@ -1413,7 +1433,7 @@ html{color-scheme:light;}
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong id="p1-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>過去の割振り</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先し、余りは<strong>変更が必要な人へ集中</strong>して調整人数を最小化します。活動日は本日に設定。" aria-label="説明"></button>
+        <strong id="p1-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>過去の割振り</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先し、余りは<strong>変更が必要な人へ集中</strong>して調整人数を最小化します。活動日は本日に設定。<strong>活動パターン（片方試合／両方試合／両方練習）を変えても前回担当は維持</strong>されます（STEP2で割振りを実行し直してください）。" aria-label="説明"></button>
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 現地の実保有に補正</button>
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">調整モードをやめる</button>
@@ -1449,7 +1469,7 @@ html{color-scheme:light;}
       <div class="mgrid" id="skipgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先し、余剰は変更が必要な人へ集中配分。STEP3では班をまたいだ手動割当が自動でオンになります。" aria-label="説明"></button>
+      <strong id="p2-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先し、余剰は変更が必要な人へ集中配分。STEP3では班をまたいだ手動割当が自動でオンになります。<strong>活動パターンを変えても前回担当は維持</strong>されます。" aria-label="説明"></button>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地の実保有に補正</button>
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
@@ -1466,6 +1486,14 @@ html{color-scheme:light;}
         <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
       </div>
       <div class="mgrid" id="tgrid"></div>
+    </div>
+    <div class="card tcb-ghold-card" id="tcb-ghold-card">
+      <div class="ct">グループ保有（任意）<button type="button" class="tcb-tip" data-tip="場所が分かれていて<strong>グループ間で道具を動かさない</strong>ときに使います。必要なときだけ「登録／確認」してください。未使用時は従来どおりマスタの班・会場で割振ります。" aria-label="説明"></button></div>
+      <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（従来どおりマスタの班・会場で割振り）。</p>
+      <div class="tcb-ghold-actions">
+        <button type="button" class="rbtn" id="btn-tcb-ghold-edit">グループ保有を登録／確認</button>
+        <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
+      </div>
     </div>
     <div class="nav">
       <button class="nb nbs" id="btn-back">&#9664; 戻る</button>
@@ -2591,7 +2619,7 @@ function clonePlainObj(o){
 function buildAllocationSnapshot(){
   if(!R)return null;
   var ad=document.getElementById('adate');
-  return {
+  var snap={
     date:ad?ad.value:'',
     savedAt:new Date().toISOString(),
     pat:pat, la:R.la||tnA, lb:R.lb||tnB,
@@ -2605,6 +2633,12 @@ function buildAllocationSnapshot(){
     skipS:clonePlainObj(skipS),
     tmMap:clonePlainObj(tmMap)
   };
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.toSnapFields==='function'){
+    var gh=TCB_GroupHold.toSnapFields();
+    snap.groupHoldEnabled=gh.groupHoldEnabled;
+    snap.groupHoldMap=gh.groupHoldMap;
+  }
+  return snap;
 }
 /* LS_PREV へ保存（ツールを閉じたあとも STEP1「前回」・再編集で使う） */
 function persistAllocationSnapshot(snap,opts){
@@ -2752,6 +2786,9 @@ function loadResultIntoStep3FromSnap(snap){
   pdfFileNameUseTodayDate=false;
   applySnapToActivityUI(enriched,{useTodayDate:false});
   restoreExclusionStateFromSnap(enriched);
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.restoreFromSnap==='function'){
+    TCB_GroupHold.restoreFromSnap(enriched);
+  }
   var tools=normalizeToolsForResultLoad(enriched);
   var ex=exSet();
   var mode=enriched.mode||(needsTeamUI()?'team':'single');
@@ -2846,8 +2883,8 @@ function clearSeedFromPrevMode(){
   clearReeditMode();
   clearCarryAdjustRef();
 }
-/* 前回基準モード中にユーザーが活動パターンを変更した場合：
-   基準スナップと食い違う設定になるなら、確認のうえ基準モードを解除する */
+/* 前回基準モード中の活動パターン変更：持ち帰り調整（map基準）で引き継げるためモードは維持する。
+   seedFromPrev のみ（互換なし）の経路があっても carryAdjustMode に昇格させる。 */
 function confirmPatChangeInSeedMode(newPat,newSplit){
   var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
   if(!on)return true;
@@ -2855,8 +2892,9 @@ function confirmPatChangeInSeedMode(newPat,newSplit){
   var baseSplit=!!normFlag01(seedBaseSnap.renshuSplit);
   var same=(newPat===basePat)&&(newPat!=='renshu'||(!!newSplit)===baseSplit);
   if(same)return true;
-  if(!confirm('「前回の結果を元に割振る」モード中です。\n活動パターンを基準と変えると前回の結果を引き継げないため、前回基準モードを解除して通常の割振りに戻します。\nよろしいですか？'))return false;
-  clearSeedFromPrevMode();
+  if(!carryAdjustMode)carryAdjustMode=true;
+  seedFromPrev=true;
+  updateSeedModeBanners();
   return true;
 }
 function updateSeedModeBanners(){
@@ -2923,6 +2961,9 @@ function beginReeditFromSnap(snap){
   pdfFileNameUseTodayDate=true;
   applySnapToActivityUI(enriched, {useTodayDate:true});
   restoreExclusionStateFromSnap(enriched);
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.restoreFromSnap==='function'){
+    TCB_GroupHold.restoreFromSnap(enriched);
+  }
   updateSeedModeBanners();
   closeModal('hist-detail-modal');
   closeModal('hist-modal');
@@ -3426,6 +3467,12 @@ function memberNameSet(memberArr){
   return o;
 }
 /* 割振り実行の前提（欠席・お茶反映済みのメンバー・道具リスト）を組み立て。alert 時は null */
+function applyGroupHoldIfEnabled(tA,tB){
+  if(typeof TCB_GroupHold==='undefined'||!TCB_GroupHold||typeof TCB_GroupHold.rebucketToolLists!=='function'){
+    return {tA:tA,tB:tB};
+  }
+  return TCB_GroupHold.rebucketToolLists(tA,tB);
+}
 function buildAssignmentContext(opts){
   opts=opts||{};
   var silent=!!opts.silent;
@@ -3439,6 +3486,7 @@ function buildAssignmentContext(opts){
     var tA=TL.filter(function(t){return t.kata===1&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
     var tB=TL.filter(function(t){return t.kata===0&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
     var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
+    var gh=applyGroupHoldIfEnabled(tA,tB); tA=gh.tA; tB=gh.tB;
     return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
   }
   if(pat==='renshu'&&!renshuSplit){
@@ -3455,6 +3503,7 @@ function buildAssignmentContext(opts){
     var tA2=TL.filter(function(t){return effectivePracticeGroup(t)==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
     var tB2=TL.filter(function(t){return effectivePracticeGroup(t)==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
     var mg2=mergeTeamToolListsForFixed(tA2,tB2,mA2,mB2); tA2=mg2.tA; tB2=mg2.tB;
+    var gh2=applyGroupHoldIfEnabled(tA2,tB2); tA2=gh2.tA; tB2=gh2.tB;
     return {ex:ex,la:la,lb:lb,mode:'team',mA:mA2,mB:mB2,tA:tA2,tB:tB2,tools:null,members:null,allTools:tA2.concat(tB2)};
   }
   var mA3=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
@@ -3464,6 +3513,7 @@ function buildAssignmentContext(opts){
   var tA3=TL.filter(function(t){return t.ryo==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
   var tB3=TL.filter(function(t){return t.ryo==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
   var mg3=mergeTeamToolListsForFixed(tA3,tB3,mA3,mB3); tA3=mg3.tA; tB3=mg3.tB;
+  var gh3=applyGroupHoldIfEnabled(tA3,tB3); tA3=gh3.tA; tB3=gh3.tB;
   return {ex:ex,la:la,lb:lb,mode:'team',mA:mA3,mB:mB3,tA:tA3,tB:tB3,tools:null,members:null,allTools:tA3.concat(tB3)};
 }
 /* STEP3 表示時：STEP2 の欠席・お茶当番変更を R のメンバー一覧へ反映（道具リストは変えない） */
@@ -4683,6 +4733,9 @@ function updDesc(){
   var tc=document.getElementById('tcard');
   if(tc)tc.style.display=needsTeamUI()?'':'none';
   updateMemUnpublishedWrap();
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
+    TCB_GroupHold.updateStatusUI();
+  }
 }
 function applyRenshuSplit(on){
   renshuSplit=!!on;
@@ -4731,6 +4784,9 @@ function goStep(n){
     buildAGrid(); buildOGrid(); buildSkipGrid();
     if(needsTeamUI())buildTGrid();
     scheduleStep2GridFit();
+    if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
+      TCB_GroupHold.updateStatusUI();
+    }
   }
   if(n===3&&R){
     var p3rb=document.getElementById('p3-rebalance-bar');
@@ -7231,6 +7287,52 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
 
+  /* グループ保有（任意：場所分離時など必要なときだけ） */
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.init==='function'){
+    TCB_GroupHold.init({
+      needsTeamUI:needsTeamUI,
+      getTeamLabelA:function(){return tnA||'A組';},
+      getTeamLabelB:function(){return tnB||'B組';},
+      openModal:openModal,
+      closeModal:closeModal,
+      esc:esc,
+      listActiveToolNames:function(){
+        return TL.filter(function(t){return !skipS[t.name];}).map(function(t){return t.name;});
+      },
+      inferHoldFromMaster:function(){
+        var out={};
+        TL.forEach(function(t){
+          if(skipS[t.name])return;
+          if(pat==='kata')out[t.name]=t.kata===1?'A':'B';
+          else if(pat==='renshu'&&renshuSplit)out[t.name]=effectivePracticeGroup(t)==='A'?'A':'B';
+          else out[t.name]=(t.ryo==='A')?'A':'B';
+        });
+        return out;
+      },
+      inferHoldFromPrevAssign:function(){
+        var out={};
+        var map=null;
+        var snapTm=null;
+        if(seedBaseSnap&&seedBaseSnap.map){
+          map=seedBaseSnap.map;
+          snapTm=seedBaseSnap.tmMap||null;
+        }else{
+          var snap=loadStoredAllocationSnap();
+          if(snap&&snap.map){map=snap.map;snapTm=snap.tmMap||null;}
+        }
+        if(!map)return out;
+        Object.keys(map).forEach(function(tn){
+          if(skipS[tn])return;
+          var person=map[tn];
+          if(!person)return;
+          var g=(tmMap&&tmMap[person])||(snapTm&&snapTm[person])||null;
+          if(g==='A'||g==='B')out[tn]=g;
+        });
+        return out;
+      }
+    });
+  }
+
   /* ホーム画面に追加（PWA）ガイド */
   if(typeof TCB_PwaInstall!=='undefined'&&TCB_PwaInstall&&typeof TCB_PwaInstall.init==='function'){
     TCB_PwaInstall.init({lsPrefix:'{{LS_PREFIX}}'});
@@ -7454,5 +7556,6 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="tcb-swap-mgr.js"></script>
 <script src="tcb-push-mgr.js"></script>
 <script src="tcb-pwa-install.js"></script>
+<script src="tcb-group-hold.js"></script>
 </body>
 </html>
