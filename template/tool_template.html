@@ -109,6 +109,15 @@ html[data-cohort="15"] header{
 #tgrid .tc2{flex-direction:row;align-items:center;flex-wrap:nowrap;gap:4px;}
 #tgrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;font-size:13px;line-height:1.25;}
 #tgrid .tbdg{max-width:none;font-size:10px;min-width:26px;height:24px;padding:0 4px;}
+/* 名前が長くバッジと同じ行に収まらないセル：バッジを1行目、名前を全幅2行目に（フォント極小化を防ぐ） */
+#agrid .mc.tcb-namewrap,#ogrid .mc.tcb-namewrap,#tgrid .tc2.tcb-namewrap{flex-wrap:wrap;gap:4px 6px;}
+#agrid .tcb-namewrap > .tbdg,#ogrid .tcb-namewrap > .tbdg,#tgrid .tcb-namewrap > .tbdg{order:1;flex-shrink:0;}
+#agrid .tcb-namewrap > .cv,#ogrid .tcb-namewrap > .cv,#tgrid .tcb-namewrap > .cv,
+#agrid .tcb-namewrap > .rest-badge,#ogrid .tcb-namewrap > .rest-badge,#tgrid .tcb-namewrap > .rest-badge,
+#agrid .tcb-namewrap > .quit-badge,#ogrid .tcb-namewrap > .quit-badge,#tgrid .tcb-namewrap > .quit-badge,
+#agrid .tcb-namewrap > .coach-badge,#ogrid .tcb-namewrap > .coach-badge,#tgrid .tcb-namewrap > .coach-badge,
+#agrid .tcb-namewrap > .master-excl-badge,#ogrid .tcb-namewrap > .master-excl-badge,#tgrid .tcb-namewrap > .master-excl-badge{order:2;margin-left:auto;flex-shrink:0;}
+#agrid .tcb-namewrap > .cn,#ogrid .tcb-namewrap > .cn,#tgrid .tcb-namewrap > .cn{order:3;flex:0 0 100%;width:100%;max-width:100%;}
 /* スマホ幅は氏名を大きく・2列固定で視認性を確保 */
 @media (max-width:520px){
   #agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{
@@ -2284,20 +2293,36 @@ function fitGridCellText(cn,box,opts){
   var maxW=box.clientWidth-padX-(fullRow?0:fixed);
   if(maxW<=0)return;
   var maxFs=opts.maxFs!=null?opts.maxFs:(mob?14:14);
-  var minFs=opts.minFs!=null?opts.minFs:7;
+  /* 視認性の下限。これ以上は縮めず、収まらない名前は行を分けて表示する */
+  var minFs=opts.minFs!=null?opts.minFs:11;
   var fs=maxFs;
+  if(!opts._retry)box.classList.remove('tcb-namewrap');
   cn.style.textOverflow='clip';
   cn.style.overflow='hidden';
   cn.style.whiteSpace='nowrap';
+  cn.style.lineHeight='';
+  cn.style.wordBreak='';
   cn.style.fontSize=fs+'px';
   while(fs>minFs&&cn.scrollWidth>maxW){
     fs--;
     cn.style.fontSize=fs+'px';
   }
   if(cn.scrollWidth>maxW){
+    if(!fullRow&&fixed>0&&!opts._retry){
+      /* バッジと同じ行に収まらない名前は、バッジ1行目・名前2行目に組み替えて測り直す */
+      box.classList.add('tcb-namewrap');
+      var o2={};for(var k in opts){o2[k]=opts[k];}
+      o2.fullWidth=true;o2._retry=true;
+      fitGridCellText(cn,box,o2);
+      return;
+    }
+    /* 全幅でも1行に入らない名前は、読みやすいサイズのまま折り返す */
+    var wrapFs=opts.wrapFs!=null?opts.wrapFs:Math.max(minFs,12);
+    cn.style.fontSize=wrapFs+'px';
     cn.style.whiteSpace='normal';
     cn.style.overflow='visible';
     cn.style.lineHeight='1.15';
+    cn.style.wordBreak='break-all';
   }
 }
 function fitMemberGridFonts(id){
@@ -2306,7 +2331,7 @@ function fitMemberGridFonts(id){
   var mob=window.matchMedia('(max-width:520px)').matches;
   g.querySelectorAll('.mc, .tc2').forEach(function(box){
     var cn=box.querySelector('.cn');
-    fitGridCellText(cn,box,{maxFs:mob?14:14,minFs:7,fullWidth:mob});
+    fitGridCellText(cn,box,{maxFs:mob?14:14,minFs:11,fullWidth:mob});
   });
 }
 function fitSkipGridFonts(){
@@ -2317,7 +2342,7 @@ function fitSkipGridFonts(){
     var cn=box.querySelector('.cn');
     if(!cn)return;
     var maxFs=mob?Math.min(20,Math.max(14,Math.floor(box.clientHeight*0.42))):14;
-    fitGridCellText(cn,box,{maxFs:maxFs,minFs:8});
+    fitGridCellText(cn,box,{maxFs:maxFs,minFs:11});
   });
 }
 function fitStep2Grids(){
