@@ -1275,8 +1275,8 @@ html{color-scheme:light;}
   <div class="modal">
     <button class="mclose" id="tcb-ghold-modal-close">&#10005;</button>
     <h2>グループ保有の登録</h2>
-    <p class="tcb-ghold-desc">いま各グループが<strong>現地で持っている道具</strong>を登録します。登録すると、割振りはそのグループのメンバーにのみ行います（グループ間で道具を動かさない運用向け）。</p>
-    <p class="tcb-ghold-note">毎回必須ではありません。場所が分かれているときなど、必要なときだけ使ってください。「この内容で使う」で有効になります。</p>
+    <p class="tcb-ghold-desc">いま各グループが<strong>現地で持っている道具</strong>を登録します。登録すると、<strong>次回の活動パターンに関係なく</strong>、割振りはそのグループのメンバーにのみ行います（グループ間で道具を動かさない運用向け）。</p>
+    <p class="tcb-ghold-note">毎回必須ではありません。会場が分かれている日や、その保有を次回以降も維持したいときに使ってください。「この内容で使う」で有効になります。有効中はメンバーのグループ振り分けも必要です。</p>
     <div class="tcb-ghold-toolbar">
       <button type="button" class="nb nbs" id="btn-tcb-ghold-from-prev">前回結果から推測</button>
       <button type="button" class="nb nbs" id="btn-tcb-ghold-from-master">マスタ設定から初期化</button>
@@ -1488,7 +1488,7 @@ html{color-scheme:light;}
       <div class="mgrid" id="tgrid"></div>
     </div>
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
-      <div class="ct">グループ保有（任意）<button type="button" class="tcb-tip" data-tip="場所が分かれていて<strong>グループ間で道具を動かさない</strong>ときに使います。必要なときだけ「登録／確認」してください。未使用時は従来どおりマスタの班・会場で割振ります。" aria-label="説明"></button></div>
+      <div class="ct">グループ保有（任意）<button type="button" class="tcb-tip" data-tip="会場ごとに道具が分かれているとき、<strong>グループ間で道具を動かさず</strong>割振ります。<strong>次回が両方練習・同一場所でも</strong>、保有登録が有効ならそのグループ内だけで割振ります。必要なときだけ「登録／確認」してください。" aria-label="説明"></button></div>
       <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（従来どおりマスタの班・会場で割振り）。</p>
       <div class="tcb-ghold-actions">
         <button type="button" class="rbtn" id="btn-tcb-ghold-edit">グループ保有を登録／確認</button>
@@ -1819,6 +1819,33 @@ var tnA='試合組', tnB='練習組';
 var renshuSplit=false;
 function needsTeamUI(){
   return pat==='kata'||pat==='ryoho'||(pat==='renshu'&&renshuSplit);
+}
+function isGroupHoldEnabled(){
+  return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
+}
+/* グループ保有が有効なときは、活動パターンに関係なく班分けUI・班内割振りを使う */
+function effectiveNeedsTeamUI(){
+  return needsTeamUI()||isGroupHoldEnabled();
+}
+function refreshTeamUiForGroupHold(){
+  var show=effectiveNeedsTeamUI();
+  var tnarea=document.getElementById('tnarea');
+  if(tnarea)tnarea.style.display=show?'':'none';
+  var tc=document.getElementById('tcard');
+  if(tc)tc.style.display=show?'':'none';
+  if(show){
+    MB.forEach(function(m){
+      if(memberMasterExcluded(m))return;
+      if(tmMap[m.name]!=='A'&&tmMap[m.name]!=='B')tmMap[m.name]='B';
+    });
+    if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0){
+      buildTGrid();
+      scheduleStep2GridFit();
+    }
+  }
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
+    TCB_GroupHold.updateStatusUI();
+  }
 }
 function showsMemUnpublishedOption(){
   return pat==='kata';
@@ -2849,7 +2876,7 @@ function restoreExclusionStateFromSnap(snap){
     else tmMap[m.name]='B';
   });
   buildAGrid(); buildOGrid(); buildSkipGrid();
-  if(needsTeamUI())buildTGrid();
+  if(effectiveNeedsTeamUI())buildTGrid();
 }
 function beginReeditFromSnap(snap){
   if(!snap||typeof snap.map!=='object'){
@@ -3378,11 +3405,39 @@ function applyGroupHoldIfEnabled(tA,tB){
   }
   return TCB_GroupHold.rebucketToolLists(tA,tB);
 }
+function buildToolsListsFromGroupHold(){
+  var map=(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.getMap==='function')
+    ?TCB_GroupHold.getMap():{};
+  var tA=[], tB=[];
+  TL.forEach(function(t){
+    if(skipS[t.name])return;
+    var g=map[t.name];
+    if(g!=='A'&&g!=='B'){
+      if(pat==='kata')g=t.kata===1?'A':'B';
+      else if(pat==='renshu'&&renshuSplit)g=effectivePracticeGroup(t)==='A'?'A':'B';
+      else if(pat==='ryoho')g=(t.ryo==='A')?'A':'B';
+      else g=(t.ryo==='A')?'A':'B';
+    }
+    var copy=Object.assign({},t,{ls:lscore(t),team:g});
+    if(g==='A')tA.push(copy); else tB.push(copy);
+  });
+  return {tA:tA,tB:tB};
+}
 function buildAssignmentContext(opts){
   opts=opts||{};
   var silent=!!opts.silent;
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
+  /* グループ保有が有効：活動パターンに関係なく、保有グループ×メンバー班で割振る */
+  if(isGroupHoldEnabled()){
+    var mAh=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
+    var mBh=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
+    if(!mAh.length){if(!silent)alert(la+'グループに1名以上タップしてください（グループ保有を使うときはメンバーの班分けが必要です）。');return null;}
+    if(!mBh.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
+    var listsH=buildToolsListsFromGroupHold();
+    var tAh=listsH.tA, tBh=listsH.tB;
+    return {ex:ex,la:la,lb:lb,mode:'team',mA:mAh,mB:mBh,tA:tAh,tB:tBh,tools:null,members:null,allTools:tAh.concat(tBh)};
+  }
   if(pat==='kata'){
     var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
     var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
@@ -3391,7 +3446,6 @@ function buildAssignmentContext(opts){
     var tA=TL.filter(function(t){return t.kata===1&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
     var tB=TL.filter(function(t){return t.kata===0&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
     var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
-    var gh=applyGroupHoldIfEnabled(tA,tB); tA=gh.tA; tB=gh.tB;
     return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
   }
   if(pat==='renshu'&&!renshuSplit){
@@ -3408,7 +3462,6 @@ function buildAssignmentContext(opts){
     var tA2=TL.filter(function(t){return effectivePracticeGroup(t)==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
     var tB2=TL.filter(function(t){return effectivePracticeGroup(t)==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
     var mg2=mergeTeamToolListsForFixed(tA2,tB2,mA2,mB2); tA2=mg2.tA; tB2=mg2.tB;
-    var gh2=applyGroupHoldIfEnabled(tA2,tB2); tA2=gh2.tA; tB2=gh2.tB;
     return {ex:ex,la:la,lb:lb,mode:'team',mA:mA2,mB:mB2,tA:tA2,tB:tB2,tools:null,members:null,allTools:tA2.concat(tB2)};
   }
   var mA3=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
@@ -3418,7 +3471,6 @@ function buildAssignmentContext(opts){
   var tA3=TL.filter(function(t){return t.ryo==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
   var tB3=TL.filter(function(t){return t.ryo==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
   var mg3=mergeTeamToolListsForFixed(tA3,tB3,mA3,mB3); tA3=mg3.tA; tB3=mg3.tB;
-  var gh3=applyGroupHoldIfEnabled(tA3,tB3); tA3=gh3.tA; tB3=gh3.tB;
   return {ex:ex,la:la,lb:lb,mode:'team',mA:mA3,mB:mB3,tA:tA3,tB:tB3,tools:null,members:null,allTools:tA3.concat(tB3)};
 }
 /* STEP3 表示時：STEP2 の欠席・お茶当番変更を R のメンバー一覧へ反映（道具リストは変えない） */
@@ -4603,7 +4655,7 @@ function setPat(p){
   var rsw=document.getElementById('renshu-split-wrap');
   if(rsw)rsw.style.display=(p==='renshu')?'block':'none';
   var tnarea=document.getElementById('tnarea');
-  if(tnarea)tnarea.style.display=needsTeamUI()?'':'none';
+  if(tnarea)tnarea.style.display=effectiveNeedsTeamUI()?'':'none';
   /* グループ名デフォルト */
   var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
   if(inpA&&inpB){
@@ -4636,7 +4688,7 @@ function updDesc(){
   var h1=document.getElementById('tcb-sameday-hint-p1');
   if(h1){h1.style.display='none';h1.textContent='';}
   var tc=document.getElementById('tcard');
-  if(tc)tc.style.display=needsTeamUI()?'':'none';
+  if(tc)tc.style.display=effectiveNeedsTeamUI()?'':'none';
   updateMemUnpublishedWrap();
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
@@ -4647,7 +4699,7 @@ function applyRenshuSplit(on){
   var chk=document.getElementById('chk-renshu-split');
   if(chk)chk.checked=renshuSplit;
   var tnarea=document.getElementById('tnarea');
-  if(tnarea)tnarea.style.display=needsTeamUI()?'':'none';
+  if(tnarea)tnarea.style.display=effectiveNeedsTeamUI()?'':'none';
   if(renshuSplit){
     var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
     if(inpA&&inpB){ inpA.value='A'; inpB.value='B'; tnA='A'; tnB='B'; }
@@ -4655,7 +4707,7 @@ function applyRenshuSplit(on){
   }
   updDesc();
   updateMemUnpublishedWrap();
-  if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&needsTeamUI()){
+  if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
     buildTGrid();
   }
 }
@@ -4685,9 +4737,9 @@ function goStep(n){
     window.scrollTo(0,0);
   }
   if(n===2){
-    document.getElementById('tcard').style.display=needsTeamUI()?'':'none';
+    document.getElementById('tcard').style.display=effectiveNeedsTeamUI()?'':'none';
     buildAGrid(); buildOGrid(); buildSkipGrid();
-    if(needsTeamUI())buildTGrid();
+    if(effectiveNeedsTeamUI())buildTGrid();
     scheduleStep2GridFit();
     if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
       TCB_GroupHold.updateStatusUI();
@@ -4821,7 +4873,7 @@ function buildAGrid(){
         cc.addEventListener('click',function(){
           if(absS[mm.name])delete absS[mm.name]; else absS[mm.name]=1;
           cc.className='mc'+(absS[mm.name]?' abs':'');
-          if(needsTeamUI())buildTGrid();
+          if(effectiveNeedsTeamUI())buildTGrid();
         });
       })(m,c);
     }
@@ -4859,7 +4911,7 @@ function buildOGrid(){
       cc.addEventListener('click',function(){
         if(ochS[mm.name])delete ochS[mm.name]; else ochS[mm.name]=1;
         cc.className='mc'+(ochS[mm.name]?' ocha':'');
-        if(needsTeamUI())buildTGrid();
+        if(effectiveNeedsTeamUI())buildTGrid();
       });
     })(m,c);
     g.appendChild(c);
@@ -7017,7 +7069,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.8.5';
+  if(vEl)vEl.textContent='v1.8.6';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7065,11 +7117,11 @@ document.addEventListener('DOMContentLoaded',function(){
   if(btnP1FromPrev)btnP1FromPrev.addEventListener('click',function(){showHistory();});
   document.getElementById('tnA').addEventListener('input',function(){
     tnA=this.value||'試合組'; updDesc();
-    if(needsTeamUI())buildTGrid();
+    if(effectiveNeedsTeamUI())buildTGrid();
   });
   document.getElementById('tnB').addEventListener('input',function(){
     tnB=this.value||'練習組'; updDesc();
-    if(needsTeamUI())buildTGrid();
+    if(effectiveNeedsTeamUI())buildTGrid();
   });
 
   /* STEP2 */
@@ -7192,7 +7244,7 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
 
-  /* グループ保有（任意：場所分離時など必要なときだけ） */
+  /* グループ保有（任意：有効時は活動パターンに関係なく班内割振り） */
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.init==='function'){
     TCB_GroupHold.init({
       needsTeamUI:needsTeamUI,
@@ -7201,6 +7253,7 @@ document.addEventListener('DOMContentLoaded',function(){
       openModal:openModal,
       closeModal:closeModal,
       esc:esc,
+      onEnabledChange:refreshTeamUiForGroupHold,
       listActiveToolNames:function(){
         return TL.filter(function(t){return !skipS[t.name];}).map(function(t){return t.name;});
       },

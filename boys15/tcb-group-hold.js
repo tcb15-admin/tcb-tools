@@ -1,5 +1,5 @@
 /* グループ保有（任意）モジュール
-   必要なときだけ STEP2 から登録。有効時は割振りを班内のみにする。
+   必要なときだけ STEP2 から登録。有効時は活動パターンに関係なく割振りを班内のみにする。
    ctx は tool_template の init から注入する。 */
 (function (global) {
   'use strict';
@@ -42,6 +42,10 @@
     return (ctx && ctx.inferHoldFromPrevAssign) ? cloneMap(ctx.inferHoldFromPrevAssign()) : {};
   }
 
+  function notifyEnabledChange() {
+    if (ctx && typeof ctx.onEnabledChange === 'function') ctx.onEnabledChange();
+  }
+
   function ensureDraftComplete() {
     var names = activeToolNames();
     var master = defaultHoldFromMaster();
@@ -64,24 +68,20 @@
   }
 
   function updateStatusUI() {
-    if (!ctx || !ctx.needsTeamUI || !ctx.needsTeamUI()) {
-      var cardOff = document.getElementById('tcb-ghold-card');
-      if (cardOff) cardOff.className = 'card tcb-ghold-card';
-      return;
-    }
     var card = document.getElementById('tcb-ghold-card');
     var status = document.getElementById('tcb-ghold-status');
     var btnClear = document.getElementById('btn-tcb-ghold-clear');
+    /* STEP2 内のカードは常時表示（パターン問わず登録可能） */
     if (card) card.className = 'card tcb-ghold-card on';
     var labels = teamLabels();
     if (status) {
       if (enabled) {
         var c = countByTeam(holdMap);
         status.className = 'tcb-ghold-status tcb-ghold-on';
-        status.textContent = 'グループ保有を使用中（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。割振りは保有グループ内のみです。';
+        status.textContent = 'グループ保有を使用中（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。次回の活動パターンに関係なく、割振りは保有グループ内のみです。';
       } else {
         status.className = 'tcb-ghold-status';
-        status.textContent = '未使用（従来どおりマスタの班・会場で割振り）。場所が分かれていて道具をグループ間で動かさないときは「登録／確認」してください。';
+        status.textContent = '未使用（従来どおりマスタの班・会場で割振り）。会場が分かれているときや、次回も保有グループのまま割振りたいときは「登録／確認」してください。';
       }
     }
     if (btnClear) btnClear.style.display = enabled ? '' : 'none';
@@ -113,10 +113,6 @@
   }
 
   function openEditor() {
-    if (!ctx || !ctx.needsTeamUI || !ctx.needsTeamUI()) {
-      alert('グループ分けのあるパターンでのみ使えます。');
-      return;
-    }
     draftMap = cloneMap(holdMap);
     if (!Object.keys(draftMap).length) {
       var prev = inferHoldFromPrev();
@@ -144,6 +140,7 @@
     holdMap = cloneMap(draftMap);
     enabled = true;
     updateStatusUI();
+    notifyEnabledChange();
     if (ctx.closeModal) ctx.closeModal('tcb-ghold-modal');
   }
 
@@ -154,6 +151,7 @@
     holdMap = {};
     draftMap = {};
     updateStatusUI();
+    notifyEnabledChange();
   }
 
   function fillDraftFromPrev() {
@@ -204,12 +202,14 @@
       enabled = false;
       holdMap = {};
       updateStatusUI();
+      notifyEnabledChange();
       return;
     }
     var on = snap.groupHoldEnabled == 1 || snap.groupHoldEnabled === '1' || snap.groupHoldEnabled === true;
     holdMap = cloneMap(snap.groupHoldMap);
     enabled = !!(on && Object.keys(holdMap).length);
     updateStatusUI();
+    notifyEnabledChange();
   }
 
   function reset() {
@@ -217,6 +217,7 @@
     holdMap = {};
     draftMap = {};
     updateStatusUI();
+    notifyEnabledChange();
   }
 
   function init(hooks) {
