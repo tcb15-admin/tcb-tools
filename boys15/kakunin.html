@@ -24,6 +24,7 @@
 <meta name="apple-mobile-web-app-title" content="15期道具">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="parent-swap.css">
+<link rel="stylesheet" href="tcb-feedback.css">
 <style>
 :root{
   --navy:#122050;--navy2:#1a2d68;--blue:#122050;
@@ -121,9 +122,9 @@ html.theme-b16 header h1 span{color:#64748b;}
 </header>
 
 <div class="pv-wrap">
-  <div class="pv-note">
-    当日と前回（確定分）の道具割振りをご確認いただけます。お名前を選ぶと<strong>自分の担当だけ</strong>を表示します。
-    保護者間で交代を調整された場合は、各道具の<strong>「交代を申請」</strong>から道具担当者へ報告できます（申請には確認があります）。
+  <div class="pv-note" id="pv-note">
+    当日と前回（確定分）の道具割振りを確認できます。お名前を選ぶと<strong>自分の担当だけ</strong>を表示し、
+    <strong>誰から受け取り・誰へ渡すか</strong>も分かります。交代や「担当できない」の連絡は各道具のボタンからどうぞ。
   </div>
 
   <div class="pv-actions">
@@ -132,10 +133,11 @@ html.theme-b16 header h1 span{color:#64748b;}
 
   <div id="pv-content"><div class="pv-state"><span class="pv-state-emoji">&#8987;</span>読み込み中です…</div></div>
 
-  <div class="pv-foot">東海中央ボーイズ 15期　道具割振りツール v1.8.6</div>
+  <div class="pv-foot">東海中央ボーイズ 15期　道具割振りツール v1.9.0</div>
 </div>
 
 <script>window.PVSW_CONFIG={apiBase:'https://tcb-tools-sync.kazoo-matsu.workers.dev'};</script>
+<script src="tcb-feedback.js"></script>
 <script src="parent-swap.js"></script>
 </body>
 </html>

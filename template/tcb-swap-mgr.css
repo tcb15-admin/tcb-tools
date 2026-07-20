@@ -19,6 +19,7 @@
 .tcbsw-tool{font-size:14px;font-weight:800;color:#122050;}
 .tcbsw-swap{font-size:15px;font-weight:700;color:#1c1c22;margin:4px 0 6px;}
 .tcbsw-swap .tcbsw-arrow{color:#c0000a;margin:0 6px;}
+.tcbsw-swap .tcbsw-unav{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:#7a5200;background:#fff6e5;border:1px solid #e8c884;border-radius:999px;padding:2px 9px;}
 .tcbsw-meta{font-size:12px;color:#6e6e78;line-height:1.6;}
 .tcbsw-meta .tcbsw-comment{display:block;margin-top:3px;color:#1c1c22;}
 .tcbsw-status{display:inline-block;font-size:10px;font-weight:800;padding:2px 9px;border-radius:980px;color:#fff;margin-left:auto;}

@@ -46,6 +46,24 @@
     if (ctx && typeof ctx.onEnabledChange === 'function') ctx.onEnabledChange();
   }
 
+  /* ===== 永続化（リロード・PWA再起動で保有登録が消えないように） ===== */
+  function persist() {
+    if (ctx && typeof ctx.savePersisted === 'function') {
+      ctx.savePersisted({ enabled: enabled ? 1 : 0, holdMap: cloneMap(holdMap) });
+    }
+  }
+  function loadPersisted() {
+    if (!ctx || typeof ctx.loadPersisted !== 'function') return;
+    var o = ctx.loadPersisted();
+    if (!o || typeof o !== 'object') return;
+    var map = cloneMap(o.holdMap);
+    var on = (o.enabled == 1 || o.enabled === true || o.enabled === '1');
+    if (on && Object.keys(map).length) {
+      holdMap = map;
+      enabled = true;
+    }
+  }
+
   function ensureDraftComplete() {
     var names = activeToolNames();
     var master = defaultHoldFromMaster();
@@ -139,9 +157,11 @@
     ensureDraftComplete();
     holdMap = cloneMap(draftMap);
     enabled = true;
+    persist();
     updateStatusUI();
     notifyEnabledChange();
     if (ctx.closeModal) ctx.closeModal('tcb-ghold-modal');
+    if (global.TCB_Feedback) global.TCB_Feedback.toast('グループ保有を登録しました。次回以降もこの端末で引き継がれます。', 'success');
   }
 
   function clearHold() {
@@ -150,14 +170,17 @@
     enabled = false;
     holdMap = {};
     draftMap = {};
+    persist();
     updateStatusUI();
     notifyEnabledChange();
+    if (global.TCB_Feedback) global.TCB_Feedback.toast('保有登録をやめました。従来どおりの割振りに戻ります。', 'info');
   }
 
   function fillDraftFromPrev() {
     draftMap = inferHoldFromPrev();
     if (!Object.keys(draftMap).length) {
-      alert('前回割り当てから推測できませんでした。マスタ設定から初期化します。');
+      if (global.TCB_Feedback) global.TCB_Feedback.toast('前回割り当てから推測できませんでした。マスタ設定から初期化します。', 'warn');
+      else alert('前回割り当てから推測できませんでした。マスタ設定から初期化します。');
       draftMap = defaultHoldFromMaster();
     }
     renderDraftList();
@@ -197,6 +220,8 @@
     return { groupHoldEnabled: 1, groupHoldMap: cloneMap(holdMap) };
   }
 
+  /* 履歴・スナップからの復元はその日の文脈に合わせた一時的な状態変更なので、
+     端末保存（永続化）は上書きしない。永続化は明示操作（登録／解除）のみ。 */
   function restoreFromSnap(snap) {
     if (!snap || typeof snap !== 'object') {
       enabled = false;
@@ -244,7 +269,10 @@
     if (modal) modal.addEventListener('click', function (e) {
       if (e.target === modal && ctx.closeModal) ctx.closeModal('tcb-ghold-modal');
     });
+    /* 端末に保存済みの保有登録があれば復元（リロード・PWA再起動対応） */
+    loadPersisted();
     updateStatusUI();
+    if (enabled) notifyEnabledChange();
   }
 
   global.TCB_GroupHold = {

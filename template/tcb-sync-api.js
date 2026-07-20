@@ -10,6 +10,15 @@
 
   var REQ_TIMEOUT_MS=30000;
 
+  /* ヘッダーの同期状態インジケーターへ通知（読み込まれていない画面では何もしない） */
+  function notifySync(ev){
+    try{
+      if(global.TCB_Feedback&&typeof global.TCB_Feedback.syncStatus==='function'){
+        global.TCB_Feedback.syncStatus(ev);
+      }
+    }catch(e){}
+  }
+
   function createSyncClient(opts){
     opts=opts||{};
     var base=String(opts.baseUrl||'').replace(/\/+$/,'');
@@ -21,6 +30,7 @@
       /* 遅い回線で無限に待たないよう30秒でタイムアウト */
       var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
       var timer=ctrl?setTimeout(function(){ctrl.abort();},REQ_TIMEOUT_MS):null;
+      notifySync('start');
       return fetch(base+path,{
         method:method||'GET',
         headers:{
@@ -35,9 +45,11 @@
             var msg=(payload&&payload.error)?payload.error:('HTTP '+res.status);
             throw new Error(msg);
           }
+          notifySync('ok');
           return payload;
         });
       }).catch(function(err){
+        notifySync('error');
         if(err&&err.name==='AbortError'){
           throw new Error('通信がタイムアウトしました（30秒）。電波状況を確認して再度お試しください。');
         }

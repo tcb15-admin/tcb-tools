@@ -382,6 +382,7 @@ def build(target):
         'tcb-push-mgr.js', 'tcb-push-mgr.css',
         'tcb-pwa-install.js', 'tcb-pwa-install.css',
         'tcb-group-hold.js', 'tcb-group-hold.css',
+        'tcb-feedback.js', 'tcb-feedback.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )

@@ -346,6 +346,18 @@ function genShareId() {
   return s;
 }
 
+/** 道具写真URL：https のみ許可（保護者ページに埋め込むため厳格に） */
+function sanitizeImgUrl(v) {
+  const s = String(v || "").trim();
+  if (!s || s.length > 500) return "";
+  try {
+    const u = new URL(s);
+    return u.protocol === "https:" ? s : "";
+  } catch {
+    return "";
+  }
+}
+
 /** 保護者に見せてよい最小情報だけを取り出して整形する（PAST等の内部指標は出さない） */
 function sanitizePublishDays(daysRaw) {
   const days = Array.isArray(daysRaw) ? daysRaw : [];
@@ -360,6 +372,7 @@ function sanitizePublishDays(daysRaw) {
       items: items.map((it) => ({
         tool: String((it && it.tool) || ""),
         desc: String((it && it.desc) || ""),
+        img: sanitizeImgUrl(it && it.img),
         person: String((it && it.person) || ""),
         team: String((it && it.team) || ""),
         teamLabel: String((it && it.teamLabel) || ""),
@@ -461,18 +474,24 @@ function mapSwapReportRow(r) {
   };
 }
 
-/** 保護者からの交代報告を作成（無認証・入口で厳格に検証） */
+/** 保護者からの交代報告を作成（無認証・入口で厳格に検証）
+    type: 'swap'（既定）… 交代先が決まっている報告
+    type: 'unavailable' … 担当できなくなった（後任未定）の連絡。to_person は空で保存する */
 async function createSwapReport(env, body) {
   const shareId = String((body && body.shareId) || "").trim();
   const dayKey = String((body && body.dayKey) || "").trim();
   const tool = String((body && body.tool) || "").trim();
   const fromPerson = String((body && body.fromPerson) || "").trim();
-  const toPerson = String((body && body.toPerson) || "").trim();
   const reporter = String((body && body.reporter) || "").trim().slice(0, 40);
   const comment = String((body && body.comment) || "").trim().slice(0, 100);
+  const isUnavailable = String((body && body.type) || "swap") === "unavailable";
+  const toPerson = isUnavailable ? "" : String((body && body.toPerson) || "").trim();
 
-  if (!tool || !fromPerson || !toPerson) throw new Error("missing_fields");
-  if (toPerson === fromPerson) throw new Error("same_person");
+  if (!tool || !fromPerson) throw new Error("missing_fields");
+  if (!isUnavailable) {
+    if (!toPerson) throw new Error("missing_fields");
+    if (toPerson === fromPerson) throw new Error("same_person");
+  }
 
   const { cohort, view } = await getActivePublishedByShare(env, shareId);
   const day = findPublishedDay(view, dayKey);
@@ -484,10 +503,10 @@ async function createSwapReport(env, body) {
   // 現担当Aの鮮度照合（公開データと不一致＝古い内容は拒否）
   if (String(item.person || "") !== fromPerson) throw new Error("stale_from_person");
 
-  // 新担当Bは当日の割振り対象メンバーに限定
+  // 新担当Bは当日の割振り対象メンバーに限定（後任未定の連絡では不要）
   const members = Array.isArray(day.members) ? day.members : [];
   const memberNames = members.map((m) => String((m && m.name) || ""));
-  if (memberNames.indexOf(toPerson) < 0) throw new Error("invalid_to_person");
+  if (!isUnavailable && memberNames.indexOf(toPerson) < 0) throw new Error("invalid_to_person");
   if (reporter && memberNames.indexOf(reporter) < 0) throw new Error("invalid_reporter");
 
   const now = new Date();
@@ -534,7 +553,7 @@ async function createSwapReport(env, body) {
     id,
     _pushMeta: {
       cohort,
-      report: { id, tool, fromPerson, toPerson, dayLabel: String(day.label || "") },
+      report: { id, tool, fromPerson, toPerson, dayLabel: String(day.label || ""), unavailable: isUnavailable ? 1 : 0 },
     },
   };
 }
@@ -665,11 +684,11 @@ async function notifySwapReportPush(env, cohortRaw, report) {
   const fromPerson = String((report && report.fromPerson) || "");
   const toPerson = String((report && report.toPerson) || "");
   const dayLabel = String((report && report.dayLabel) || "");
-  const bodyText = dayLabel
-    ? `${dayLabel} ${tool}: ${fromPerson} → ${toPerson}`
-    : `${tool}: ${fromPerson} → ${toPerson}`;
+  const unavailable = !!(report && report.unavailable);
+  const change = unavailable ? `${fromPerson}（担当不可・後任未定）` : `${fromPerson} → ${toPerson}`;
+  const bodyText = dayLabel ? `${dayLabel} ${tool}: ${change}` : `${tool}: ${change}`;
   const payload = JSON.stringify({
-    title: "新しい交代報告",
+    title: unavailable ? "担当できない連絡" : "新しい交代報告",
     body: bodyText,
     url: "./index.html",
     tag: "swap-" + String((report && report.id) || ""),

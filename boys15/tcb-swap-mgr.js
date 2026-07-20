@@ -36,6 +36,12 @@
     D9: 'その他'
   };
 
+  /* 非ブロッキング通知（トースト）。未読込時は alert にフォールバック */
+  function notify(msg, type) {
+    if (window.TCB_Feedback && typeof window.TCB_Feedback.toast === 'function') { window.TCB_Feedback.toast(msg, type); return; }
+    window.alert(msg);
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c];
@@ -113,7 +119,11 @@
         + '<span class="tcbsw-tool">' + esc(r.tool) + '</span>'
         + '<span class="tcbsw-status ' + esc(r.status) + '">' + statusText(r.status) + '</span>'
         + '</div>';
-      html += '<div class="tcbsw-swap">' + esc(r.fromPerson) + '<span class="tcbsw-arrow">&#8594;</span>' + esc(r.toPerson) + '</div>';
+      if (r.toPerson) {
+        html += '<div class="tcbsw-swap">' + esc(r.fromPerson) + '<span class="tcbsw-arrow">&#8594;</span>' + esc(r.toPerson) + '</div>';
+      } else {
+        html += '<div class="tcbsw-swap">' + esc(r.fromPerson) + '<span class="tcbsw-unav">担当できない（後任未定）</span></div>';
+      }
       var meta = [];
       if (r.reporter) meta.push('連絡者：' + esc(r.reporter));
       meta.push('受付：' + esc(fmtWhen(r.createdAt)));
@@ -125,7 +135,7 @@
       }
       if (r.status === 'pending') {
         html += '<div class="tcbsw-actions">'
-          + '<button type="button" class="tcbsw-btn tcbsw-btn-apply" data-act="apply">反映する</button>'
+          + '<button type="button" class="tcbsw-btn tcbsw-btn-apply" data-act="apply">' + (r.toPerson ? '反映する' : '対応済みにする') + '</button>'
           + '<button type="button" class="tcbsw-btn tcbsw-btn-reject" data-act="reject">却下</button>'
           + '<button type="button" class="tcbsw-btn tcbsw-btn-open" data-act="open-day">この日をSTEP3で開く</button>'
           + '</div>'
@@ -198,9 +208,9 @@
       setBadge(res && res.pending);
       renderList();
       pushAppliedSession({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
-      window.alert('反映しました。\nSTEP3の割振り結果を確認し、「実施確定」を押してください。\nその後、展開情報から修正版をLINEで再通知できます。');
+      notify('反映しました。STEP3の割振り結果を確認し、「実施確定」を押してください。その後、展開情報から修正版をLINEで再通知できます。', 'success');
     }).catch(function (err) {
-      alert('反映の記録に失敗しました：' + (err && err.message ? err.message : ''));
+      notify('反映の記録に失敗しました：' + (err && err.message ? err.message : ''), 'error');
     });
   }
 
@@ -209,9 +219,10 @@
       reports = (res && Array.isArray(res.reports)) ? res.reports : reports;
       setBadge(res && res.pending);
       renderList();
-      pushAppliedSession({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
+      /* 後任未定の「担当できない」連絡は交代ではないため、修正版LINE本文には載せない */
+      if (r.toPerson) pushAppliedSession({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
     }).catch(function (err) {
-      alert('反映の記録に失敗しました：' + (err && err.message ? err.message : ''));
+      notify('反映の記録に失敗しました：' + (err && err.message ? err.message : ''), 'error');
     });
   }
 
@@ -255,6 +266,12 @@
   }
 
   function onApply(r) {
+    /* 後任未定の「担当できない」連絡：割振りは自動で変えず、受付だけ対応済みにする */
+    if (!r.toPerson) {
+      if (!window.confirm('「' + r.tool + '」の担当（' + r.fromPerson + '）ができない連絡です。\n割振り結果は自動では変わりません。STEP3で手動調整してください。\n\nこの連絡を「対応済み」にしますか？')) return;
+      markAppliedStatusOnly(r);
+      return;
+    }
     if (!window.confirm('「' + r.tool + '」の担当を\n' + r.fromPerson + ' → ' + r.toPerson + '\nに反映します。よろしいですか？')) return;
     var needHist = !ctx.getR() || !ctx.getR().map;
     if (needHist && typeof ctx.refreshHistory === 'function') {
@@ -276,7 +293,7 @@
       setBadge(res && res.pending);
       renderList();
     }).catch(function (err) {
-      alert('却下の記録に失敗しました：' + (err && err.message ? err.message : ''));
+      notify('却下の記録に失敗しました：' + (err && err.message ? err.message : ''), 'error');
     });
   }
 
@@ -296,7 +313,7 @@
         if (window.confirm('報告どおり「' + r.tool + '」を\n' + r.fromPerson + ' → ' + r.toPerson + '\nに差し替えますか？\n（受付は反映済みでも、割振り側が未更新のときに使います）')) {
           ctx.chAssign(r.tool, r.toPerson);
           pushAppliedSession({ tool: r.tool, from: r.fromPerson, to: r.toPerson });
-          window.alert('差し替えました。STEP3で「実施確定」を押してください。');
+          notify('差し替えました。STEP3で「実施確定」を押してください。', 'success');
         }
       }
     }
@@ -341,7 +358,7 @@
       lines.push('交代を反映しました：');
       var seen = {};
       appliedSession.forEach(function (s) {
-        if (!s || !s.tool) return;
+        if (!s || !s.tool || !s.to) return;
         var key = s.tool + '\0' + s.from + '\0' + s.to;
         if (seen[key]) return;
         seen[key] = 1;

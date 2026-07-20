@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="tcb-push-mgr.css">
 <link rel="stylesheet" href="tcb-pwa-install.css">
 <link rel="stylesheet" href="tcb-group-hold.css">
+<link rel="stylesheet" href="tcb-feedback.css">
 <style>
 :root{
   /* チームカラー：濃紺＋赤＋白（15期既定）／16期は html.theme-b16 で画面は白ベース＋紺×赤（ヘッダのみ白バック）
@@ -216,6 +217,11 @@ tr.rB td{border-left:3px solid var(--tb);}
 .p3-result-card-foot{margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr);width:100%;box-sizing:border-box;}
 .tgA{background:var(--ta-bg);color:var(--ta);border:1px solid var(--ta-bd);}
 .tgB{background:var(--tb-bg);color:var(--tb);border:1px solid var(--tb-bd);}
+/* 色弱対応：班の区別を色だけに頼らない（A=●＋実線 / B=▲＋破線） */
+.tgA::before{content:'\25CF';font-size:8px;margin-right:4px;vertical-align:1px;}
+.tgB::before{content:'\25B2';font-size:8px;margin-right:4px;vertical-align:1px;}
+.tgB{border-style:dashed;}
+.tcb.B{border-style:dashed;}
 /* 割振り結果 表：道具名は可変幅、タグ列は固定スロットで縦揃え、写真ボタンは右端 */
 .p3-tool-cell{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 8px;align-items:center;}
 .p3-tool-name{min-width:0;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1213,7 +1219,10 @@ html{color-scheme:light;}
       <a class="hbtn tcb-hdr-manual-link" id="hdr-manual-link" href="#" target="_blank" rel="noopener noreferrer" hidden aria-label="操作マニュアル（PDF）を開く"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg>マニュアル</a>
       <a class="hbtn tcb-hdr-portal-link" id="hdr-portal-link" href="portal/" aria-label="役割ポータルを開く">ポータル</a>
     </div>
-    <div id="tool-version" style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px;text-align:right;"></div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+      <span id="tcb-sync-ind" class="tcb-fb-sync" hidden></span>
+      <div id="tool-version" style="font-size:9px;color:rgba(255,255,255,0.5);text-align:right;"></div>
+    </div>
   </div>
 </header>
 
@@ -1934,6 +1943,14 @@ var _ls=(function(){
 
 function syncEnabled(){
   return !!SYNC_CLIENT;
+}
+/* 非ブロッキング通知（トースト）。モジュール未読込時は alert にフォールバック */
+function tcbToast(msg,type){
+  if(typeof TCB_Feedback!=='undefined'&&TCB_Feedback&&typeof TCB_Feedback.toast==='function'){
+    TCB_Feedback.toast(msg,type);
+    return;
+  }
+  alert(msg);
 }
 function syncHeadersReady(){
   /* トークンが未注入（ビルド時に環境変数 SYNC_API_TOKEN 未設定）のプレースホルダのままなら、
@@ -2910,7 +2927,7 @@ function beginReeditFromHistDetail(){
 }
 function beginReeditFromCurrentResult(){
   if(!R){
-    alert('割振り結果がありません。先に割振りを実行してください。');
+    tcbToast('割振り結果がありません。先に割振りを実行してください。','warn');
     return false;
   }
   syncAssignMapFromToolTableDom();
@@ -3008,7 +3025,7 @@ function saveActualHoldAdjust(){
     }
     alert(changed+'点の実保有を補正しました。\nこの内容が「前回持っていた道具」の基準になり、入れ替え案内はこの実態との差分で作られます。');
   }else{
-    alert('変更はありませんでした。');
+    tcbToast('変更はありませんでした。','info');
   }
 }
 function savePrevResult(){
@@ -3134,13 +3151,13 @@ function confirmCarryOutResult(opts){
   opts=opts||{};
   return new Promise(function(resolve,reject){
     if(!R){
-      if(!opts.silent)alert('割振り結果がありません。先に割振りを実行してください。');
+      if(!opts.silent)tcbToast('割振り結果がありません。先に割振りを実行してください。','warn');
       reject(new Error('no_result'));
       return;
     }
     var d=document.getElementById('adate').value;
     if(!d){
-      if(!opts.silent)alert('活動日を設定してください（STEP 1）。');
+      if(!opts.silent)tcbToast('活動日を設定してください（STEP 1）。','warn');
       reject(new Error('no_date'));
       return;
     }
@@ -3183,7 +3200,7 @@ function confirmCarryOutResult(opts){
         finishOk('実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。');
       }).catch(function(err){
         console.error(err);
-        if(!opts.silent)alert('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。');
+        if(!opts.silent)tcbToast('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。','error');
         reject(err||new Error('confirm_failed'));
       });
       return;
@@ -3855,7 +3872,7 @@ function getCarryAdjustLineBodyPlain(){
 }
 function copyTextToClipboard(text, okMsg,failMsg){
   function done(ok){
-    if(ok){alert(okMsg);return;}
+    if(ok){tcbToast(okMsg,'success');return;}
     prompt(failMsg||'以下をコピーしてください',text);
   }
   if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -4492,7 +4509,7 @@ function assignPoolCarryAdjust(poolToolObjs, fullState, prevAssignMap, runSeed, 
   });
 }
 function runRebalanceFair(){
-  if(!R){alert('割振り結果がありません。');return;}
+  if(!R){tcbToast('割振り結果がありません。','warn');return;}
   var runSeed=Date.now();
   var prevMap=loadPrevAssignMap();
   var poolSet={};
@@ -4715,7 +4732,7 @@ function applyRenshuSplit(on){
 /* ========== ナビ ========== */
 function goStep(n){
   if(n===3&&!R){
-    alert('先に STEP2 で「割振りを実行」してください。');
+    tcbToast('先に STEP2 で「割振りを実行」してください。','warn');
     n=2;
   }
   var pm0=document.getElementById('p-master');
@@ -5706,7 +5723,7 @@ function publishParentViewAsync(){
   });
 }
 function publishParentView(){
-  if(!R){alert('先に割振りを実行してください。');return;}
+  if(!R){tcbToast('先に割振りを実行してください。','warn');return;}
   ensureConfirmedBeforeUrlPublish().then(function(){
     return publishParentViewAsync();
   }).then(function(url){
@@ -5718,7 +5735,7 @@ function publishParentView(){
       return;
     }
     console.error(err);
-    alert('確認URLの発行に失敗しました。通信状況を確認して再度お試しください。');
+    tcbToast('確認URLの発行に失敗しました。通信状況を確認して再度お試しください。','error');
   });
 }
 function localIsoDateFromDate(d){
@@ -5935,7 +5952,7 @@ function lineShareErrorMessage(err){
 /** 共有シートへ PDF＋本文をまとめて展開（端末保存は共有シートの「ファイルに保存」で） */
 var _lineShareReady=null;
 function executeLineShare(){
-  if(!R){alert('先に割振りを実行してください。');return;}
+  if(!R){tcbToast('先に割振りを実行してください。','warn');return;}
   /* 前回タップで準備済み（iOSの共有シート権限切れ）なら、タップ直後に即共有 */
   if(_lineShareReady){
     var ready=_lineShareReady;
@@ -6005,7 +6022,7 @@ function executeLineShare(){
         return;
       }
       if(err&&err.message==='no_confirmed'){
-        alert('保護者確認URLは実施確定後に送信できます。');
+        tcbToast('保護者確認URLは実施確定後に送信できます。','warn');
         return;
       }
       if(err&&err.name==='NotAllowedError'){
@@ -6065,9 +6082,11 @@ function buildParentViewItems(map,tools,la,lb){
     var teamLabel=team==='A'?(la||''):team==='B'?(lb||''):'';
     var dRec=DESCS&&DESCS[toolName];
     var descTxt=dRec?((typeof dRec==='object')?String(dRec.text||''):String(dRec)):'';
+    var imgUrl=(dRec&&typeof dRec==='object')?String(dRec.img||'').trim():'';
     items.push({
       tool:toolName,
       desc:descTxt,
+      img:imgUrl,
       person:person,
       team:team,
       teamLabel:teamLabel
@@ -6124,7 +6143,7 @@ function renderParentViewState(){
   refreshSharePanel();
 }
 function copyParentViewUrl(){
-  if(!_parentViewUrl){alert('先に展開情報からURLを発行してください。');return;}
+  if(!_parentViewUrl){tcbToast('先に展開情報からURLを発行してください。','warn');return;}
   copyTextToClipboard(_parentViewUrl,'確認URLをコピーしました。');
 }
 function unpublishParentView(){
@@ -6139,7 +6158,7 @@ function unpublishParentView(){
     setSharePanelStatus('保護者向け確認URLを無効化しました。');
   }).catch(function(err){
     console.error(err);
-    alert('無効化に失敗しました。通信状況を確認して再度お試しください。');
+    tcbToast('無効化に失敗しました。通信状況を確認して再度お試しください。','error');
   }).finally(function(){
     if(btn){btn.disabled=false;btn.textContent=orig;}
   });
@@ -6147,7 +6166,7 @@ function unpublishParentView(){
 /** クリップボードへコピー（フォールバック付き・共通） */
 function copyTextToClipboard(text,okMsg){
   function done(ok){
-    if(ok){if(okMsg)alert(okMsg);return;}
+    if(ok){if(okMsg)tcbToast(okMsg,'success');return;}
     prompt('以下をコピーしてください',text);
   }
   if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -6282,7 +6301,7 @@ function syncAssignPdfPreview(frame){
   return out;
 }
 function openPrint(){
-  if(!R){alert('先に割振りを実行してください。');return;}
+  if(!R){tcbToast('先に割振りを実行してください。','warn');return;}
   var mainLogo=document.querySelector('header img.logo');
   var phLogo=document.getElementById('print-header-logo');
   if(mainLogo&&phLogo){
@@ -6314,7 +6333,7 @@ function closePrint(){
   _tcbUnlockBodyScrollIfIdle();
 }
 function execPrint(){
-  if(!R){alert('先に割振りを実行してください。');return;}
+  if(!R){tcbToast('先に割振りを実行してください。','warn');return;}
   var frame=document.getElementById('print-frame');
   var out=prepareAssignPdfOutput(true);
   if(!out)return;
@@ -7064,12 +7083,30 @@ document.addEventListener('DOMContentLoaded',function(){
       cohort:COHORT_KEY
     });
   }
+  /* ヘッダーの同期状態インジケーター（クラウド同期が有効な環境のみ） */
+  if(syncEnabled()&&typeof TCB_Feedback!=='undefined'&&TCB_Feedback&&typeof TCB_Feedback.initSyncIndicator==='function'){
+    TCB_Feedback.initSyncIndicator('tcb-sync-ind');
+  }
+  /* オフラインキャッシュ用に SW を常時登録（push 通知の許可有無に関係なく有効） */
+  if('serviceWorker' in navigator){
+    try{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){});}catch(e){}
+  }
+  /* PC向けショートカット：Cmd/Ctrl+S でマスタ設定を保存（マスタ画面表示中のみ） */
+  document.addEventListener('keydown',function(e){
+    if(!(e.metaKey||e.ctrlKey))return;
+    if(e.key!=='s'&&e.key!=='S')return;
+    var pm=document.getElementById('p-master');
+    if(pm&&pm.classList.contains('on')){
+      e.preventDefault();
+      saveMaster();
+    }
+  });
   loadMaster();
   initPw();
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.8.6';
+  if(vEl)vEl.textContent='v1.9.0';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7254,6 +7291,13 @@ document.addEventListener('DOMContentLoaded',function(){
       closeModal:closeModal,
       esc:esc,
       onEnabledChange:refreshTeamUiForGroupHold,
+      /* 端末保存（リロード・PWA再起動しても保有登録が消えないように） */
+      loadPersisted:function(){
+        try{var raw=_ls.get('tcb15GroupHold');return raw?JSON.parse(raw):null;}catch(e){return null;}
+      },
+      savePersisted:function(o){
+        try{_ls.set('tcb15GroupHold',JSON.stringify(o||{}));}catch(e){}
+      },
       listActiveToolNames:function(){
         return TL.filter(function(t){return !skipS[t.name];}).map(function(t){return t.name;});
       },
@@ -7512,6 +7556,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="html2canvas.min.js"></script>
 <script src="html2pdf.min.js"></script>
 <script src="tcb-print-pdf.js"></script>
+<script src="tcb-feedback.js"></script>
 <script src="tcb-sync-api.js"></script>
 <script src="tcb-swap-mgr.js"></script>
 <script src="tcb-push-mgr.js"></script>
