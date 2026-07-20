@@ -1638,8 +1638,9 @@ html{color-scheme:light;}
         <div id="m-descs"></div>
       </div>
     </div>
-    <div style="padding-bottom:16px;">
-      <button class="nb nbp" id="btn-master-save2" style="width:100%;padding:14px;font-size:15px;">&#128190; 保存</button>
+    <div class="tcb-master-foot-btns" style="padding-bottom:16px;display:flex;gap:8px;">
+      <button type="button" class="nb nbp" id="btn-master-save2" style="flex:1;padding:14px;font-size:15px;">&#128190; 保存</button>
+      <button type="button" class="nb nbs" id="btn-master-back2" style="flex:0 0 auto;padding:14px 16px;font-size:15px;">&#10005; 閉じる</button>
     </div>
   </div>
 </div>
@@ -7319,6 +7320,8 @@ document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('hist-confirm-bar').style.display='none';
   });
   document.getElementById('btn-master-back').addEventListener('click',function(){goStep(1);});
+  var btnMasterBack2=document.getElementById('btn-master-back2');
+  if(btnMasterBack2)btnMasterBack2.addEventListener('click',function(){goStep(1);});
   document.getElementById('btn-master-revert-session').addEventListener('click',function(){revertMasterToSessionOpen();});
   document.getElementById('btn-master-reload-ls').addEventListener('click',function(){reloadMasterFromDeviceStorage();});
   document.getElementById('btn-master-revert-default').addEventListener('click',function(){revertMasterToBundledDefaults();});
