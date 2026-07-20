@@ -1495,9 +1495,9 @@ html{color-scheme:light;}
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
       <strong id="p2-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先します。前回の担当者が引き継げない道具の配り方は下の「割り振り方法」で選べます。STEP3では班をまたいだ手動割当が自動でオンになります。<strong>活動パターンを変えても前回担当は維持</strong>されます。" aria-label="説明"></button>
       <div class="tcb-seedalloc-box">
-        <div class="tcb-seedalloc-title">引き継げない道具の割り振り方法<button type="button" class="tcb-tip" data-tip="前回の担当者が<strong>欠席・お茶当番・別グループ</strong>などで引き継げない道具の配り方です。維持できる担当はどちらを選んでも変わりません。" aria-label="説明"></button></div>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（担当数・負荷が偏らないよう全員に分けます）</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>変更を最小に</strong>（持ち帰る人を減らすため少人数へまとめます。1人に集中することがあります）</span></label>
+        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>：固定担当以外をグループ内で公平に振り直します（前回の偏りは引き継ぎません）。<strong>変更を最小に</strong>：前回の担当を最大限維持し、引き継げない道具だけを少人数へまとめます。" aria-label="説明"></button></div>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（グループ内で担当数・負荷が偏らないよう振り直します）</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>変更を最小に</strong>（前回の担当を維持。余った道具は少人数へまとまり、1人に集中することがあります）</span></label>
       </div>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地の実保有に補正</button>
@@ -3536,7 +3536,9 @@ function soloFillOnlyForUnassigned(t, state){
 }
 function bundleAttachPassesForTool(t, state){
   if(!toolBundleAnchorByRow(t))return [0];
-  if(toolSoloFillForUnassignedByName(t.name)&&stateHasMemberWithCnt(state,0))return [0];
+  /* 未担当がいる間は単独割当を優先。同乗寄せ（requireOther）を先にすると
+     軽い道具が既担当者へ積み上がり、未担当が残る偏りになる */
+  if(stateHasMemberWithCnt(state,0))return [0];
   return [1,0];
 }
 function sortToolsForDefer(toolList){
@@ -3775,6 +3777,17 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
     poolSet[t.name]=1;
   });
   return {baseMap:baseMap, poolSet:poolSet};
+}
+/* 「公平に分散」用：固定以外の前回担当をいったんプールへ戻し、グループ内で公平に振り直す */
+function releaseNonFixedToPoolForFair(baseMap, poolSet, toolList){
+  var byName={};
+  (toolList||[]).forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+  Object.keys(baseMap||{}).forEach(function(tn){
+    var t=byName[tn];
+    if(t&&t.fixed)return;
+    delete baseMap[tn];
+    poolSet[tn]=1;
+  });
 }
 /* 班入替・お茶引き継ぎ後など：1道具までの人が2件以上 baseMap に載っていたら余剰をプールへ */
 function enforceNoMultiOnBaseMap(baseMap, poolSet, toolList){
@@ -4291,14 +4304,17 @@ function finalizePrevSeedAssignment(ctx, ex, baseMap, poolSet, prevMap, runSeed,
   }
   return true;
 }
-/* LS_PREV の map をベースに R を組み立て。差分道具は snap.map を前回担当として assignPoolFair に渡す */
+/* LS_PREV の map をベースに R を組み立て。差分道具は snap.map を前回担当としてプール割当に渡す */
 function runAlgoApplyPrevSeed(snap, ctx, runSeed){
   var ex=ctx.ex;
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ex);
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
   enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
-  finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, assignPoolFair, {});
+  var fairPool=(loadSeedAllocMethod()!=='min');
+  if(fairPool)releaseNonFixedToPoolForFair(built.baseMap, built.poolSet, allTools);
+  var poolFn=fairPool?assignPoolFair:assignPoolCarryAdjust;
+  finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, {});
   return true;
 }
 /* 持ち帰り調整：当番引き継ぎ＋前回欠席復帰者優先でプール再配分（活動パターン不一致でも map ベース） */
@@ -4317,13 +4333,14 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
   }else{
     zeroSide.all=buildZeroPrioritySet(snap, ctx.members);
   }
-  /* 引き継げない道具の配り方：公平分散（既定）か、変更人数の最小化（集中配分）かを選択制に */
+  /* 公平：固定以外をグループ内で振り直し／変更最小：前回維持＋余剰は少人数へ */
   var fairPool=(loadSeedAllocMethod()!=='min');
+  if(fairPool)releaseNonFixedToPoolForFair(built.baseMap, built.poolSet, allTools);
   var poolFn=fairPool?assignPoolFair:assignPoolCarryAdjust;
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, zeroSide);
   var methodNote=fairPool
-    ?'引き継げない道具は「公平に分散」で配りました。'
-    :'引き継げない道具は「変更を最小に」でまとめて配りました。';
+    ?'「公平に分散」：固定以外の道具をグループ内で公平に振り直しました。'
+    :'「変更を最小に」：前回の担当を最大限維持し、余った道具は少人数へまとめました。';
   return (ochNotes||[]).concat(swapNotes||[]).concat([methodNote]);
 }
 function prio(s, medianPast){
