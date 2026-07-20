@@ -321,6 +321,11 @@ tr.p3-multi-row{background:#fff8e1;}
 .tcb-seed-mode-banner{display:none;margin-bottom:10px;padding:10px 12px;background:#e8f4fd;border-left:4px solid var(--blue);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.55;}
 .tcb-seed-mode-banner.on{display:block;}
 .tcb-seed-mode-banner-btns{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;}
+/* 前回基準モード：引き継げない道具の割り振り方法の選択 */
+.tcb-seedalloc-box{margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.55);border:1px solid rgba(0,0,0,0.08);border-radius:8px;}
+.tcb-seedalloc-title{font-weight:800;font-size:12px;margin-bottom:6px;}
+.tcb-seedalloc-opt{display:flex;align-items:flex-start;gap:6px;font-size:12px;line-height:1.5;cursor:pointer;padding:3px 0;}
+.tcb-seedalloc-opt input{margin-top:2px;flex-shrink:0;}
 .tcb-actual-hold-desc{font-size:12px;line-height:1.6;color:var(--txt2);margin-bottom:10px;}
 .tcb-actual-hold-note{font-size:11px;line-height:1.55;color:#6a1b9a;margin-bottom:10px;}
 .tcb-actual-hold-list{max-height:52vh;overflow:auto;margin:0 0 12px;border:1px solid #eee;border-radius:8px;}
@@ -1082,6 +1087,7 @@ html{color-scheme:light;}
   .p1-renshu-split-wrap{background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.32);}
   .p1-renshu-split-lbl{color:#f0d48a;}
   .tcb-seed-mode-banner{background:var(--surface-2);border-left-color:var(--blue2);color:var(--txt2);}
+  .tcb-seedalloc-box{background:rgba(255,255,255,0.06);border-color:var(--bdr);}
   .sc.ht{background:var(--surface-2);border-color:var(--blue2);}
   .mc.rest,.mc.quit,.mc.coach,.mc.master-excl{background:var(--surface-2);border-color:var(--bdr);}
   .p3-carry-adjust-text{background:var(--surface-2);border-color:#7c53b0;color:var(--txt);}
@@ -1451,7 +1457,7 @@ html{color-scheme:light;}
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong id="p1-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>過去の割振り</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先し、余りは<strong>変更が必要な人へ集中</strong>して調整人数を最小化します。活動日は本日に設定。<strong>活動パターン（片方試合／両方試合／両方練習）を変えても前回担当は維持</strong>されます（STEP2で割振りを実行し直してください）。" aria-label="説明"></button>
+        <strong id="p1-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>過去の割振り</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先します。引き継げない道具の配り方（<strong>公平に分散／変更を最小に</strong>）は STEP2 で選べます。活動日は本日に設定。<strong>活動パターン（片方試合／両方試合／両方練習）を変えても前回担当は維持</strong>されます（STEP2で割振りを実行し直してください）。" aria-label="説明"></button>
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 現地の実保有に補正</button>
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">調整モードをやめる</button>
@@ -1487,7 +1493,12 @@ html{color-scheme:light;}
       <div class="mgrid" id="skipgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先し、余剰は変更が必要な人へ集中配分。STEP3では班をまたいだ手動割当が自動でオンになります。<strong>活動パターンを変えても前回担当は維持</strong>されます。" aria-label="説明"></button>
+      <strong id="p2-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先します。前回の担当者が引き継げない道具の配り方は下の「割り振り方法」で選べます。STEP3では班をまたいだ手動割当が自動でオンになります。<strong>活動パターンを変えても前回担当は維持</strong>されます。" aria-label="説明"></button>
+      <div class="tcb-seedalloc-box">
+        <div class="tcb-seedalloc-title">引き継げない道具の割り振り方法<button type="button" class="tcb-tip" data-tip="前回の担当者が<strong>欠席・お茶当番・別グループ</strong>などで引き継げない道具の配り方です。維持できる担当はどちらを選んでも変わりません。" aria-label="説明"></button></div>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（担当数・負荷が偏らないよう全員に分けます）</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>変更を最小に</strong>（持ち帰る人を減らすため少人数へまとめます。1人に集中することがあります）</span></label>
+      </div>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地の実保有に補正</button>
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
@@ -1822,6 +1833,20 @@ var DEFAULT_PAST={};
 /* ========== 定数・変数 ========== */
 var LS_KEY='{{LS_PREFIX}}Master', LS_PREV='{{LS_PREFIX}}PrevResult', LS_DEF_TM='{{LS_PREFIX}}Def', LS_HIST='{{LS_PREFIX}}History';
 var LS_CARRYOUT_CONFIRMED='{{LS_PREFIX}}CarryoutConfirmed';
+/* 前回基準モードで引き継げない道具の配り方：'fair'=公平に分散（既定）／'min'=変更人数を最小化 */
+var LS_SEED_ALLOC='{{LS_PREFIX}}SeedAllocMethod';
+function loadSeedAllocMethod(){
+  try{var v=_ls.get(LS_SEED_ALLOC);return v==='min'?'min':'fair';}catch(e){return 'fair';}
+}
+function saveSeedAllocMethod(v){
+  try{_ls.set(LS_SEED_ALLOC,v==='min'?'min':'fair');}catch(e){}
+}
+function syncSeedAllocRadioUI(){
+  var v=loadSeedAllocMethod();
+  document.querySelectorAll('input[name="p2-seedalloc"]').forEach(function(r){
+    r.checked=(r.value===v);
+  });
+}
 /* GitHub上のマスタJSONのURL（設定後は全端末で自動同期） */
 var GITHUB_MASTER_URL='{{GITHUB_MASTER_URL}}';
 var SYNC_API_BASE_URL='{{SYNC_API_BASE_URL}}';
@@ -2973,6 +2998,7 @@ function updateSeedModeBanners(){
     var el=document.getElementById(id);
     if(el)el.className='tcb-seed-mode-banner'+(on?' on':'');
   });
+  if(on)syncSeedAllocRadioUI();
   var hint=document.getElementById('p3-reedit-hint');
   if(hint)hint.style.display=(R&&!on)?'block':'none';
   var prevBlock=document.getElementById('p1-from-prev-block');
@@ -4262,8 +4288,14 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
   }else{
     zeroSide.all=buildZeroPrioritySet(snap, ctx.members);
   }
-  finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, assignPoolCarryAdjust, zeroSide);
-  return (ochNotes||[]).concat(swapNotes||[]);
+  /* 引き継げない道具の配り方：公平分散（既定）か、変更人数の最小化（集中配分）かを選択制に */
+  var fairPool=(loadSeedAllocMethod()!=='min');
+  var poolFn=fairPool?assignPoolFair:assignPoolCarryAdjust;
+  finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, zeroSide);
+  var methodNote=fairPool
+    ?'引き継げない道具は「公平に分散」で配りました。'
+    :'引き継げない道具は「変更を最小に」でまとめて配りました。';
+  return (ochNotes||[]).concat(swapNotes||[]).concat([methodNote]);
 }
 function prio(s, medianPast){
   var pastTerm=pastPenaltyTerm(s.past, medianPast||0)*WA;
@@ -4612,8 +4644,9 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed, zeroPri
   var carryMap=loadCarryoutPrevMap();
   var seed=(runSeed|0)||0;
   var defer=sortToolsForDefer(poolToolObjs);
+  var opts=zeroPriority?{zeroPriority:zeroPriority}:null;
   defer.forEach(function(t){
-    assignOneToolToState(t, fullState, prevMap, carryMap, seed, null);
+    assignOneToolToState(t, fullState, prevMap, carryMap, seed, opts);
   });
 }
 /* 持ち帰り調整：変更人数を最小化（余剰道具は既に変更が必要な人へ集中）＋欠席復帰者優先 */
@@ -7287,6 +7320,13 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('btn-run').addEventListener('click',function(){runAlgo();});
   document.getElementById('btn-df-save').addEventListener('click',function(){saveDefault();});
   document.getElementById('btn-df-load').addEventListener('click',function(){loadDefault();});
+  /* 前回基準モード：引き継げない道具の割り振り方法（端末に保存） */
+  document.querySelectorAll('input[name="p2-seedalloc"]').forEach(function(r){
+    r.addEventListener('change',function(){
+      if(r.checked)saveSeedAllocMethod(r.value);
+    });
+  });
+  syncSeedAllocRadioUI();
 
   /* STEP3 */
   document.getElementById('btn-reset').addEventListener('click',function(){goStep(2);});
