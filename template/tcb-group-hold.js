@@ -8,6 +8,9 @@
   var enabled = false;
   var holdMap = {}; /* toolName -> 'A'|'B' */
   var draftMap = {}; /* モーダル編集中 */
+  /* 保有登録時のグループ名（例：千曲A／千曲B）。次回が同一場所練習などで
+     STEP1にグループ名欄が出ないときも、このラベルで結果表示できるように保持する */
+  var heldLabels = { la: '', lb: '' };
 
   function esc(s) {
     return ctx && ctx.esc ? ctx.esc(s) : String(s == null ? '' : s)
@@ -30,6 +33,12 @@
     return { la: la, lb: lb };
   }
 
+  /* 表示用ラベル：有効な保有登録があればその時の名前を優先（STEP1の初期値に引きずられない） */
+  function displayLabels() {
+    if (enabled && heldLabels.la && heldLabels.lb) return { la: heldLabels.la, lb: heldLabels.lb };
+    return teamLabels();
+  }
+
   function activeToolNames() {
     return (ctx && ctx.listActiveToolNames) ? ctx.listActiveToolNames() : [];
   }
@@ -49,7 +58,12 @@
   /* ===== 永続化（リロード・PWA再起動で保有登録が消えないように） ===== */
   function persist() {
     if (ctx && typeof ctx.savePersisted === 'function') {
-      ctx.savePersisted({ enabled: enabled ? 1 : 0, holdMap: cloneMap(holdMap) });
+      ctx.savePersisted({
+        enabled: enabled ? 1 : 0,
+        holdMap: cloneMap(holdMap),
+        la: String(heldLabels.la || ''),
+        lb: String(heldLabels.lb || '')
+      });
     }
   }
   function loadPersisted() {
@@ -61,6 +75,7 @@
     if (on && Object.keys(map).length) {
       holdMap = map;
       enabled = true;
+      heldLabels = { la: String(o.la || ''), lb: String(o.lb || '') };
     }
   }
 
@@ -91,7 +106,7 @@
     var btnClear = document.getElementById('btn-tcb-ghold-clear');
     /* STEP2 内のカードは常時表示（パターン問わず登録可能） */
     if (card) card.className = 'card tcb-ghold-card on';
-    var labels = teamLabels();
+    var labels = displayLabels();
     if (status) {
       if (enabled) {
         var c = countByTeam(holdMap);
@@ -112,7 +127,7 @@
     var names = activeToolNames().slice().sort(function (a, b) {
       return String(a).localeCompare(String(b), 'ja');
     });
-    var labels = teamLabels();
+    var labels = displayLabels();
     if (!names.length) {
       listEl.innerHTML = '<div class="tcb-ghold-row"><div class="tcb-ghold-tool">対象道具がありません（除外道具を確認）。</div></div>';
       return;
@@ -157,6 +172,13 @@
     ensureDraftComplete();
     holdMap = cloneMap(draftMap);
     enabled = true;
+    /* グループ名欄が表示されている（次回活動にグループがある）ときだけ現在の名前を採用。
+       名前欄が出ないケース（同一場所練習など）での再登録は、前回登録時の名前を維持する */
+    var nameUiVisible = !(ctx && typeof ctx.needsTeamUI === 'function') || !!ctx.needsTeamUI();
+    if (nameUiVisible || !heldLabels.la || !heldLabels.lb) {
+      var labels = teamLabels();
+      heldLabels = { la: labels.la, lb: labels.lb };
+    }
     persist();
     updateStatusUI();
     notifyEnabledChange();
@@ -170,6 +192,7 @@
     enabled = false;
     holdMap = {};
     draftMap = {};
+    heldLabels = { la: '', lb: '' };
     persist();
     updateStatusUI();
     notifyEnabledChange();
@@ -279,6 +302,8 @@
     init: init,
     isEnabled: function () { return !!enabled; },
     getMap: function () { return cloneMap(holdMap); },
+    /* 保有登録時のグループ名（未登録・旧データは空文字） */
+    getLabels: function () { return { la: String(heldLabels.la || ''), lb: String(heldLabels.lb || '') }; },
     rebucketToolLists: rebucketToolLists,
     toSnapFields: toSnapFields,
     restoreFromSnap: restoreFromSnap,

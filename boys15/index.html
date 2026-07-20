@@ -1751,6 +1751,21 @@ function syncSeedAllocRadioUI(){
     r.checked=(r.value===v);
   });
 }
+/* 会場名として使うグループ名（両方試合・練習場所分離で入力した名前）を端末に保存し、次回の初期値に引き継ぐ */
+var LS_TEAM_NAMES='tcb15TeamNamesCustom';
+function loadSavedTeamNames(){
+  try{
+    var o=JSON.parse(_ls.get(LS_TEAM_NAMES)||'null');
+    if(o&&typeof o.la==='string'&&o.la&&typeof o.lb==='string'&&o.lb)return o;
+  }catch(e){}
+  return null;
+}
+function saveTeamNamesIfVenueContext(){
+  /* 会場名を入れる文脈のみ保存（片方試合の「試合組／練習組」は意味ラベルなので対象外） */
+  if(pat==='ryoho'||(pat==='renshu'&&renshuSplit)){
+    try{_ls.set(LS_TEAM_NAMES,JSON.stringify({la:tnA,lb:tnB}));}catch(e){}
+  }
+}
 /* GitHub上のマスタJSONのURL（設定後は全端末で自動同期） */
 var GITHUB_MASTER_URL='';
 var SYNC_API_BASE_URL='https://tcb-tools-sync.kazoo-matsu.workers.dev';
@@ -1870,12 +1885,26 @@ function isGroupHoldEnabled(){
 function effectiveNeedsTeamUI(){
   return needsTeamUI()||isGroupHoldEnabled();
 }
+/* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
+   グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
+function applyGroupHoldLabelsIfHidden(){
+  if(needsTeamUI())return;
+  if(!isGroupHoldEnabled())return;
+  if(typeof TCB_GroupHold.getLabels!=='function')return;
+  var l=TCB_GroupHold.getLabels();
+  if(!l||!l.la||!l.lb)return;
+  tnA=l.la;tnB=l.lb;
+  var inpA=document.getElementById('tnA'),inpB=document.getElementById('tnB');
+  if(inpA)inpA.value=l.la;
+  if(inpB)inpB.value=l.lb;
+}
 function refreshTeamUiForGroupHold(){
   var show=effectiveNeedsTeamUI();
   var tnarea=document.getElementById('tnarea');
-  if(tnarea)tnarea.style.display=show?'':'none';
+  if(tnarea)tnarea.style.display=needsTeamUI()?'':'none';
   var tc=document.getElementById('tcard');
   if(tc)tc.style.display=show?'':'none';
+  applyGroupHoldLabelsIfHidden();
   if(show){
     MB.forEach(function(m){
       if(memberMasterExcluded(m))return;
@@ -4730,14 +4759,20 @@ function setPat(p){
   var rsw=document.getElementById('renshu-split-wrap');
   if(rsw)rsw.style.display=(p==='renshu')?'block':'none';
   var tnarea=document.getElementById('tnarea');
-  if(tnarea)tnarea.style.display=effectiveNeedsTeamUI()?'':'none';
+  if(tnarea)tnarea.style.display=needsTeamUI()?'':'none';
   /* グループ名デフォルト */
   var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
   if(inpA&&inpB){
     if(p==='kata'){ inpA.value='試合組'; inpB.value='練習組'; }
-    else if(p==='ryoho'){ inpA.value='A'; inpB.value='B'; }
+    else if(p==='ryoho'){
+      var svNames=loadSavedTeamNames();
+      inpA.value=svNames?svNames.la:'A';
+      inpB.value=svNames?svNames.lb:'B';
+    }
     tnA=inpA.value; tnB=inpB.value;
   }
+  /* 次回にグループ名欄が出ないケース（同一場所練習×グループ保有）は保有登録時の名前を使う */
+  applyGroupHoldLabelsIfHidden();
   /* 全員Bに初期化 */
   if(p==='kata'||p==='ryoho'){
     MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
@@ -4755,7 +4790,9 @@ function updDesc(){
       var msgs={
         'kata':   la+'→片方チェックの道具 / '+lb+'→残りの道具',
         'ryoho':  la+'→Aグループ道具 / '+lb+'→Bグループ道具',
-        'renshu': '全道具を全メンバーで分担'
+        'renshu': (pat==='renshu'&&isGroupHoldEnabled())
+          ?'グループ保有が有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
+          :'全道具を全メンバーで分担'
       };
       el.textContent=msgs[pat];
     }
@@ -4774,12 +4811,18 @@ function applyRenshuSplit(on){
   var chk=document.getElementById('chk-renshu-split');
   if(chk)chk.checked=renshuSplit;
   var tnarea=document.getElementById('tnarea');
-  if(tnarea)tnarea.style.display=effectiveNeedsTeamUI()?'':'none';
+  if(tnarea)tnarea.style.display=needsTeamUI()?'':'none';
   if(renshuSplit){
     var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
-    if(inpA&&inpB){ inpA.value='A'; inpB.value='B'; tnA='A'; tnB='B'; }
+    if(inpA&&inpB){
+      var svNames=loadSavedTeamNames();
+      inpA.value=svNames?svNames.la:'A';
+      inpB.value=svNames?svNames.lb:'B';
+      tnA=inpA.value; tnB=inpB.value;
+    }
     MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
   }
+  applyGroupHoldLabelsIfHidden();
   updDesc();
   updateMemUnpublishedWrap();
   if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
@@ -4999,7 +5042,7 @@ function buildTGrid(){
   var g=document.getElementById('tgrid'); if(!g)return; g.innerHTML='';
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
-  var hint=pat==='kata'?'片方試合':(pat==='renshu'&&renshuSplit)?'両方練習・場所分離':'両方試合';
+  var hint=pat==='kata'?'片方試合':(pat==='renshu'?(renshuSplit?'両方練習・場所分離':'グループ保有'):'両方試合');
   var hd=document.getElementById('tcard-hd');
   if(hd){
     var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>（青）と<strong>'+esc(lb)+'</strong>（赤）を切り替えます。最初は全員<strong>'+esc(lb)+'</strong>です。会場や試合の並びが変わる日は、<strong>当日の2分け</strong>に合わせて並べ替えてから進めてください。';
@@ -7164,7 +7207,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.9.1';
+  if(vEl)vEl.textContent='v1.9.2';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7212,10 +7255,12 @@ document.addEventListener('DOMContentLoaded',function(){
   if(btnP1FromPrev)btnP1FromPrev.addEventListener('click',function(){showHistory();});
   document.getElementById('tnA').addEventListener('input',function(){
     tnA=this.value||'試合組'; updDesc();
+    saveTeamNamesIfVenueContext();
     if(effectiveNeedsTeamUI())buildTGrid();
   });
   document.getElementById('tnB').addEventListener('input',function(){
     tnB=this.value||'練習組'; updDesc();
+    saveTeamNamesIfVenueContext();
     if(effectiveNeedsTeamUI())buildTGrid();
   });
 
