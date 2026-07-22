@@ -121,6 +121,26 @@ export default {
         const since = (url.searchParams.get("since") || "").trim();
         return json(await listCrossRoleEvents(env, cohort, since));
       }
+      // ===== 配車（Bearer） =====
+      if (url.pathname === "/api/carpool/sheets" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await listCarpoolSheets(env, cohort));
+      }
+      if (url.pathname === "/api/carpool/sheets" && request.method === "POST") {
+        const body = await request.json();
+        return json(await upsertCarpoolSheet(env, body));
+      }
+      if (url.pathname === "/api/carpool/sheet" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const id = (url.searchParams.get("id") || "").trim();
+        return json(await getCarpoolSheet(env, cohort, id));
+      }
+      if (url.pathname === "/api/carpool/candidates" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const campaignId = (url.searchParams.get("campaignId") || "").trim();
+        const date = (url.searchParams.get("date") || "").trim();
+        return json(await getCarpoolCandidates(env, cohort, campaignId, date));
+      }
       return json({ error: "not_found" }, 404);
     } catch (e) {
       return json({ error: e.message || "server_error" }, 400);
@@ -1194,4 +1214,211 @@ async function listCrossRoleEvents(env, cohortRaw, sinceRaw) {
     createdAt: String(r.created_at || ""),
   }));
   return { events: events };
+}
+
+function emptyCarpoolRow(sortOrder) {
+  return {
+    sortOrder: Number(sortOrder) || 1,
+    category: "",
+    carModel: "",
+    duty: "",
+    driver: "",
+    front: "",
+    rear1: "",
+    rear2: "",
+    rear3: "",
+    rear4: "",
+    rear5: "",
+    note: "",
+    block: "general",
+  };
+}
+
+function sliceStr(v, max) {
+  return String(v || "").trim().slice(0, max);
+}
+
+function normalizeCarpoolRows(rows) {
+  const list = Array.isArray(rows) ? rows.slice(0, 60) : [];
+  return list.map((r, i) => ({
+    sortOrder: Number(r && r.sortOrder != null ? r.sortOrder : i + 1) || i + 1,
+    category: sliceStr(r && r.category, 40),
+    carModel: sliceStr(r && r.carModel, 40),
+    duty: sliceStr(r && r.duty, 80),
+    driver: sliceStr(r && r.driver, 40),
+    front: sliceStr(r && r.front, 40),
+    rear1: sliceStr(r && r.rear1, 40),
+    rear2: sliceStr(r && r.rear2, 40),
+    rear3: sliceStr(r && r.rear3, 40),
+    rear4: sliceStr(r && r.rear4, 40),
+    rear5: sliceStr(r && r.rear5, 40),
+    note: sliceStr(r && r.note, 120),
+    block: String((r && r.block) || "general") === "staff" ? "staff" : "general",
+  }));
+}
+
+function mapCarpoolSheet(row) {
+  let rows = [];
+  try {
+    rows = JSON.parse(String(row.rows_json || "[]"));
+  } catch (e) {
+    rows = [];
+  }
+  return {
+    id: String(row.id || ""),
+    cohort: String(row.cohort || ""),
+    title: String(row.title || ""),
+    activityDate: String(row.activity_date || ""),
+    fromPlace: String(row.from_place || ""),
+    toPlace: String(row.to_place || ""),
+    attendanceCampaignId: row.attendance_campaign_id ? String(row.attendance_campaign_id) : "",
+    rows: normalizeCarpoolRows(rows),
+    noteFooter: String(row.note_footer || ""),
+    createdAt: String(row.created_at || ""),
+    updatedAt: String(row.updated_at || ""),
+  };
+}
+
+async function listCarpoolSheets(env, cohort) {
+  if (!cohort) throw new Error("cohort_required");
+  const rs = await env.DB.prepare(
+    "SELECT * FROM carpool_sheets WHERE cohort = ? ORDER BY activity_date DESC, updated_at DESC LIMIT 40"
+  )
+    .bind(cohort)
+    .all();
+  return { sheets: (rs.results || []).map(mapCarpoolSheet) };
+}
+
+async function getCarpoolSheet(env, cohort, id) {
+  if (!cohort || !id) throw new Error("invalid_request");
+  const row = await env.DB.prepare("SELECT * FROM carpool_sheets WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!row) throw new Error("sheet_not_found");
+  return { sheet: mapCarpoolSheet(row) };
+}
+
+async function upsertCarpoolSheet(env, body) {
+  const cohort = String((body && body.cohort) || "").trim();
+  if (!cohort) throw new Error("cohort_required");
+  const now = new Date().toISOString();
+  let id = String((body && body.id) || "").trim().slice(0, 64);
+  const title = sliceStr((body && body.title) || "配車表", 120) || "配車表";
+  const activityDate = sliceStr(body && body.activityDate, 32);
+  const fromPlace = sliceStr(body && body.fromPlace, 80);
+  const toPlace = sliceStr(body && body.toPlace, 80);
+  const attendanceCampaignId = sliceStr(body && body.attendanceCampaignId, 64) || null;
+  const noteFooter =
+    sliceStr(body && body.noteFooter, 500) ||
+    "※　安全運転でお願いします。\n※　車内は換気を行ってください。\n※　車内ではマスクを着用ください。";
+  let rows = normalizeCarpoolRows(body && body.rows);
+  if (!rows.length) rows = [emptyCarpoolRow(1)];
+
+  if (id) {
+    const cur = await env.DB.prepare("SELECT id FROM carpool_sheets WHERE id = ? AND cohort = ?")
+      .bind(id, cohort)
+      .first();
+    if (!cur) throw new Error("sheet_not_found");
+    await env.DB.prepare(
+      "UPDATE carpool_sheets SET title = ?, activity_date = ?, from_place = ?, to_place = ?, " +
+        "attendance_campaign_id = ?, rows_json = ?, note_footer = ?, updated_at = ? WHERE id = ? AND cohort = ?"
+    )
+      .bind(
+        title,
+        activityDate,
+        fromPlace,
+        toPlace,
+        attendanceCampaignId,
+        JSON.stringify(rows),
+        noteFooter,
+        now,
+        id,
+        cohort
+      )
+      .run();
+  } else {
+    id = genId();
+    await env.DB.prepare(
+      "INSERT INTO carpool_sheets (id, cohort, title, activity_date, from_place, to_place, attendance_campaign_id, rows_json, note_footer, created_at, updated_at) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    )
+      .bind(
+        id,
+        cohort,
+        title,
+        activityDate,
+        fromPlace,
+        toPlace,
+        attendanceCampaignId,
+        JSON.stringify(rows),
+        noteFooter,
+        now,
+        now
+      )
+      .run();
+  }
+  return getCarpoolSheet(env, cohort, id);
+}
+
+/** MG出欠（track a / family）から配車候補を抽出 */
+async function getCarpoolCandidates(env, cohort, campaignId, date) {
+  if (!cohort || !campaignId || !date) throw new Error("invalid_request");
+  const camp = await env.DB.prepare("SELECT id, title FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+    .bind(campaignId, cohort)
+    .first();
+  if (!camp) throw new Error("campaign_not_found");
+
+  const rs = await env.DB.prepare(
+    "SELECT member_name, payload_json FROM attendance_track_responses WHERE campaign_id = ? AND track = ?"
+  )
+    .bind(campaignId, "a")
+    .all();
+
+  const cars = [];
+  const riders = [];
+  const absent = [];
+
+  for (const r of rs.results || []) {
+    const name = String(r.member_name || "");
+    let payload = {};
+    try {
+      payload = JSON.parse(String(r.payload_json || "{}"));
+    } catch (e) {
+      payload = {};
+    }
+    const day = payload && payload.days ? payload.days[date] : null;
+    if (!day) {
+      absent.push({ memberName: name, reason: "未回答" });
+      continue;
+    }
+    if (day.mode === "off") {
+      absent.push({ memberName: name, reason: day.note ? String(day.note) : "欠席" });
+      continue;
+    }
+    riders.push({ memberName: name });
+    const carOk = String(day.carOk || "");
+    if (carOk === "o") {
+      cars.push({
+        memberName: name,
+        carModel: String(day.carModel || ""),
+        seats: day.seats != null ? String(day.seats) : "",
+        send: String(day.send || ""),
+        pickup: String(day.pickup || ""),
+        father: String(day.father || ""),
+        mother: String(day.mother || ""),
+      });
+    }
+  }
+
+  return {
+    campaignId: String(camp.id),
+    campaignTitle: String(camp.title || ""),
+    activityDate: date,
+    cars: cars,
+    riders: riders,
+    absent: absent,
+    carCount: (cars.length | 0),
+    riderCount: (riders.length | 0),
+    absentCount: (absent.length | 0),
+  };
 }

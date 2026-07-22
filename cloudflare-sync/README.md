@@ -162,6 +162,22 @@ npx wrangler d1 execute tcb-tools-sync --remote --file=cloudflare-sync/reset_15_
 
 `cd cloudflare-sync` 済みなら `--file=./reset_15_16.sql` でよい。
 
+## 11b. 配車（Phase2）テーブル
+
+```bash
+cd cloudflare-sync
+npx wrangler d1 execute tcb-tools-sync --remote --file=./migrate_carpool.sql
+npx wrangler deploy
+```
+
+フロントはリポジトリルートで:
+
+```bash
+SYNC_API_TOKEN='…' python3 template/build.py boys15
+```
+
+公開URL例: `…/boys15/carpool/`（ポータルから遷移）。MG出欠の配車可回答を候補取込できる。
+
 ## 12. 保護者向け確認ページ（案2 Step2-1）のデプロイ
 
 新機能の反映には **D1マイグレーション → Worker 再デプロイ** の2手順が必要（トークンローテーションと同様、ここは手作業）。

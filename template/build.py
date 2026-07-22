@@ -21,6 +21,7 @@ PARENT_OUTPUT_NAME = 'kakunin.html'
 ATT_STAFF_TEMPLATE = 'template/attendance/staff_template.html'
 ATT_PARENT_TEMPLATE = 'template/attendance/parent_template.html'
 PORTAL_TEMPLATE = 'template/portal/portal_template.html'
+CARPOOL_STAFF_TEMPLATE = 'template/carpool/staff_template.html'
 MASTER_BLOCK_START = '/*DEFAULT_MASTER_BLOCK*/'
 MASTER_BLOCK_END = '/*END_DEFAULT_MASTER_BLOCK*/'
 CONFIGS = {
@@ -187,6 +188,7 @@ def build_portal_and_attendance(target, config, out_dir):
         'PAGES_BASE_URL': pages_base,
         'COHORT_KEY_JSON': json.dumps(cohort, ensure_ascii=False),
         'TEAM_NAME_JSON': json.dumps(str(config.get('TEAM_NAME', '')), ensure_ascii=False),
+        'TEAM_SHORT_NAME_JSON': json.dumps(str(config.get('TEAM_SHORT_NAME', '')), ensure_ascii=False),
         'SYNC_API_BASE_URL_JSON': json.dumps(str(config.get('SYNC_API_BASE_URL', '')), ensure_ascii=False),
         'SYNC_API_TOKEN_JSON': json.dumps(str(config.get('SYNC_API_TOKEN', '')), ensure_ascii=False),
         'INITIAL_PW_JSON': json.dumps(str(config.get('INITIAL_PW', '')), ensure_ascii=False),
@@ -198,8 +200,10 @@ def build_portal_and_attendance(target, config, out_dir):
 
     portal_dir = os.path.join(out_dir, 'portal')
     att_dir = os.path.join(out_dir, 'attendance')
+    cp_dir = os.path.join(out_dir, 'carpool')
     os.makedirs(portal_dir, exist_ok=True)
     os.makedirs(att_dir, exist_ok=True)
+    os.makedirs(cp_dir, exist_ok=True)
 
     # ポータル
     if os.path.exists(PORTAL_TEMPLATE):
@@ -249,6 +253,24 @@ def build_portal_and_attendance(target, config, out_dir):
         src = os.path.join(att_src_dir, name)
         if os.path.isfile(src):
             shutil.copy2(src, os.path.join(att_dir, name))
+
+    # 配車スタッフ（トークン埋め込みあり）
+    if os.path.exists(CARPOOL_STAFF_TEMPLATE):
+        with open(CARPOOL_STAFF_TEMPLATE, encoding='utf-8') as f:
+            html = f.read()
+        html, rem = apply_placeholders(html, mapping)
+        if rem:
+            print(f'[WARN] {target}(carpool staff): 未置換 {set(rem)}')
+        with open(os.path.join(cp_dir, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(html)
+        print(f'[OK] {target}(carpool) → {cp_dir}/index.html')
+
+    cp_assets = ('carpool.css', 'carpool-staff.js')
+    cp_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'carpool')
+    for name in cp_assets:
+        src = os.path.join(cp_src_dir, name)
+        if os.path.isfile(src):
+            shutil.copy2(src, os.path.join(cp_dir, name))
 
     return True
 
