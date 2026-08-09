@@ -41,6 +41,18 @@ python3 template/build.py
 
 `SYNC_API_TOKEN` は環境変数で渡すと config のプレースホルダをビルド時に埋め込めます（Git に平文を載せない運用）。詳細は [cloudflare-sync/README.md](./cloudflare-sync/README.md)。
 
+## スモークテスト
+
+割振りコアの主要フロー（STEP1→2→実行→STEP3、きょうの割振りカード）を自動確認できます。改修後の回帰チェックに使ってください。
+
+```bash
+npm install        # 初回のみ
+npm run smoke:setup  # 初回のみ（テスト用 Chromium を取得）
+npm run smoke
+```
+
+テストはビルド済み `boys15/index.html` をローカルサーバーで開いて実行します。localhost 以外への通信（クラウド同期API等）はテスト内で遮断するため、本番データには影響しません。
+
 ## ドキュメント一覧
 
 | 文書 | 版 | 場所 |

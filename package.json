@@ -1,0 +1,13 @@
+{
+  "name": "tcb-tools",
+  "private": true,
+  "description": "道具割振りツール（テスト用スクリプトの依存管理）",
+  "type": "module",
+  "scripts": {
+    "smoke": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers node tests/smoke.mjs",
+    "smoke:setup": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

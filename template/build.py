@@ -399,6 +399,7 @@ def build(target):
         'tcb-group-hold.js', 'tcb-group-hold.css',
         'tcb-feedback.js', 'tcb-feedback.css',
         'tcb-presummary.js', 'tcb-presummary.css',
+        'tcb-today-card.js', 'tcb-today-card.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )

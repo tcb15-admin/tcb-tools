@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="tcb-group-hold.css">
 <link rel="stylesheet" href="tcb-feedback.css">
 <link rel="stylesheet" href="tcb-presummary.css">
+<link rel="stylesheet" href="tcb-today-card.css">
 <style>
 :root{
   /* チームカラー：濃紺＋赤＋白（15期既定）／16期は html.theme-b16 で画面は白ベース＋紺×赤（ヘッダのみ白バック）
@@ -1440,6 +1441,7 @@ html{color-scheme:light;}
   <!-- STEP1 -->
   <div class="pnl on" id="p1">
     <div class="card">
+      <div id="tcb-today-host" style="display:none;"></div>
       <div class="p1-from-prev-block" id="p1-from-prev-block">
         <button type="button" class="p1-from-prev-btn" id="btn-p1-from-prev">&#128336; 前回の結果を元に割振る</button>
         <p class="p1-from-prev-desc">前回の担当を維持して調整する場合はこちら。不要なら下の設定のまま「次へ」へ進んでください。</p>
@@ -3067,6 +3069,8 @@ function updateSeedModeBanners(){
   var prevBlock=document.getElementById('p1-from-prev-block');
   if(prevBlock)prevBlock.style.display=on?'none':'block';
   if(window.TCB_PreSummary)TCB_PreSummary.update();
+  /* きょうの割振りカード：表示できる場合は従来入口をカード内リンクへ統合する */
+  if(window.TCB_TodayCard)TCB_TodayCard.update();
 }
 function applySnapToActivityUI(snap, opts){
   opts=opts||{};
@@ -3132,6 +3136,22 @@ function beginReeditFromSnap(snap){
 }
 function beginReeditFromStoredPrev(){
   return beginReeditFromSnap(loadStoredAllocationSnap());
+}
+/* きょうの割振り（UX改修 Phase 2）：前回結果を基準に、欠席・お茶当番だけ
+   選び直して割振る1タップ入口。グループ分け・グループ名・保有グループ・
+   割り振り方法は前回のまま引き継ぐ。 */
+function beginTodayAllocation(){
+  var snap=loadStoredAllocationSnap();
+  if(!snap||typeof snap.map!=='object'){
+    tcbToast('前回の割振り結果がこの端末にありません。下の設定から割振ってください。','warn');
+    return false;
+  }
+  if(!beginReeditFromSnap(snap))return false;
+  /* 欠席・お茶当番は前回のまま引き継がず、きょうの分を選び直す */
+  absS={};ochS={};
+  goStep(2);
+  tcbToast('前回の結果を基準に開始しました。きょうの欠席とお茶当番をタップして「割振りを実行」してください。','info');
+  return true;
 }
 function beginReeditFromHistDetail(){
   return beginReeditFromSnap(_histDetailSnap);
@@ -7648,6 +7668,24 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
 
+  /* きょうの割振りカード（STEP1最上部・UX改修 Phase 2） */
+  if(typeof TCB_TodayCard!=='undefined'&&TCB_TodayCard&&typeof TCB_TodayCard.init==='function'){
+    TCB_TodayCard.init({
+      getSnap:function(){return loadStoredAllocationSnap();},
+      isSeedModeOn:function(){return !!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);},
+      getMethod:function(){return loadSeedAllocMethod();},
+      getGroupHold:function(){
+        var snap=loadStoredAllocationSnap();
+        var on=!!(snap&&normFlag01(snap.groupHoldEnabled));
+        if(!on)return {on:false};
+        var gl=(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&TCB_GroupHold.getLabels)?TCB_GroupHold.getLabels():null;
+        return {on:true,la:(gl&&gl.la)||snap.la||'A',lb:(gl&&gl.lb)||snap.lb||'B'};
+      },
+      onStart:function(){beginTodayAllocation();},
+      onPickOther:function(){showHistory();}
+    });
+  }
+
   /* ホーム画面に追加（PWA）ガイド */
   if(typeof TCB_PwaInstall!=='undefined'&&TCB_PwaInstall&&typeof TCB_PwaInstall.init==='function'){
     TCB_PwaInstall.init({lsPrefix:'{{LS_PREFIX}}'});
@@ -7876,5 +7914,6 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="tcb-pwa-install.js"></script>
 <script src="tcb-group-hold.js"></script>
 <script src="tcb-presummary.js"></script>
+<script src="tcb-today-card.js"></script>
 </body>
 </html>

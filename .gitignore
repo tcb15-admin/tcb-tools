@@ -10,3 +10,6 @@
 # ローカルE2Eテスト用（devトークンを含むためコミットしない）
 .test-local/
 .tmp-*
+
+# スモークテスト用 Playwright ブラウザ（npm run smoke:setup で取得）
+.playwright-browsers/
