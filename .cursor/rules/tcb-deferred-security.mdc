@@ -5,13 +5,13 @@ alwaysApply: true
 
 # 後回しにした課題（ユーザー方針）
 
-運用は **対策なしで開始** した。以下は **今後の課題** として扱うこと。
+運用は **対策なしで開始** した。以下のステータスで扱うこと。
 
-1. **トークンローテーション**  
-   `SYNC_API_TOKEN` を一度差し替え、漏洩疑い時の手順を運用に含める。
+1. **トークンローテーション（2026-08-09 実施済み）** 
+ `SYNC_API_TOKEN` を差し替え済み（`openssl rand -hex 24` で生成 → 新トークンで再ビルド・push → Pages 反映確認 → `wrangler secret put SYNC_API_TOKEN` → 新200/旧401 を確認、の順）。旧トークン `tokaicentralboys2012` は無効。git 履歴に残る旧トークンは失効済みのため実害なし。漏洩疑い時も同じ手順で再実施する。現行トークンの値は `boys15/index.html` 内（クライアント埋め込み方式）にあり、台帳（TCB-ACC-001）への記録はユーザー管理。
 
-2. **Git / Public 化**  
-   リポジトリを Public にする前後で、`config_*.json` や履歴への **平文トークンを載せない**（ビルド時は環境変数 `SYNC_API_TOKEN` を利用。`template/build.py` 対応済み）。
+2. **Git / Public 化** 
+ リポジトリを Public にする前後で、`config_*.json` や履歴への **平文トークンを載せない**（ビルド時は環境変数 `SYNC_API_TOKEN` を利用。`template/build.py` 対応済み）。
 
 3. **クライアント埋め込みの限界**  
    HTML に Bearer を埋める方式は **URL を知る人がソースから取得可能**。必要なら **Cloudflare Access** 等の検討。
