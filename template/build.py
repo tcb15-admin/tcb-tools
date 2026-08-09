@@ -28,6 +28,29 @@ CONFIGS = {
 }
 
 
+ASSET_VER_RE = re.compile(r'\b(src|href)="([^"]+\.(?:js|css))"')
+
+def add_asset_version(html, version):
+    """ローカルのJS/CSS参照に ?v=TOOL_VERSION を付与する。
+
+    デプロイ直後にブラウザのHTTPキャッシュが古いJS/CSSを返し、
+    「新しいHTML＋古いJS」の食い違いが起きるのを防ぐ（キャッシュバスティング）。
+    外部URL（http/https/protocol-relative/data:）と既にクエリ付きのURLは対象外。
+    Service Worker の登録（JSコード内の './sw.js'）はタグ属性ではないため影響しない。
+    """
+    v = str(version or '').strip()
+    if not v:
+        return html
+
+    def _rep(m):
+        attr, url = m.group(1), m.group(2)
+        if url.startswith(('http://', 'https://', '//', 'data:')) or '?' in url:
+            return m.group(0)
+        return f'{attr}="{url}?v={v}"'
+
+    return ASSET_VER_RE.sub(_rep, html)
+
+
 def html_body_class(config):
     """html 要素の class。テーマ（16期）と 15期シンプルUI（tcb-ui-simple）を合成。"""
     parts = []
@@ -192,6 +215,7 @@ def build_portal_and_attendance(target, config, out_dir):
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(portal): 未置換 {set(rem)}')
+        html = add_asset_version(html, config.get('TOOL_VERSION'))
         with open(os.path.join(portal_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(portal) → {portal_dir}/index.html')
@@ -203,6 +227,7 @@ def build_portal_and_attendance(target, config, out_dir):
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(attendance staff): 未置換 {set(rem)}')
+        html = add_asset_version(html, config.get('TOOL_VERSION'))
         with open(os.path.join(att_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(attendance) → {att_dir}/index.html')
@@ -217,6 +242,7 @@ def build_portal_and_attendance(target, config, out_dir):
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(attendance parent): 未置換 {set(rem)}')
+        html = add_asset_version(html, config.get('TOOL_VERSION'))
         with open(os.path.join(att_dir, 'kaito.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(attendance parent) → {att_dir}/kaito.html')
@@ -266,6 +292,8 @@ def build_parent_view(target, config, out_dir):
     remaining = re.findall(r'\{\{[^}]+\}\}', html)
     if remaining:
         print(f'[WARN] {target}(確認ページ): 未置換のプレースホルダ: {set(remaining)}')
+
+    html = add_asset_version(html, config.get('TOOL_VERSION'))
 
     out_path = os.path.join(out_dir or '.', PARENT_OUTPUT_NAME)
     with open(out_path, 'w', encoding='utf-8') as f:
@@ -347,6 +375,9 @@ def build(target):
     remaining = re.findall(r'\{\{[^}]+\}\}', html)
     if remaining:
         print(f'[WARN] {target}: 未置換のプレースホルダ: {set(remaining)}')
+
+    # JS/CSS参照へ ?v=TOOL_VERSION を付与（デプロイ直後のキャッシュずれ対策）
+    html = add_asset_version(html, config.get('TOOL_VERSION'))
 
     # 出力先ディレクトリを作成
     out_path = config.get('OUTPUT_PATH', f'{target}/index.html')
