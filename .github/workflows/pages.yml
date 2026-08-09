@@ -1,0 +1,47 @@
+# ============================================================
+# GitHub Pages を Actions で明示的にデプロイする
+#
+# 目的: 「Deploy from a branch」方式で過去に起きた
+# 　　　デプロイ詰まり（push しても反映されない）を防ぐ。
+#
+# 有効化の手順（ユーザー操作が必要）:
+#   1. PAT（Personal Access Token）に workflow スコープを追加する
+#      （このファイルを main へ push するのに必要）
+#   2. リポジトリ Settings → Pages → Source を
+#      「GitHub Actions」に切り替える
+#   3. このブランチを main へマージして push する
+# ============================================================
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
