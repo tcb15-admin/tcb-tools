@@ -3,11 +3,10 @@
 -- 16期は不使用確定（2026-08-09）。個人名を含むため全テーブルから削除する。
 --
 -- 実行方法（リポジトリの cloudflare-sync/ で）:
---   npx wrangler d1 execute tcb-tools-db --remote --file=delete_cohort16.sql
---   ※ DB名は wrangler.toml の d1_databases.database_name に合わせること
+--   npx wrangler d1 execute tcb-tools-sync --remote --file=delete_cohort16.sql
 --
 -- 実行前の確認（任意）:
---   npx wrangler d1 execute tcb-tools-db --remote \
+--   npx wrangler d1 execute tcb-tools-sync --remote \
 --     --command "SELECT 'tool_state' t, COUNT(*) n FROM tool_state WHERE cohort='16'"
 -- ============================================================
 
