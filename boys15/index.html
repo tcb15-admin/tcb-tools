@@ -16,13 +16,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="15期道具">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.11.1">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.11.1">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.11.1">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.11.1">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.11.1">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.11.1">
-<link rel="stylesheet" href="tcb-today-card.css?v=1.11.1">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.11.3">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.11.3">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.11.3">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.11.3">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.11.3">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.11.3">
+<link rel="stylesheet" href="tcb-today-card.css?v=1.11.3">
 <style>
 :root{
   /* チームカラー：濃紺＋赤＋白（15期既定）／16期は html.theme-b16 で画面は白ベース＋紺×赤（ヘッダのみ白バック）
@@ -207,8 +207,18 @@ td{padding:10px 8px;font-size:12px;border-bottom:1px solid var(--bdr);}
 .p3-result-tbl td.p3-col-id,.p3-result-tbl td.p3-col-team,.p3-result-tbl td.p3-col-asgn{text-align:center;vertical-align:middle;}
 .p3-result-tbl td.p3-col-name{text-align:center;vertical-align:middle;}
 .p3-result-tbl td.p3-col-name .p3-tool-cell{display:grid;width:100%;max-width:100%;text-align:left;}
-/* 班ラベルは列幅内に収め、長い班名は省略表示（列からのはみ出しによるレイアウト崩れ防止） */
-.p3-team-cell .tag{display:block;box-sizing:border-box;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;writing-mode:horizontal-tb;padding:2px 4px;margin:0 auto;text-align:center;font-size:10px;line-height:1.2;}
+/* 班ラベル：形状マーク＋班名。列幅内で省略しつつ「…だけ」にならないよう最低幅を確保 */
+.p3-team-cell{min-width:0;}
+.p3-team-cell .tag{
+  display:inline-flex;align-items:center;justify-content:center;gap:3px;
+  box-sizing:border-box;min-width:0;max-width:100%;
+  margin:0 auto;padding:3px 6px;border-radius:999px;
+  font-size:11px;font-weight:700;line-height:1.25;white-space:nowrap;
+}
+.p3-team-cell .p3-team-mark{flex:0 0 auto;font-size:9px;line-height:1;}
+.p3-team-cell .p3-team-lbl{
+  flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:center;
+}
 tr:last-child td{border-bottom:none;}
 tr.rA td{border-left:3px solid var(--ta);}
 tr.rB td{border-left:3px solid var(--tb);}
@@ -228,9 +238,10 @@ tr.rB td{border-left:3px solid var(--tb);}
 .p3-result-card-foot{margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr);width:100%;box-sizing:border-box;}
 .tgA{background:var(--ta-bg);color:var(--ta);border:1px solid var(--ta-bd);}
 .tgB{background:var(--tb-bg);color:var(--tb);border:1px solid var(--tb-bd);}
-/* 色弱対応：班の区別を色だけに頼らない（A=●＋実線 / B=▲＋破線） */
-.tgA::before{content:'\25CF';font-size:8px;margin-right:4px;vertical-align:1px;}
-.tgB::before{content:'\25B2';font-size:8px;margin-right:4px;vertical-align:1px;}
+/* 色弱対応：班の区別を色だけに頼らない（A=●＋実線 / B=▲＋破線）。
+   STEP3班セルは .p3-team-mark を使うので ::before はセル外のタグ向け */
+.tgA:not(.p3-team-tag)::before{content:'\25CF';font-size:8px;margin-right:4px;vertical-align:1px;}
+.tgB:not(.p3-team-tag)::before{content:'\25B2';font-size:8px;margin-right:4px;vertical-align:1px;}
 .tgB{border-style:dashed;}
 .tcb.B{border-style:dashed;}
 /* 割振り結果 表：道具名は可変幅、タグ列は固定スロットで縦揃え、写真ボタンは右端 */
@@ -881,8 +892,8 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   }
   #p3 .p3-result-tbl th.p3-col-team,
   #p3 .p3-result-tbl td.p3-col-team{
-    width:52px;
-    padding:8px 3px;
+    width:76px;
+    padding:8px 4px;
     overflow:hidden;
   }
   #p3 .p3-result-tbl th.p3-col-asgn,
@@ -993,7 +1004,7 @@ html.theme-b16 #pw-screen .tcb-pw-login-card{
   .p3-result-tbl th.p3-col-id,
   .p3-result-tbl td.p3-col-id{width:28px;padding:10px 4px;}
   .p3-result-tbl th.p3-col-team,
-  .p3-result-tbl td.p3-col-team{width:52px;padding:10px 4px;}
+  .p3-result-tbl td.p3-col-team{width:88px;padding:10px 6px;}
   .p3-result-tbl th.p3-col-asgn,
   .p3-result-tbl td.p3-col-asgn{width:20%;padding:10px 8px;}
   .p3-result-tbl th.p3-col-name,
@@ -1336,7 +1347,7 @@ html{color-scheme:light;}
           <label class="tcb-share-opt" for="share-opt-url" id="share-opt-url-wrap"><input type="checkbox" id="share-opt-url" checked> 保護者確認URL</label>
           <p class="tcb-share-opt-note" id="share-opt-url-note">実施確定済みの直近2日分を閲覧専用URLで共有します。</p>
           <p class="tcb-share-confirm-warn" id="share-confirm-warn">表示中の割振りは未確定（または確定後に変更あり）です。URL付きで送るときは、送信前に実施確定してから公開します。</p>
-          <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> PDF添付（端末に残す場合は共有シートで「ファイルに保存」）</label>
+          <label class="tcb-share-opt" for="share-opt-pdf"><input type="checkbox" id="share-opt-pdf" checked> <span class="tcb-share-opt-txt">PDF添付（端末に残す場合は共有シートで「ファイルに保存」）</span></label>
         </div>
         <div class="tcb-share-preview-wrap">
           <div class="tcb-share-intro-label" id="share-line-intro-label">定型文（編集可）</div>
@@ -1348,7 +1359,7 @@ html{color-scheme:light;}
       </div>
       <div class="tcb-share-section">
         <div class="tcb-share-section-hd">2. 送信</div>
-        <p class="tcb-share-line-hint" id="share-line-mac-hint" role="note"></p>
+        <p class="tcb-share-line-hint" id="share-line-device-hint" role="note"></p>
         <div class="tcb-share-actions">
           <button type="button" class="tcb-share-primary" id="btn-share-line">LINEへ展開</button>
           <button type="button" class="tcb-share-secondary" id="print-exec">PDFを保存</button>
@@ -1697,6 +1708,7 @@ html{color-scheme:light;}
   </div>
 </div>
 
+<script src="tcb-device.js?v=1.11.3"></script>
 <script>
 
 
@@ -5450,7 +5462,10 @@ function buildTbl(){
     if(R.mode==='team'&&!hideTeam){
       var tdTm=document.createElement('td');
       tdTm.className='p3-col-team p3-team-cell';
-      tdTm.innerHTML='<span class="tag tg'+tm+'">'+esc(tLabel)+'</span>';
+      var mark=tm==='B'?'\u25B2':'\u25CF';
+      tdTm.innerHTML='<span class="tag p3-team-tag tg'+tm+'" title="'+esc(tLabel)+'">'
+        +'<span class="p3-team-mark" aria-hidden="true">'+mark+'</span>'
+        +'<span class="p3-team-lbl">'+esc(tLabel)+'</span></span>';
       tr.appendChild(tdTm);
     }
     tr.appendChild(td4);
@@ -5735,29 +5750,35 @@ function setSharePanelStatus(msg){
   var el=document.getElementById('share-panel-status');
   if(el)el.textContent=msg||'';
 }
-/** Mac デスクトップは Web Share に LINE が出ないため、コピー→手動貼り付けが正攻法 */
+/** 端末判定は tcb-device.js（TCB_Device）。未読込時のみ最小フォールバック */
 function isMacDesktop(){
-  var ua=navigator.userAgent||'';
-  return /Macintosh|Mac OS X/.test(ua)&&!/iPhone|iPad|iPod/.test(ua);
+  return !!(window.TCB_Device&&TCB_Device.isMacDesktop&&TCB_Device.isMacDesktop());
+}
+function isIosLikeBrowser(){
+  return !!(window.TCB_Device&&TCB_Device.isIos&&TCB_Device.isIos());
+}
+function isDesktopBrowser(){
+  return !!(window.TCB_Device&&TCB_Device.isDesktop&&TCB_Device.isDesktop());
+}
+function shouldAvoidPdfFileWebShare(){
+  if(window.TCB_Device&&TCB_Device.shouldAvoidPdfFileWebShare)return TCB_Device.shouldAvoidPdfFileWebShare();
+  return isMacDesktop();
 }
 function shareLineButtonLabel(){
+  if(window.TCB_Device&&TCB_Device.sharePrimaryLabel)return TCB_Device.sharePrimaryLabel();
   return isMacDesktop()?'本文をコピー':'LINEへ展開';
 }
-function shareLinePasteHint(){
-  if(isMacDesktop()){
-    return 'Mac版LINEはブラウザから直接送信できません。コピーした本文をLINE（Macアプリまたはスマホ）のトークに貼り付けて送信してください。';
-  }
+function shareLinePasteHint(opts){
+  if(window.TCB_Device&&TCB_Device.pasteStatusMessage)return TCB_Device.pasteStatusMessage(opts||{});
   return '本文をコピーしました。LINEに貼り付けて送信してください。';
 }
-function refreshShareLineMacHint(){
-  var hintEl=document.getElementById('share-line-mac-hint');
+function refreshShareLineDeviceHint(){
+  var hintEl=document.getElementById('share-line-device-hint')||document.getElementById('share-line-mac-hint');
   if(!hintEl)return;
-  if(isMacDesktop()){
-    hintEl.textContent='Mac版LINEは「LINEへ展開」から直接送れません。ボタンで本文をコピーし、LINEのトーク画面に貼り付けて送信してください。';
-  }else{
-    hintEl.textContent='';
-  }
+  hintEl.textContent=(window.TCB_Device&&TCB_Device.sharePanelHint)?(TCB_Device.sharePanelHint()||''):'';
 }
+/* 旧名互換 */
+function refreshShareLineMacHint(){refreshShareLineDeviceHint();}
 window.TCB_shareLinePasteHint=shareLinePasteHint;
 window.TCB_isMacDesktop=isMacDesktop;
 function parentPublishPayloadReady(){
@@ -5845,6 +5866,12 @@ function refreshSharePanel(){
   if(pdfInput){
     pdfInput.disabled=!PDF_DELIVERY_ENABLED;
     if(!PDF_DELIVERY_ENABLED)pdfInput.checked=false;
+    var pdfTxt=document.querySelector('label[for="share-opt-pdf"] .tcb-share-opt-txt');
+    if(pdfTxt){
+      pdfTxt.textContent=(window.TCB_Device&&TCB_Device.pdfOptionLabel)
+        ? TCB_Device.pdfOptionLabel()
+        : 'PDF添付（端末に残す場合は共有シートで「ファイルに保存」）';
+    }
   }
   var lineInput=document.getElementById('share-opt-line');
   var introEl=document.getElementById('share-line-intro');
@@ -5874,7 +5901,7 @@ function refreshSharePanel(){
     shareBtn.disabled=!(lineOn||urlOn||pdfOn);
     shareBtn.textContent=shareLineButtonLabel();
   }
-  refreshShareLineMacHint();
+  refreshShareLineDeviceHint();
 }
 function copyTextSilent(text){
   return new Promise(function(resolve,reject){
@@ -5950,13 +5977,11 @@ function applyAssignPdfTitles(doc){
 }
 /** スマホは print() ではファイル名を指定できないため Blob 保存に切り替える */
 function preferAssignPdfBlobSave(){
+  if(window.TCB_Device&&TCB_Device.preferPdfBlobSave)return TCB_Device.preferPdfBlobSave();
   var ua=navigator.userAgent||'';
   if(/Android|iPhone|iPad|iPod|Mobile/i.test(ua))return true;
   if(navigator.maxTouchPoints>0&&window.matchMedia('(pointer:coarse)').matches)return true;
   return false;
-}
-function isIosLikeBrowser(){
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent||'');
 }
 /** PDF Blob の保存（Android=ダウンロード、iOS=共有シート経由でファイル名を維持） */
 function deliverAssignPdfBlob(blob,opts){
@@ -5989,6 +6014,7 @@ function deliverAssignPdfBlob(blob,opts){
 }
 /** この端末が「ファイル付き共有（共有シート）」に対応しているか（主にスマホで true） */
 function assignShareFilesSupported(){
+  if(window.TCB_Device&&TCB_Device.canShareFiles)return TCB_Device.canShareFiles();
   try{
     if(typeof navigator.share!=='function')return false;
     if(typeof navigator.canShare!=='function')return false;
@@ -6044,11 +6070,9 @@ function deliverLineShareBundle(opts){
   var fileName=out.fileName||getAssignPdfFileName();
   var baseName=out.baseName||getAssignPdfBaseName();
 
+  /* ---- iPhone / iPad：共有シートで本文＋PDFをまとめて渡す ---- */
   if(isIosLikeBrowser()){
-    var fileName=opts.fileName||getAssignPdfFileName();
-    var baseName=opts.baseName||getAssignPdfBaseName();
     var chain=Promise.resolve();
-    /* 本文+PDFを1回の共有シートで渡す（LINEで添付される端末向け） */
     if(pdfOn&&blob&&lineOn&&msg&&typeof navigator.share==='function'){
       var iosFile=new File([blob],fileName,{type:'application/pdf'});
       var combined={text:msg,files:[iosFile],title:baseName};
@@ -6057,8 +6081,6 @@ function deliverLineShareBundle(opts){
           return navigator.share(combined).then(function(){
             setSharePanelStatus('共有シートからLINEを選ぶと本文とPDFをまとめて送れます。');
           }).catch(function(shareErr){
-            /* iOSはボタン押下から時間が経つと共有シートを開けない（NotAllowedError）。
-               準備済みデータを保持し、次のタップで即共有する */
             if(shareErr&&shareErr.name==='NotAllowedError'){
               _lineShareReady={msg:msg,blob:blob,out:out,pdfOn:pdfOn,lineOn:lineOn};
               setSharePanelStatus('準備ができました。もう一度「LINEへ展開」を押すと共有シートが開きます。');
@@ -6067,7 +6089,7 @@ function deliverLineShareBundle(opts){
             throw shareErr;
           });
         }
-      }catch(eIosShare){/* 非対応時は従来の分離フローへ */ }
+      }catch(eIosShare){/* 非対応時は分離フローへ */ }
     }
     if(lineOn&&msg){
       chain=chain.then(function(){return copyTextSilent(msg);});
@@ -6087,34 +6109,70 @@ function deliverLineShareBundle(opts){
     });
   }
 
-  var skipWebShare=isMacDesktop()&&lineOn&&!pdfOn;
-  if(!skipWebShare&&typeof navigator.share==='function'){
-    if(blob&&msg&&navigator.canShare){
-      var file=new File([blob],fileName,{type:'application/pdf'});
-      var payload={title:baseName,text:msg};
-      try{
-        if(navigator.canShare(Object.assign({},payload,{files:[file]}))){
-          payload.files=[file];
-          return navigator.share(payload);
-        }
-      }catch(e){/* canShare 失敗時はフォールバックへ */ }
+  /* ---- Mac / Windows / Linux：PDF付き Web Share はローカルパスが本文に
+         混ざることがあるため使わない。本文コピー + PDFダウンロード ---- */
+  if(shouldAvoidPdfFileWebShare()){
+    var deskChain=Promise.resolve();
+    if(lineOn&&msg){
+      deskChain=deskChain.then(function(){return copyTextSilent(msg);});
     }
+    if(pdfOn&&blob){
+      deskChain=deskChain.then(function(){
+        return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false});
+      });
+    }else if(pdfOn&&!blob&&!lineOn){
+      return Promise.reject(new Error('empty pdf'));
+    }
+    return deskChain.then(function(){
+      if(lineOn&&msg&&pdfOn&&blob)setSharePanelStatus(shareLinePasteHint({pdfSaved:true}));
+      else if(lineOn&&msg&&pdfOn&&!blob)setSharePanelStatus('本文をコピーしました（PDFの生成に失敗したため本文のみ）。');
+      else if(lineOn&&msg)setSharePanelStatus(shareLinePasteHint());
+      else if(pdfOn&&blob)setSharePanelStatus('PDFをダウンロードしました。');
+    });
+  }
+
+  /* ---- Android 等：本文+PDF を共有シートへ（失敗時はコピー+保存） ---- */
+  if(pdfOn&&blob&&lineOn&&msg&&typeof navigator.share==='function'&&assignShareFilesSupported()){
+    var andFile=new File([blob],fileName,{type:'application/pdf'});
+    var andCombined={title:baseName,text:msg,files:[andFile]};
+    try{
+      if(!navigator.canShare||navigator.canShare(andCombined)){
+        return navigator.share(andCombined).then(function(){
+          setSharePanelStatus('共有シートからLINEを選ぶと本文とPDFをまとめて送れます。');
+        });
+      }
+    }catch(eAnd){/* フォールバックへ */ }
+  }
+  if(typeof navigator.share==='function'){
     if(blob&&navigator.canShare){
       try{
         var f2=new File([blob],fileName,{type:'application/pdf'});
         if(navigator.canShare({files:[f2]})){
-          return navigator.share({files:[f2],title:baseName});
+          return navigator.share({files:[f2],title:baseName}).then(function(){
+            if(lineOn&&msg){
+              return copyTextSilent(msg).then(function(){
+                setSharePanelStatus('PDFの共有シートを開きました。本文はコピー済みです。LINEに貼り付けてください。');
+              });
+            }
+            setSharePanelStatus('PDFの共有シートを開きました。');
+          });
         }
       }catch(e2){}
     }
     if(msg&&navigator.canShare&&navigator.canShare({text:msg})){
-      return navigator.share({text:msg});
+      return navigator.share({text:msg}).then(function(){
+        if(pdfOn&&blob){
+          return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:true});
+        }
+      });
     }
   }
   if(msg){
     return copyTextSilent(msg).then(function(){
       if(pdfOn&&blob){
-        return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:assignShareFilesSupported()});
+        return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:assignShareFilesSupported()}).then(function(){
+          setSharePanelStatus(shareLinePasteHint({pdfSaved:true}));
+        });
       }
       setSharePanelStatus(shareLinePasteHint());
     });
@@ -6196,7 +6254,7 @@ function executeLineShare(){
         }
         shareLineIntroDirty=false;
         refreshSharePanel();
-        if(!isIosLikeBrowser()&&!isMacDesktop()&&msg){
+        if(msg&&window.TCB_Device&&TCB_Device.lineShareStrategy&&TCB_Device.lineShareStrategy()==='android-share'){
           setSharePanelStatus('LINE展開の準備ができました。共有先で送信を完了してください。');
         }
       });
@@ -7290,7 +7348,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.11.1';
+  if(vEl)vEl.textContent='v1.11.3';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7807,17 +7865,17 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.11.1"></script>
-<script src="html2canvas.min.js?v=1.11.1"></script>
-<script src="html2pdf.min.js?v=1.11.1"></script>
-<script src="tcb-print-pdf.js?v=1.11.1"></script>
-<script src="tcb-feedback.js?v=1.11.1"></script>
-<script src="tcb-sync-api.js?v=1.11.1"></script>
-<script src="tcb-swap-mgr.js?v=1.11.1"></script>
-<script src="tcb-push-mgr.js?v=1.11.1"></script>
-<script src="tcb-pwa-install.js?v=1.11.1"></script>
-<script src="tcb-group-hold.js?v=1.11.1"></script>
-<script src="tcb-presummary.js?v=1.11.1"></script>
-<script src="tcb-today-card.js?v=1.11.1"></script>
+<script src="jspdf.umd.min.js?v=1.11.3"></script>
+<script src="html2canvas.min.js?v=1.11.3"></script>
+<script src="html2pdf.min.js?v=1.11.3"></script>
+<script src="tcb-print-pdf.js?v=1.11.3"></script>
+<script src="tcb-feedback.js?v=1.11.3"></script>
+<script src="tcb-sync-api.js?v=1.11.3"></script>
+<script src="tcb-swap-mgr.js?v=1.11.3"></script>
+<script src="tcb-push-mgr.js?v=1.11.3"></script>
+<script src="tcb-pwa-install.js?v=1.11.3"></script>
+<script src="tcb-group-hold.js?v=1.11.3"></script>
+<script src="tcb-presummary.js?v=1.11.3"></script>
+<script src="tcb-today-card.js?v=1.11.3"></script>
 </body>
 </html>

@@ -120,3 +120,28 @@
 .tcb-share-line-hint:empty {
   display: none;
 }
+.tcb-pwa-install-now {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--navy, #122050);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+.tcb-pwa-install-now:active {
+  opacity: 0.92;
+}
+@media (prefers-color-scheme: dark) {
+  .tcb-share-line-hint {
+    background: rgba(80, 140, 220, 0.16);
+    border-left-color: #6f9ce0;
+    color: #d5e4ff;
+  }
+}

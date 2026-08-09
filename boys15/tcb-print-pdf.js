@@ -105,6 +105,9 @@
   }
 
   function isMobileLike() {
+    if (typeof window.TCB_Device !== 'undefined' && TCB_Device && typeof TCB_Device.preferPdfBlobSave === 'function') {
+      return !!TCB_Device.preferPdfBlobSave();
+    }
     var ua = navigator.userAgent || '';
     if (/iPhone|iPad|iPod|Android/i.test(ua)) return true;
     if (navigator.maxTouchPoints > 0 && window.matchMedia('(pointer:coarse)').matches) return true;

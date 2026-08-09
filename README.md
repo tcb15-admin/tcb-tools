@@ -11,7 +11,7 @@
 | 15期 | https://tcb15-admin.github.io/tcb-tools/boys15/ |
 
 - リポジトリ: https://github.com/tcb15-admin/tcb-tools
-- 現行ツール版: **v1.11.1**（`template/config_boys15.json` の `TOOL_VERSION`）
+- 現行ツール版: **v1.11.3**（`template/config_boys15.json` の `TOOL_VERSION`）
 - 15期マニュアル版: **1.14**（`boys15/docs/TCB-MAN-001_…v1.5.pdf`）
 - 15期: 交代報告の **Web Push 通知**（MGR・🔔）は v1.7.4 から（要 VAPID 設定・`cloudflare-sync/README.md` §14）
 
@@ -50,6 +50,7 @@ npm install        # 初回のみ
 npm run smoke:setup  # 初回のみ（テスト用 Chromium を取得）
 npm run smoke        # 割振りコアの短いスモーク
 npm run qa           # マルチデバイス観点の自動QA（機能・レスポンシブ・ダーク・オフライン・セキュリティ静的）
+npm run test:device  # LINE共有方針（iPhone/Android/Mac/Windows/iPad）のUA別検証
 ```
 
 テストはビルド済み `boys15/index.html` をローカルサーバーで開いて実行します。localhost 以外への通信（クラウド同期API等）はテスト内で遮断するため、本番データには影響しません。
@@ -62,7 +63,9 @@ npm run qa           # マルチデバイス観点の自動QA（機能・レス�
 | TCB-SPEC-001 仕様書 | 1.14 | [boys15/docs/](./boys15/docs/) |
 | TCB-MAN-001 ユーザーマニュアル | 1.14（[PDF](./boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf)・利用シーン別フロー） | [boys15/docs/](./boys15/docs/) |
 
-## 主な機能（v1.11.1）
+## 主な機能（v1.11.3）
+
+- **マルチデバイス共有** … iPhone/iPad（共有シート）、Android（共有シート）、Mac/Windows（本文コピー＋PDFダウンロード）。端末に合わせたボタン表示と手順案内（`tcb-device.js`）
 
 - **きょうの割振りカード** … STEP1 最上部の1タップ入口。前回結果を引き継ぎ、欠席・お茶当番だけ選び直して実行（v1.11.0）
 - **実行前の確認** … STEP2 の実行ボタン直前に、活動日・グループ・配り方・対象人数を1枚で確認（v1.10.0）

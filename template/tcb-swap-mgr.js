@@ -393,8 +393,9 @@
         if (ctx.setPublishedUrl) ctx.setPublishedUrl(url);
         var msg = buildRevisedMessage(url);
         var okMsg = '修正版のLINE本文をコピーしました。';
-        if (typeof global.TCB_isMacDesktop === 'function' && global.TCB_isMacDesktop()) {
-          okMsg += 'Mac版LINEはブラウザから直接送信できません。LINEのトークに貼り付けて送信してください。';
+        if (global.TCB_Device && typeof TCB_Device.lineShareStrategy === 'function'
+            && TCB_Device.lineShareStrategy() === 'desktop-copy') {
+          okMsg += 'デスクトップではブラウザからLINEへ直接送れないことがあります。トークに貼り付けて送信してください。';
         } else {
           okMsg += 'LINEに貼り付けて送信してください。';
         }

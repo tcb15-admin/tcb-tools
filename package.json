@@ -6,6 +6,7 @@
   "scripts": {
     "smoke": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers node tests/smoke.mjs",
     "qa": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers node tests/qa-matrix.mjs",
+    "test:device": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers node tests/device-share.mjs",
     "smoke:setup": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium"
   },
   "devDependencies": {
