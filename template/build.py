@@ -5,11 +5,11 @@
 使い方:
   python build.py                    # 全世代をビルド
   python build.py boys15             # 15期のみビルド
-  python build.py boys15 boys16      # 複数指定
 
 出力:
   boys15/index.html
-  boys16/index.html
+
+※16期（boys16）は不使用確定のため 2026-08-09 にビルド対象から削除。
 """
 
 import json, os, sys, re, shutil
@@ -25,7 +25,6 @@ MASTER_BLOCK_START = '/*DEFAULT_MASTER_BLOCK*/'
 MASTER_BLOCK_END = '/*END_DEFAULT_MASTER_BLOCK*/'
 CONFIGS = {
     'boys15': 'template/config_boys15.json',
-    'boys16': 'template/config_boys16.json',
 }
 
 
@@ -52,21 +51,6 @@ def apply_default_master_block(html, target, config_path):
     if inner_start < len(html) and html[inner_start] == '\n':
         inner_start += 1
     inner = html[inner_start:e].strip()
-
-    if target == 'boys16':
-        cfg_dir = os.path.dirname(config_path)
-        defaults_path = os.path.join(cfg_dir, 'master_defaults_boys16.json')
-        if not os.path.exists(defaults_path):
-            print(f'[ERROR] boys16: {defaults_path} がありません')
-            return html
-        with open(defaults_path, encoding='utf-8') as f:
-            md = json.load(f)
-        body = (
-            'var DEFAULT_MB=' + json.dumps(md['MB'], ensure_ascii=False) + ';\n'
-            'var DEFAULT_TL=' + json.dumps(md['TL'], ensure_ascii=False) + ';\n'
-            'var DEFAULT_DESCS=' + json.dumps(md['DESCS'], ensure_ascii=False) + ';'
-        )
-        return html[:s] + body + html[e_end:]
 
     if target == 'boys15':
         master_path = os.path.normpath(
@@ -322,7 +306,7 @@ def build(target):
         config = json.load(f)
 
     # Public リポジトリ対策: SYNC_API_TOKEN は Git に載せず、ビルド時のみ環境変数で渡す
-    # 例: SYNC_API_TOKEN='（新トークン）' python3 template/build.py boys15 boys16
+    # 例: SYNC_API_TOKEN='（新トークン）' python3 template/build.py boys15
     _tok = normalize_sync_token(os.environ.get('SYNC_API_TOKEN', ''))
     if _tok:
         config['SYNC_API_TOKEN'] = _tok

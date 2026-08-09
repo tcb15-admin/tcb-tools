@@ -21,7 +21,6 @@ FONT_INDEX = 0
 
 TARGETS = {
     '15': 'boys15',
-    '16': 'boys16',
 }
 
 

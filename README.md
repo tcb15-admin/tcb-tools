@@ -1,13 +1,14 @@
 # tcb-tools
 
-東海中央ボーイズチーム向け **道具割り振りツール**（15期・16期）。
+東海中央ボーイズチーム向け **道具割り振りツール**（15期）。
+
+※16期（boys16）は不使用確定のため、2026-08-09 にビルド対象・リポジトリから削除しました（個人名を含むデータの整理）。
 
 ## 公開 URL
 
-| 世代 | ツール | マニュアル（16期） |
-|------|--------|-------------------|
-| 15期 | https://tcb15-admin.github.io/tcb-tools/boys15/ | — |
-| 16期 | https://tcb15-admin.github.io/tcb-tools/boys16/ | [操作マニュアル PDF](https://tcb15-admin.github.io/tcb-tools/boys16/docs/TCB-MAN-016_道具割り振りツール_操作マニュアル_v1.5.pdf) |
+| 世代 | ツール |
+|------|--------|
+| 15期 | https://tcb15-admin.github.io/tcb-tools/boys15/ |
 
 - リポジトリ: https://github.com/tcb15-admin/tcb-tools
 - 現行ツール版: **v1.7.4**（`template/config_boys15.json` の `TOOL_VERSION`）
@@ -20,14 +21,12 @@
 template/
   tool_template.html   … 共通ロジック（正）
   config_boys15.json   … 15期設定
-  config_boys16.json   … 16期設定
   build.py             … index.html 生成
   tcb-print-pdf.js     … PDF 生成ヘルパー
   tcb-sync-api.js      … Cloudflare 同期クライアント
-boys15/ / boys16/      … ビルド成果物（index.html 等）
+boys15/                … ビルド成果物（index.html 等）
 cloudflare-sync/       … Worker + D1（マスタ同期 API）
 boys15/docs/           … 仕様書・運用手順書（15期管理）
-boys16/docs/           … 16期マニュアル（PDF 正本）
 ```
 
 ## ビルド
@@ -38,7 +37,7 @@ boys16/docs/           … 16期マニュアル（PDF 正本）
 python3 template/build.py
 ```
 
-`boys15/index.html` と `boys16/index.html`（および各 `tcb-print-pdf.js`・`tcb-sync-api.js`）が生成されます。
+`boys15/index.html`（および `tcb-print-pdf.js`・`tcb-sync-api.js` 等）が生成されます。
 
 `SYNC_API_TOKEN` は環境変数で渡すと config のプレースホルダをビルド時に埋め込めます（Git に平文を載せない運用）。詳細は [cloudflare-sync/README.md](./cloudflare-sync/README.md)。
 
@@ -49,13 +48,6 @@ python3 template/build.py
 | TCB-OPS-001 GitHub 運用手順書 | 1.9 | [boys15/docs/](./boys15/docs/) |
 | TCB-SPEC-001 仕様書 | 1.11 | [boys15/docs/](./boys15/docs/) |
 | TCB-MAN-001 ユーザーマニュアル | 1.13（[PDF](./boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf)・利用シーン別フロー） | [boys15/docs/](./boys15/docs/) |
-| TCB-MAN-016 16期操作マニュアル | 1.10（**更新停止予定**・16期未使用） | [boys16/docs/](./boys16/docs/) |
-
-16期マニュアル PDF の再生成:
-
-```bash
-cd boys16/docs/scripts && npm install && node build-pdf.mjs
-```
 
 ## 主な機能（v1.7.4）
 
@@ -72,7 +64,7 @@ cd boys16/docs/scripts && npm install && node build-pdf.mjs
 - **PWA** … ホーム画面追加用アイコン・manifest（v1.6.9〜）
 - **Web Push 通知** … 交代報告の新着をヘッダ「🔔 通知」ONでプッシュ通知（v1.7.4〜・要 VAPID 設定）
 - **Cloudflare 同期** … マスタ・履歴の正は Worker + D1（推奨）
-- **UI_SIMPLE**（15/16期） … 公平再分配・履歴1年 PDF 等の上級機能は非表示
+- **UI_SIMPLE**（15期） … 公平再分配・履歴1年 PDF 等の上級機能は非表示
 
 ## セキュリティ（未実施の前提）
 

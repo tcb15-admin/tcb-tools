@@ -71,7 +71,7 @@ npx wrangler deploy
 
 ## 7. ツール側（HTML）に URL とトークンを入れる
 
-1. `template/config_boys15.json` と `template/config_boys16.json` の次を埋める:
+1. `template/config_boys15.json` の次を埋める:
    - `SYNC_API_BASE_URL`: 上記 Worker のオリジン（末尾スラッシュなし）
    - `SYNC_API_TOKEN`: 手順 5 と同じ文字列（**Git にコミットしない運用を推奨**。ローカル専用ファイルや CI シークレットでビルドする）
    - `GITHUB_MASTER_URL`: **マスタの正を Cloudflare に置く場合は空文字 `""` のまま**。同期をオフにした端末だけ、任意の公開 JSON URL を一時的に指定する用途向け。
@@ -81,9 +81,7 @@ npx wrangler deploy
 python3 template/build.py
 ```
 
-特定世代だけなら `python3 template/build.py boys15 boys16`。
-
-`boys15/index.html` / `boys16/index.html` と `tcb-sync-api.js` が再生成・コピーされる。トークンを Git に載せたくない場合は、ビルド済み HTML をデプロイ対象から外すか、別経路で注入する運用にする。
+`boys15/index.html` と `tcb-sync-api.js` が再生成・コピーされる。トークンを Git に載せたくない場合は、ビルド済み HTML をデプロイ対象から外すか、別経路で注入する運用にする。
 
 ## 8. 動作確認（任意）
 
@@ -182,7 +180,7 @@ npx wrangler deploy
 
 これで公開経路 `GET /api/public/day` と発行系 `POST /api/publish-day` / `POST /api/unpublish-day` が有効になる。
 
-- 保護者ページ本体は GitHub Pages 側の `boys15/kakunin.html` / `boys16/kakunin.html`（`python3 template/build.py` で生成、**トークンは埋め込まれない**）。
+- 保護者ページ本体は GitHub Pages 側の `boys15/kakunin.html`（`python3 template/build.py` で生成、**トークンは埋め込まれない**）。
 - MGRツールの「印刷／PDF」内「保護者向け確認画面」→「保護者確認URLを発行/更新」で `shareId` 付きURLを発行し、LINEに貼って案内する。
 - URL は `PARENT_VIEW_URL`（config）が空なら、ツール自身の場所から同フォルダ `kakunin.html` を自動導出する。独自ドメイン等で固定したい場合のみ config に設定。
 

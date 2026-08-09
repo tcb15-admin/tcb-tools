@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build: boys15 + boys16 (HTML)",
+      "label": "Build: boys15 (HTML)",
       "type": "shell",
-      "command": "python3 template/build.py boys15 boys16",
+      "command": "python3 template/build.py boys15",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -16,22 +16,6 @@
         "reveal": "always",
         "panel": "shared"
       },
-      "problemMatcher": []
-    },
-    {
-      "label": "Build: boys15 only",
-      "type": "shell",
-      "command": "python3 template/build.py boys15",
-      "options": { "cwd": "${workspaceFolder}" },
-      "presentation": { "reveal": "always", "panel": "shared" },
-      "problemMatcher": []
-    },
-    {
-      "label": "Build: boys16 only",
-      "type": "shell",
-      "command": "python3 template/build.py boys16",
-      "options": { "cwd": "${workspaceFolder}" },
-      "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []
     }
   ]

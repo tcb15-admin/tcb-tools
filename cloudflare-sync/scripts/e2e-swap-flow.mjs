@@ -178,9 +178,7 @@ async function main() {
   const pub = await api('/api/publish-day', 'POST', { cohort: COHORT, teamName, days: payload.days });
   const shareId = pub.shareId;
   const parentUrl = buildParentViewUrl(shareId);
-  const mgrUrl = COHORT === '16'
-    ? 'https://tcb15-admin.github.io/tcb-tools/boys16/'
-    : 'https://tcb15-admin.github.io/tcb-tools/boys15/';
+  const mgrUrl = 'https://tcb15-admin.github.io/tcb-tools/boys15/';
 
   console.log('\n公開完了');
   console.log('shareId:', shareId);
