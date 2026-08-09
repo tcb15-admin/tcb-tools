@@ -48,7 +48,8 @@ python3 template/build.py
 ```bash
 npm install        # 初回のみ
 npm run smoke:setup  # 初回のみ（テスト用 Chromium を取得）
-npm run smoke
+npm run smoke        # 割振りコアの短いスモーク
+npm run qa           # マルチデバイス観点の自動QA（機能・レスポンシブ・ダーク・オフライン・セキュリティ静的）
 ```
 
 テストはビルド済み `boys15/index.html` をローカルサーバーで開いて実行します。localhost 以外への通信（クラウド同期API等）はテスト内で遮断するため、本番データには影響しません。
