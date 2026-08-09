@@ -383,6 +383,7 @@ def build(target):
         'tcb-pwa-install.js', 'tcb-pwa-install.css',
         'tcb-group-hold.js', 'tcb-group-hold.css',
         'tcb-feedback.js', 'tcb-feedback.css',
+        'tcb-presummary.js', 'tcb-presummary.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )

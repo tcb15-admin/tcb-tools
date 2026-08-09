@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="tcb-pwa-install.css">
 <link rel="stylesheet" href="tcb-group-hold.css">
 <link rel="stylesheet" href="tcb-feedback.css">
+<link rel="stylesheet" href="tcb-presummary.css">
 <style>
 :root{
   /* チームカラー：濃紺＋赤＋白（15期既定）／16期は html.theme-b16 で画面は白ベース＋紺×赤（ヘッダのみ白バック）
@@ -1283,7 +1284,7 @@ html{color-scheme:light;}
 <div class="overlay" id="actual-hold-modal">
   <div class="modal">
     <button class="mclose" id="actual-hold-close">&#10005;</button>
-    <h2>&#128230; 現地の実保有に補正</h2>
+    <h2>&#128230; 現地で受け渡した道具を直す</h2>
     <p class="tcb-actual-hold-desc">前回の割り当てです。現地で受け渡しがあった道具は、<strong>実際にいま持っている人</strong>に直してください。</p>
     <p class="tcb-actual-hold-note">ここで直した内容が「前回持っていた道具」の基準になります。入れ替え案内（LINE／PDF）も、この<strong>実態との差分</strong>で作られます。変更した行はオレンジ色になります。</p>
     <div class="tcb-actual-hold-list" id="actual-hold-list"></div>
@@ -1298,7 +1299,7 @@ html{color-scheme:light;}
 <div class="overlay" id="tcb-ghold-modal">
   <div class="modal">
     <button class="mclose" id="tcb-ghold-modal-close">&#10005;</button>
-    <h2>グループ保有の登録</h2>
+    <h2>いま道具を持っているグループの登録</h2>
     <p class="tcb-ghold-desc">いま各グループが<strong>現地で持っている道具</strong>を登録します。登録すると、<strong>次回の活動パターンに関係なく</strong>、割振りはそのグループのメンバーにのみ行います（グループ間で道具を動かさない運用向け）。</p>
     <p class="tcb-ghold-note">毎回必須ではありません。会場が分かれている日や、その保有を次回以降も維持したいときに使ってください。「この内容で使う」で有効になります。有効中はメンバーのグループ振り分けも必要です。</p>
     <div class="tcb-ghold-toolbar">
@@ -1457,9 +1458,9 @@ html{color-scheme:light;}
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong id="p1-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>過去の割振り</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先します。引き継げない道具の配り方（<strong>公平に分散／変更を最小に</strong>）は STEP2 で選べます。活動日は本日に設定。<strong>活動パターン（片方試合／両方試合／両方練習）を変えても前回担当は維持</strong>されます（STEP2で割振りを実行し直してください）。" aria-label="説明"></button>
+        <strong id="p1-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p1-seed-mode-banner-body">：前回の担当を最大限維持して調整します。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>過去の割振り</strong>を基準に、同じ人・同じ道具を維持。班替えは2人1組を優先します。引き継げない道具の配り方（<strong>公平に分散／前回のまま維持</strong>）は STEP2 で選べます。活動日は本日に設定。<strong>活動パターン（片方試合／両方試合／両方練習）を変えても前回担当は維持</strong>されます（STEP2で割振りを実行し直してください）。" aria-label="説明"></button>
         <div class="tcb-seed-mode-banner-btns">
-          <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 現地の実保有に補正</button>
+          <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 現地で受け渡した道具を直す</button>
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">調整モードをやめる</button>
         </div>
       </div>
@@ -1469,7 +1470,7 @@ html{color-scheme:light;}
           <div class="tng"><label class="tng-dot tng-dot-a" for="tnA">&#9679;</label><input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組"></div>
           <div class="tng"><label class="tng-dot tng-dot-b" for="tnB">&#9679;</label><input class="tninp B" id="tnB" type="text" maxlength="12" value="練習組"></div>
           <div id="mem-unpublished-wrap" class="p1-mem-unpublished-wrap" style="display:none;">
-            <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">メンバー未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷で<strong>組別（班）を表示しません</strong>。メンバー発表前の下書き用です。" aria-label="メンバー未発表の説明"></button></label>
+            <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">試合メンバー未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷で<strong>組別（班）を表示しません</strong>。メンバー発表前の下書き用です。" aria-label="メンバー未発表の説明"></button></label>
           </div>
         </div>
       </div>
@@ -1489,18 +1490,26 @@ html{color-scheme:light;}
       <div class="mgrid" id="ogrid"></div>
     </div>
     <div class="card" id="skip-tools-card">
-      <div class="ct">道具の一時除外<button type="button" class="tcb-tip" data-tip="この日だけ割振り対象から外す道具をタップします。" aria-label="説明"></button></div>
-      <div class="mgrid" id="skipgrid"></div>
+      <details class="tcb-fold" id="skip-tools-details">
+        <summary>
+          <div class="ct">道具の一時除外<button type="button" class="tcb-tip" data-tip="この日だけ割振り対象から外す道具をタップします。" aria-label="説明"></button></div>
+          <span class="tcb-fold-state" id="skip-tools-state">なし</span>
+          <span class="tcb-fold-arrow">&#9660;</span>
+        </summary>
+        <div class="tcb-fold-body">
+          <div class="mgrid" id="skipgrid"></div>
+        </div>
+      </details>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
       <strong id="p2-seed-mode-banner-title">前回の結果を元に調整</strong><span id="p2-seed-mode-banner-body">：前回の担当を維持して調整します。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先します。前回の担当者が引き継げない道具の配り方は下の「割り振り方法」で選べます。STEP3では班をまたいだ手動割当が自動でオンになります。<strong>活動パターンを変えても前回担当は維持</strong>されます。" aria-label="説明"></button>
       <div class="tcb-seedalloc-box">
-        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>：固定担当以外をグループ内で公平に振り直します（前回の偏りは引き継ぎません）。<strong>変更を最小に</strong>：前回の担当を最大限維持し、引き継げない道具だけを少人数へまとめます。" aria-label="説明"></button></div>
+        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>：固定担当以外をグループ内で公平に振り直します（前回の偏りは引き継ぎません）。<strong>前回のまま維持</strong>：前回の担当を最大限維持し、引き継げない道具だけを少人数へまとめます。" aria-label="説明"></button></div>
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（グループ内で担当数・負荷が偏らないよう振り直します）</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>変更を最小に</strong>（前回の担当を維持。余った道具は少人数へまとまり、1人に集中することがあります）</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>（変更を最小にします。余った道具は少人数へまとまり、1人に集中することがあります）</span></label>
       </div>
       <div class="tcb-seed-mode-banner-btns">
-        <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地の実保有に補正</button>
+        <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地で受け渡した道具を直す</button>
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">調整モードをやめる</button>
       </div>
     </div>
@@ -1517,12 +1526,24 @@ html{color-scheme:light;}
       <div class="mgrid" id="tgrid"></div>
     </div>
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
-      <div class="ct">グループ保有（任意）<button type="button" class="tcb-tip" data-tip="会場ごとに道具が分かれているとき、<strong>グループ間で道具を動かさず</strong>割振ります。<strong>次回が両方練習・同一場所でも</strong>、保有登録が有効ならそのグループ内だけで割振ります。必要なときだけ「登録／確認」してください。" aria-label="説明"></button></div>
-      <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（従来どおりマスタの班・会場で割振り）。</p>
-      <div class="tcb-ghold-actions">
-        <button type="button" class="rbtn" id="btn-tcb-ghold-edit">グループ保有を登録／確認</button>
-        <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
-      </div>
+      <details class="tcb-fold" id="tcb-ghold-details">
+        <summary>
+          <div class="ct">いま道具を持っているグループ（任意）<button type="button" class="tcb-tip" data-tip="会場ごとに道具が分かれているとき、<strong>グループ間で道具を動かさず</strong>割振ります。<strong>次回が両方練習・同一場所でも</strong>、登録が有効ならそのグループ内だけで割振ります。必要なときだけ「登録／確認」してください。" aria-label="説明"></button></div>
+          <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
+          <span class="tcb-fold-arrow">&#9660;</span>
+        </summary>
+        <div class="tcb-fold-body">
+          <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（従来どおりマスタの班・会場で割振り）。</p>
+          <div class="tcb-ghold-actions">
+            <button type="button" class="rbtn" id="btn-tcb-ghold-edit">持っているグループを登録／確認</button>
+            <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="card tcb-presum-card" id="tcb-presum-card">
+      <div class="ct">実行前の確認<button type="button" class="tcb-tip" data-tip="下の「⚡割振りを実行」を押したときに<strong>この内容で割振られます</strong>。欠席・当番・グループなどを変えると自動で更新されます。" aria-label="説明"></button></div>
+      <div id="tcb-presum-body"></div>
     </div>
     <div class="nav">
       <button class="nb nbs" id="btn-back">&#9664; 戻る</button>
@@ -1551,7 +1572,7 @@ html{color-scheme:light;}
         <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示<button type="button" class="tcb-tip" data-tip="<strong>手動割当のみ</strong>に適用（自動の「割振りを実行」は従来どおり班ごと）。持ち帰り調整モードでは自動でオンになります。" aria-label="説明"></button></label>
       </div>
       <div class="al ali tcb-p3-hint" id="p3-mem-unpublished-hint" style="display:none;">
-        メンバー未発表モード — 印刷・メンバー別は組名・班なしの1一覧です。
+        試合メンバー未発表モード — 印刷・メンバー別は組名・班なしの1一覧です。
       </div>
       <div class="p3-rebalance-bar tcb-ui-advanced" id="p3-rebalance-bar" style="display:none;">
         <div class="p3-rebalance-t"><strong>公平に再分配</strong>：チェックした道具と、担当が<strong>未割当</strong>の道具をまとめて対象にします。いま<strong>担当0件</strong>の人を優先し、足りなければ<strong>最も少ない人</strong>へ順に割り当てます（割振り実行と同じ負荷・上限ルール）。<strong>固定担当</strong>の道具は対象外です。</div>
@@ -1918,6 +1939,7 @@ function refreshTeamUiForGroupHold(){
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
   }
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 function showsMemUnpublishedOption(){
   return pat==='kata';
@@ -2249,7 +2271,17 @@ function fitGridCellText(cn,box,opts){
     });
   }
   var maxW=box.clientWidth-padX-(fullRow?0:fixed);
-  if(maxW<=0)return;
+  if(maxW<=0){
+    /* バッジ（班・サイズ・「1道具まで」等）だけでセル幅を使い切る場合：
+       名前の幅が0になり消えてしまうため、バッジ1行目・名前2行目に組み替えて測り直す */
+    if(box.clientWidth>0&&!fullRow&&!opts._retry){
+      box.classList.add('tcb-namewrap');
+      var oz={};for(var kz in opts){oz[kz]=opts[kz];}
+      oz.fullWidth=true;oz._retry=true;
+      fitGridCellText(cn,box,oz);
+    }
+    return;
+  }
   var maxFs=opts.maxFs!=null?opts.maxFs:(mob?14:14);
   /* 視認性の下限。これ以上は縮めず、収まらない名前は行を分けて表示する */
   var minFs=opts.minFs!=null?opts.minFs:11;
@@ -2311,6 +2343,8 @@ function fitStep2Grids(){
 }
 function scheduleStep2GridFit(){
   requestAnimationFrame(function(){requestAnimationFrame(fitStep2Grids);});
+  /* STEP2の操作（欠席・当番・除外・グループ切替）のたびに実行前サマリーを更新 */
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 window.addEventListener('resize',function(){
   clearTimeout(_step2FitT);
@@ -2936,6 +2970,7 @@ function updateSeedModeBanners(){
   if(hint)hint.style.display=(R&&!on)?'block':'none';
   var prevBlock=document.getElementById('p1-from-prev-block');
   if(prevBlock)prevBlock.style.display=on?'none':'block';
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 function applySnapToActivityUI(snap, opts){
   opts=opts||{};
@@ -4244,7 +4279,7 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, zeroSide);
   var methodNote=fairPool
     ?'「公平に分散」：固定以外の道具をグループ内で公平に振り直しました。'
-    :'「変更を最小に」：前回の担当を最大限維持し、余った道具は少人数へまとめました。';
+    :'「前回のまま維持」：前回の担当を最大限維持し、余った道具は少人数へまとめました。';
   return (ochNotes||[]).concat(swapNotes||[]).concat([methodNote]);
 }
 function prio(s, medianPast){
@@ -5016,7 +5051,18 @@ function buildAGrid(){
   });
   scheduleStep2GridFit();
 }
+function updateSkipToolsFoldUI(){
+  var n=Object.keys(skipS).length;
+  var st=document.getElementById('skip-tools-state');
+  if(st){
+    st.textContent=n?('除外中 '+n+'点'):'なし';
+    st.className='tcb-fold-state'+(n?' warn':'');
+  }
+  var dt=document.getElementById('skip-tools-details');
+  if(dt&&n&&!dt.open)dt.open=true;
+}
 function buildSkipGrid(){
+  updateSkipToolsFoldUI();
   var g=document.getElementById('skipgrid'); if(!g)return; g.innerHTML='';
   TL.forEach(function(t){
     var c=document.createElement('div');
@@ -7224,7 +7270,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.9.3';
+  if(vEl)vEl.textContent='v1.10.0';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7290,9 +7336,15 @@ document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('input[name="p2-seedalloc"]').forEach(function(r){
     r.addEventListener('change',function(){
       if(r.checked)saveSeedAllocMethod(r.value);
+      if(window.TCB_PreSummary)TCB_PreSummary.update();
     });
   });
   syncSeedAllocRadioUI();
+  /* 折りたたみを開いたときにグリッドの文字サイズを測り直す */
+  ['skip-tools-details','tcb-ghold-details'].forEach(function(id){
+    var dt=document.getElementById(id);
+    if(dt)dt.addEventListener('toggle',function(){if(dt.open)scheduleStep2GridFit();});
+  });
 
   /* STEP3 */
   document.getElementById('btn-reset').addEventListener('click',function(){goStep(2);});
@@ -7458,6 +7510,44 @@ document.addEventListener('DOMContentLoaded',function(){
           if(g==='A'||g==='B')out[tn]=g;
         });
         return out;
+      }
+    });
+  }
+
+  /* 実行前サマリー（STEP2：この内容で実行される、の1枚確認） */
+  if(typeof TCB_PreSummary!=='undefined'&&TCB_PreSummary&&typeof TCB_PreSummary.init==='function'){
+    TCB_PreSummary.init({
+      getData:function(){
+        var ex=exSet();
+        var act=MB.filter(function(m){return !memberMasterExcluded(m);});
+        var absN=0,ochaN=0,targetN=0,cA=0,cB=0;
+        act.forEach(function(m){
+          if(absS[m.name])absN++;
+          if(ochS[m.name])ochaN++;
+          if(!ex[m.name]){
+            targetN++;
+            if(tmMap[m.name]==='A')cA++;else cB++;
+          }
+        });
+        var toolsN=TL.filter(function(t){return !skipS[t.name];}).length;
+        var ghOn=!!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&TCB_GroupHold.isEnabled&&TCB_GroupHold.isEnabled());
+        var gl=(ghOn&&TCB_GroupHold.getLabels)?TCB_GroupHold.getLabels():null;
+        return {
+          date:(document.getElementById('adate')||{}).value||'',
+          patternLabel:pat==='kata'?'片方試合':(pat==='ryoho'?'両方試合':'両方練習'+(renshuSplit?'（場所分離）':'')),
+          memUnpublished:isMemUnpublished(),
+          seedOn:!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap),
+          method:loadSeedAllocMethod(),
+          ghOn:ghOn,
+          ghLa:gl?gl.la:'',
+          ghLb:gl?gl.lb:'',
+          teamUI:effectiveNeedsTeamUI(),
+          la:tnA||'試合組',
+          lb:tnB||'練習組',
+          cA:cA,cB:cB,
+          targetN:targetN,absN:absN,ochaN:ochaN,
+          toolsN:toolsN,skipN:TL.length-toolsN
+        };
       }
     });
   }
@@ -7689,5 +7779,6 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="tcb-push-mgr.js"></script>
 <script src="tcb-pwa-install.js"></script>
 <script src="tcb-group-hold.js"></script>
+<script src="tcb-presummary.js"></script>
 </body>
 </html>

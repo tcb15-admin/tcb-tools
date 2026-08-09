@@ -118,6 +118,14 @@
       }
     }
     if (btnClear) btnClear.style.display = enabled ? '' : 'none';
+    /* 折りたたみ（STEP2カード）の状態ピルと自動展開 */
+    var sum = document.getElementById('tcb-ghold-sumstate');
+    if (sum) {
+      sum.textContent = enabled ? '使用中' : '未使用';
+      sum.className = 'tcb-fold-state' + (enabled ? ' on' : '');
+    }
+    var det = document.getElementById('tcb-ghold-details');
+    if (det && enabled && !det.open) det.open = true;
   }
 
   function renderDraftList() {
