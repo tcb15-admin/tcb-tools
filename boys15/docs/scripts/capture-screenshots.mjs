@@ -94,6 +94,27 @@ async function main() {
   await page.waitForSelector('#hist-modal.open', { timeout: 10000 });
   await delay(400);
   await shot(page, '07-history.png');
+  await page.click('#hist-modal-close');
+  await delay(300);
+
+  // きょうの割振りカード（前回結果ができた状態で STEP1 に戻ると表示される・v1.11〜）
+  await page.evaluate(() => document.getElementById('st1')?.click());
+  await page.waitForSelector('#p1.on', { timeout: 10000 });
+  await page.waitForFunction(() => {
+    const h = document.getElementById('tcb-today-host');
+    return h && h.style.display !== 'none' && h.innerHTML !== '';
+  }, { timeout: 10000 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await delay(300);
+  await shot(page, '02b-today-card.png');
+
+  // 実行前の確認カード（STEP2 下部・v1.10〜）
+  await page.evaluate(() => document.getElementById('btn-s2')?.click());
+  await page.waitForSelector('#p2.on', { timeout: 10000 });
+  await page.evaluate(() =>
+    document.getElementById('tcb-presum-card')?.scrollIntoView({ block: 'center' }));
+  await delay(400);
+  await shot(page, '03c-step2-presummary.png');
 
   await browser.close();
   console.log('OK:', OUT);

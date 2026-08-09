@@ -5,10 +5,10 @@
 システム仕様書
 
 文書番号	TCB-SPEC-001
-版	1.13
+版	1.14
 作成日	2026年3月27日
 作成者	15期管理担当
-最終更新	2026年7月8日
+最終更新	2026年8月9日
 
 改訂履歴
 版	改訂日	改訂内容	改訂者
@@ -26,6 +26,7 @@
 1.11	2026年7月5日	html2pdf.bundle.min.js を同梱（読込失敗時のみ CDN フォールバック）／LINE共有の iOS 再タップ対応（_lineShareReady・PDF Blob キャッシュ）と割振り・オプション変更時のキャッシュ無効化（invalidateShareCaches）／モーダル統合（tcb-scroll-modal・body スクロールロック・swap-modal/print-overlay を共通管理・hist-month-overlay z-index 525）／マスタ削除の確認モーダル（tcbMasterConfirm）・未保存で閉じた際の自動復元（revertMasterToSessionOpenIfDirty）・クラウド loadState 適用前の未保存確認／前回基準モード中のパターン変更確認（confirmPatChangeInSeedMode）／道具0件時の runAlgo ガード／グループ名 esc 徹底／STEP3 ボタン「実施確定」に統一／build.py SYNC_API_TOKEN プレースホルダ警告・未注入時は同期無効化（syncHeadersReady）／Web Push（tcb-push-mgr.js・sw.js）・PWAインストール導線（tcb-pwa-install.js）／ツール v1.7.4	15期管理担当
 1.12	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更。bundle 版は html2canvas / jspdf をグローバル公開しないため tcb-print-pdf.js の担当表（縦A4）生成が「PDFライブラリが読み込まれていません」で失敗していた（iPhone で顕在化）。未ロード時は ensurePdfLibs() がローカル同梱→CDN の順で動的ロードして復旧	15期管理担当
 1.13	2026年7月8日	メンバー対象外フラグ quit（退部）を追加。休部と同様に割振り対象・STEP1/2 候補から常時除外（バッジ quit-badge）。マスタ UI に「退部」チェックを追加	15期管理担当
+1.14	2026年8月9日	16期（boys16）を廃止（ビルド対象・リポジトリ・D1から削除。復活しない）。グループ保有（tcb-group-hold：現時点の保有グループ内のみで割振り・端末永続化）。割り振り方法の選択（公平に分散＝assignPoolFair 再プール／前回のまま維持＝assignPoolCarryAdjust。LS SeedAllocMethod）。UX改修 Phase1〜2：実行前サマリー（tcb-presummary）・詳細オプション折りたたみ・用語刷新（試合メンバー未発表／現地で受け渡した道具を直す／いま道具を持っているグループ）・きょうの割振りカード（tcb-today-card：前回結果基準で欠席当番のみクリアし1タップ開始 beginTodayAllocation）。フィードバック部品（tcb-feedback：トースト・同期状態表示）。グリッド名前折返し（最小11px）。SW を network-first に変更（tcb-shell-v2）。build.py で JS/CSS 参照へ ?v=TOOL_VERSION 付与（キャッシュバスティング）。Playwright スモークテスト（tests/smoke.mjs）。保護者ページ拡充（受け渡しナビ・担当できない報告・道具写真・オフライン表示）／ツール v1.11.1	15期管理担当
 
 1. システム概要
 項目	内容
@@ -34,16 +35,15 @@
 データ保存	Cloudflare D1（マスタの正・同期 ON 時）＋ localStorage（端末内キャッシュ・履歴・実施確定メタ）。GitHub master.json はビルド用／同期 OFF 時の代替
 認証	パスワード認証（djb2 ベース簡易ハッシュ・初期 PW は世代ごと config）
 ホスティング	GitHub Pages（tcb15-admin / tcb-tools）
-チームカラー	濃紺（#122050）・赤（#C0000A）・白。16 期は html.theme-b16 でヘッダ等の配色が変化
-バージョン	v1.7.4 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み）
+チームカラー	濃紺（#122050）・赤（#C0000A）・白
+バージョン	v1.11.1 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み。JS/CSS 参照にも ?v= として付与）
 操作マニュアル	ヘッダ「マニュアル」→ config MANUAL_URL（15期は GitHub Pages 上の PDF）。未設定世代は非表示
-世代管理	boys15 / boys16（テンプレート＋config ビルド方式）
+世代管理	boys15 のみ（テンプレート＋config ビルド方式。16期は 2026-08-09 に廃止・削除済み。復活しない）
 UI_SIMPLE	config で true の世代は html.tcb-ui-simple を付与し、.tcb-ui-advanced ブロックを非表示（公平再分配・履歴1年 PDF・デフォルト保存読込等）
 
 1.1 URL 一覧
 世代	ツール URL	GitHub 管理 URL
 15期	https://tcb15-admin.github.io/tcb-tools/boys15/	https://github.com/tcb15-admin/tcb-tools/tree/main/boys15
-16期	https://tcb15-admin.github.io/tcb-tools/boys16/	https://github.com/tcb15-admin/tcb-tools/tree/main/boys16
 
 1.2 データ同期方式
 データ種別	保存場所	更新方法
@@ -60,13 +60,13 @@ tool_template.html に共通ロジックを集約し、config_boys*.json でチ�
 パス	役割
 template/tool_template.html	共通テンプレート
 template/config_boys15.json	15 期 config
-template/config_boys16.json	16 期 config
-template/master_defaults_boys16.json	boys16 ビルド時 DEFAULT 埋め込み元
 template/build.py	ビルド（SYNC_API_TOKEN 環境変数注入可）
 template/tcb-print-pdf.js	PDF Blob 生成ヘルパー
 template/tcb-sync-api.js	Cloudflare Worker 呼び出し
-boys*/index.html	生成物
-boys*/tcb-print-pdf.js / tcb-sync-api.js	生成物（テンプレからコピー）
+template/tcb-*.js／.css	機能別部品（swap-mgr・push-mgr・pwa-install・group-hold・feedback・presummary・today-card。ビルドで boys15/ へコピー）
+tests/smoke.mjs	Playwright スモークテスト（npm run smoke。localhost 以外は遮断）
+boys15/index.html ほか	生成物（kakunin.html・portal・attendance 含む）
+boys15/tcb-*.js／.css	生成物（テンプレからコピー）
 boys15/master.json	15 期ビルド用マスタ
 cloudflare-sync/	Worker ソース・D1 スキーマ
 
@@ -81,13 +81,13 @@ cloudflare-sync/	Worker ソース・D1 スキーマ
 {{SYNC_API_BASE_URL}}	Worker オリジン
 {{SYNC_API_TOKEN}}	Bearer トークン（ビルド時注入推奨）
 {{MANUAL_URL}}	操作マニュアル PDF URL（空ならリンク非表示）	boys15/docs/…v1.5.pdf
-{{TOOL_VERSION}}	表示バージョン	1.7.4
-{{HTML_THEME_CLASS}}	body 用クラス	15期は tcb-ui-simple、16期は theme-b16 tcb-ui-simple
-{{COHORT_KEY}}	/data-cohort 等	15／16
-{{COHORT_LABEL}}	表示用ラベル	15期／16期
+{{TOOL_VERSION}}	表示バージョン	1.11.1
+{{HTML_THEME_CLASS}}	body 用クラス	15期は tcb-ui-simple
+{{COHORT_KEY}}	/data-cohort 等	15
+{{COHORT_LABEL}}	表示用ラベル	15期
 
 2.3 共通機能更新手順
-tool_template.html 等を修正 → TOOL_VERSION を更新 → build.py 実行 → 各 boys**/index.html と js を GitHub へ配置
+tool_template.html 等を修正 → TOOL_VERSION を更新 → build.py 実行（SYNC_API_TOKEN 注入）→ boys15/ の生成物一式を GitHub へ配置。回帰確認は npm run smoke
 
 3. 割振りアルゴリズム
 3.1 優先度スコア（低いほど優先）
@@ -130,10 +130,10 @@ pat が renshu かつ renshuSplit のとき、道具の practiceVenue（マス�
 
 4. 主要機能一覧
 4.1 STEP1（活動設定）
-活動パターン、活動日、グループ名、メンバー未発表、前回モーダル、試合前・最小入れ替え調整の開始
+きょうの割振りカード（tcb-today-card：前回結果があるとき表示。beginTodayAllocation で欠席・お茶当番をクリアし調整モードで STEP2 へ直行）、活動パターン、活動日、グループ名、試合メンバー未発表、試合前・最小入れ替え調整の開始
 
 4.2 STEP2（欠席・当番）
-対象外選択、お茶当番、道具一時除外、グループ振り分け（試合モード）、割振り実行。試合前・最小入れ替え調整時は STEP1/2 に青バナー表示（「現地の実保有に補正」ボタンから実保有補正モーダルを起動可）
+対象外選択、お茶当番、道具一時除外（折りたたみ）、いま道具を持っているグループ（tcb-group-hold・折りたたみ・任意）、グループ振り分け（試合モード）、実行前サマリー（tcb-presummary）、割振り実行。調整モード時は STEP1/2 に青バナー＋割り振り方法選択（公平に分散／前回のまま維持）を表示（「現地で受け渡した道具を直す」ボタンから実保有補正モーダルを起動可）
 
 4.3 STEP3（割振り結果）
 道具別表（複数担当強調・会場分離時の列）、メンバー別タブ、印刷/PDF タブ（LINE 用メッセージコピー含む）、実施確定カード、Undo/Redo、元に再編集、班跨ぎ手動（chk-manual-cross-team・手動プルダウンのみ）、公平に再分配（UI_SIMPLE 時非表示）。試合前・最小入れ替え調整時は入れ替え案内サマリー（p3-carry-adjust-summary：維持行=緑 p3-carry-keep-row／変更行=橙 p3-carry-changed-row の色分け、テキストコピーボタン）を表示
@@ -147,7 +147,7 @@ pat が renshu かつ renshuSplit のとき、道具の practiceVenue（マス�
 4.5 マスタ設定
 メンバー・道具の DnD、DESCS 連動、パスワード変更、会場列、Cloudflare 保存。メンバー対象外は休部 rest／退部 quit／コーチ coach／14期帯同 ac14／兄弟所属 sibling で指定し、いずれか ON のメンバーは割振り対象・STEP1/2 の候補から常時除外（バッジ rest-badge・quit-badge・coach-badge・ac14-badge・sibling-badge で識別）。「1道具まで」noMulti は対象外ではなく自動割振り時の1日1道具上限。道具説明は全幅 textarea で編集
 
-5. localStorage キー（プレフィックス = tcb15 or tcb16）
+5. localStorage キー（プレフィックス = tcb15）
 キー	内容
 ${prefix}Master	マスタ JSON
 ${prefix}PrevResult	前回割振りスナップショット（前回ボタン・持ち帰り調整用）
@@ -155,6 +155,9 @@ ${prefix}Def	A/B デフォルト振り分け
 ${prefix}PwHash	パスワードハッシュ
 ${prefix}History	割振り履歴配列
 ${prefix}CarryoutConfirmed	実施確定メタ（byDate 等）
+${prefix}SeedAllocMethod	割り振り方法（fair／min）
+${prefix}TeamNamesCustom	両方試合・場所分離時のカスタムグループ名
+${prefix}GroupHold	グループ保有（有効フラグ・道具→A/B・グループ名）
 ${prefix}Auth（sessionStorage）	ログイン状態
 
 6. 外部依存
@@ -163,4 +166,4 @@ PDF 生成ライブラリは jsPDF 2.5.1（jspdf.umd.min.js）・html2canvas 1.4
 7. セキュリティ（運用上の注意）
 SYNC_API_TOKEN は Worker secret と HTML 内 Bearer で一致させる。Git への平文コミットは避け build 時注入を推奨。クライアント埋め込み Bearer は URL 入手者がソースから読み取りうる（Cloudflare Access 等は将来検討）。
 
-最終更新：2026年7月5日
+最終更新：2026年8月9日

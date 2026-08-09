@@ -2,13 +2,13 @@
 
 東海中央ボーイズ 15期
 道具割振りツール
-GitHub Pages 運用手順書（版 1.7）
+GitHub Pages 運用手順書（版 1.11）
 
 文書番号	TCB-OPS-001
-版	1.7
+版	1.11
 作成日	2026年3月27日
 作成者	15期管理担当
-最終更新	2026年5月22日
+最終更新	2026年8月9日
 
 改訂履歴
 版	改訂日	改訂内容	改訂者
@@ -23,6 +23,7 @@ GitHub Pages 運用手順書（版 1.7）
 1.8	2026年5月22日	PAST を lscore 加算・prio 片側ペナルティ（v1.6.4）・Worker 同期	15期管理担当
 1.9	2026年7月5日	現行 TOOL_VERSION 1.7.4 に更新。html2pdf.bundle.min.js を同梱アセット化（build.py がコピー。CDN はフォールバックのみ）。SYNC_API_TOKEN 未注入ビルドは同期無効化＋build.py が警告。交代報告 Web Push 用アセット（tcb-push-mgr.js/css・sw.js・tcb-pwa-install.js/css）を追記	15期管理担当
 1.10	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更（bundle 版が html2canvas / jspdf をグローバル公開せず iPhone で PDF 生成に失敗するため）。未ロード時は tcb-print-pdf.js がローカル→CDN の順で動的ロードして復旧	15期管理担当
+1.11	2026年8月9日	16期（boys16）を廃止し関連手順・URL を削除（ビルド対象・リポジトリ・D1 から削除済み。復活しない）。現行 TOOL_VERSION 1.11.1。ビルドは boys15 のみ（python3 template/build.py boys15）。JS/CSS 参照へ ?v=TOOL_VERSION を自動付与（キャッシュバスティング。ブラウザキャッシュ起因の版ずれ対策）。追加アセット（tcb-group-hold・tcb-feedback・tcb-presummary・tcb-today-card の js/css）。スモークテスト手順（npm run smoke）を追加。マニュアルは版 1.14（PDF ファイル名 v1.5 のまま差し替え）	15期管理担当
 
 1. アカウント・リポジトリ情報
 項目	内容
@@ -31,36 +32,28 @@ GitHubユーザー名	tcb15-admin
 リポジトリ可視性	Public（無料の GitHub Pages を利用するため）
 GitHub Pages ベース URL	https://tcb15-admin.github.io/tcb-tools/（Settings → Pages でブランチ main・フォルダ /(root) を選び Save 後に有効）
 15期ツールURL（GitHub Pages）	https://tcb15-admin.github.io/tcb-tools/boys15/（ブックマーク推奨）
-16期ツールURL（GitHub Pages）	https://tcb15-admin.github.io/tcb-tools/boys16/（ブックマーク推奨）
-16期マニュアル PDF（正本）	https://tcb15-admin.github.io/tcb-tools/boys16/docs/TCB-MAN-016_道具割り振りツール_操作マニュアル_v1.5.pdf（ファイル名 v1.5 のまま中身を差し替える運用）
 GitHubリポジトリ	https://github.com/tcb15-admin/tcb-tools
 認証情報管理	Googleドライブ（TCB-ACC-001参照）
-現行 TOOL_VERSION（2026-07-05 時点）	1.7.4（15期）／1.7.3（16期・更新停止予定）
+現行 TOOL_VERSION（2026-08-09 時点）	1.11.1（15期のみ。16期は廃止・削除済み）
 
 2. リポジトリ構成
 パス	内容
 template/tool_template.html	共通テンプレート（プレースホルダ付き。機能の正はここ）
 template/config_boys15.json	15期固有設定（チーム名・PW・URL・バージョン・UI_SIMPLE 等）
-template/config_boys16.json	16期固有設定
-template/master_defaults_boys16.json	16期ビルド時のみ参照。テンプレ内 DEFAULT マスタブロックを JSON から埋め込む（15期は boys15/master.json から埋め込み）
 template/build.py	ビルドスクリプト（Python 3）。template + config → 各 index.html 生成。環境変数 SYNC_API_TOKEN でトークン注入可
-template/tcb-print-pdf.js	印刷プレビューから PDF Blob を生成（html2pdf.js 利用）。ビルドで boys15/・boys16/ にコピーされる
-template/jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js	PDF 生成ライブラリ本体（個別同梱。この順で読み込み。読込失敗時は tcb-print-pdf.js がローカル→CDN の順で動的ロード）。ビルドで各世代フォルダにコピーされる
-template/tcb-sync-api.js	Cloudflare 同期 API 呼び出し。ビルドで boys15/・boys16/ にコピーされる
-template/tcb-swap-mgr.js ほか	交代報告・Web Push・PWA 用アセット（tcb-swap-mgr.js/css・tcb-push-mgr.js/css・tcb-pwa-install.js/css・sw.js）。ビルドで各世代フォルダにコピーされる
+template/tcb-print-pdf.js	印刷プレビューから PDF Blob を生成（html2pdf.js 利用）。ビルドで boys15/ にコピーされる
+template/jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js	PDF 生成ライブラリ本体（個別同梱。この順で読み込み。読込失敗時は tcb-print-pdf.js がローカル→CDN の順で動的ロード）。ビルドで boys15/ にコピーされる
+template/tcb-sync-api.js	Cloudflare 同期 API 呼び出し。ビルドで boys15/ にコピーされる
+template/tcb-swap-mgr.js ほか	機能別アセット（tcb-swap-mgr・tcb-push-mgr・tcb-pwa-install・tcb-group-hold・tcb-feedback・tcb-presummary・tcb-today-card の js/css・sw.js）。ビルドで boys15/ にコピーされる
 boys15/index.html	15期ツール本体（ビルドで自動生成。GitHub へはこのファイル名で配置）
 boys15/tcb-print-pdf.js	上記と同じくビルド成果物。index.html と必ず同じタイミングでデプロイすること
 boys15/tcb-sync-api.js	15期用（Cloudflare 同期クライアント。ビルドでコピー。index.html と同時デプロイ）
 boys15/master.json	15期ビルド用（build.py が HTML 内 DEFAULT 埋め込みに参照）。運用中のマスタの正は Cloudflare 同期 API（同期 ON のとき）
 boys15/images/	15期道具写真（任意）
 boys15/docs/	15期ドキュメント類（本書・仕様書・ユーザーマニュアル）
-boys16/index.html	16期ツール本体
-boys16/tcb-print-pdf.js	16期用（同上）
-boys16/tcb-sync-api.js	16期用（Cloudflare 同期クライアント）
-boys16/docs/	16期マニュアル（Markdown ソース・PDF 正本）
-boys16/images/	16期道具写真（任意）
 cloudflare-sync/	Worker + D1 スキーマ・デプロイ手順（README 参照）
-（16期のビルド時初期マスタは template/master_defaults_boys16.json のみ。boys16/master.json はリポジトリに置かない）
+tests/smoke.mjs・package.json	Playwright スモークテスト（npm run smoke。改修後の回帰確認用）
+（16期は 2026-08-09 に廃止。関連ファイル・データは削除済みで再作成しない）
 
 3. 日常の更新フロー
 
@@ -76,51 +69,48 @@ cloudflare-sync/	Worker + D1 スキーマ・デプロイ手順（README 参照�
 5	全端末が次回アクセス時に自動で最新マスタを取得（同期 ON はクラウド、OFF は URL または端末保存）
 
 3-2 共通機能の改修（テンプレート更新）
-ツールの機能改修は tool_template.html（および必要なら tcb-print-pdf.js・tcb-sync-api.js）を更新し、全世代をビルドしてください。
+ツールの機能改修は tool_template.html（および必要なら各 tcb-*.js/.css）を更新し、boys15 をビルドしてください。
 手順	操作
 1	修正 → tool_template.html（必要なら tcb-print-pdf.js / tcb-sync-api.js）を更新
 2	GitHub の template/ に反映（push）
-3	template/config_boys15.json および config_boys16.json の TOOL_VERSION を更新（例：1.6.2→1.6.3）
+3	template/config_boys15.json の TOOL_VERSION を更新（例：1.11.0→1.11.1）。この値が JS/CSS 参照の ?v= にも使われ、更新時にブラウザキャッシュが自動で切り替わる
 4	（推奨）環境変数 SYNC_API_TOKEN を設定して build.py を実行。未設定時は config 内プレースホルダのまま
-5	リポジトリルートで python3 template/build.py → boys15/index.html・boys16/index.html・各 tcb-print-pdf.js・tcb-sync-api.js が生成される
-6	boys15/ と boys16/ に、index.html・tcb-print-pdf.js・tcb-sync-api.js を同じコミットで push（片方だけだと同期・PDF が壊れる可能性あり）
+5	リポジトリルートで SYNC_API_TOKEN='…' python3 template/build.py boys15 → boys15/ に index.html・kakunin.html・各 js/css が生成される
+6	boys15/ の生成物一式を同じコミットで push（HTML と js/css がずれると動作が壊れる可能性あり）。push 前に npm run smoke で回帰確認を推奨
 
 3-3 世代固有の設定変更
-template/config_boys15.json または config_boys16.json を編集（UI_SIMPLE・SYNC_API_BASE_URL 等）
+template/config_boys15.json を編集（UI_SIMPLE・SYNC_API_BASE_URL 等）
 build.py を実行し、当該世代の index.html（と js）を GitHub にアップロード
 
-3-4 16期の初期マスタ埋め込みを変える場合
-template/master_defaults_boys16.json を編集し build.py を再実行（boys16/index.html 再生成）
-
-3-5 道具写真の追加
-boys15/images/ または boys16/images/ に画像をアップロード（フォルダが無ければ作成）
+3-4 道具写真の追加
+boys15/images/ に画像をアップロード（フォルダが無ければ作成）
 マスタ設定 → 道具の説明・写真 → 画像 URL 欄に例として以下を入力：
 https://raw.githubusercontent.com/tcb15-admin/tcb-tools/main/boys15/images/【ファイル名】
 「保存」→ 同期 ON ならクラウドへ。OFF なら master.json を GitHub にアップロード
 
-3-6 16期マニュアル PDF の更新
-boys16/docs/TCB-MAN-016_道具割り振りツール_操作マニュアル_v1.5.md を編集
-cd boys16/docs/scripts && node build-pdf.mjs で PDF 再生成
+3-5 15期マニュアル PDF の更新
+boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.md を編集
+cd boys15/docs/scripts && node capture-screenshots.mjs（スクショ更新時）→ node build-pdf.mjs で PDF 再生成
 同じファイル名（…v1.5.pdf）で push し URL を変えない（ブックマーク維持）
 
 4. ドキュメントの管理
 ドキュメント類は GitHub リポジトリおよびローカル（iCloud 等）で管理します。アカウント管理台帳のみ Google ドライブ（機密）。
 ファイル名	最新版	保管場所
-TCB-SPEC-001 仕様書	v1.5	boys15/docs/ ＋ ローカル
-TCB-MAN-001 ユーザーマニュアル	v1.5	boys15/docs/ ＋ ローカル
-TCB-OPS-001 GitHub運用手順書	v1.7	boys15/docs/ ＋ ローカル
-TCB-MAN-016 16期操作マニュアル	1.6（PDF ファイル名 v1.5）	boys16/docs/ ＋ ローカル
+TCB-SPEC-001 仕様書	1.14（ファイル名 v1.5）	boys15/docs/ ＋ ローカル
+TCB-MAN-001 ユーザーマニュアル	1.14（PDF ファイル名 v1.5）	boys15/docs/ ＋ ローカル
+TCB-OPS-001 GitHub運用手順書	1.11（ファイル名 v1.7）	boys15/docs/ ＋ ローカル
 TCB-ACC-001 アカウント管理台帳	v1.0	Google ドライブのみ（機密）
 
-5. 複数期の管理
-項目	15期	16期
-ツール URL（利用者向け）	https://tcb15-admin.github.io/tcb-tools/boys15/	https://tcb15-admin.github.io/tcb-tools/boys16/
-マスタの正（推奨）	Cloudflare 同期 API	同上
-UI_SIMPLE（上級機能非表示）	true	true
-ビルド用初期マスタ	boys15/master.json（build.py）	template/master_defaults_boys16.json（build.py）
-初期パスワード	tcb15	tcb16
-GitHub アップロード	15期管理担当	15期管理担当（代行）または 16期担当（運用ルールに従う）
-マスタ設定	各世代担当が端末上で編集
+5. 世代の管理
+運用対象は 15期（boys15）のみ。16期（boys16）は 2026-08-09 に廃止し、ビルド対象・リポジトリ・Cloudflare D1 のデータを削除済み（個人名を含むため。再作成しない）。
+項目	15期
+ツール URL（利用者向け）	https://tcb15-admin.github.io/tcb-tools/boys15/
+マスタの正（推奨）	Cloudflare 同期 API
+UI_SIMPLE（上級機能非表示）	true
+ビルド用初期マスタ	boys15/master.json（build.py）
+初期パスワード	tcb15
+GitHub アップロード	15期管理担当
+マスタ設定	担当が端末上で編集
 
 6. トラブルシューティング
 症状	対処方法
@@ -131,7 +121,7 @@ PAST が想定と違う	「実施確定」を押した日付・担当が最終�
 PDF が出ない・共有できない	index.html と同じフォルダに tcb-print-pdf.js・jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js があるか確認（v1.7.4 から個別同梱。無い場合は CDN フォールバックに頼るため通信環境の影響を受ける）
 パスワードを忘れた	マスタ設定の JSON をエクスポートして管理者に相談
 写真が表示されない	raw.githubusercontent.com の URL が正しいか確認
-HTML を差し替えたが変わらない	ブラウザのキャッシュをクリア
-16期ツールが動かない	SYNC_API_BASE_URL・トークン設定を確認。index.html と tcb-sync-api.js が同じコミットか。ブラウザの開発者ツールのネットワーク／コンソールエラーを確認
+HTML を差し替えたが変わらない	v1.10.1 以降は JS/CSS に ?v= が付くため、TOOL_VERSION を上げてビルドしていれば自動で切り替わる。反映まで GitHub Pages のデプロイ（数分）を待つ。それでも変わらなければブラウザのキャッシュをクリア
+クラウド同期が動かない	SYNC_API_BASE_URL・トークン設定を確認。index.html と tcb-sync-api.js が同じコミットか。ヘッダの同期状態表示とブラウザの開発者ツールのネットワーク／コンソールエラーを確認
 
-最終更新：2026年5月22日
+最終更新：2026年8月9日
