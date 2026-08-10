@@ -161,6 +161,13 @@ html[data-cohort="15"] header{
 .mc:active{opacity:.7;}
 .mc.abs{border-color:var(--red);background:var(--red-l);}
 .mc.ocha{border-color:var(--acc);background:#fff8e1;}
+.tcb-tea-reflect{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  margin:0 0 10px;padding:10px 12px;border-radius:10px;
+  border:1px solid var(--bdr);background:var(--surface-2);font-size:12px;line-height:1.45;
+}
+.tcb-tea-reflect[hidden]{display:none !important;}
+.tcb-tea-reflect-msg{flex:1;min-width:160px;color:var(--txt2);}
 .mc.rest,.mc.quit{border-color:#b0bec5;background:#eceff1;opacity:.6;cursor:default;}
 .mc.coach{border-color:var(--coach-bd);background:var(--coach-bg);opacity:.6;cursor:default;}
 .cn{font-size:12px;font-weight:700;flex:1;overflow:hidden;word-break:break-all;}
@@ -1499,7 +1506,11 @@ html{color-scheme:light;}
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
-      <div class="ct">お茶当番（翌活動日分）<button type="button" class="tcb-tip" data-tip="ここで選ぶのは<strong>翌活動日分</strong>の当番。次回準備のため当日に当番道具を多く持ち帰るので、通常の割振りからは外します。" aria-label="説明"></button></div>
+      <div class="ct">お茶当番（翌活動日分）<button type="button" class="tcb-tip" data-tip="ここで選ぶのは<strong>翌活動日分</strong>の当番。次回準備のため当日に当番道具を多く持ち帰るので、通常の割振りからは外します。お茶当番ツールの月次表から<strong>取込</strong>できます。" aria-label="説明"></button></div>
+      <div id="tcb-tea-reflect" class="tcb-tea-reflect" hidden>
+        <span id="tcb-tea-reflect-msg" class="tcb-tea-reflect-msg"></span>
+        <button type="button" id="tcb-tea-reflect-btn" class="nb" style="min-height:36px;padding:6px 12px;font-size:12px;">表から取込</button>
+      </div>
       <div class="mgrid" id="ogrid"></div>
     </div>
     <div class="card" id="skip-tools-card">
@@ -5226,6 +5237,72 @@ function buildOGrid(){
     g.appendChild(c);
   });
   scheduleStep2GridFit();
+  if(!_teaReflectQuiet)scheduleTeaReflectRefresh();
+}
+
+var _teaReflectCache=null;
+var _teaReflectTimer=null;
+var _teaReflectQuiet=false;
+function scheduleTeaReflectRefresh(){
+  if(_teaReflectQuiet)return;
+  if(_teaReflectTimer)clearTimeout(_teaReflectTimer);
+  _teaReflectTimer=setTimeout(function(){
+    refreshTeaReflectBar({auto:true}).catch(function(){});
+  },200);
+}
+function applyTeaReflectNames(names, opts){
+  opts=opts||{};
+  names=Array.isArray(names)?names:[];
+  ochS={};
+  names.forEach(function(n){
+    n=String(n||'').trim();
+    if(n)ochS[n]=1;
+  });
+  _teaReflectQuiet=true;
+  try{
+    buildOGrid();
+    if(effectiveNeedsTeamUI())buildTGrid();
+  }finally{
+    _teaReflectQuiet=false;
+  }
+  if(opts.toast!==false&&typeof tcbToast==='function'){
+    tcbToast(names.length
+      ?('お茶当番表から取込：'+names.join('、'))
+      :'お茶当番表に翌活動日の当番がありません','info');
+  }
+}
+async function refreshTeaReflectBar(opts){
+  opts=opts||{};
+  var bar=document.getElementById('tcb-tea-reflect');
+  var msg=document.getElementById('tcb-tea-reflect-msg');
+  if(!bar||!msg)return;
+  var ad=document.getElementById('adate');
+  var activityDate=ad?ad.value:'';
+  if(!activityDate||!SYNC_CLIENT||typeof SYNC_CLIENT.getTeaReflect!=='function'){
+    bar.hidden=true;
+    return;
+  }
+  try{
+    var res=await SYNC_CLIENT.getTeaReflect(activityDate);
+    _teaReflectCache=res||null;
+    if(!res||!res.nextDate){
+      msg.textContent='お茶当番表に、この活動日より後の当番日がありません。';
+      bar.hidden=false;
+      return;
+    }
+    var names=res.names||[];
+    msg.textContent='翌当番日 '+res.nextDate
+      +' ：A '+(res.dutyA||'未定')+' ／ B '+(res.dutyB||'未定')
+      +(names.length?'（取込可）':'（氏名未設定）');
+    bar.hidden=false;
+    var has=Object.keys(ochS).some(function(k){return !!ochS[k];});
+    if(opts.auto&&!has&&names.length){
+      applyTeaReflectNames(names,{toast:false});
+    }
+  }catch(e){
+    msg.textContent='お茶当番表の参照に失敗しました（Worker未更新の可能性）';
+    bar.hidden=false;
+  }
 }
 
 /* ========== グループ振り分け ========== */
@@ -7420,6 +7497,24 @@ document.addEventListener('DOMContentLoaded',function(){
       token:SYNC_API_TOKEN,
       cohort:COHORT_KEY
     });
+  }
+  var teaRefBtn=document.getElementById('tcb-tea-reflect-btn');
+  if(teaRefBtn){
+    teaRefBtn.addEventListener('click',function(){
+      var names=(_teaReflectCache&&_teaReflectCache.names)||[];
+      if(!names.length&&_teaReflectCache&&_teaReflectCache.nextDate){
+        /* キャッシュが古い場合は再取得 */
+        refreshTeaReflectBar({auto:false}).then(function(){
+          applyTeaReflectNames((_teaReflectCache&&_teaReflectCache.names)||[]);
+        }).catch(function(){});
+        return;
+      }
+      applyTeaReflectNames(names);
+    });
+  }
+  var adateEl=document.getElementById('adate');
+  if(adateEl){
+    adateEl.addEventListener('change',function(){scheduleTeaReflectRefresh();});
   }
   /* ヘッダーの同期状態インジケーター（クラウド同期が有効な環境のみ） */
   if(syncEnabled()&&typeof TCB_Feedback!=='undefined'&&TCB_Feedback&&typeof TCB_Feedback.initSyncIndicator==='function'){

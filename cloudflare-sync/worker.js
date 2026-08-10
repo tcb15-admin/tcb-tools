@@ -121,6 +121,45 @@ export default {
         const since = (url.searchParams.get("since") || "").trim();
         return json(await listCrossRoleEvents(env, cohort, since));
       }
+      // ===== お茶当番（Bearer） =====
+      if (url.pathname === "/api/tea/settings" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await getTeaSettings(env, cohort));
+      }
+      if (url.pathname === "/api/tea/settings" && request.method === "POST") {
+        const body = await request.json();
+        return json(await saveTeaSettings(env, body));
+      }
+      if (url.pathname === "/api/tea/members" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await listTeaMembers(env, cohort));
+      }
+      if (url.pathname === "/api/tea/months" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await listTeaMonths(env, cohort));
+      }
+      if (url.pathname === "/api/tea/month" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const yearMonth = (url.searchParams.get("ym") || "").trim();
+        return json(await getTeaMonth(env, cohort, yearMonth));
+      }
+      if (url.pathname === "/api/tea/month" && request.method === "POST") {
+        const body = await request.json();
+        return json(await upsertTeaMonth(env, body));
+      }
+      if (url.pathname === "/api/tea/supplies" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await listTeaSupplies(env, cohort));
+      }
+      if (url.pathname === "/api/tea/supplies" && request.method === "POST") {
+        const body = await request.json();
+        return json(await saveTeaSupplies(env, body));
+      }
+      if (url.pathname === "/api/tea/reflect" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const activityDate = (url.searchParams.get("activityDate") || "").trim();
+        return json(await getTeaReflect(env, cohort, activityDate));
+      }
       return json({ error: "not_found" }, 404);
     } catch (e) {
       return json({ error: e.message || "server_error" }, 400);
@@ -1194,4 +1233,309 @@ async function listCrossRoleEvents(env, cohortRaw, sinceRaw) {
     createdAt: String(r.created_at || ""),
   }));
   return { events: events };
+}
+
+/* ===== お茶当番 ===== */
+const YM_RE = /^\d{4}-\d{2}$/;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DEFAULT_TEA_SUPPLIES = [
+  { label: "麦茶2リットル", unitHint: "本" },
+  { label: "アイスコーヒー", unitHint: "本" },
+  { label: "トイレットペーパー", unitHint: "個" },
+  { label: "透明カップ1セット", unitHint: "" },
+  { label: "チェックバッグ", unitHint: "" },
+];
+
+function emptyPlayerGroups() {
+  const o = {};
+  for (let i = 1; i <= 6; i++) o[String(i)] = [];
+  return o;
+}
+
+function normalizePlayerGroups(raw) {
+  const base = emptyPlayerGroups();
+  let src = raw;
+  if (typeof raw === "string") {
+    try {
+      src = JSON.parse(raw || "{}");
+    } catch (e) {
+      src = {};
+    }
+  }
+  if (!src || typeof src !== "object") return base;
+  for (let i = 1; i <= 6; i++) {
+    const k = String(i);
+    const arr = Array.isArray(src[k]) ? src[k] : Array.isArray(src[i]) ? src[i] : [];
+    base[k] = arr
+      .map((n) => String(n || "").trim())
+      .filter(Boolean)
+      .slice(0, 40);
+  }
+  return base;
+}
+
+function mapTeaDay(r) {
+  const pg = r.player_group;
+  return {
+    id: String(r.id || ""),
+    activityDate: String(r.activity_date || ""),
+    dutyA: String(r.duty_a || ""),
+    dutyB: String(r.duty_b || ""),
+    playerGroup: pg === null || pg === undefined || pg === "" ? null : Number(pg),
+    sortOrder: Number(r.sort_order || 0),
+  };
+}
+
+async function getTeaSettings(env, cohortRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const row = await env.DB.prepare("SELECT password_hash, updated_at FROM tea_settings WHERE cohort = ?")
+    .bind(cohort)
+    .first();
+  return {
+    passwordHash: row ? String(row.password_hash || "") : "",
+    updatedAt: row ? String(row.updated_at || "") : "",
+  };
+}
+
+async function saveTeaSettings(env, body) {
+  const cohort = mustCohort(body && body.cohort);
+  const hash = String((body && body.passwordHash) || "").trim();
+  if (hash && !/^[0-9a-f]{32}$/i.test(hash)) throw new Error("password_hash_invalid");
+  const now = new Date().toISOString();
+  await env.DB.prepare(
+    "INSERT INTO tea_settings (cohort, password_hash, updated_at) VALUES (?, ?, ?) " +
+      "ON CONFLICT(cohort) DO UPDATE SET password_hash = excluded.password_hash, updated_at = excluded.updated_at"
+  )
+    .bind(cohort, hash, now)
+    .run();
+  return { ok: true, updatedAt: now };
+}
+
+async function listTeaMembers(env, cohortRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const members = await loadMasterMembers(env, cohort);
+  return {
+    members: members
+      .filter((m) => m.name)
+      .map((m) => ({ name: m.name, excluded: m.excluded ? 1 : 0 })),
+  };
+}
+
+async function listTeaMonths(env, cohortRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const rs = await env.DB.prepare(
+    "SELECT id, year_month, note, revised_at, updated_at FROM tea_months WHERE cohort = ? ORDER BY year_month DESC LIMIT 36"
+  )
+    .bind(cohort)
+    .all();
+  return {
+    months: (rs.results || []).map((r) => ({
+      id: String(r.id || ""),
+      yearMonth: String(r.year_month || ""),
+      note: String(r.note || ""),
+      revisedAt: String(r.revised_at || ""),
+      updatedAt: String(r.updated_at || ""),
+    })),
+  };
+}
+
+async function loadTeaDays(env, monthId) {
+  const rs = await env.DB.prepare(
+    "SELECT * FROM tea_days WHERE month_id = ? ORDER BY sort_order ASC, activity_date ASC"
+  )
+    .bind(monthId)
+    .all();
+  return (rs.results || []).map(mapTeaDay);
+}
+
+async function getTeaMonth(env, cohortRaw, yearMonthRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const ym = String(yearMonthRaw || "").trim();
+  if (!YM_RE.test(ym)) throw new Error("year_month_invalid");
+  const row = await env.DB.prepare("SELECT * FROM tea_months WHERE cohort = ? AND year_month = ?")
+    .bind(cohort, ym)
+    .first();
+  if (!row) {
+    return {
+      month: null,
+      days: [],
+      playerGroups: emptyPlayerGroups(),
+    };
+  }
+  return {
+    month: {
+      id: String(row.id),
+      yearMonth: String(row.year_month),
+      note: String(row.note || ""),
+      revisedAt: String(row.revised_at || ""),
+      createdAt: String(row.created_at || ""),
+      updatedAt: String(row.updated_at || ""),
+    },
+    days: await loadTeaDays(env, row.id),
+    playerGroups: normalizePlayerGroups(row.player_groups_json),
+  };
+}
+
+async function upsertTeaMonth(env, body) {
+  const cohort = mustCohort(body && body.cohort);
+  const ym = String((body && body.yearMonth) || "").trim();
+  if (!YM_RE.test(ym)) throw new Error("year_month_invalid");
+  const note = String((body && body.note) || "").slice(0, 500);
+  const revisedAt = String((body && body.revisedAt) || "").slice(0, 40);
+  const playerGroups = normalizePlayerGroups(body && body.playerGroups);
+  const daysIn = Array.isArray(body && body.days) ? body.days : [];
+  if (daysIn.length > 40) throw new Error("days_too_many");
+
+  const days = [];
+  const seen = new Set();
+  for (let i = 0; i < daysIn.length; i++) {
+    const d = daysIn[i] || {};
+    const activityDate = String(d.activityDate || "").trim();
+    if (!ISO_DATE_RE.test(activityDate)) throw new Error("activity_date_invalid");
+    if (!activityDate.startsWith(ym)) throw new Error("activity_date_month_mismatch");
+    if (seen.has(activityDate)) continue;
+    seen.add(activityDate);
+    let pg = d.playerGroup;
+    if (pg === "" || pg === null || pg === undefined) pg = null;
+    else {
+      pg = Number(pg);
+      if (!Number.isInteger(pg) || pg < 1 || pg > 6) throw new Error("player_group_invalid");
+    }
+    days.push({
+      activityDate,
+      dutyA: String(d.dutyA || "").trim().slice(0, 40),
+      dutyB: String(d.dutyB || "").trim().slice(0, 40),
+      playerGroup: pg,
+      sortOrder: i,
+    });
+  }
+
+  const now = new Date().toISOString();
+  const cur = await env.DB.prepare("SELECT id, created_at FROM tea_months WHERE cohort = ? AND year_month = ?")
+    .bind(cohort, ym)
+    .first();
+  const id = cur ? String(cur.id) : genId();
+  const createdAt = cur ? String(cur.created_at) : now;
+
+  if (cur) {
+    await env.DB.prepare(
+      "UPDATE tea_months SET note = ?, player_groups_json = ?, revised_at = ?, updated_at = ? WHERE id = ? AND cohort = ?"
+    )
+      .bind(note, JSON.stringify(playerGroups), revisedAt, now, id, cohort)
+      .run();
+    await env.DB.prepare("DELETE FROM tea_days WHERE month_id = ?").bind(id).run();
+  } else {
+    await env.DB.prepare(
+      "INSERT INTO tea_months (id, cohort, year_month, note, player_groups_json, revised_at, created_at, updated_at) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    )
+      .bind(id, cohort, ym, note, JSON.stringify(playerGroups), revisedAt, createdAt, now)
+      .run();
+  }
+
+  for (const d of days) {
+    await env.DB.prepare(
+      "INSERT INTO tea_days (id, month_id, cohort, activity_date, duty_a, duty_b, player_group, sort_order) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    )
+      .bind(genId(), id, cohort, d.activityDate, d.dutyA, d.dutyB, d.playerGroup, d.sortOrder)
+      .run();
+  }
+
+  const nowEvt = new Date().toISOString();
+  await env.DB.prepare(
+    "INSERT INTO cross_role_events (id, cohort, activity_id, source_role, event_type, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  )
+    .bind(genId(), cohort, id, "tea", "tea_schedule_changed", ym + " のお茶当番表が更新されました", nowEvt)
+    .run();
+  await env.DB.prepare(
+    "DELETE FROM cross_role_events WHERE cohort = ? AND id NOT IN (" +
+      "SELECT id FROM cross_role_events WHERE cohort = ? ORDER BY created_at DESC LIMIT 200)"
+  )
+    .bind(cohort, cohort)
+    .run();
+
+  return getTeaMonth(env, cohort, ym);
+}
+
+async function ensureDefaultTeaSupplies(env, cohort) {
+  const cnt = await env.DB.prepare("SELECT COUNT(*) AS n FROM tea_supply_items WHERE cohort = ?")
+    .bind(cohort)
+    .first();
+  if (cnt && Number(cnt.n) > 0) return;
+  for (let i = 0; i < DEFAULT_TEA_SUPPLIES.length; i++) {
+    const it = DEFAULT_TEA_SUPPLIES[i];
+    await env.DB.prepare(
+      "INSERT INTO tea_supply_items (id, cohort, label, unit_hint, sort_order, active) VALUES (?, ?, ?, ?, ?, 1)"
+    )
+      .bind(genId(), cohort, it.label, it.unitHint || "", i)
+      .run();
+  }
+}
+
+async function listTeaSupplies(env, cohortRaw) {
+  const cohort = mustCohort(cohortRaw);
+  await ensureDefaultTeaSupplies(env, cohort);
+  const rs = await env.DB.prepare(
+    "SELECT id, label, unit_hint, sort_order, active FROM tea_supply_items WHERE cohort = ? ORDER BY sort_order ASC, label ASC"
+  )
+    .bind(cohort)
+    .all();
+  return {
+    items: (rs.results || []).map((r) => ({
+      id: String(r.id || ""),
+      label: String(r.label || ""),
+      unitHint: String(r.unit_hint || ""),
+      sortOrder: Number(r.sort_order || 0),
+      active: Number(r.active) === 1 ? 1 : 0,
+    })),
+  };
+}
+
+async function saveTeaSupplies(env, body) {
+  const cohort = mustCohort(body && body.cohort);
+  const itemsIn = Array.isArray(body && body.items) ? body.items : [];
+  if (itemsIn.length > 80) throw new Error("supplies_too_many");
+  await env.DB.prepare("DELETE FROM tea_supply_items WHERE cohort = ?").bind(cohort).run();
+  for (let i = 0; i < itemsIn.length; i++) {
+    const it = itemsIn[i] || {};
+    const label = String(it.label || "").trim().slice(0, 80);
+    if (!label) continue;
+    const unitHint = String(it.unitHint || "").trim().slice(0, 20);
+    const active = it.active === 0 || it.active === false || it.active === "0" ? 0 : 1;
+    await env.DB.prepare(
+      "INSERT INTO tea_supply_items (id, cohort, label, unit_hint, sort_order, active) VALUES (?, ?, ?, ?, ?, ?)"
+    )
+      .bind(String(it.id || genId()).slice(0, 40), cohort, label, unitHint, i, active)
+      .run();
+  }
+  return listTeaSupplies(env, cohort);
+}
+
+async function getTeaReflect(env, cohortRaw, activityDateRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const activityDate = String(activityDateRaw || "").trim();
+  if (!ISO_DATE_RE.test(activityDate)) throw new Error("activity_date_invalid");
+  const row = await env.DB.prepare(
+    "SELECT activity_date, duty_a, duty_b, player_group FROM tea_days " +
+      "WHERE cohort = ? AND activity_date > ? ORDER BY activity_date ASC LIMIT 1"
+  )
+    .bind(cohort, activityDate)
+    .first();
+  if (!row) {
+    return { nextDate: "", dutyA: "", dutyB: "", playerGroup: null, names: [] };
+  }
+  const dutyA = String(row.duty_a || "").trim();
+  const dutyB = String(row.duty_b || "").trim();
+  const names = [];
+  if (dutyA) names.push(dutyA);
+  if (dutyB && dutyB !== dutyA) names.push(dutyB);
+  const pg = row.player_group;
+  return {
+    nextDate: String(row.activity_date || ""),
+    dutyA,
+    dutyB,
+    playerGroup: pg === null || pg === undefined || pg === "" ? null : Number(pg),
+    names,
+  };
 }

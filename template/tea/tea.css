@@ -1,0 +1,113 @@
+/* お茶当番（tea- 接頭辞） */
+:root{
+  --tea-navy:#122050;--tea-heading:#122050;--tea-red:#c0000a;--tea-grn:#2e7d32;
+  --tea-bg:#f5f5f7;--tea-card:#fff;--tea-bdr:#e5e5ea;--tea-txt:#1c1c22;--tea-txt2:#6e6e78;
+  --tea-tap:46px;--tea-surface:#eef1f8;--tea-acc:#e65100;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body.tea-body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  background:var(--tea-bg);color:var(--tea-txt);min-height:100vh;font-size:16px;
+  -webkit-text-size-adjust:100%;
+}
+.tea-hdr{
+  background:linear-gradient(135deg,#122050,#1a2d68);
+  border-bottom:3px solid var(--tea-red);
+  color:#fff;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top,0px));
+  display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20;
+}
+.tea-hdr h1{font-size:15px;font-weight:900;line-height:1.3;flex:1;min-width:0;}
+.tea-hdr h1 span{display:block;font-size:10px;font-weight:500;opacity:.85;margin-top:2px;}
+.tea-hdr-link{
+  color:#fff;text-decoration:none;font-size:12px;font-weight:700;
+  border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 10px;min-height:var(--tea-tap);
+  display:inline-flex;align-items:center;
+}
+.tea-wrap{max-width:920px;margin:0 auto;padding:14px 14px calc(88px + env(safe-area-inset-bottom,0px));}
+.tea-card{
+  background:var(--tea-card);border-radius:16px;border:1px solid var(--tea-bdr);
+  padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(18,32,80,.04);
+}
+.tea-card h2{font-size:15px;font-weight:800;color:var(--tea-heading);margin-bottom:10px;}
+.tea-meta{font-size:13px;color:var(--tea-txt2);line-height:1.5;margin-bottom:8px;}
+.tea-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;align-items:center;}
+.tea-field{flex:1 1 140px;display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.tea-field label{font-size:12px;font-weight:700;color:var(--tea-txt2);}
+.tea-field input,.tea-field select,.tea-field textarea{
+  min-height:46px;border:1px solid var(--tea-bdr);border-radius:10px;
+  padding:10px 12px;font:inherit;font-size:16px;background:#fff;color:var(--tea-txt);
+}
+.tea-field textarea{min-height:72px;resize:vertical;}
+.tea-btn{
+  border:none;border-radius:12px;min-height:var(--tea-tap);padding:12px 14px;
+  font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+}
+.tea-btn-primary{background:var(--tea-navy);color:#fff;}
+.tea-btn-line{background:#06c755;color:#fff;}
+.tea-btn-ghost{background:var(--tea-surface);color:var(--tea-heading);}
+.tea-btn-danger{background:#fdecec;color:var(--tea-red);}
+.tea-btn:disabled{opacity:.55;cursor:not-allowed;}
+.tea-status{font-size:13px;color:var(--tea-txt2);min-height:1.2em;margin-top:8px;line-height:1.5;}
+.tea-status.err{color:var(--tea-red);font-weight:700;}
+.tea-hidden{display:none !important;}
+
+.tea-pw{
+  position:fixed;inset:0;background:rgba(18,32,80,.72);display:flex;align-items:center;justify-content:center;z-index:100;
+}
+.tea-pw-card{background:var(--tea-card);border-radius:16px;padding:28px 20px;width:92%;max-width:360px;text-align:center;}
+.tea-pw-card h2{font-size:16px;margin-bottom:12px;color:var(--tea-heading);}
+.tea-pw-card input{width:100%;min-height:46px;border:1px solid var(--tea-bdr);border-radius:10px;padding:10px;font:inherit;font-size:16px;margin-bottom:10px;}
+
+.tea-tbl-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--tea-bdr);border-radius:12px;}
+.tea-tbl{width:100%;border-collapse:collapse;min-width:640px;font-size:13px;}
+.tea-tbl th,.tea-tbl td{border-bottom:1px solid var(--tea-bdr);padding:8px 6px;vertical-align:middle;}
+.tea-tbl th{background:var(--tea-surface);font-size:11px;font-weight:800;color:var(--tea-heading);text-align:left;position:sticky;top:0;}
+.tea-tbl select,.tea-tbl input[type="date"]{
+  width:100%;min-height:40px;border:1px solid var(--tea-bdr);border-radius:8px;padding:6px 8px;font:inherit;font-size:14px;background:#fff;
+}
+.tea-tbl .tea-wd{font-size:12px;color:var(--tea-txt2);white-space:nowrap;}
+
+.tea-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.tea-gbox{border:1px solid var(--tea-bdr);border-radius:12px;padding:10px;background:var(--tea-surface);}
+.tea-gbox h3{font-size:13px;font-weight:800;margin-bottom:6px;color:var(--tea-heading);}
+.tea-gbox select[multiple]{width:100%;min-height:120px;font-size:13px;border-radius:8px;border:1px solid var(--tea-bdr);padding:4px;background:#fff;}
+
+.tea-supply-list{display:flex;flex-direction:column;gap:8px;}
+.tea-supply-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.tea-supply-row input[type="text"]{flex:1 1 160px;min-height:40px;border:1px solid var(--tea-bdr);border-radius:8px;padding:8px 10px;font:inherit;}
+.tea-supply-row input[type="text"].tea-unit{flex:0 1 88px;}
+.tea-preview{
+  white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.65;
+  background:#f2f2f5;border-radius:12px;padding:12px;max-height:280px;overflow:auto;
+  user-select:text;-webkit-user-select:text;
+}
+.tea-pill{
+  display:inline-flex;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;
+  background:var(--tea-surface);color:var(--tea-heading);
+}
+.tea-details{margin-top:8px;border:1px solid var(--tea-bdr);border-radius:12px;padding:10px 12px;background:var(--tea-surface);}
+.tea-details > summary{cursor:pointer;font-weight:800;font-size:13px;color:var(--tea-heading);}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --tea-bg:#000;--tea-card:#1c1c1e;--tea-bdr:#38383a;
+    --tea-txt:#f5f5f7;--tea-txt2:#c7c7cc;--tea-surface:#2c2c2e;
+    --tea-heading:#d7e0f8;--tea-navy:#8fa6e0;
+  }
+  .tea-field input,.tea-field select,.tea-field textarea,
+  .tea-tbl select,.tea-tbl input[type="date"],.tea-gbox select[multiple],
+  .tea-supply-row input[type="text"]{background:#2c2c2e;color:var(--tea-txt);border-color:#48484a;}
+  .tea-preview{background:#2c2c2e;}
+  .tea-btn-primary{background:#8fa6e0;color:#0b1224;}
+  .tea-btn-ghost{background:#2c2c2e;color:var(--tea-heading);}
+  .tea-pw-card{background:var(--tea-card);}
+  .tea-tbl th{background:#2c2c2e;}
+}
+
+@media print{
+  .tea-hdr-link,.tea-btn,.tea-pw,.tea-no-print{display:none !important;}
+  .tea-wrap{max-width:none;padding:0;}
+  .tea-card{box-shadow:none;border:none;break-inside:avoid;}
+  .tea-tbl{min-width:0;font-size:11px;}
+  body.tea-body{background:#fff;color:#000;}
+}

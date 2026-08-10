@@ -152,6 +152,39 @@
         var q='/api/attendance/cross-events?cohort='+encodeURIComponent(cohort);
         if(since)q+='&since='+encodeURIComponent(since);
         return req(q,'GET');
+      },
+      getTeaSettings:function(){
+        return req('/api/tea/settings?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      saveTeaSettings:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/tea/settings','POST',payload);
+      },
+      listTeaMembers:function(){
+        return req('/api/tea/members?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      listTeaMonths:function(){
+        return req('/api/tea/months?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      getTeaMonth:function(ym){
+        return req('/api/tea/month?cohort='+encodeURIComponent(cohort)+'&ym='+encodeURIComponent(ym||''),'GET');
+      },
+      saveTeaMonth:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/tea/month','POST',payload);
+      },
+      listTeaSupplies:function(){
+        return req('/api/tea/supplies?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      saveTeaSupplies:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/tea/supplies','POST',payload);
+      },
+      getTeaReflect:function(activityDate){
+        return req('/api/tea/reflect?cohort='+encodeURIComponent(cohort)+'&activityDate='+encodeURIComponent(activityDate||''),'GET');
       }
     };
   }

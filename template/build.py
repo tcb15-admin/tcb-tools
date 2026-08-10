@@ -21,6 +21,7 @@ PARENT_OUTPUT_NAME = 'kakunin.html'
 ATT_STAFF_TEMPLATE = 'template/attendance/staff_template.html'
 ATT_PARENT_TEMPLATE = 'template/attendance/parent_template.html'
 PORTAL_TEMPLATE = 'template/portal/portal_template.html'
+TEA_TEMPLATE = 'template/tea/tea_template.html'
 MASTER_BLOCK_START = '/*DEFAULT_MASTER_BLOCK*/'
 MASTER_BLOCK_END = '/*END_DEFAULT_MASTER_BLOCK*/'
 CONFIGS = {
@@ -266,6 +267,26 @@ def build_portal_and_attendance(target, config, out_dir):
         src = os.path.join(att_src_dir, name)
         if os.path.isfile(src):
             shutil.copy2(src, os.path.join(att_dir, name))
+
+    # お茶当番
+    tea_dir = os.path.join(out_dir, 'tea')
+    os.makedirs(tea_dir, exist_ok=True)
+    if os.path.exists(TEA_TEMPLATE):
+        with open(TEA_TEMPLATE, encoding='utf-8') as f:
+            html = f.read()
+        html, rem = apply_placeholders(html, mapping)
+        if rem:
+            print(f'[WARN] {target}(tea): 未置換 {set(rem)}')
+        html = add_asset_version(html, config.get('TOOL_VERSION'))
+        with open(os.path.join(tea_dir, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(html)
+        print(f'[OK] {target}(tea) → {tea_dir}/index.html')
+    tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js')
+    tea_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tea')
+    for name in tea_assets:
+        src = os.path.join(tea_src_dir, name)
+        if os.path.isfile(src):
+            shutil.copy2(src, os.path.join(tea_dir, name))
 
     return True
 

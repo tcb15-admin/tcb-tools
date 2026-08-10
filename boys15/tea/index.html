@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja" data-cohort="15">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>東海中央ボーイズ 15期 お茶当番</title>
+<meta name="theme-color" content="#122050">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="tea.css?v=1.12.0">
+</head>
+<body class="tea-body">
+<header class="tea-hdr">
+  <h1>お茶当番<span>東海中央ボーイズ 15期 · 月次表／LINE案内</span></h1>
+  <a class="tea-hdr-link" href="../portal/">ポータル</a>
+</header>
+
+<div id="tea-pw" class="tea-pw">
+  <div class="tea-pw-card">
+    <h2>お茶当番ログイン</h2>
+    <input id="tea-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
+    <button type="button" id="tea-pw-btn" class="tea-btn tea-btn-primary" style="width:100%">ログイン</button>
+    <p id="tea-pw-err" class="tea-status err"></p>
+  </div>
+</div>
+
+<main class="tea-wrap" id="tea-main">
+  <section class="tea-card">
+    <h2>今月の当番表</h2>
+    <p class="tea-meta">日付・当番A／B・選手当番班を編集し、保存すると道具割振りの「翌活動日分お茶当番」取込に使えます。</p>
+    <div class="tea-row">
+      <div class="tea-field" style="flex:0 1 180px">
+        <label for="tea-ym">対象月</label>
+        <input id="tea-ym" type="month" required>
+      </div>
+      <div class="tea-field">
+        <label for="tea-revised">更新表記（表フッター）</label>
+        <input id="tea-revised" maxlength="40" placeholder="例: 2026.7.31更新">
+      </div>
+    </div>
+    <div class="tea-field">
+      <label for="tea-note">メモ（任意）</label>
+      <textarea id="tea-note" maxlength="500" placeholder="注意書きなど"></textarea>
+    </div>
+    <div class="tea-row tea-no-print">
+      <button type="button" id="tea-btn-load" class="tea-btn tea-btn-ghost">読込</button>
+      <button type="button" id="tea-btn-fill-cal" class="tea-btn tea-btn-ghost">土日祝を仮登録</button>
+      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ghost">日付追加</button>
+      <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">表を保存</button>
+      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ghost">印刷／PDF</button>
+    </div>
+    <div class="tea-tbl-wrap" id="tea-print-area">
+      <table class="tea-tbl" id="tea-day-tbl">
+        <thead>
+          <tr>
+            <th style="width:132px">日付</th>
+            <th style="width:48px">曜</th>
+            <th>当番A</th>
+            <th>当番B</th>
+            <th style="width:88px">選手当番</th>
+            <th class="tea-no-print" style="width:64px"></th>
+          </tr>
+        </thead>
+        <tbody id="tea-day-body"></tbody>
+      </table>
+    </div>
+    <p id="tea-revised-foot" class="tea-meta" style="margin-top:8px;color:var(--tea-red);font-weight:700"></p>
+  </section>
+
+  <section class="tea-card">
+    <h2>選手当番（1〜6班）</h2>
+    <p class="tea-meta">道具マスタの選手から複数選択（Cmd/Ctrl＋クリック）。表の「選手当番」列で班番号を指定します。</p>
+    <div class="tea-groups" id="tea-groups"></div>
+  </section>
+
+  <section class="tea-card tea-no-print">
+    <h2>LINE文面</h2>
+    <div class="tea-row">
+      <button type="button" id="tea-line-pickup" class="tea-btn tea-btn-line">引き取り連絡</button>
+      <button type="button" id="tea-line-restock" class="tea-btn tea-btn-ghost">補充依頼</button>
+      <button type="button" id="tea-line-recv" class="tea-btn tea-btn-ghost">受領連絡</button>
+      <button type="button" id="tea-line-swap" class="tea-btn tea-btn-ghost">交代連絡</button>
+      <button type="button" id="tea-line-today" class="tea-btn tea-btn-ghost">当日引き取り</button>
+      <button type="button" id="tea-line-copy" class="tea-btn tea-btn-primary">コピー</button>
+    </div>
+    <div class="tea-row" id="tea-line-opts">
+      <div class="tea-field">
+        <label for="tea-line-day">対象日（表から）</label>
+        <select id="tea-line-day"></select>
+      </div>
+      <div class="tea-field" style="flex:0 1 100px">
+        <label for="tea-line-set">セット</label>
+        <select id="tea-line-set"><option value="A">A</option><option value="B">B</option></select>
+      </div>
+    </div>
+    <details class="tea-details" id="tea-restock-panel">
+      <summary>補充品目（チェック）</summary>
+      <div id="tea-restock-checks" class="tea-supply-list" style="margin-top:8px"></div>
+    </details>
+    <details class="tea-details" id="tea-swap-panel">
+      <summary>交代（元→先）</summary>
+      <div class="tea-row" style="margin-top:8px">
+        <div class="tea-field"><label>元</label><select id="tea-swap-from"></select></div>
+        <div class="tea-field"><label>先</label><select id="tea-swap-to"></select></div>
+      </div>
+    </details>
+    <pre class="tea-preview" id="tea-line-preview"></pre>
+  </section>
+
+  <section class="tea-card tea-no-print">
+    <h2>補充品目マスタ</h2>
+    <p class="tea-meta">補充依頼の定型候補です。編集後に保存してください。</p>
+    <div id="tea-supply-edit" class="tea-supply-list"></div>
+    <div class="tea-row">
+      <button type="button" id="tea-supply-add" class="tea-btn tea-btn-ghost">品目追加</button>
+      <button type="button" id="tea-supply-save" class="tea-btn tea-btn-primary">品目を保存</button>
+    </div>
+  </section>
+
+  <section class="tea-card tea-no-print">
+    <h2>パスワード変更</h2>
+    <p class="tea-meta">世代で共有するお茶当番用パスワードです（未変更時は初期パスワード）。全端末で共通になります。</p>
+    <div class="tea-row">
+      <div class="tea-field"><label for="tea-pw-new">新しいパスワード</label><input id="tea-pw-new" type="password" autocomplete="new-password"></div>
+      <div class="tea-field"><label for="tea-pw-new2">確認</label><input id="tea-pw-new2" type="password" autocomplete="new-password"></div>
+    </div>
+    <button type="button" id="tea-pw-change" class="tea-btn tea-btn-ghost">パスワードを変更</button>
+  </section>
+
+  <p id="tea-status" class="tea-status"></p>
+</main>
+
+<script>
+window.TCB_TEA_CFG={
+  cohort:"15",
+  apiBase:"https://tcb-tools-sync.kazoo-matsu.workers.dev",
+  apiToken:"4af3b2f262a5ed38fc396cac3fd0740de5eca97288d70602",
+  initialPw:"tcb15",
+  lsPrefix:"tcb15",
+  teamName:"東海中央ボーイズ 15期"
+};
+</script>
+<script src="../tcb-sync-api.js?v=1.12.0"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.12.0"></script>
+<script src="tea-line.js?v=1.12.0"></script>
+<script src="tea-app.js?v=1.12.0"></script>
+</body>
+</html>
