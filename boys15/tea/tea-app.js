@@ -84,15 +84,23 @@
     return ($('tea-ym') && $('tea-ym').value) || '';
   }
 
-  function memberOptionsHtml(selected, includeBlank) {
+  function isOn(v){ return v == 1 || v === '1' || v === true; }
+
+  function memberOptionsHtml(selected, includeBlank, mode) {
+    // mode: 'tea' = 保護者当番A/B（コーチ保護者含む） / 'player' = 選手当番
+    mode = mode || 'tea';
     var sel = String(selected || '');
     var html = includeBlank ? '<option value="">（未定）</option>' : '';
     state.members.forEach(function (m) {
       if (!m.name) return;
-      var dis = m.excluded == 1 || m.excluded === '1' || m.excluded === true;
+      var ok = mode === 'player' ? isOn(m.playerOk) : isOn(m.teaOk);
+      if (!ok && m.name !== sel) return;
+      var note = '';
+      if (isOn(m.coach)) note = '（コーチ保護者）';
+      else if (!ok) note = '（対象外）';
       html += '<option value="' + esc(m.name) + '"' +
         (m.name === sel ? ' selected' : '') +
-        (dis ? ' disabled' : '') + '>' + esc(m.name) + (dis ? '（対象外）' : '') + '</option>';
+        (!ok ? ' disabled' : '') + '>' + esc(m.name) + note + '</option>';
     });
     if (sel && html.indexOf('value="' + esc(sel) + '"') < 0) {
       html = '<option value="' + esc(sel) + '" selected>' + esc(sel) + '</option>' + html;
@@ -112,8 +120,8 @@
     tr.innerHTML =
       '<td><input type="date" class="tea-d-date" value="' + esc(prefill.activityDate || '') + '"></td>' +
       '<td class="tea-wd">' + esc(weekdayLabel(prefill.activityDate || '')) + '</td>' +
-      '<td><select class="tea-d-a">' + memberOptionsHtml(prefill.dutyA, true) + '</select></td>' +
-      '<td><select class="tea-d-b">' + memberOptionsHtml(prefill.dutyB, true) + '</select></td>' +
+      '<td><select class="tea-d-a">' + memberOptionsHtml(prefill.dutyA, true, 'tea') + '</select></td>' +
+      '<td><select class="tea-d-b">' + memberOptionsHtml(prefill.dutyB, true, 'tea') + '</select></td>' +
       '<td><select class="tea-d-pg">' +
         '<option value="">—</option>' +
         [1, 2, 3, 4, 5, 6].map(function (n) {
@@ -153,7 +161,7 @@
       var k = String(i);
       var div = document.createElement('div');
       div.className = 'tea-gbox';
-      var opts = state.members.filter(function (m) { return m.name && !(m.excluded == 1 || m.excluded === '1'); })
+      var opts = state.members.filter(function (m) { return m.name && isOn(m.playerOk); })
         .map(function (m) {
           var sel = (state.playerGroups[k] || []).indexOf(m.name) >= 0;
           return '<option value="' + esc(m.name) + '"' + (sel ? ' selected' : '') + '>' + esc(m.name) + '</option>';
@@ -191,7 +199,7 @@
       var el = $(id);
       if (!el) return;
       var cur = el.value;
-      el.innerHTML = memberOptionsHtml(cur, true);
+      el.innerHTML = memberOptionsHtml(cur, true, 'tea');
     });
   }
 

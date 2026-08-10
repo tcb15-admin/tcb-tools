@@ -28,7 +28,7 @@
 <main class="tea-wrap" id="tea-main">
   <section class="tea-card">
     <h2>今月の当番表</h2>
-    <p class="tea-meta">日付・当番A／B・選手当番班を編集し、保存すると道具割振りの「翌活動日分お茶当番」取込に使えます。</p>
+    <p class="tea-meta">お茶当番A／Bは<strong>コーチ保護者</strong>（名簿は選手名で世帯を識別）。選手当番は選手の班当番です。保存すると道具割振りの「翌活動日分お茶当番」取込に使えます。</p>
     <div class="tea-row">
       <div class="tea-field" style="flex:0 1 180px">
         <label for="tea-ym">対象月</label>
@@ -56,8 +56,8 @@
           <tr>
             <th style="width:132px">日付</th>
             <th style="width:48px">曜</th>
-            <th>当番A</th>
-            <th>当番B</th>
+            <th>当番A（保護者）</th>
+            <th>当番B（保護者）</th>
             <th style="width:88px">選手当番</th>
             <th class="tea-no-print" style="width:64px"></th>
           </tr>
@@ -70,7 +70,7 @@
 
   <section class="tea-card">
     <h2>選手当番（1〜6班）</h2>
-    <p class="tea-meta">道具マスタの選手から複数選択（Cmd/Ctrl＋クリック）。表の「選手当番」列で班番号を指定します。</p>
+    <p class="tea-meta">選手のみ（コーチ保護者は含みません）。Cmd/Ctrl＋クリックで複数選択。表の「選手当番」列で班番号を指定します。</p>
     <div class="tea-groups" id="tea-groups"></div>
   </section>
 

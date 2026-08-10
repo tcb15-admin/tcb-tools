@@ -1313,11 +1313,35 @@ async function saveTeaSettings(env, body) {
 
 async function listTeaMembers(env, cohortRaw) {
   const cohort = mustCohort(cohortRaw);
-  const members = await loadMasterMembers(env, cohort);
+  const row = await ensureState(env, cohort);
+  let master = {};
+  try {
+    master = JSON.parse(row.master_json || "{}");
+  } catch (e) {
+    master = {};
+  }
+  const mb = Array.isArray(master.MB) ? master.MB : [];
+  // お茶当番A/Bは保護者（コーチ保護者含む）世帯。名簿は選手名で識別する。
+  // 選手当番は選手のみ（コーチ・休部等は入れない）。
   return {
-    members: members
-      .filter((m) => m.name)
-      .map((m) => ({ name: m.name, excluded: m.excluded ? 1 : 0 })),
+    members: mb
+      .map((m) => {
+        const name = String((m && m.name) || "").trim();
+        const coach = isTruthyFlag(m && m.coach);
+        const rest = isTruthyFlag(m && m.rest);
+        const quit = isTruthyFlag(m && m.quit);
+        const ac14 = isTruthyFlag(m && m.ac14);
+        const sibling = isTruthyFlag(m && m.sibling);
+        return {
+          name: name,
+          coach: coach ? 1 : 0,
+          rest: rest ? 1 : 0,
+          quit: quit ? 1 : 0,
+          teaOk: name && !rest && !quit ? 1 : 0,
+          playerOk: name && !rest && !quit && !coach && !ac14 && !sibling ? 1 : 0,
+        };
+      })
+      .filter((m) => m.name),
   };
 }
 
