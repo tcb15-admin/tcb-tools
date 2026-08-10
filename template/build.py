@@ -281,7 +281,7 @@ def build_portal_and_attendance(target, config, out_dir):
         with open(os.path.join(tea_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(tea) → {tea_dir}/index.html')
-    tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js')
+    tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js', 'tea-seed-2026-08.js')
     tea_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tea')
     for name in tea_assets:
         src = os.path.join(tea_src_dir, name)
