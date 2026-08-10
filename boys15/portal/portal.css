@@ -1,0 +1,180 @@
+/* ============================================================
+   15期ポータル（道具割振りツールと同系統のブランドUI）
+   セレクタは pt- プレフィックスで既存画面と分離
+   ============================================================ */
+
+:root{
+  --navy:#122050;--navy2:#1a2d68;--red:#c0000a;
+  --bg:#f5f5f7;--card:#ffffff;--bdr:#e5e5ea;
+  --txt:#1c1c22;--txt2:#6e6e78;--tap:48px;
+  --hdr-g1:#122050;--hdr-g2:#1a2d68;--hdr-sh:rgba(18,32,80,.28);
+  --ta:#122050;--tb:#c0000a;
+  --surface-2:#f2f2f5;--r-card:16px;--sh-card:0 1px 3px rgba(18,32,80,.06);
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1219;--card:#1a1f2e;--bdr:#2a3144;
+    --txt:#f0f2f7;--txt2:#9aa3b5;--surface-2:#232838;
+    --sh-card:0 1px 3px rgba(0,0,0,.35);
+  }
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{color-scheme:light dark;}
+body{
+  font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",system-ui,sans-serif;
+  background:var(--bg);color:var(--txt);min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---- ヘッダ（道具割振りと同型） ---- */
+.pt-hdr{
+  background:linear-gradient(135deg,var(--hdr-g1),var(--hdr-g2));
+  border-bottom:3px solid var(--red);
+  color:#fff;
+  padding:12px 16px;
+  padding-top:max(12px,env(safe-area-inset-top,0px));
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px var(--hdr-sh);
+  display:flex;align-items:center;gap:10px;
+}
+.pt-hdr-logo{
+  width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0;
+  background:rgba(255,255,255,.12);
+}
+.pt-cohort-chip{
+  flex-shrink:0;font-size:11px;font-weight:900;letter-spacing:.06em;
+  padding:7px 11px;border-radius:999px;line-height:1;
+  background:rgba(255,255,255,.18);color:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.12);
+}
+.pt-hdr-titles{flex:1;min-width:0;}
+.pt-hdr-titles h1{
+  font-weight:900;font-size:15px;color:#fff;line-height:1.3;
+}
+.pt-hdr-titles h1 span{
+  display:block;font-size:11px;font-weight:600;color:rgba(255,255,255,.75);
+  margin-top:2px;letter-spacing:-.01em;line-height:1.4;
+}
+.pt-hdr-actions{margin-left:auto;flex-shrink:0;}
+.pt-hbtn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:8px 13px;border-radius:999px;border:none;
+  background:rgba(255,255,255,.16);color:#fff;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  text-decoration:none;min-height:36px;
+}
+.pt-hbtn:active{opacity:.88;}
+.pt-ic{width:16px;height:16px;flex-shrink:0;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ---- 本文 ---- */
+.pt-wrap{
+  max-width:760px;margin:0 auto;
+  padding:18px 14px calc(36px + env(safe-area-inset-bottom,0px));
+}
+.pt-lead{
+  margin-bottom:16px;padding:14px 16px;
+  background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-card);
+  box-shadow:var(--sh-card);
+}
+.pt-lead-kicker{
+  font-size:11px;font-weight:800;color:var(--red);letter-spacing:.04em;margin-bottom:4px;
+}
+.pt-lead p{font-size:13px;color:var(--txt2);line-height:1.65;}
+
+.pt-sec-label{
+  font-size:12px;font-weight:800;color:var(--txt2);
+  letter-spacing:.04em;margin:4px 0 10px;padding-left:2px;
+}
+
+/* ---- タイル ---- */
+.pt-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+@media (min-width:560px){
+  .pt-grid{grid-template-columns:1fr 1fr;}
+  .pt-tile.pt-tile-feature{grid-column:1 / -1;}
+}
+
+.pt-tile{
+  display:flex;align-items:flex-start;gap:14px;
+  text-decoration:none;color:inherit;
+  background:var(--card);border:1px solid var(--bdr);
+  border-radius:var(--r-card);padding:16px 14px;
+  min-height:var(--tap);box-shadow:var(--sh-card);
+  transition:border-color .15s ease, box-shadow .15s ease, transform .12s ease;
+  -webkit-user-select:none;user-select:none;
+}
+a.pt-tile:hover{
+  border-color:rgba(18,32,80,.28);
+  box-shadow:0 4px 14px rgba(18,32,80,.1);
+}
+a.pt-tile:active{transform:scale(.99);background:var(--surface-2);}
+.pt-tile-feature{
+  border-left:4px solid var(--red);
+  background:linear-gradient(135deg,var(--card) 60%,rgba(192,0,10,.04));
+}
+.pt-tile.is-soon{opacity:.72;cursor:default;}
+.pt-tile.is-soon:hover{border-color:var(--bdr);box-shadow:var(--sh-card);transform:none;}
+
+.pt-tile-ico{
+  flex:0 0 auto;width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.pt-tile-ico svg{width:26px;height:26px;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+.pt-ico-tool{background:rgba(192,0,10,.12);color:var(--red);}
+.pt-ico-tool svg{stroke:var(--red);}
+.pt-ico-att{background:rgba(18,32,80,.12);color:var(--navy);}
+.pt-ico-att svg{stroke:var(--navy);}
+.pt-ico-car{background:rgba(46,125,50,.12);color:#2e7d32;}
+.pt-ico-car svg{stroke:#2e7d32;}
+.pt-ico-tea{background:rgba(230,81,0,.12);color:#e65100;}
+.pt-ico-tea svg{stroke:#e65100;}
+
+@media (prefers-color-scheme:dark){
+  .pt-ico-att{background:rgba(159,180,232,.16);color:#9fb4e8;}
+  .pt-ico-att svg{stroke:#9fb4e8;}
+  .pt-ico-tool{background:rgba(255,90,95,.16);color:#ff9ea2;}
+  .pt-ico-tool svg{stroke:#ff9ea2;}
+  .pt-tile-feature{background:linear-gradient(135deg,var(--card) 55%,rgba(255,90,95,.08));}
+}
+
+.pt-tile-body{flex:1;min-width:0;}
+.pt-tile-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
+.pt-tile-title{font-size:16px;font-weight:900;color:var(--txt);letter-spacing:-.02em;}
+.pt-tile-badge{
+  display:inline-block;font-size:10px;font-weight:800;
+  padding:3px 8px;border-radius:999px;line-height:1.2;
+}
+.pt-badge-ready{background:rgba(46,125,50,.14);color:#1b5e20;}
+.pt-badge-soon{background:rgba(154,123,10,.16);color:#9a7b0a;}
+@media (prefers-color-scheme:dark){
+  .pt-badge-ready{background:rgba(76,175,80,.22);color:#a5d6a7;}
+  .pt-badge-soon{background:rgba(255,193,7,.18);color:#ffe082;}
+}
+.pt-tile-desc{font-size:12px;color:var(--txt2);line-height:1.55;}
+.pt-tile-arrow{
+  flex:0 0 auto;align-self:center;
+  color:var(--txt2);font-size:18px;font-weight:700;line-height:1;
+  opacity:.55;
+}
+a.pt-tile .pt-tile-arrow{opacity:.7;}
+.pt-tile.is-soon .pt-tile-arrow{visibility:hidden;}
+
+.pt-foot{
+  margin-top:20px;padding:12px 14px;
+  font-size:11px;color:var(--txt2);line-height:1.55;
+  border-top:1px solid var(--bdr);
+}
+
+@media (max-width:400px){
+  .pt-hdr{padding:10px 12px;gap:8px;}
+  .pt-hdr-logo{width:36px;height:36px;}
+  .pt-hdr-titles h1{font-size:14px;}
+  .pt-hdr-titles h1 span{font-size:10px;}
+  .pt-tile{padding:14px 12px;gap:12px;}
+  .pt-tile-ico{width:44px;height:44px;border-radius:12px;}
+}

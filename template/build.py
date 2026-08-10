@@ -187,6 +187,8 @@ def build_portal_and_attendance(target, config, out_dir):
         'COHORT_LABEL': str(config.get('COHORT_LABEL', '')),
         'TEAM_NAME': str(config.get('TEAM_NAME', '')),
         'TEAM_SHORT_NAME': str(config.get('TEAM_SHORT_NAME', '')),
+        'TEAM_SLOGAN': str(config.get('TEAM_SLOGAN', '')),
+        'THEME_COLOR': str(config.get('THEME_COLOR', '#122050') or '#122050'),
         'SYNC_API_BASE_URL': str(config.get('SYNC_API_BASE_URL', '')),
         'TOOL_VERSION': str(config.get('TOOL_VERSION', '')),
         'INITIAL_PW': str(config.get('INITIAL_PW', '')),
@@ -219,6 +221,10 @@ def build_portal_and_attendance(target, config, out_dir):
         with open(os.path.join(portal_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(portal) → {portal_dir}/index.html')
+    portal_css_src = 'template/portal/portal.css'
+    if os.path.exists(portal_css_src):
+        shutil.copy2(portal_css_src, os.path.join(portal_dir, 'portal.css'))
+        print(f'[OK] {target}(portal.css) → {portal_dir}/portal.css')
 
     # 出欠スタッフ（トークン埋め込みあり・Git に平文を載せない運用は既存と同様）
     if os.path.exists(ATT_STAFF_TEMPLATE):
