@@ -5,15 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>{{TEAM_NAME}} 出欠管理</title>
-<meta name="theme-color" content="#122050">
+<meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="../tcb-shell.css">
 <link rel="stylesheet" href="attendance.css">
 </head>
 <body class="att-body">
-<header class="att-hdr">
+<header class="att-hdr tcb-shell-hdr">
+  <img class="tcb-shell-logo" src="../team-logo.png" width="42" height="42" alt="東海中央ボーイズ">
+  <span class="tcb-shell-chip" aria-hidden="true">{{COHORT_LABEL}}</span>
   <h1>出欠管理<span>{{TEAM_NAME}} · {{ATT_TRACK_A_SHORT}}／{{ATT_TRACK_B_SHORT}} 2系統</span></h1>
-  <a class="att-hdr-link" href="../portal/">ポータル</a>
+  <a class="att-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
 <div id="att-pw" class="att-pw">

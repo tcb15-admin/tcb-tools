@@ -1,27 +1,29 @@
-/* お茶当番（tea- 接頭辞） */
+/* お茶当番（tea- 接頭辞）／ヘッダは tcb-shell.css に委譲 */
 :root{
-  --tea-navy:#122050;--tea-heading:#122050;--tea-red:#c0000a;--tea-grn:#2e7d32;
-  --tea-bg:#f5f5f7;--tea-card:#fff;--tea-bdr:#e5e5ea;--tea-txt:#1c1c22;--tea-txt2:#6e6e78;
-  --tea-tap:46px;--tea-surface:#eef1f8;--tea-acc:#e65100;
+  --tea-navy:var(--tcb-ink,#141416);--tea-heading:var(--tcb-ink,#141416);
+  --tea-red:var(--tcb-bad,#b91c1c);--tea-grn:var(--tcb-ok,#15803d);
+  --tea-bg:var(--tcb-paper,#f3f3f5);--tea-card:var(--tcb-surface,#fff);
+  --tea-bdr:var(--tcb-line,#d4d4d8);--tea-txt:var(--tcb-ink,#141416);--tea-txt2:var(--tcb-muted,#71717a);
+  --tea-tap:var(--tcb-tap,46px);--tea-surface:#ececee;--tea-acc:var(--tcb-warn,#b45309);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body.tea-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",system-ui,sans-serif;
   background:var(--tea-bg);color:var(--tea-txt);min-height:100vh;font-size:16px;
   -webkit-text-size-adjust:100%;
 }
-.tea-hdr{
-  background:linear-gradient(135deg,#122050,#1a2d68);
-  border-bottom:3px solid var(--tea-red);
-  color:#fff;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top,0px));
+.tea-hdr:not(.tcb-shell-hdr){
+  background:var(--tea-card);
+  border-bottom:1px solid var(--tea-bdr);
+  color:var(--tea-txt);padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top,0px));
   display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20;
 }
 .tea-hdr h1{font-size:15px;font-weight:900;line-height:1.3;flex:1;min-width:0;}
-.tea-hdr h1 span{display:block;font-size:10px;font-weight:500;opacity:.85;margin-top:2px;}
-.tea-hdr-link{
-  color:#fff;text-decoration:none;font-size:12px;font-weight:700;
-  border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 10px;min-height:var(--tea-tap);
-  display:inline-flex;align-items:center;
+.tea-hdr h1 span{display:block;font-size:10px;font-weight:500;color:var(--tea-txt2);margin-top:2px;}
+.tea-hdr-link:not(.tcb-shell-link){
+  color:var(--tea-txt);text-decoration:none;font-size:12px;font-weight:700;
+  border:1.5px solid var(--tea-txt);border-radius:4px;padding:8px 10px;min-height:var(--tea-tap);
+  display:inline-flex;align-items:center;background:var(--tea-card);
 }
 .tea-wrap{max-width:920px;margin:0 auto;padding:14px 14px calc(88px + env(safe-area-inset-bottom,0px));}
 .tea-card{

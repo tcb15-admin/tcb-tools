@@ -1,0 +1,120 @@
+/* ============================================================
+   TCB 共通シェル「墨紙（Sumigami）」
+   - チームロゴ以外は墨＋紙のモノトーン基調（紺グラデ／赤帯に依存しない）
+   - ヘッダは全ツール共通の紙面＋破線下罫
+   - セレクタは tcb-shell- 接頭辞（既存と衝突させない）
+   ============================================================ */
+
+:root{
+  --tcb-ink:#141416;
+  --tcb-ink-soft:#3f3f46;
+  --tcb-muted:#71717a;
+  --tcb-paper:#f3f3f5;
+  --tcb-surface:#ffffff;
+  --tcb-line:#d4d4d8;
+  --tcb-line-strong:#a1a1aa;
+  --tcb-focus:#0f766e;
+  --tcb-ok:#15803d;
+  --tcb-bad:#b91c1c;
+  --tcb-warn:#b45309;
+  --tcb-tap:46px;
+  --tcb-r:4px;
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --tcb-ink:#f4f4f5;
+    --tcb-ink-soft:#d4d4d8;
+    --tcb-muted:#a1a1aa;
+    --tcb-paper:#0c0c0e;
+    --tcb-surface:#18181b;
+    --tcb-line:#3f3f46;
+    --tcb-line-strong:#52525b;
+    --tcb-focus:#2dd4bf;
+  }
+}
+
+/* ---- 共通ヘッダ ---- */
+.tcb-shell-hdr{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--tcb-surface);
+  color:var(--tcb-ink);
+  padding:12px 16px;
+  padding-top:max(12px,env(safe-area-inset-top,0px));
+  border-bottom:1px solid var(--tcb-line);
+  box-shadow:none;
+}
+.tcb-shell-hdr::after{
+  content:"";
+  position:absolute;left:0;right:0;bottom:-3px;height:2px;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--tcb-ink) 0 10px,
+    transparent 10px 14px
+  );
+  opacity:.55;
+  pointer-events:none;
+}
+
+.tcb-shell-logo{
+  width:42px;height:42px;border-radius:4px;object-fit:cover;flex-shrink:0;
+  background:var(--tcb-paper);
+}
+.tcb-shell-chip{
+  flex-shrink:0;
+  font-size:11px;font-weight:900;letter-spacing:.08em;line-height:1;
+  padding:6px 10px;
+  color:var(--tcb-ink);
+  border:1.5px solid var(--tcb-ink);
+  border-radius:2px;
+  background:transparent;
+}
+.tcb-shell-titles{flex:1;min-width:0;}
+.tcb-shell-titles h1,
+.tcb-shell-hdr h1{
+  font-weight:900;font-size:15px;line-height:1.3;
+  color:var(--tcb-ink);letter-spacing:-.02em;
+  flex:1;min-width:0;
+}
+.tcb-shell-titles h1 span,
+.tcb-shell-hdr h1 span{
+  display:block;font-size:11px;font-weight:600;
+  color:var(--tcb-muted);margin-top:2px;letter-spacing:-.01em;line-height:1.4;
+}
+.tcb-shell-link,
+.tcb-shell-hdr .hbtn,
+a.tcb-shell-link{
+  display:inline-flex;align-items:center;gap:5px;
+  min-height:var(--tcb-tap);
+  padding:8px 12px;
+  border:1.5px solid var(--tcb-ink);
+  border-radius:var(--tcb-r);
+  background:var(--tcb-surface);
+  color:var(--tcb-ink);
+  font-size:12px;font-weight:700;font-family:inherit;
+  text-decoration:none;cursor:pointer;white-space:nowrap;
+  box-sizing:border-box;
+}
+.tcb-shell-hdr .hbtn .ic{width:14px;height:14px;}
+.tcb-shell-link:hover,
+.tcb-shell-hdr .hbtn:hover,
+a.tcb-shell-link:hover,
+.tcb-shell-link:focus-visible,
+.tcb-shell-hdr .hbtn:focus-visible{
+  background:var(--tcb-ink);
+  color:var(--tcb-surface);
+  outline:none;
+}
+.tcb-shell-meta{
+  font-size:9px;color:var(--tcb-muted);text-align:right;
+}
+
+@media (max-width:400px){
+  .tcb-shell-hdr{padding:10px 12px;gap:8px;}
+  .tcb-shell-logo{width:36px;height:36px;}
+  .tcb-shell-titles h1,
+  .tcb-shell-hdr h1{font-size:14px;}
+  .tcb-shell-titles h1 span,
+  .tcb-shell-hdr h1 span{font-size:10px;}
+}

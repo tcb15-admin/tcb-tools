@@ -4,12 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>15期ポータル — 東海中央ボーイズ 15期</title>
-<meta name="theme-color" content="#122050">
+<meta name="theme-color" content="#f3f3f5">
 <meta name="description" content="東海中央ボーイズ 15期 マネージャー用ポータル。出欠・道具割振りなど各ツールへの入口です。">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="portal.css?v=1.12.2">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.12.4">
+<link rel="stylesheet" href="portal.css?v=1.12.4">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -17,26 +18,26 @@
   <symbol id="pt-i-check" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M15.5 15.5l1.2 1.2 2.3-2.4"/></symbol>
   <symbol id="pt-i-car" viewBox="0 0 24 24"><path d="M4 15h16v3a1 1 0 0 1-1 1h-1"/><path d="M5 15l1.5-5.5A2 2 0 0 1 8.4 8h7.2a2 2 0 0 1 1.9 1.5L19 15"/><circle cx="7.5" cy="18.5" r="1.5"/><circle cx="16.5" cy="18.5" r="1.5"/></symbol>
   <symbol id="pt-i-tea" viewBox="0 0 24 24"><path d="M6 8h10v7a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V8z"/><path d="M16 10h2.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 4c.5.8.5 1.5 0 2.2M11 4c.5.8.5 1.5 0 2.2M14 4c.5.8.5 1.5 0 2.2"/><path d="M7 20h10"/></symbol>
-  <symbol id="pt-i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M7 10.5V19h10v-8.5"/></symbol>
 </svg>
 
-<header class="pt-hdr">
-  <img class="pt-hdr-logo" src="../team-logo.png" width="42" height="42" alt="東海中央ボーイズ">
-  <span class="pt-cohort-chip" aria-label="この画面は15期のポータルです">15期</span>
-  <div class="pt-hdr-titles">
+<header class="pt-hdr tcb-shell-hdr">
+  <img class="pt-hdr-logo tcb-shell-logo" src="../team-logo.png" width="42" height="42" alt="東海中央ボーイズ">
+  <span class="pt-cohort-chip tcb-shell-chip" aria-label="この画面は15期のポータルです">15期</span>
+  <div class="pt-hdr-titles tcb-shell-titles">
     <h1>ポータル<span>東海中央ボーイズ 15期　｜　不屈不撓の精神で全員野球</span></h1>
   </div>
 </header>
 
 <main class="pt-wrap">
   <section class="pt-lead" aria-label="案内">
-    <div class="pt-lead-kicker">MGR用入口</div>
+    <div class="pt-lead-kicker">MGR ENTRY</div>
     <p>各ツールへ進んでください。道具割り振り・出欠・お茶当番は利用できます。配車は準備中です。</p>
   </section>
 
   <div class="pt-sec-label">利用できるツール</div>
   <div class="pt-grid" role="list">
-    <a class="pt-tile pt-tile-feature" href="../index.html" role="listitem">
+    <a class="pt-tile" href="../index.html" role="listitem">
+      <span class="pt-tile-num" aria-hidden="true">01</span>
       <div class="pt-tile-ico pt-ico-tool" aria-hidden="true">
         <svg viewBox="0 0 24 24"><use href="#pt-i-bag"/></svg>
       </div>
@@ -51,6 +52,7 @@
     </a>
 
     <a class="pt-tile" href="../attendance/" role="listitem">
+      <span class="pt-tile-num" aria-hidden="true">02</span>
       <div class="pt-tile-ico pt-ico-att" aria-hidden="true">
         <svg viewBox="0 0 24 24"><use href="#pt-i-check"/></svg>
       </div>
@@ -65,6 +67,7 @@
     </a>
 
     <a class="pt-tile" href="../tea/" role="listitem">
+      <span class="pt-tile-num" aria-hidden="true">03</span>
       <div class="pt-tile-ico pt-ico-tea" aria-hidden="true">
         <svg viewBox="0 0 24 24"><use href="#pt-i-tea"/></svg>
       </div>
@@ -79,9 +82,10 @@
     </a>
   </div>
 
-  <div class="pt-sec-label" style="margin-top:18px;">準備中</div>
+  <div class="pt-sec-label" style="margin-top:22px;">準備中</div>
   <div class="pt-grid" role="list">
     <div class="pt-tile is-soon" role="listitem" aria-disabled="true">
+      <span class="pt-tile-num" aria-hidden="true">04</span>
       <div class="pt-tile-ico pt-ico-car" aria-hidden="true">
         <svg viewBox="0 0 24 24"><use href="#pt-i-car"/></svg>
       </div>

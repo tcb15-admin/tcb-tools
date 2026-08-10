@@ -226,6 +226,10 @@ def build_portal_and_attendance(target, config, out_dir):
     if os.path.exists(portal_css_src):
         shutil.copy2(portal_css_src, os.path.join(portal_dir, 'portal.css'))
         print(f'[OK] {target}(portal.css) → {portal_dir}/portal.css')
+    shell_css_src = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tcb-shell.css')
+    if os.path.isfile(shell_css_src):
+        # ポータル／出欠／お茶は ../tcb-shell.css を参照（道具と同階層）
+        shutil.copy2(shell_css_src, os.path.join(out_dir, 'tcb-shell.css'))
 
     # 出欠スタッフ（トークン埋め込みあり・Git に平文を載せない運用は既存と同様）
     if os.path.exists(ATT_STAFF_TEMPLATE):
@@ -429,6 +433,7 @@ def build(target):
         'tcb-device.js',
         'tcb-presummary.js', 'tcb-presummary.css',
         'tcb-today-card.js', 'tcb-today-card.css',
+        'tcb-shell.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )
