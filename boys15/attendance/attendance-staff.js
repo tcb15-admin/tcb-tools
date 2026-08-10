@@ -15,11 +15,17 @@
 
   var cfg=window.TCB_ATT_CFG||{};
   var F=window.TCB_AttFormat||{};
+  var Cal=window.TCB_AttCalendar||null;
   var TRACKS=cfg.tracks||{
     a:{label:'A',short:'A',form:'family',role:'',note:''},
     b:{label:'B',short:'B',form:'marks',role:'',note:''}
   };
   var LS_OK=(cfg.lsPrefix||'tcb15')+'_att_ok';
+  var LS_TPL=(cfg.lsPrefix||'tcb15')+'_att_create_tpl';
+  var DEFAULT_TPL={
+    title:'{dates}出欠確認',
+    memo:''
+  };
   var sync=null;
   var state={campaigns:[], detail:null, selectedId:'', unanswered:{a:[],b:[]}};
 
@@ -71,16 +77,72 @@
     }
   }
 
+  function loadTpl(){
+    var out={title:DEFAULT_TPL.title, memo:DEFAULT_TPL.memo};
+    try{
+      var raw=localStorage.getItem(LS_TPL);
+      if(!raw)return out;
+      var o=JSON.parse(raw);
+      if(o&&typeof o==='object'){
+        if(typeof o.title==='string')out.title=o.title.slice(0,120);
+        if(typeof o.memo==='string')out.memo=o.memo.slice(0,500);
+      }
+    }catch(e){}
+    return out;
+  }
+
+  function saveTpl(title, memo){
+    var payload={
+      title:String(title==null?'':title).slice(0,120),
+      memo:String(memo==null?'':memo).slice(0,500)
+    };
+    try{
+      localStorage.setItem(LS_TPL, JSON.stringify(payload));
+    }catch(e){
+      throw new Error('定型の保存に失敗しました（ブラウザの保存領域を確認してください）');
+    }
+    return payload;
+  }
+
+  function fillTplEditors(tpl){
+    if($('att-tpl-title'))$('att-tpl-title').value=tpl.title||'';
+    if($('att-tpl-memo'))$('att-tpl-memo').value=tpl.memo||'';
+  }
+
+  function expandTitleTpl(tplTitle, isos){
+    var t=String(tplTitle==null?'':tplTitle);
+    var datesText=(Cal&&Cal.formatDatesJa)?Cal.formatDatesJa(isos):isos.join('、');
+    if(t.indexOf('{dates}')>=0)return t.split('{dates}').join(datesText);
+    if(!t.trim())return datesText?datesText+'出欠確認':'';
+    return t;
+  }
+
+  function applyTplToForm(opts){
+    opts=opts||{};
+    var tpl=loadTpl();
+    var isos=collectDays().map(function(d){return d.activityDate;});
+    if($('att-title'))$('att-title').value=expandTitleTpl(tpl.title, isos).slice(0,120);
+    if($('att-memo'))$('att-memo').value=String(tpl.memo||'').slice(0,500);
+    if(opts.status!==false)setStatus('定型を作成欄に適用しました');
+  }
+
+  function clearDayRows(){
+    var box=$('att-day-rows');
+    if(box)box.innerHTML='';
+  }
+
   function addDayRow(prefill){
     prefill=prefill||{};
     var box=$('att-day-rows');
     var row=document.createElement('div');
     row.className='att-row att-day-row';
+    var tag=prefill.tagLabel?('<span class="att-day-row-label">'+esc(prefill.tagLabel)+'</span>'):'';
     row.innerHTML=
       '<div class="att-field"><label>日付</label><input type="date" class="att-d-date" required></div>'+
       '<div class="att-field"><label>開始</label><input type="time" class="att-d-time"></div>'+
       '<div class="att-field"><label>種別</label><select class="att-d-kind"><option value="practice">練習</option><option value="game">試合</option><option value="other">その他</option></select></div>'+
       '<div class="att-field"><label>場所</label><input class="att-d-place" maxlength="120" placeholder="任意"></div>'+
+      tag+
       '<button type="button" class="att-btn att-btn-ghost att-d-del">削除</button>';
     box.appendChild(row);
     if(prefill.activityDate)row.querySelector('.att-d-date').value=prefill.activityDate;
@@ -90,7 +152,65 @@
     row.querySelector('.att-d-del').addEventListener('click', function(){
       if(box.querySelectorAll('.att-day-row').length<=1)return;
       row.remove();
+      refreshTitleFromTplIfPlaceholder();
     });
+    row.querySelector('.att-d-date').addEventListener('change', function(){
+      refreshTitleFromTplIfPlaceholder();
+    });
+  }
+
+  function refreshTitleFromTplIfPlaceholder(){
+    var tpl=loadTpl();
+    var titleEl=$('att-title');
+    if(!titleEl||!tpl.title||tpl.title.indexOf('{dates}')<0)return;
+    if(!titleEl.value.trim()||titleEl.dataset.attFromTpl==='1'){
+      titleEl.value=expandTitleTpl(tpl.title, collectDays().map(function(d){return d.activityDate;})).slice(0,120);
+      titleEl.dataset.attFromTpl='1';
+    }
+  }
+
+  function setDayHint(items){
+    var el=$('att-day-hint');
+    if(!el)return;
+    if(!items||!items.length){
+      el.textContent='';
+      return;
+    }
+    el.textContent='仮登録: '+items.map(function(it){
+      return it.iso+(it.label?'（'+it.label+'）':'');
+    }).join(' / ');
+  }
+
+  function fillWeekendHolidayDates(opts){
+    opts=opts||{};
+    if(!Cal||typeof Cal.nextSatSunHolidayDates!=='function'){
+      setStatus('日付補助モジュールを読み込めませんでした', true);
+      return;
+    }
+    var items=Cal.nextSatSunHolidayDates(new Date());
+    clearDayRows();
+    if(!items.length){
+      addDayRow();
+      setDayHint([]);
+      setStatus('仮登録できる日付がありません', true);
+      return;
+    }
+    items.forEach(function(it){
+      addDayRow({
+        activityDate:it.iso,
+        kind:it.kindHint||'practice',
+        tagLabel:it.label||''
+      });
+    });
+    setDayHint(items);
+    var titleEl=$('att-title');
+    if(titleEl){
+      titleEl.dataset.attFromTpl='1';
+      applyTplToForm({status:false});
+    }
+    if(opts.status!==false){
+      setStatus('直近の土・日・祝を仮登録しました（必要なら日付や種別を直してください）');
+    }
   }
 
   function collectDays(){
@@ -272,8 +392,35 @@
   }
 
   function bind(){
-    addDayRow();
-    addDayRow();
+    fillTplEditors(loadTpl());
+    fillWeekendHolidayDates({status:false});
+
+    $('att-tpl-save').addEventListener('click', function(){
+      try{
+        var saved=saveTpl(
+          ($('att-tpl-title')&&$('att-tpl-title').value)||'',
+          ($('att-tpl-memo')&&$('att-tpl-memo').value)||''
+        );
+        fillTplEditors(saved);
+        setStatus('定型を保存しました（この端末に保持）');
+      }catch(e){
+        setStatus(jaErr(e), true);
+      }
+    });
+    $('att-tpl-apply').addEventListener('click', function(){
+      var titleEl=$('att-title');
+      if(titleEl)titleEl.dataset.attFromTpl='1';
+      applyTplToForm();
+    });
+    if($('att-title')){
+      $('att-title').addEventListener('input', function(){
+        $('att-title').dataset.attFromTpl='0';
+      });
+    }
+
+    $('att-fill-weekend').addEventListener('click', function(){
+      fillWeekendHolidayDates();
+    });
     $('att-add-day').addEventListener('click', function(){addDayRow();});
     $('att-create-form').addEventListener('submit', function(ev){
       createCampaign(ev).catch(function(e){setStatus(jaErr(e), true);});

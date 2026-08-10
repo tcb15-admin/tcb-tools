@@ -259,6 +259,7 @@ def build_portal_and_attendance(target, config, out_dir):
         'attendance-staff.js',
         'attendance-parent.js',
         'attendance-line.js',
+        'attendance-jp-calendar.js',
     )
     att_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'attendance')
     for name in att_assets:

@@ -139,6 +139,31 @@ body.att-body{
   background:linear-gradient(180deg,rgba(245,245,247,0),var(--att-bg) 28%);
 }
 
+/* 定型文・仮日付（att-preset / att-day-toolbar） */
+.att-preset-box{
+  margin-bottom:12px;padding:10px 12px;border:1px solid var(--att-bdr);
+  border-radius:12px;background:var(--att-surface);
+}
+.att-preset-box > summary{
+  cursor:pointer;font-size:13px;font-weight:800;color:var(--att-heading);
+  list-style:none;min-height:36px;display:flex;align-items:center;
+}
+.att-preset-box > summary::-webkit-details-marker{display:none;}
+.att-preset-box > summary::before{
+  content:'▸';display:inline-block;margin-right:6px;transition:transform .12s ease;
+}
+.att-preset-box[open] > summary::before{transform:rotate(90deg);}
+.att-preset-box code{
+  font-size:12px;padding:1px 5px;border-radius:6px;
+  background:var(--att-card);border:1px solid var(--att-bdr);
+}
+.att-day-toolbar{align-items:center;margin-bottom:4px;}
+.att-day-hint{margin:0 0 8px;min-height:1.2em;}
+.att-day-row-label{
+  font-size:11px;font-weight:700;color:var(--att-txt2);
+  align-self:flex-end;padding-bottom:12px;white-space:nowrap;
+}
+
 @media (prefers-color-scheme:dark){
   :root{
     --att-bg:#000;--att-card:#1c1c1e;--att-bdr:#38383a;
