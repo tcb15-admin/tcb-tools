@@ -8,14 +8,22 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.12.7">
-<link rel="stylesheet" href="tea.css?v=1.12.7">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.12.8">
+<link rel="stylesheet" href="tea.css?v=1.12.8">
 </head>
 <body class="tea-body">
+<svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
+  <symbol id="tea-i-undo" viewBox="0 0 24 24"><path d="M9 7H5V3"/><path d="M5 7a8 8 0 1 1-1.2 4.5"/><path d="M5 7l4.2 1.2"/></symbol>
+  <symbol id="tea-i-print" viewBox="0 0 24 24"><path d="M7 8V4h10v4"/><path d="M6 14H4a1 1 0 0 1-1-1v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/><path d="M8 17h8"/></symbol>
+  <symbol id="tea-i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M4 14V5.5A1.5 1.5 0 0 1 5.5 4H14"/></symbol>
+  <symbol id="tea-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="tea-i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M7 7l1 12h8l1-12"/><path d="M10 11v5M14 11v5"/></symbol>
+</svg>
+
 <header class="tea-hdr tcb-shell-hdr">
   <img class="tcb-shell-logo" src="../team-logo.png" width="42" height="42" alt="東海中央ボーイズ">
   <span class="tcb-shell-chip" aria-hidden="true">15期</span>
-  <h1>お茶当番<span>東海中央ボーイズ 15期 · 月次表／LINE案内</span></h1>
+  <h1>お茶当番<span>東海中央ボーイズ 15期 · 月次表／MG LINE</span></h1>
   <a class="tea-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
@@ -29,7 +37,23 @@
 </div>
 
 <main class="tea-wrap" id="tea-main">
-  <section class="tea-card tea-card-main">
+  <nav class="tea-flow tea-no-print" aria-label="お茶当番MGRの作業の流れ">
+    <button type="button" class="tea-flow-btn is-active" data-tea-flow="make" id="tea-flow-make">
+      <span class="tea-flow-num">1</span>
+      <span class="tea-flow-lab">当番表をつくる</span>
+    </button>
+    <button type="button" class="tea-flow-btn" data-tea-flow="share" id="tea-flow-share">
+      <span class="tea-flow-num">2</span>
+      <span class="tea-flow-lab">LINEで展開</span>
+    </button>
+    <button type="button" class="tea-flow-btn" data-tea-flow="change" id="tea-flow-change">
+      <span class="tea-flow-num">3</span>
+      <span class="tea-flow-lab">変更を反映</span>
+    </button>
+  </nav>
+  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「LINEで展開」へ。</p>
+
+  <section class="tea-card tea-card-main" id="tea-panel-table">
     <div class="tea-toolbar tea-no-print" role="navigation" aria-label="月の切替と操作">
       <button type="button" id="tea-ym-prev" class="tea-btn tea-btn-ghost">◀</button>
       <button type="button" id="tea-ym-now" class="tea-btn tea-btn-ghost">当月</button>
@@ -38,13 +62,18 @@
       <span id="tea-ym-label" class="tea-ym-label"></span>
       <span class="tea-toolbar-gap"></span>
       <button type="button" id="tea-btn-from-prev" class="tea-btn tea-btn-ghost">前月から作成</button>
-      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ghost">日付追加</button>
-      <button type="button" id="tea-btn-undo-swap" class="tea-btn tea-btn-ghost" disabled>交代を戻す</button>
-      <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">表を保存</button>
-      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ghost">印刷</button>
+      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ico tea-btn-ghost" title="日付を1行追加" aria-label="日付を1行追加">
+        <svg viewBox="0 0 24 24"><use href="#tea-i-plus"/></svg>
+      </button>
+      <button type="button" id="tea-btn-undo-swap" class="tea-btn tea-btn-ico tea-btn-ghost" disabled title="交代を戻す" aria-label="交代を戻す">
+        <svg viewBox="0 0 24 24"><use href="#tea-i-undo"/></svg>
+      </button>
+      <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">保存</button>
+      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ico tea-btn-ghost" title="印刷" aria-label="印刷">
+        <svg viewBox="0 0 24 24"><use href="#tea-i-print"/></svg>
+      </button>
     </div>
 
-    <p class="tea-hint tea-no-print">当番A／Bの枠を<strong>ドラッグ＆ドロップ</strong>（スマホは枠を順にタップ）で入れ替え。色が付いた枠は交代済みです。月切替で自動読込。</p>
     <p id="tea-month-badge" class="tea-meta tea-no-print"></p>
 
     <div class="tea-tbl-wrap" id="tea-print-area">
@@ -55,8 +84,8 @@
             <th style="width:36px">曜</th>
             <th>当番A</th>
             <th>当番B</th>
-            <th style="width:72px">選手</th>
-            <th class="tea-no-print" style="width:52px"></th>
+            <th style="width:88px">選手班</th>
+            <th class="tea-no-print" style="width:44px"></th>
           </tr>
         </thead>
         <tbody id="tea-day-body"></tbody>
@@ -73,32 +102,22 @@
     </details>
   </section>
 
-  <details class="tea-card tea-details-card tea-no-print">
-    <summary class="tea-card-sum">選手当番（1〜6班）<span class="tea-sum-note">毎月固定・退部等のときだけ修正</span></summary>
-    <div class="tea-groups" id="tea-groups"></div>
-    <div class="tea-row" style="margin-top:8px">
-      <button type="button" id="tea-btn-save-groups" class="tea-btn tea-btn-primary">選手班を保存</button>
-    </div>
-  </details>
-
-  <section class="tea-card tea-no-print tea-card-compact">
-    <h2>LINE文面</h2>
+  <section class="tea-card tea-no-print tea-card-compact" id="tea-panel-line">
+    <h2>MG LINEへ展開</h2>
+    <p class="tea-hint">文面を作ってコピーし、MG LINEに貼り付けてください。受領連絡は各当番が送るため、ここでは扱いません。</p>
     <div class="tea-row tea-line-btns">
-      <button type="button" id="tea-line-pickup" class="tea-btn tea-btn-line">引き取り</button>
-      <button type="button" id="tea-line-restock" class="tea-btn tea-btn-ghost">補充</button>
-      <button type="button" id="tea-line-recv" class="tea-btn tea-btn-ghost">受領</button>
+      <button type="button" id="tea-line-roster" class="tea-btn tea-btn-line">当番表</button>
       <button type="button" id="tea-line-swap" class="tea-btn tea-btn-ghost">交代連絡</button>
-      <button type="button" id="tea-line-today" class="tea-btn tea-btn-ghost">当日</button>
-      <button type="button" id="tea-line-copy" class="tea-btn tea-btn-primary">コピー</button>
+      <button type="button" id="tea-line-pickup" class="tea-btn tea-btn-ghost">引き取り</button>
+      <button type="button" id="tea-line-restock" class="tea-btn tea-btn-ghost">補充</button>
+      <button type="button" id="tea-line-copy" class="tea-btn tea-btn-ico tea-btn-primary" title="文面をコピー" aria-label="文面をコピー">
+        <svg viewBox="0 0 24 24"><use href="#tea-i-copy"/></svg>
+      </button>
     </div>
     <div class="tea-row" id="tea-line-opts">
       <div class="tea-field">
-        <label for="tea-line-day">対象日</label>
+        <label for="tea-line-day">対象日（引き取り・交代）</label>
         <select id="tea-line-day"></select>
-      </div>
-      <div class="tea-field" style="flex:0 1 88px">
-        <label for="tea-line-set">セット</label>
-        <select id="tea-line-set"><option value="A">A</option><option value="B">B</option></select>
       </div>
     </div>
     <details class="tea-details" id="tea-restock-panel">
@@ -107,6 +126,15 @@
     </details>
     <pre class="tea-preview" id="tea-line-preview"></pre>
   </section>
+
+  <details class="tea-card tea-details-card tea-no-print" id="tea-panel-groups">
+    <summary class="tea-card-sum">選手班名簿<span class="tea-sum-note">固定・退部などのときだけ修正</span></summary>
+    <p class="tea-hint">未割当の選手を班へ振り分けます。1人は1班のみです。</p>
+    <div class="tea-groups" id="tea-groups"></div>
+    <div class="tea-row" style="margin-top:8px">
+      <button type="button" id="tea-btn-save-groups" class="tea-btn tea-btn-primary">選手班を保存</button>
+    </div>
+  </details>
 
   <details class="tea-card tea-details-card tea-no-print">
     <summary class="tea-card-sum">補充品目マスタ</summary>
@@ -139,10 +167,10 @@ window.TCB_TEA_CFG={
   teamName:"東海中央ボーイズ 15期"
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.12.7"></script>
-<script src="../attendance/attendance-jp-calendar.js?v=1.12.7"></script>
-<script src="tea-line.js?v=1.12.7"></script>
-<script src="tea-seed-2026-08.js?v=1.12.7"></script>
-<script src="tea-app.js?v=1.12.7"></script>
+<script src="../tcb-sync-api.js?v=1.12.8"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.12.8"></script>
+<script src="tea-line.js?v=1.12.8"></script>
+<script src="tea-seed-2026-08.js?v=1.12.8"></script>
+<script src="tea-app.js?v=1.12.8"></script>
 </body>
 </html>

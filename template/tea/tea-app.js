@@ -257,7 +257,8 @@
     if (srcDate && $('tea-line-day')) $('tea-line-day').value = srcDate;
     refreshLineDaySelect();
     updateUndoBtn();
-    setStatus('入れ替え: ' + shortName(fromName) + ' ↔ ' + shortName(toName) + '（未保存・「交代を戻す」可）');
+    setFlow('change');
+    setStatus('入れ替え: ' + shortName(fromName) + ' ↔ ' + shortName(toName) + '（未保存・戻す可）');
     return true;
   }
 
@@ -346,15 +347,20 @@
       '<td><div class="tea-duty-box" data-slot="B" title="ドラッグ／タップで他の枠と入れ替え">' +
         '<span class="tea-duty-grip" aria-hidden="true">⇄</span>' +
         '<select class="tea-d-b">' + memberOptionsHtml(prefill.dutyB, true, 'tea') + '</select></div></td>' +
-      '<td><select class="tea-d-pg">' +
+      '<td><div class="tea-pg-cell">' +
+        '<select class="tea-d-pg" aria-label="選手班">' +
         '<option value="">—</option>' +
         [1, 2, 3, 4, 5, 6].map(function (n) {
           return '<option value="' + n + '"' + (String(prefill.playerGroup) === String(n) ? ' selected' : '') + '>' + n + '班</option>';
         }).join('') +
-      '</select></td>' +
-      '<td class="tea-no-print"><button type="button" class="tea-btn tea-btn-danger tea-d-del" style="min-height:32px;padding:4px 8px;font-size:12px">削除</button></td>';
+        '</select>' +
+        '<span class="tea-pg-names"></span></div></td>' +
+      '<td class="tea-no-print">' +
+        '<button type="button" class="tea-btn tea-btn-ico tea-btn-danger tea-d-del" title="この行を削除" aria-label="この行を削除">' +
+        '<svg viewBox="0 0 24 24"><use href="#tea-i-trash"/></svg></button></td>';
     $('tea-day-body').appendChild(tr);
     tr.querySelectorAll('.tea-duty-box').forEach(bindDutyBox);
+    updatePlayerGroupHint(tr);
     tr.querySelector('.tea-d-date').addEventListener('change', function () {
       tr.querySelector('.tea-wd').textContent = weekdayLabel(this.value);
       refreshLineDaySelect();
@@ -362,6 +368,9 @@
     tr.querySelector('.tea-d-del').addEventListener('click', function () {
       tr.remove();
       refreshLineDaySelect();
+    });
+    tr.querySelector('.tea-d-pg').addEventListener('change', function () {
+      updatePlayerGroupHint(tr);
     });
     ['.tea-d-a', '.tea-d-b'].forEach(function (sel) {
       tr.querySelector(sel).addEventListener('change', function () {
@@ -371,6 +380,30 @@
         refreshLineDaySelect();
       });
     });
+  }
+
+  function playerNamesForGroup(g) {
+    var list = state.playerGroups[String(g)] || [];
+    return list.map(shortName).filter(Boolean);
+  }
+
+  function updatePlayerGroupHint(tr) {
+    if (!tr) return;
+    var sel = tr.querySelector('.tea-d-pg');
+    var hint = tr.querySelector('.tea-pg-names');
+    if (!sel || !hint) return;
+    var g = sel.value;
+    if (!g) {
+      hint.textContent = '';
+      return;
+    }
+    var names = playerNamesForGroup(g);
+    hint.textContent = names.length ? names.join('・') : '（名簿未設定）';
+    hint.title = names.join('、');
+  }
+
+  function refreshAllPlayerGroupHints() {
+    document.querySelectorAll('.tea-day-row').forEach(updatePlayerGroupHint);
   }
 
   function collectDays() {
@@ -386,31 +419,129 @@
       .sort(function (a, b) { return a.activityDate < b.activityDate ? -1 : 1; });
   }
 
+  function playerRosterNames() {
+    return state.members
+      .filter(function (m) { return m.name && isOn(m.playerOk); })
+      .map(function (m) { return m.name; })
+      .sort(function (a, b) {
+        return shortName(a).localeCompare(shortName(b), 'ja');
+      });
+  }
+
+  function normalizePlayerGroups(groups) {
+    var out = emptyGroups();
+    var seen = {};
+    for (var i = 1; i <= 6; i++) {
+      var k = String(i);
+      (groups && groups[k] ? groups[k] : []).forEach(function (name) {
+        var full = resolveMemberName(name) || String(name || '').trim();
+        if (!full || seen[normalizeKey(shortName(full))]) return;
+        seen[normalizeKey(shortName(full))] = true;
+        out[k].push(full);
+      });
+    }
+    return out;
+  }
+
+  function unassignedPlayers() {
+    var assigned = {};
+    for (var i = 1; i <= 6; i++) {
+      (state.playerGroups[String(i)] || []).forEach(function (n) {
+        assigned[normalizeKey(shortName(n))] = true;
+      });
+    }
+    return playerRosterNames().filter(function (n) {
+      return !assigned[normalizeKey(shortName(n))];
+    });
+  }
+
   function renderGroups() {
     var box = $('tea-groups');
     if (!box) return;
-    box.innerHTML = '';
+    state.playerGroups = normalizePlayerGroups(state.playerGroups);
+    var un = unassignedPlayers();
+    var html = '<div class="tea-gunassigned">' +
+      '<h3>未割当<span class="tea-gcount">' + un.length + '人</span></h3>' +
+      '<div class="tea-gchips" id="tea-g-unassigned">';
+    if (!un.length) {
+      html += '<span class="tea-gempty">全員が班に入っています</span>';
+    } else {
+      html += un.map(function (n) {
+        return '<span class="tea-gchip"><span class="tea-gchip-name">' + esc(shortName(n)) + '</span></span>';
+      }).join('');
+    }
+    html += '</div>';
+    if (un.length) {
+      html += '<div class="tea-gadd">' +
+        '<select id="tea-g-pick" aria-label="未割当の選手">' +
+        un.map(function (n) {
+          return '<option value="' + esc(n) + '">' + esc(shortName(n)) + '</option>';
+        }).join('') +
+        '</select>' +
+        '<select id="tea-g-to" aria-label="振り分け先の班">' +
+        [1, 2, 3, 4, 5, 6].map(function (i) {
+          return '<option value="' + i + '">' + i + '班へ</option>';
+        }).join('') +
+        '</select>' +
+        '<button type="button" class="tea-btn tea-btn-ghost" id="tea-g-assign">追加</button>' +
+        '</div>';
+    }
+    html += '</div><div class="tea-ggrid">';
     for (var i = 1; i <= 6; i++) {
       var k = String(i);
-      var div = document.createElement('div');
-      div.className = 'tea-gbox';
-      var opts = state.members.filter(function (m) { return m.name && isOn(m.playerOk); })
-        .map(function (m) {
-          var sel = (state.playerGroups[k] || []).indexOf(m.name) >= 0;
-          return '<option value="' + esc(m.name) + '"' + (sel ? ' selected' : '') + '>' + esc(m.name) + '</option>';
+      var list = state.playerGroups[k] || [];
+      html += '<div class="tea-gbox" data-g="' + k + '">' +
+        '<h3>' + i + '班<span class="tea-gcount">' + list.length + '人</span></h3>' +
+        '<div class="tea-gchips">';
+      if (!list.length) {
+        html += '<span class="tea-gempty">未設定</span>';
+      } else {
+        html += list.map(function (n) {
+          return '<span class="tea-gchip" data-name="' + esc(n) + '">' +
+            '<span class="tea-gchip-name">' + esc(shortName(n)) + '</span>' +
+            '<button type="button" class="tea-gchip-x" data-g="' + k + '" data-name="' + esc(n) + '" title="未割当へ" aria-label="' + esc(shortName(n)) + 'を未割当へ">×</button>' +
+            '</span>';
         }).join('');
-      div.innerHTML = '<h3>' + i + '班</h3><select multiple size="5" data-g="' + k + '">' + opts + '</select>';
-      box.appendChild(div);
+      }
+      html += '</div></div>';
     }
+    html += '</div>';
+    box.innerHTML = html;
+
+    var assignBtn = $('tea-g-assign');
+    if (assignBtn) {
+      assignBtn.addEventListener('click', function () {
+        var name = ($('tea-g-pick') && $('tea-g-pick').value) || '';
+        var g = ($('tea-g-to') && $('tea-g-to').value) || '';
+        if (!name || !g) return;
+        state.playerGroups = normalizePlayerGroups(state.playerGroups);
+        for (var i = 1; i <= 6; i++) {
+          state.playerGroups[String(i)] = (state.playerGroups[String(i)] || []).filter(function (n) {
+            return normalizeKey(shortName(n)) !== normalizeKey(shortName(name));
+          });
+        }
+        state.playerGroups[String(g)].push(name);
+        renderGroups();
+        refreshAllPlayerGroupHints();
+        setStatus(shortName(name) + ' を ' + g + '班へ振り分けました（未保存）');
+      });
+    }
+    box.querySelectorAll('.tea-gchip-x').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var g = btn.getAttribute('data-g');
+        var name = btn.getAttribute('data-name') || '';
+        state.playerGroups[String(g)] = (state.playerGroups[String(g)] || []).filter(function (n) {
+          return normalizeKey(shortName(n)) !== normalizeKey(shortName(name));
+        });
+        renderGroups();
+        refreshAllPlayerGroupHints();
+        setStatus(shortName(name) + ' を未割当に戻しました（未保存）');
+      });
+    });
   }
 
   function collectGroups() {
-    var out = { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] };
-    [].slice.call(document.querySelectorAll('#tea-groups select[multiple]')).forEach(function (sel) {
-      var k = sel.getAttribute('data-g');
-      out[k] = [].slice.call(sel.selectedOptions).map(function (o) { return o.value; });
-    });
-    return out;
+    return normalizePlayerGroups(state.playerGroups);
   }
 
   function refreshLineDaySelect() {
@@ -426,9 +557,29 @@
     if (cur) sel.value = cur;
   }
 
-    function selectedDay() {
+  function selectedDay() {
     var iso = $('tea-line-day') && $('tea-line-day').value;
     return collectDays().filter(function (d) { return d.activityDate === iso; })[0] || null;
+  }
+
+  var FLOW_HINTS = {
+    make: '前月から作成 → 内容確認 → 保存。そのあと「LINEで展開」へ。',
+    share: '「当番表」で文面を作り、コピーして MG LINE に貼ります。',
+    change: '枠をドラッグ／タップで入れ替え → 保存 →「交代連絡」または「当番表」で再展開。'
+  };
+
+  function setFlow(mode) {
+    mode = mode || 'make';
+    document.querySelectorAll('.tea-flow-btn').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-tea-flow') === mode);
+    });
+    if ($('tea-flow-hint')) $('tea-flow-hint').textContent = FLOW_HINTS[mode] || FLOW_HINTS.make;
+    if (mode === 'share' && $('tea-panel-line')) {
+      try { $('tea-panel-line').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
+    if (mode === 'change' && $('tea-panel-table')) {
+      try { $('tea-panel-table').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
   }
 
   function renderRestockChecks() {
@@ -673,11 +824,12 @@
     updateRevisedFoot();
     renderGroups();
     refreshLineDaySelect();
+    refreshAllPlayerGroupHints();
     if (res.month) {
-      setMonthBadge('保存済み（最終更新: ' + (res.month.updatedAt || res.month.revisedAt || '—') + '）。交代があれば表を直して保存してください。');
+      setMonthBadge('保存済み（最終更新: ' + (res.month.updatedAt || res.month.revisedAt || '—') + '）');
       setStatus(formatYmLabel(ym) + ' の表を読み込みました');
     } else {
-      setMonthBadge('この月はまだ未保存です。「前月を基に作成」で土日祝と持ち回りを埋められます。');
+      setMonthBadge('未保存です。「前月から作成」で土日祝と持ち回りを埋められます。');
       setStatus(formatYmLabel(ym) + ' は未保存です');
     }
   }
@@ -758,8 +910,10 @@
       updateRevisedFoot();
     }
     refreshLineDaySelect();
-    setMonthBadge(formatYmLabel(prevYm) + ' の続きで ' + dates.length + ' 日分を仮作成しました。内容を確認して「表を保存」してください。');
-    setStatus('前月を基に作成しました（未保存）');
+    refreshAllPlayerGroupHints();
+    setMonthBadge(formatYmLabel(prevYm) + ' の続きで ' + dates.length + ' 日分を仮作成しました。確認して「保存」してください。');
+    setStatus('前月から作成しました（未保存）');
+    setFlow('make');
   }
 
   async function savePlayerGroups() {
@@ -790,6 +944,7 @@
       }
     }
     renderGroups();
+    refreshAllPlayerGroupHints();
     setStatus('選手班を保存しました（退部・休部時以外は変更不要）');
   }
 
@@ -810,12 +965,16 @@
       playerGroups: state.playerGroups,
       days: collectDays()
     });
-    setStatus('当番表を保存しました（道具割振りへ反映可能）');
+    try {
+      await client.saveTeaSettings({ playerGroups: state.playerGroups });
+    } catch (e) { /* 月保存が本体 */ }
+    setStatus('当番表を保存しました。続けて「LINEで展開」できます');
     updateRevisedFoot();
-    setMonthBadge('保存済み。交代があれば枠をドラッグで入れ替えて保存してください。');
+    setMonthBadge('保存済み');
     clearSwappedMarks();
     state.swapUndoStack = [];
     updateUndoBtn();
+    refreshAllPlayerGroupHints();
   }
 
   function updateRevisedFoot() {
@@ -864,10 +1023,36 @@
     setStatus('パスワードを変更しました（他端末でも新しいパスワードになります）');
   }
 
+  function genRoster() {
+    var days = collectDays();
+    if (!days.length) {
+      setStatus('当番表に日付がありません', true);
+      return;
+    }
+    var text = Line.formatMonthRoster({
+      title: (cfg.teamName || '') + ' お茶当番',
+      ymLabel: formatYmLabel(currentYm()),
+      revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
+      days: days.map(function (d) {
+        var names = d.playerGroup ? playerNamesForGroup(d.playerGroup).join('・') : '';
+        return {
+          activityDate: d.activityDate,
+          dutyA: shortName(d.dutyA),
+          dutyB: shortName(d.dutyB),
+          playerGroup: d.playerGroup,
+          playerNames: names
+        };
+      })
+    });
+    setPreview(text);
+    setStatus('当番表の文面を作成しました。コピーして MG LINE へ');
+    setFlow('share');
+  }
   function genPickup() {
     var d = selectedDay();
     if (!d) { setStatus('対象日を選んでください', true); return; }
     setPreview(Line.formatPickupAssign(shortName(d.dutyA), shortName(d.dutyB)));
+    setFlow('share');
   }
   function genRestock() {
     var items = [];
@@ -881,13 +1066,7 @@
       });
     });
     setPreview(Line.formatRestock(items));
-  }
-  function genRecv() {
-    var d = selectedDay();
-    if (!d) { setStatus('対象日を選んでください', true); return; }
-    var set = ($('tea-line-set') && $('tea-line-set').value) || 'B';
-    var name = set === 'A' ? d.dutyA : d.dutyB;
-    setPreview(Line.formatReceived(d.activityDate, set, shortName(name)));
+    setFlow('share');
   }
   function genSwap() {
     var ls = state.lastSwap;
@@ -897,6 +1076,7 @@
     var toName = ls ? shortName(ls.toName) : '';
     if (!activityDate || !fromName || !toName) {
       setStatus('表の当番枠を入れ替えてから「交代連絡」を押してください', true);
+      setFlow('change');
       return;
     }
     if ($('tea-line-day')) $('tea-line-day').value = activityDate;
@@ -905,13 +1085,8 @@
       fromName: fromName,
       toName: toName
     }]));
-  }
-  function genToday() {
-    var d = selectedDay();
-    if (!d) { setStatus('対象日を選んでください', true); return; }
-    var set = ($('tea-line-set') && $('tea-line-set').value) || 'A';
-    var name = set === 'A' ? d.dutyA : d.dutyB;
-    setPreview(Line.formatTodayPickup(d.activityDate, set, shortName(name), '父が引き取ります'));
+    setStatus('交代連絡の文面を作成しました。コピーして MG LINE へ');
+    setFlow('share');
   }
 
   function bind() {
@@ -959,14 +1134,18 @@
     $('tea-ym-now').addEventListener('click', function () { goYm('now'); });
     $('tea-ym-next').addEventListener('click', function () { goYm(1); });
 
+    document.querySelectorAll('.tea-flow-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setFlow(btn.getAttribute('data-tea-flow') || 'make');
+      });
+    });
+    if ($('tea-line-roster')) $('tea-line-roster').addEventListener('click', genRoster);
     $('tea-line-pickup').addEventListener('click', genPickup);
     $('tea-line-restock').addEventListener('click', function () {
       if ($('tea-restock-panel')) $('tea-restock-panel').open = true;
       genRestock();
     });
-    $('tea-line-recv').addEventListener('click', genRecv);
     $('tea-line-swap').addEventListener('click', genSwap);
-    $('tea-line-today').addEventListener('click', genToday);
     $('tea-line-copy').addEventListener('click', function () {
       copyText(($('tea-line-preview') && $('tea-line-preview').textContent) || '');
     });

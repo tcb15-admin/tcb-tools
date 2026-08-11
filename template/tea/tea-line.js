@@ -40,29 +40,51 @@
     ].join('\n');
   }
 
+  function withSan(name) {
+    var n = String(name || '').trim();
+    if (!n) return '（未定）';
+    if (n.indexOf('さん') >= 0) return n;
+    return n + 'さん';
+  }
+
   function formatPickupAssign(dutyA, dutyB) {
     return [
       'お当番引き取り連絡です。',
       '',
-      '🅰️→' + (dutyA || '（未定）') + (dutyA && dutyA.indexOf('さん') < 0 ? 'さん' : ''),
+      '🅰️→' + withSan(dutyA),
       '',
-      '🅱️→' + (dutyB || '（未定）') + (dutyB && dutyB.indexOf('さん') < 0 ? 'さん' : ''),
+      '🅱️→' + withSan(dutyB),
       '',
       'よろしくお願いします。',
       ''
     ].join('\n');
   }
 
-  function formatReceived(iso, setLabel, name) {
-    var who = name || '（氏名）';
-    if (who.indexOf('さん') < 0 && who.indexOf('です') < 0) who = who + 'です';
-    return [
-      'お疲れ様です。',
-      fmtDate(iso) + 'お当番' + (setLabel || 'B') + 'の' + who + '。',
-      'お当番道具' + (setLabel || 'B') + 'をお預かりしました。',
-      'よろしくお願いします。',
+  /** MG LINE 用の月次当番表（MGR展開） */
+  function formatMonthRoster(opts) {
+    opts = opts || {};
+    var title = String(opts.title || 'お茶当番');
+    var ymLabel = String(opts.ymLabel || '');
+    var revised = String(opts.revisedAt || '').trim();
+    var days = opts.days || [];
+    var lines = days.map(function (d) {
+      var pg = d.playerGroup ? (d.playerGroup + '班') : '—';
+      var names = d.playerNames ? String(d.playerNames).trim() : '';
+      var pgPart = names ? (pg + '（' + names + '）') : pg;
+      return fmtDate(d.activityDate) +
+        '　A:' + (d.dutyA || '（未定）') +
+        '　B:' + (d.dutyB || '（未定）') +
+        '　選手:' + pgPart;
+    });
+    var out = [
+      '【' + title + '】' + (ymLabel || ''),
+      '',
+      lines.join('\n') || '（日付がありません）',
       ''
-    ].join('\n');
+    ];
+    if (revised) out.push(revised, '');
+    out.push('よろしくお願いします。', '');
+    return out.join('\n');
   }
 
   function formatSwap(rows) {
@@ -81,24 +103,12 @@
     ].join('\n');
   }
 
-  function formatTodayPickup(iso, setLabel, name, byWhom) {
-    var who = name || '（氏名）';
-    if (who.indexOf('です') < 0) who = who + 'です';
-    return [
-      'おはようございます。',
-      fmtDate(iso) + 'お当番' + (setLabel || 'A') + 'の' + who + '。',
-      '本日のお当番道具は' + (byWhom || '父が引き取ります') + '。よろしくお願いいたします。',
-      ''
-    ].join('\n');
-  }
-
   global.TCB_TeaLine = {
     fmtDate: fmtDate,
     wdJa: wdJa,
     formatRestock: formatRestock,
     formatPickupAssign: formatPickupAssign,
-    formatReceived: formatReceived,
-    formatSwap: formatSwap,
-    formatTodayPickup: formatTodayPickup
+    formatMonthRoster: formatMonthRoster,
+    formatSwap: formatSwap
   };
 })(typeof window !== 'undefined' ? window : this);
