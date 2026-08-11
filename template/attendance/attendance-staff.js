@@ -151,8 +151,13 @@
         '<option value="other">その他</option>'+
         '<option value="undecided">未定</option>'+
       '</select></div>'+
-      '<div class="att-field"><label>場所</label><input class="att-d-place" maxlength="120" placeholder="任意"></div>'+
-      '<button type="button" class="att-btn att-btn-ghost att-d-del" aria-label="この日付を削除">削除</button>';
+      '<div class="att-field att-day-place-field">'+
+        '<label>場所</label>'+
+        '<div class="att-day-place-line">'+
+          '<input class="att-d-place" maxlength="120" placeholder="任意">'+
+          '<button type="button" class="att-btn att-btn-ghost att-d-del" aria-label="この日付を削除">削除</button>'+
+        '</div>'+
+      '</div>';
     box.appendChild(row);
     if(prefill.activityDate)row.querySelector('.att-d-date').value=prefill.activityDate;
     if(prefill.startTime)row.querySelector('.att-d-time').value=prefill.startTime;
