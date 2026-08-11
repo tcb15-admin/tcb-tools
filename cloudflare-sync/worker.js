@@ -830,12 +830,30 @@ function mapCampaign(row) {
     title: String(row.title || ""),
     memo: String(row.memo || ""),
     status: String(row.status || "open"),
+    deadlineAt: row.deadline_at ? String(row.deadline_at) : "",
     shareIdA: row.share_id_a ? String(row.share_id_a) : "",
     shareIdB: row.share_id_b ? String(row.share_id_b) : "",
     responsesUpdatedAt: row.responses_updated_at ? String(row.responses_updated_at) : "",
     createdAt: String(row.created_at || ""),
     updatedAt: String(row.updated_at || ""),
   };
+}
+
+function normalizeDeadlineAt(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s + ":00+09:00";
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return s + "+09:00";
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(s)) return s;
+  throw new Error("deadline_invalid");
+}
+
+function isPastDeadline(deadlineAt) {
+  if (!deadlineAt) return false;
+  const t = Date.parse(String(deadlineAt));
+  if (Number.isNaN(t)) return false;
+  return Date.now() > t;
 }
 
 function mapDay(row) {
@@ -954,6 +972,7 @@ async function upsertCampaign(env, body) {
   const now = new Date().toISOString();
   const title = String(body.title || "").trim().slice(0, 120);
   const memo = String(body.memo || "").trim().slice(0, 500);
+  const deadlineAt = normalizeDeadlineAt(body.deadlineAt);
   const status = body.status === "closed" ? "closed" : "open";
   const daysIn = Array.isArray(body.days) ? body.days : [];
   if (!daysIn.length) throw new Error("days_required");
@@ -981,18 +1000,18 @@ async function upsertCampaign(env, body) {
       .first();
     if (!cur) throw new Error("campaign_not_found");
     await env.DB.prepare(
-      "UPDATE attendance_campaigns SET title = ?, memo = ?, status = ?, updated_at = ? WHERE id = ? AND cohort = ?"
+      "UPDATE attendance_campaigns SET title = ?, memo = ?, status = ?, deadline_at = ?, updated_at = ? WHERE id = ? AND cohort = ?"
     )
-      .bind(title, memo, status, now, id, cohort)
+      .bind(title, memo, status, deadlineAt || null, now, id, cohort)
       .run();
     await env.DB.prepare("DELETE FROM attendance_days WHERE campaign_id = ?").bind(id).run();
   } else {
     id = genId();
     await env.DB.prepare(
-      "INSERT INTO attendance_campaigns (id, cohort, title, memo, status, share_id_a, share_id_b, responses_updated_at, created_at, updated_at) " +
-        "VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?)"
+      "INSERT INTO attendance_campaigns (id, cohort, title, memo, status, deadline_at, share_id_a, share_id_b, responses_updated_at, created_at, updated_at) " +
+        "VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?)"
     )
-      .bind(id, cohort, title, memo, status, now, now)
+      .bind(id, cohort, title, memo, status, deadlineAt || null, now, now)
       .run();
   }
 
@@ -1176,6 +1195,7 @@ async function getPublicAttendance(env, sidRaw) {
       title: campaign.title,
       memo: campaign.memo,
       status: campaign.status,
+      deadlineAt: campaign.deadlineAt || "",
     },
     days: days,
     members: members,
@@ -1189,6 +1209,8 @@ async function setAttendanceResponsePublic(env, body) {
   if (!memberName) throw new Error("member_required");
   const found = await findCampaignByShare(env, sid);
   if (String(found.row.status || "") === "closed") throw new Error("campaign_closed");
+  const mapped = mapCampaign(found.row);
+  if (isPastDeadline(mapped.deadlineAt)) throw new Error("deadline_passed");
 
   // 連打抑制（同一キャンペーン・トラック・選手で8秒以内は拒否）
   const recent = await env.DB.prepare(

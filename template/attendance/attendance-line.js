@@ -91,6 +91,24 @@
     return lines.join('\n');
   }
 
+  function dayHeadBrief(dateStr){
+    var m=String(dateStr||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m)return dateStr||'';
+    return String(parseInt(m[3],10))+'日('+wd(dateStr)+')';
+  }
+
+  function formatDeadlineJa(deadlineAt){
+    if(!deadlineAt)return '';
+    var d=new Date(String(deadlineAt));
+    if(Number.isNaN(d.getTime()))return String(deadlineAt);
+    var mon=d.getMonth()+1;
+    var day=d.getDate();
+    var wdJa=['日','月','火','水','木','金','土'][d.getDay()]||'';
+    var hh=String(d.getHours()).padStart(2,'0');
+    var mm=String(d.getMinutes()).padStart(2,'0');
+    return mon+'月'+day+'日('+wdJa+') '+hh+':'+mm;
+  }
+
   /** グループ向け案内文（トラック共通・ラベルと補足は config から） */
   function formatInvite(trackLabel, campaign, url, extraNote, trackForm){
     var days=campaign&&campaign.days?campaign.days:[];
@@ -100,11 +118,19 @@
       lines.push('対象日: '+days.map(function(d){return dayHead(d.activityDate);}).join(' / '));
       lines.push('');
     }
+    var dl=formatDeadlineJa(campaign&&campaign.deadlineAt);
+    if(dl){
+      lines.push('■回答期限: '+dl+' まで');
+      lines.push('');
+    }
     if(campaign&&campaign.memo){lines.push(campaign.memo);lines.push('');}
-    lines.push('▼回答フォーム');
+    lines.push('▼回答フォーム（こちらが正です）');
     lines.push(url||'（URL未発行）');
     lines.push('');
-    lines.push('回答後、生成される文面をこのグループへ投稿してください。');
+    lines.push('フォームで回答後、生成される文面をこのグループへ投稿してください。');
+    if(trackForm==='marks'){
+      lines.push('LINEスケジュールへも反映する場合は、同じ○×△を転記してください。');
+    }
     if(extraNote)lines.push(extraNote);
     return lines.join('\n');
   }
@@ -113,6 +139,11 @@
   function formatRemind(trackLabel, campaign, url, unansweredNames){
     var title=campaign&&campaign.title?campaign.title:'出欠確認';
     var lines=['【出欠リマインド／'+(trackLabel||'')+'】', title, ''];
+    var dl=formatDeadlineJa(campaign&&campaign.deadlineAt);
+    if(dl){
+      lines.push('■回答期限: '+dl+' まで');
+      lines.push('');
+    }
     if(url){
       lines.push('▼回答はこちら');
       lines.push(url);
@@ -129,13 +160,30 @@
     return lines.join('\n');
   }
 
+  /** LINEスケジュール転記用の○×△ひな形（保護者／スタッフ） */
+  function formatScheduleDraft(memberName, days, payload, roleSuffix){
+    var p=payload&&payload.days?payload.days:{};
+    var role=String(roleSuffix||'').trim();
+    var lines=[];
+    lines.push(shortName(memberName)+(role?'　'+role:''));
+    (days||[]).forEach(function(d){
+      var dt=d.activityDate;
+      var mark=Object.prototype.hasOwnProperty.call(p,dt)?markChar(p[dt]):'　';
+      lines.push(dayHead(dt)+' '+mark);
+    });
+    return lines.join('\n');
+  }
+
   global.TCB_AttFormat={
     markChar:markChar,
     dayHead:dayHead,
     dayHeadShort:dayHeadShort,
+    dayHeadBrief:dayHeadBrief,
+    formatDeadlineJa:formatDeadlineJa,
     formatFamilyLine:formatFamilyLine,
     formatMarksLine:formatMarksLine,
     formatInvite:formatInvite,
-    formatRemind:formatRemind
+    formatRemind:formatRemind,
+    formatScheduleDraft:formatScheduleDraft
   };
 })(window);

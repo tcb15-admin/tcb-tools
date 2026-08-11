@@ -163,7 +163,7 @@ def build_portal_and_attendance(target, config, out_dir):
         'ATT_TRACK_B_FORM': 'marks',
         'ATT_TRACK_B_ROLE': '',
         'ATT_TRACK_A_NOTE': '',
-        'ATT_TRACK_B_NOTE': '※当面は LINEスケジュールへの回答も従来どおりお願いします。',
+        'ATT_TRACK_B_NOTE': 'フォーム回答が正です。LINE投稿文は送信後にコピーできます。LINEスケジュールは必要に応じて同じ○×△を転記してください。',
     }
     att = {k: str(config.get(k, v)) for k, v in att_defaults.items()}
     tracks = {
@@ -265,6 +265,7 @@ def build_portal_and_attendance(target, config, out_dir):
         'attendance-staff.js',
         'attendance-parent.js',
         'attendance-line.js',
+        'attendance-briefing.js',
         'attendance-jp-calendar.js',
     )
     att_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'attendance')

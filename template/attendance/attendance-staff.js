@@ -15,6 +15,7 @@
 
   var cfg=window.TCB_ATT_CFG||{};
   var F=window.TCB_AttFormat||{};
+  var Br=window.TCB_AttBriefing||null;
   var Cal=window.TCB_AttCalendar||null;
   var TRACKS=cfg.tracks||{
     a:{label:'A',short:'A',form:'family',role:'',note:''},
@@ -37,6 +38,8 @@
     days_too_many:'日付が多すぎます（最大14日）',
     activity_date_invalid:'日付の形式が不正です',
     kind_invalid:'種別が不正です',
+    deadline_invalid:'回答締切の形式が不正です',
+    deadline_passed:'回答締切を過ぎています',
     member_not_found:'選手がマスタに見つかりません',
     track_invalid:'トラック指定が不正です',
     version_conflict:'他の端末で更新されています。再読込してください'
@@ -124,6 +127,148 @@
     if($('att-title'))$('att-title').value=expandTitleTpl(tpl.title, isos).slice(0,120);
     if($('att-memo'))$('att-memo').value=String(tpl.memo||'').slice(0,500);
     if(opts.status!==false)setStatus('定型を作成欄に適用しました');
+  }
+
+  function nextWednesday1700Local(){
+    var d=new Date();
+    var day=d.getDay(); /* 0=日 */
+    var add=(3-day+7)%7;
+    if(add===0 && (d.getHours()>17 || (d.getHours()===17 && d.getMinutes()>0)))add=7;
+    if(add===0 && d.getHours()===17 && d.getMinutes()===0){/* ちょうどなら当日 */ }
+    d.setDate(d.getDate()+add);
+    d.setHours(17,0,0,0);
+    var y=d.getFullYear();
+    var m=String(d.getMonth()+1).padStart(2,'0');
+    var dd=String(d.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+dd+'T17:00';
+  }
+
+  function deadlineInputValue(iso){
+    if(!iso)return '';
+    var d=new Date(String(iso));
+    if(Number.isNaN(d.getTime())){
+      var m=String(iso).match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+      return m?m[1]:'';
+    }
+    var y=d.getFullYear();
+    var mo=String(d.getMonth()+1).padStart(2,'0');
+    var dd=String(d.getDate()).padStart(2,'0');
+    var hh=String(d.getHours()).padStart(2,'0');
+    var mi=String(d.getMinutes()).padStart(2,'0');
+    return y+'-'+mo+'-'+dd+'T'+hh+':'+mi;
+  }
+
+  function selectedBriefingDay(){
+    var c=state.detail&&state.detail.campaign;
+    if(!c||!c.days||!c.days.length)return null;
+    var iso=($('att-br-day')&&$('att-br-day').value)||'';
+    for(var i=0;i<c.days.length;i++){
+      if(c.days[i].activityDate===iso)return c.days[i];
+    }
+    return c.days[0];
+  }
+
+  function briefingMode(){
+    return ($('att-br-mode')&&$('att-br-mode').value)==='game'?'game':'practice';
+  }
+
+  function syncBriefingModeUi(){
+    var game=briefingMode()==='game';
+    document.querySelectorAll('.att-br-practice-fields').forEach(function(el){
+      el.classList.toggle('att-hidden', game);
+    });
+    document.querySelectorAll('.att-br-game-fields').forEach(function(el){
+      el.classList.toggle('att-hidden', !game);
+    });
+    if($('att-br-group') && !$('att-br-group').dataset.touched){
+      $('att-br-group').value=game?'試合組':'練習組';
+    }
+  }
+
+  function applyBriefingPack(mode){
+    if(!Br||!Br.defaultFieldPack)return;
+    var pack=Br.defaultFieldPack(mode||briefingMode());
+    if($('att-br-wear'))$('att-br-wear').value=pack.meetWearText||'';
+    if($('att-br-tools'))$('att-br-tools').value=pack.teamToolsText||'';
+    if($('att-br-bag'))$('att-br-bag').value=pack.belongingsText||'';
+    if($('att-br-parent'))$('att-br-parent').value=pack.parentWearText||'';
+    if($('att-br-gear') && !String($('att-br-gear').value||'').trim())$('att-br-gear').value=pack.gearSpot||'';
+  }
+
+  function fillBriefingFromDay(day, opts){
+    opts=opts||{};
+    day=day||{};
+    if($('att-br-meet-time'))$('att-br-meet-time').value=day.startTime||'';
+    if($('att-br-meet-place') && (opts.force||!$('att-br-meet-place').value))
+      $('att-br-meet-place').value=day.place||'';
+    if($('att-br-act-place') && (opts.force||!$('att-br-act-place').value))
+      $('att-br-act-place').value=day.place||'';
+    if(opts.setMode!==false && $('att-br-mode')){
+      var kind=String(day.kind||'');
+      if(kind==='game')$('att-br-mode').value='game';
+      else if(kind==='practice')$('att-br-mode').value='practice';
+    }
+    syncBriefingModeUi();
+    if(opts.resetPack)applyBriefingPack(briefingMode());
+  }
+
+  function collectBriefingData(){
+    var day=selectedBriefingDay()||{};
+    var mode=briefingMode();
+    return {
+      activityDate:day.activityDate||'',
+      startTime:day.startTime||'',
+      place:day.place||'',
+      cohortLabel:(cfg.cohortLabel||(cfg.cohort?cfg.cohort+'期生':''))||'15期生',
+      groupLabel:($('att-br-group')&&$('att-br-group').value.trim())||(mode==='game'?'試合組':'練習組'),
+      meetTime:($('att-br-meet-time')&&$('att-br-meet-time').value)||'',
+      meetPlace:($('att-br-meet-place')&&$('att-br-meet-place').value.trim())||'',
+      activityPlace:($('att-br-act-place')&&$('att-br-act-place').value.trim())||'',
+      address:($('att-br-address')&&$('att-br-address').value.trim())||'',
+      mapCode:($('att-br-map')&&$('att-br-map').value.trim())||'',
+      gearSpotTitle:($('att-br-gear-title')&&$('att-br-gear-title').value.trim())||'',
+      gearSpot:($('att-br-gear')&&$('att-br-gear').value.trim())||'',
+      route:($('att-br-route')&&$('att-br-route').value.trim())||'',
+      meetNote:($('att-br-meet-note')&&$('att-br-meet-note').value.trim())||'',
+      opponent:($('att-br-opponent')&&$('att-br-opponent').value.trim())||'',
+      gameTime:($('att-br-game-time')&&$('att-br-game-time').value)||'',
+      bench:($('att-br-bench')&&$('att-br-bench').value.trim())||'',
+      meetAddress:($('att-br-meet-addr')&&$('att-br-meet-addr').value.trim())||'',
+      meetMapCode:($('att-br-meet-map')&&$('att-br-meet-map').value.trim())||'',
+      activityAddress:($('att-br-act-addr')&&$('att-br-act-addr').value.trim())||'',
+      activityMapCode:($('att-br-act-map')&&$('att-br-act-map').value.trim())||'',
+      meetWearText:($('att-br-wear')&&$('att-br-wear').value)||'',
+      teamToolsText:($('att-br-tools')&&$('att-br-tools').value)||'',
+      belongingsText:($('att-br-bag')&&$('att-br-bag').value)||'',
+      parentWearText:($('att-br-parent')&&$('att-br-parent').value)||'',
+      extra:($('att-br-extra')&&$('att-br-extra').value)||''
+    };
+  }
+
+  function rebuildBriefingPreview(){
+    if(!Br)return;
+    var data=collectBriefingData();
+    var text=briefingMode()==='game'
+      ? Br.formatGameBriefing(data)
+      : Br.formatPracticeBriefing(data);
+    if($('att-br-preview'))$('att-br-preview').value=text;
+  }
+
+  function renderBriefingPanel(){
+    var c=state.detail&&state.detail.campaign;
+    var daySel=$('att-br-day');
+    if(!daySel)return;
+    var days=(c&&c.days)||[];
+    daySel.innerHTML=days.map(function(d){
+      return '<option value="'+esc(d.activityDate)+'">'+esc(d.activityDate)
+        +(d.kind?'（'+esc(d.kind)+'）':'')+'</option>';
+    }).join('');
+    if(days.length){
+      fillBriefingFromDay(days[0], {resetPack:!$('att-br-wear')||!$('att-br-wear').value, force:true});
+      rebuildBriefingPreview();
+    }else if($('att-br-preview')){
+      $('att-br-preview').value='';
+    }
   }
 
   function clearDayRows(){
@@ -285,12 +430,23 @@
     var c=d.campaign;
     var ans=d.answered||{};
     $('att-d-title').textContent=c.title||'出欠';
-    $('att-d-meta').textContent=(c.days||[]).map(function(x){return x.activityDate;}).join(' ・ ');
+    var metaParts=(c.days||[]).map(function(x){return x.activityDate;});
+    if(c.deadlineAt && F.formatDeadlineJa){
+      metaParts.push('締切 '+F.formatDeadlineJa(c.deadlineAt));
+    }
+    $('att-d-meta').textContent=metaParts.join(' ・ ');
     $('att-d-counts').innerHTML=
       '<span class="ok">'+esc(TRACKS.a.short)+'回答 '+(ans.a||0)+'/'+(d.memberTotal||0)+'</span>'+
       '<span class="maybe">'+esc(TRACKS.b.short)+'回答 '+(ans.b||0)+'/'+(d.memberTotal||0)+'</span>';
     var closed=c.status==='closed';
-    $('att-status-badge').textContent=closed?'状態: 受付終了（保護者は新規回答不可）':'状態: 受付中';
+    var pastDl=false;
+    if(c.deadlineAt){
+      var t=Date.parse(String(c.deadlineAt));
+      pastDl=!Number.isNaN(t)&&Date.now()>t;
+    }
+    $('att-status-badge').textContent=closed
+      ?'状態: 受付終了（保護者は新規回答不可）'
+      :(pastDl?'状態: 受付中（回答締切済み・新規回答は不可）':'状態: 受付中');
     var toggle=$('att-btn-toggle-status');
     if(toggle)toggle.textContent=closed?'受付を再開する':'受付を終了する';
     $('att-url-a').textContent=parentUrl(c.shareIdA)||'（未発行）';
@@ -311,6 +467,7 @@
         +'</div>';
     }).join('');
     state.unanswered={a:unA, b:unB};
+    renderBriefingPanel();
   }
 
   async function refreshList(){
@@ -347,6 +504,7 @@
     var res=await client.upsertCampaign({
       title:$('att-title').value.trim(),
       memo:$('att-memo').value.trim(),
+      deadlineAt:($('att-deadline')&&$('att-deadline').value)||'',
       days:days
     });
     await refreshList();
@@ -412,6 +570,11 @@
   function bind(){
     fillTplEditors(loadTpl());
     fillWeekendHolidayDates({status:false});
+    if($('att-deadline') && !$('att-deadline').value){
+      $('att-deadline').value=nextWednesday1700Local();
+    }
+    applyBriefingPack('practice');
+    syncBriefingModeUi();
 
     $('att-tpl-save').addEventListener('click', function(){
       try{
@@ -439,6 +602,12 @@
     $('att-fill-weekend').addEventListener('click', function(){
       fillWeekendHolidayDates();
     });
+    if($('att-deadline-wed')){
+      $('att-deadline-wed').addEventListener('click', function(){
+        if($('att-deadline'))$('att-deadline').value=nextWednesday1700Local();
+        setStatus('回答締切を次の水曜 17:00 に設定しました');
+      });
+    }
     $('att-add-day').addEventListener('click', function(){addDayRow();});
     $('att-create-form').addEventListener('submit', function(ev){
       createCampaign(ev).catch(function(e){setStatus(jaErr(e), true);});
@@ -489,6 +658,60 @@
       var p=state.selectedId?openCampaign(state.selectedId):refreshList();
       Promise.resolve(p).catch(function(e){setStatus(jaErr(e), true);});
     });
+
+    if($('att-br-day')){
+      $('att-br-day').addEventListener('change', function(){
+        fillBriefingFromDay(selectedBriefingDay(), {resetPack:false, force:true});
+        rebuildBriefingPreview();
+      });
+    }
+    if($('att-br-mode')){
+      $('att-br-mode').addEventListener('change', function(){
+        if($('att-br-group'))$('att-br-group').dataset.touched='';
+        syncBriefingModeUi();
+        applyBriefingPack(briefingMode());
+        rebuildBriefingPreview();
+      });
+    }
+    if($('att-br-group')){
+      $('att-br-group').addEventListener('input', function(){
+        $('att-br-group').dataset.touched='1';
+      });
+    }
+    if($('att-br-reset-pack')){
+      $('att-br-reset-pack').addEventListener('click', function(){
+        applyBriefingPack(briefingMode());
+        rebuildBriefingPreview();
+        setStatus('服装・道具の定型を戻しました');
+      });
+    }
+    if($('att-br-rebuild')){
+      $('att-br-rebuild').addEventListener('click', function(){
+        rebuildBriefingPreview();
+        setStatus('案内文を再生成しました');
+      });
+    }
+    if($('att-br-copy')){
+      $('att-br-copy').addEventListener('click', function(){
+        var t=($('att-br-preview')&&$('att-br-preview').value)||'';
+        if(!t.trim()){
+          rebuildBriefingPreview();
+          t=($('att-br-preview')&&$('att-br-preview').value)||'';
+        }
+        copyText(t);
+      });
+    }
+    ['att-br-meet-time','att-br-meet-place','att-br-act-place','att-br-address','att-br-map',
+     'att-br-gear-title','att-br-gear','att-br-route','att-br-meet-note','att-br-opponent',
+     'att-br-game-time','att-br-bench','att-br-meet-addr','att-br-meet-map','att-br-act-addr',
+     'att-br-act-map','att-br-wear','att-br-tools','att-br-bag','att-br-parent','att-br-extra','att-br-group'
+    ].forEach(function(id){
+      var el=$(id);
+      if(!el)return;
+      el.addEventListener('change', rebuildBriefingPreview);
+      el.addEventListener('input', rebuildBriefingPreview);
+    });
+
     $('att-pw-btn').addEventListener('click', tryLogin);
     $('att-pw-inp').addEventListener('keydown', function(ev){if(ev.key==='Enter')tryLogin();});
   }

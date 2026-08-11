@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS attendance_campaigns (
   title TEXT NOT NULL DEFAULT '',
   memo TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'open',
+  deadline_at TEXT,
   share_id_a TEXT,
   share_id_b TEXT,
   responses_updated_at TEXT,

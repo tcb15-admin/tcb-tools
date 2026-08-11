@@ -42,6 +42,7 @@
     invalid_share_id:'URLが正しくありません。案内のリンクを開き直してください',
     not_found:'この回答ページは見つかりません。最新の案内URLをご確認ください',
     campaign_closed:'受付が終了しています',
+    deadline_passed:'回答締切を過ぎています。変更がある場合は管理担当へご連絡ください',
     member_required:'先に選手名を選んでください',
     member_not_found:'選手が名簿に見つかりません。管理担当へご連絡ください',
     too_fast:'連続送信のため、少し待ってから再度お試しください'
@@ -223,6 +224,16 @@
       $('att-main').innerHTML='<div class="att-card"><h2>'+esc(title)+'</h2><p>受付終了しています。</p></div>';
       return;
     }
+    if(data.campaign.deadlineAt){
+      var dlTs=Date.parse(String(data.campaign.deadlineAt));
+      if(!Number.isNaN(dlTs) && Date.now()>dlTs){
+        var dlJa=(F.formatDeadlineJa&&F.formatDeadlineJa(data.campaign.deadlineAt))||'';
+        $('att-main').innerHTML='<div class="att-card"><h2>'+esc(title)+'</h2>'
+          +'<p>回答締切（'+esc(dlJa)+'）を過ぎています。</p>'
+          +'<p class="att-act-meta">変更がある場合は管理担当へご連絡ください。</p></div>';
+        return;
+      }
+    }
 
     var prefs=loadPrefs();
     var opts=(data.members||[]).map(function(n){
@@ -237,12 +248,18 @@
       : '① 選手と回答者を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
         +(t.note?'\n'+t.note:'');
 
+    var dlText='';
+    if(data.campaign&&data.campaign.deadlineAt&&F.formatDeadlineJa){
+      dlText=F.formatDeadlineJa(data.campaign.deadlineAt);
+    }
+
     var daysHtml=(data.days||[]).map(function(d){
       return t.form==='family'?renderFamilyDay(d):renderMarksDay(d);
     }).join('');
 
     $('att-main').innerHTML=
       '<div class="att-card"><h2>'+esc(title)+'</h2>'
+      +(dlText?'<p class="att-act-meta"><strong>回答期限: '+esc(dlText)+' まで</strong></p>':'')
       +(data.campaign.memo?'<p class="att-act-meta">'+esc(data.campaign.memo)+'</p>':'')
       +'</div>'
       +'<div class="att-parent-note">'+esc(note).replace(/\n/g,'<br>')+'</div>'
