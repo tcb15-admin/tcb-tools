@@ -8,14 +8,28 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.13.0">
-<link rel="stylesheet" href="attendance.css?v=1.13.0">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.14.0">
+<link rel="stylesheet" href="attendance.css?v=1.14.0">
 </head>
 <body class="att-body">
+<svg width="0" height="0" class="att-svg-defs" aria-hidden="true" focusable="false">
+  <symbol id="att-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="att-i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="att-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="att-i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="att-i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L10.7 5.24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.07 0L4.8 13.12a5 5 0 1 0 7.07 7.07l1.42-1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="att-i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4l2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="att-i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="att-i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 4v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="att-i-line" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.065 9.61.391.084.924.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.958-4.097 9.491-7.015C23.176 14.393 24 12.458 24 10.314"/></symbol>
+  <symbol id="att-i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M7 7l1 12h8l1-12M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="att-i-send" viewBox="0 0 24 24"><path d="M4 12l16-7-7 16-2.5-6.5L4 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+</svg>
+
 <header class="att-hdr tcb-shell-hdr">
   <img class="tcb-shell-logo" src="../team-logo.png" width="42" height="42" alt="東海中央ボーイズ">
   <span class="tcb-shell-chip" aria-hidden="true">15期</span>
-  <h1>出欠管理<span>東海中央ボーイズ 15期 · MG／親父 2系統</span></h1>
+  <h1>出欠管理<span>東海中央ボーイズ 15期</span></h1>
   <a class="att-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
@@ -29,127 +43,178 @@
 </div>
 
 <main class="att-wrap">
-  <section class="att-card">
-    <h2>出欠確認を作成</h2>
-    <p class="att-act-meta" style="margin-bottom:10px">月曜展開・水曜17:00締切の運用を想定しています。MG用と親父用で別URLを発行します。回答の正はフォームです（LINE投稿文は送信後にコピー）。</p>
+  <nav class="att-flow" aria-label="作業の流れ">
+    <button type="button" class="att-flow-btn is-active" data-att-flow="make" id="att-flow-make">
+      <span class="att-flow-num">1</span><span class="att-flow-lab">作成・展開</span>
+    </button>
+    <button type="button" class="att-flow-btn" data-att-flow="check" id="att-flow-check">
+      <span class="att-flow-num">2</span><span class="att-flow-lab">回答確認</span>
+    </button>
+    <button type="button" class="att-flow-btn" data-att-flow="brief" id="att-flow-brief">
+      <span class="att-flow-num">3</span><span class="att-flow-lab">確定案内</span>
+    </button>
+  </nav>
+  <p id="att-flow-hint" class="att-flow-hint">土日祝を仮登録 → 締切設定 → 作成 → URL発行 → LINEへ案内コピー</p>
 
-    <nav class="att-flow" aria-label="出欠MGRの作業の流れ">
-      <div class="att-flow-step"><span class="att-flow-num">1</span><span class="att-flow-lab">週次出欠を作成・展開</span></div>
-      <div class="att-flow-step"><span class="att-flow-num">2</span><span class="att-flow-lab">回答確認・催促</span></div>
-      <div class="att-flow-step"><span class="att-flow-num">3</span><span class="att-flow-lab">週末の確定案内</span></div>
-    </nav>
-
+  <section class="att-card" id="att-panel-make">
+    <h2>週次の出欠を作成</h2>
     <details class="att-preset-box" id="att-preset-box">
-      <summary>タイトル・案内メモの定型文</summary>
-      <p class="att-act-meta" style="margin:8px 0 6px">端末に保存します。タイトルでは <code>{dates}</code> を日付一覧に置き換えできます。</p>
-      <div class="att-field">
-        <label for="att-tpl-title">タイトル定型</label>
-        <input id="att-tpl-title" maxlength="120" placeholder="例: {dates}出欠確認" autocomplete="off">
+      <summary>定型（タイトル／メモ）</summary>
+      <div class="att-field" style="margin-top:8px">
+        <label for="att-tpl-title">タイトル <code>{dates}</code></label>
+        <input id="att-tpl-title" maxlength="120" placeholder="{dates}出欠確認" autocomplete="off">
       </div>
       <div class="att-field" style="margin-top:8px">
-        <label for="att-tpl-memo">案内メモ定型</label>
-        <textarea id="att-tpl-memo" maxlength="500" placeholder="集合場所・持参物など（任意）"></textarea>
+        <label for="att-tpl-memo">案内メモ</label>
+        <textarea id="att-tpl-memo" maxlength="500" placeholder="任意"></textarea>
       </div>
       <div class="att-row" style="margin-top:8px">
-        <button type="button" id="att-tpl-save" class="att-btn att-btn-primary">定型を保存</button>
-        <button type="button" id="att-tpl-apply" class="att-btn att-btn-ghost">作成欄に適用</button>
+        <button type="button" id="att-tpl-save" class="att-btn att-btn-primary att-btn-sm">定型保存</button>
+        <button type="button" id="att-tpl-apply" class="att-btn att-btn-ghost att-btn-sm">作成欄へ</button>
       </div>
     </details>
 
     <form id="att-create-form">
-      <div class="att-field"><label for="att-title">タイトル</label><input id="att-title" maxlength="120" placeholder="例: 8月15日、16日出欠確認" required></div>
-      <div class="att-field" style="margin-top:8px"><label for="att-memo">案内メモ</label><textarea id="att-memo" maxlength="500" placeholder="集合場所など（任意）"></textarea></div>
-      <div class="att-field" style="margin-top:8px">
-        <label for="att-deadline">回答締切</label>
-        <input id="att-deadline" type="datetime-local" aria-describedby="att-deadline-hint">
-        <p id="att-deadline-hint" class="att-act-meta" style="margin-top:4px">未設定可。推奨: 水曜 17:00。「次の水曜17:00」で入れられます。</p>
+      <div class="att-field"><label for="att-title">タイトル</label><input id="att-title" maxlength="120" required></div>
+      <div class="att-field" style="margin-top:8px"><label for="att-memo">案内メモ</label><textarea id="att-memo" maxlength="500" placeholder="任意"></textarea></div>
+      <div class="att-row" style="margin-top:8px;align-items:flex-end">
+        <div class="att-field" style="flex:1 1 200px">
+          <label for="att-deadline">回答締切</label>
+          <input id="att-deadline" type="datetime-local">
+        </div>
+        <button type="button" id="att-deadline-wed" class="att-btn att-btn-ghost att-btn-ico" title="次の水曜17:00" aria-label="次の水曜17:00">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-clock"/></svg>
+        </button>
       </div>
       <div class="att-row att-day-toolbar" style="margin-top:10px">
-        <button type="button" id="att-fill-weekend" class="att-btn att-btn-ghost">直近の土・日・祝を仮登録</button>
-        <button type="button" id="att-deadline-wed" class="att-btn att-btn-ghost">次の水曜17:00</button>
-        <button type="button" id="att-add-day" class="att-btn att-btn-ghost">日付を追加</button>
+        <button type="button" id="att-fill-weekend" class="att-btn att-btn-ghost">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-cal"/></svg>
+          土日祝を仮登録
+        </button>
+        <button type="button" id="att-add-day" class="att-btn att-btn-ico att-btn-ghost" title="日付追加" aria-label="日付追加">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-plus"/></svg>
+        </button>
       </div>
       <p id="att-day-hint" class="att-act-meta att-day-hint" aria-live="polite"></p>
       <div id="att-day-rows"></div>
-      <div class="att-row" style="margin-top:8px">
+      <div class="att-row" style="margin-top:10px">
         <button type="submit" class="att-btn att-btn-primary">作成</button>
-        <button type="button" id="att-btn-refresh" class="att-btn att-btn-ghost">再読込</button>
+        <button type="button" id="att-btn-refresh" class="att-btn att-btn-ico att-btn-ghost" title="再読込" aria-label="再読込">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-refresh"/></svg>
+        </button>
       </div>
     </form>
   </section>
 
-  <section class="att-card">
-    <h2>出欠一覧</h2>
+  <section class="att-card" id="att-panel-list">
+    <div class="att-card-head">
+      <h2>出欠一覧</h2>
+    </div>
     <div id="att-list"></div>
   </section>
 
-  <p id="att-detail-empty" class="att-act-meta">一覧から選ぶと、各LINE用のURL・投稿文・回答状況を表示します。</p>
+  <p id="att-detail-empty" class="att-act-meta">一覧を選ぶと、展開・回答状況・確定案内が表示されます。</p>
 
   <section id="att-detail" class="att-hidden">
-    <div class="att-card">
+    <div class="att-card" id="att-panel-check">
       <h2 id="att-d-title">詳細</h2>
       <p id="att-d-meta" class="att-act-meta"></p>
       <div id="att-d-counts" class="att-counts"></div>
-      <div class="att-row" style="margin-top:10px">
-        <button type="button" id="att-btn-publish" class="att-btn att-btn-primary">回答URLを発行</button>
-        <button type="button" id="att-btn-copy-a-inv" class="att-btn att-btn-line">MG案内をコピー</button>
-        <button type="button" id="att-btn-copy-b-inv" class="att-btn att-btn-ghost">親父案内をコピー</button>
-      </div>
-      <div class="att-row" style="margin-top:8px">
-        <button type="button" id="att-btn-remind-a" class="att-btn att-btn-ghost">MG催促をコピー</button>
-        <button type="button" id="att-btn-remind-b" class="att-btn att-btn-ghost">親父催促をコピー</button>
-        <button type="button" id="att-btn-toggle-status" class="att-btn att-btn-ghost">受付を終了する</button>
+      <div id="att-unanswered-alert" class="att-alert att-hidden" role="status"></div>
+
+      <div class="att-action-bar">
+        <button type="button" id="att-btn-publish" class="att-btn att-btn-primary">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-link"/></svg>
+          URL発行
+        </button>
+        <button type="button" id="att-btn-copy-a-inv" class="att-btn att-btn-line" title="MG LINE案内">
+          <svg class="att-btn-svg att-btn-svg-line" viewBox="0 0 24 24"><use href="#att-i-line"/></svg>
+          MG案内
+        </button>
+        <button type="button" id="att-btn-copy-b-inv" class="att-btn att-btn-line" title="親父 LINE案内">
+          <svg class="att-btn-svg att-btn-svg-line" viewBox="0 0 24 24"><use href="#att-i-line"/></svg>
+          親父案内
+        </button>
+        <button type="button" id="att-btn-remind-a" class="att-btn att-btn-ghost" title="MG催促">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-bell"/></svg>
+          MG催促
+        </button>
+        <button type="button" id="att-btn-remind-b" class="att-btn att-btn-ghost" title="親父催促">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-bell"/></svg>
+          親父催促
+        </button>
+        <button type="button" id="att-btn-toggle-status" class="att-btn att-btn-ghost">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-lock"/></svg>
+          <span id="att-btn-toggle-lab">受付終了</span>
+        </button>
       </div>
       <p id="att-status-badge" class="att-act-meta" style="margin-top:8px"></p>
-      <p class="att-act-meta" style="margin-top:10px">MG LINE 回答URL</p>
-      <div id="att-url-a" class="att-preview"></div>
-      <p class="att-act-meta" style="margin-top:10px">親父 LINE 回答URL</p>
-      <div id="att-url-b" class="att-preview"></div>
-    </div>
-    <div class="att-card">
-      <h2>回答状況</h2>
+
+      <div class="att-row" style="margin-top:10px;align-items:flex-end">
+        <div class="att-field" style="flex:1 1 200px">
+          <label for="att-d-deadline">締切の変更</label>
+          <input id="att-d-deadline" type="datetime-local">
+        </div>
+        <button type="button" id="att-d-deadline-save" class="att-btn att-btn-ghost att-btn-sm">締切を保存</button>
+      </div>
+
+      <details class="att-urls-box">
+        <summary>回答URL</summary>
+        <p class="att-act-meta" style="margin-top:8px">MG LINE</p>
+        <div id="att-url-a" class="att-preview"></div>
+        <p class="att-act-meta" style="margin-top:8px">親父 LINE</p>
+        <div id="att-url-b" class="att-preview"></div>
+      </details>
+
+      <h3 class="att-subh">回答状況（フォーム＝正）</h3>
+      <p class="att-act-meta" style="margin-bottom:8px">LINEスケジュールの代わりに、この一覧で○×△と未回答を確認できます。保護者は同じURLから訂正再送信できます。</p>
       <div id="att-roster" class="att-roster"></div>
     </div>
 
-    <div class="att-card" id="att-briefing-card">
-      <h2>週末の確定案内（親父LINE向け）</h2>
-      <p class="att-act-meta" style="margin-bottom:10px">出欠が揃ったあと、練習組／試合組の集合連絡を生成してコピーします。日時・場所は出欠日の値を初期入力に使います。</p>
+    <div class="att-card" id="att-panel-brief">
+      <h2>週末の確定案内</h2>
+      <p class="att-act-meta" style="margin-bottom:10px">活動パターンに合わせて案内文を作り、親父LINEへコピーします。</p>
       <div class="att-row">
-        <div class="att-field" style="flex:1 1 160px">
+        <div class="att-field" style="flex:1 1 150px">
           <label for="att-br-day">対象日</label>
           <select id="att-br-day"></select>
         </div>
-        <div class="att-field" style="flex:1 1 140px">
-          <label for="att-br-mode">区分</label>
+        <div class="att-field" style="flex:1 1 200px">
+          <label for="att-br-mode">活動パターン</label>
           <select id="att-br-mode">
-            <option value="practice">練習組</option>
-            <option value="game">試合組</option>
+            <option value="renshu">両方練習（同一会場）</option>
+            <option value="renshu_a">練習・会場A（室内など）</option>
+            <option value="renshu_b">練習・会場B（屋外など）</option>
+            <option value="kata_practice">片方試合・練習組</option>
+            <option value="kata_game">片方試合・試合組</option>
+            <option value="ryoho_a">両方試合・A組</option>
+            <option value="ryoho_b">両方試合・B組</option>
           </select>
         </div>
         <div class="att-field" style="flex:1 1 140px">
           <label for="att-br-group">組名</label>
-          <input id="att-br-group" maxlength="40" placeholder="例: 練習組／岡崎市長旗組">
+          <input id="att-br-group" maxlength="40" placeholder="例: 練習組">
         </div>
       </div>
       <div class="att-row">
         <div class="att-field"><label for="att-br-meet-time">集合時間</label><input id="att-br-meet-time" type="time"></div>
-        <div class="att-field"><label for="att-br-meet-place">集合場所</label><input id="att-br-meet-place" maxlength="80" placeholder="例: 東邦ガス空見球場"></div>
-        <div class="att-field"><label for="att-br-act-place">活動場所</label><input id="att-br-act-place" maxlength="80" placeholder="練習／試合会場"></div>
+        <div class="att-field"><label for="att-br-meet-place">集合場所</label><input id="att-br-meet-place" maxlength="80"></div>
+        <div class="att-field"><label for="att-br-act-place">活動場所</label><input id="att-br-act-place" maxlength="80"></div>
       </div>
       <div class="att-br-practice-fields">
         <div class="att-row">
           <div class="att-field"><label for="att-br-address">住所</label><input id="att-br-address" maxlength="120"></div>
           <div class="att-field"><label for="att-br-map">マップコード</label><input id="att-br-map" maxlength="40"></div>
-          <div class="att-field"><label for="att-br-gear-title">道具置場タイトル</label><input id="att-br-gear-title" maxlength="40" placeholder="例: 空見球場道具置場"></div>
+          <div class="att-field"><label for="att-br-gear-title">道具置場タイトル</label><input id="att-br-gear-title" maxlength="40"></div>
         </div>
       </div>
       <div class="att-br-game-fields att-hidden">
-        <div class="att-field" style="margin-top:8px"><label for="att-br-route">移動経路（任意）</label><input id="att-br-route" maxlength="120" placeholder="例: 東海市役所↔️渥美球場"></div>
+        <div class="att-field" style="margin-top:8px"><label for="att-br-route">移動経路</label><input id="att-br-route" maxlength="120" placeholder="例: 市役所↔️球場"></div>
         <div class="att-row">
-          <div class="att-field"><label for="att-br-meet-note">集合補足</label><input id="att-br-meet-note" maxlength="120" placeholder="例: 配車表に従い道具を積み込んで下さい。"></div>
+          <div class="att-field"><label for="att-br-meet-note">集合補足</label><input id="att-br-meet-note" maxlength="120"></div>
           <div class="att-field"><label for="att-br-opponent">試合相手</label><input id="att-br-opponent" maxlength="60"></div>
           <div class="att-field"><label for="att-br-game-time">試合時間</label><input id="att-br-game-time" type="time"></div>
-          <div class="att-field"><label for="att-br-bench">ベンチ</label><input id="att-br-bench" maxlength="20" placeholder="例: 3塁側"></div>
+          <div class="att-field"><label for="att-br-bench">ベンチ</label><input id="att-br-bench" maxlength="20"></div>
         </div>
         <div class="att-row">
           <div class="att-field"><label for="att-br-meet-addr">集合住所</label><input id="att-br-meet-addr" maxlength="120"></div>
@@ -162,23 +227,29 @@
       </div>
       <div class="att-field" style="margin-top:8px"><label for="att-br-gear">道具置場メモ</label><input id="att-br-gear" maxlength="120" placeholder="現地にて確認"></div>
       <details class="att-preset-box" style="margin-top:10px">
-        <summary>服装・道具・持ち物（定型・編集可）</summary>
-        <div class="att-field" style="margin-top:8px"><label for="att-br-wear">集合時服装（1行1項目）</label><textarea id="att-br-wear" rows="6"></textarea></div>
-        <div class="att-field" style="margin-top:8px"><label for="att-br-tools">チーム道具（1行1項目）</label><textarea id="att-br-tools" rows="6"></textarea></div>
-        <div class="att-field" style="margin-top:8px"><label for="att-br-bag">持ち物（1行1項目）</label><textarea id="att-br-bag" rows="6"></textarea></div>
-        <div class="att-field" style="margin-top:8px"><label for="att-br-parent">父兄の服装・持物（1行1項目）</label><textarea id="att-br-parent" rows="5"></textarea></div>
-        <div class="att-field" style="margin-top:8px"><label for="att-br-extra">追記（任意）</label><textarea id="att-br-extra" rows="3" maxlength="500"></textarea></div>
+        <summary>服装・道具・持ち物</summary>
+        <div class="att-field" style="margin-top:8px"><label for="att-br-wear">集合時服装</label><textarea id="att-br-wear" rows="5"></textarea></div>
+        <div class="att-field" style="margin-top:8px"><label for="att-br-tools">チーム道具</label><textarea id="att-br-tools" rows="5"></textarea></div>
+        <div class="att-field" style="margin-top:8px"><label for="att-br-bag">持ち物</label><textarea id="att-br-bag" rows="5"></textarea></div>
+        <div class="att-field" style="margin-top:8px"><label for="att-br-parent">父兄の服装・持物</label><textarea id="att-br-parent" rows="4"></textarea></div>
+        <div class="att-field" style="margin-top:8px"><label for="att-br-extra">追記</label><textarea id="att-br-extra" rows="2" maxlength="500"></textarea></div>
         <div class="att-row" style="margin-top:8px">
-          <button type="button" id="att-br-reset-pack" class="att-btn att-btn-ghost">区分の定型に戻す</button>
+          <button type="button" id="att-br-reset-pack" class="att-btn att-btn-ghost att-btn-sm">定型に戻す</button>
         </div>
       </details>
       <div class="att-field" style="margin-top:10px">
-        <label for="att-br-preview">案内文プレビュー</label>
-        <textarea id="att-br-preview" class="att-br-preview" rows="16" maxlength="8000"></textarea>
+        <label for="att-br-preview">案内文</label>
+        <textarea id="att-br-preview" class="att-br-preview" rows="14" maxlength="8000"></textarea>
       </div>
-      <div class="att-row" style="margin-top:8px">
-        <button type="button" id="att-br-rebuild" class="att-btn att-btn-ghost">案内文を再生成</button>
-        <button type="button" id="att-br-copy" class="att-btn att-btn-line">親父LINE用にコピー</button>
+      <div class="att-action-bar" style="margin-top:8px">
+        <button type="button" id="att-br-rebuild" class="att-btn att-btn-ghost">
+          <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-refresh"/></svg>
+          再生成
+        </button>
+        <button type="button" id="att-br-copy" class="att-btn att-btn-line">
+          <svg class="att-btn-svg att-btn-svg-line" viewBox="0 0 24 24"><use href="#att-i-line"/></svg>
+          親父へコピー
+        </button>
       </div>
     </div>
   </section>
@@ -196,13 +267,13 @@ window.TCB_ATT_CFG={
   lsPrefix:"tcb15",
   pagesBase:"https://tcb15-admin.github.io/tcb-tools/boys15",
   teamName:"東海中央ボーイズ 15期",
-  tracks:{"a": {"label": "MG LINE", "short": "MG", "form": "family", "role": "", "note": ""}, "b": {"label": "親父 LINE", "short": "親父", "form": "marks", "role": "", "note": "フォーム回答が正です。LINE投稿文は送信後にコピーできます。LINEスケジュールは必要に応じて同じ○×△を転記してください。"}}
+  tracks:{"a": {"label": "MG LINE", "short": "MG", "form": "family", "role": "", "note": ""}, "b": {"label": "親父 LINE", "short": "親父", "form": "marks", "role": "", "note": "フォーム回答が正です（LINEスケジュールの代わり）。送信後も同じURLから訂正できます。"}}
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.13.0"></script>
-<script src="attendance-jp-calendar.js?v=1.13.0"></script>
-<script src="attendance-line.js?v=1.13.0"></script>
-<script src="attendance-briefing.js?v=1.13.0"></script>
-<script src="attendance-staff.js?v=1.13.0"></script>
+<script src="../tcb-sync-api.js?v=1.14.0"></script>
+<script src="attendance-jp-calendar.js?v=1.14.0"></script>
+<script src="attendance-line.js?v=1.14.0"></script>
+<script src="attendance-briefing.js?v=1.14.0"></script>
+<script src="attendance-staff.js?v=1.14.0"></script>
 </body>
 </html>

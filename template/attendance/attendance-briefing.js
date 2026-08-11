@@ -202,7 +202,8 @@
   }
 
   function defaultFieldPack(mode){
-    var d=mode==='game'?DEFAULT_GAME:DEFAULT_PRACTICE;
+    var packKind = packKindOf(mode);
+    var d=packKind==='game'?DEFAULT_GAME:DEFAULT_PRACTICE;
     return {
       meetWearText:d.meetWear.join('\n'),
       teamToolsText:d.teamTools.join('\n'),
@@ -212,10 +213,35 @@
     };
   }
 
+  /** UIパターン → 練習/試合パック */
+  function packKindOf(mode){
+    var m=String(mode||'renshu');
+    if(m==='kata_game'||m==='ryoho_a'||m==='ryoho_b'||m==='game')return 'game';
+    return 'practice';
+  }
+
+  function patternPreset(mode){
+    var m=String(mode||'renshu');
+    var map={
+      renshu:{groupLabel:'練習', pack:'practice', hint:'全員同一会場の練習'},
+      renshu_a:{groupLabel:'練習・会場A', pack:'practice', hint:'場所分離の一方'},
+      renshu_b:{groupLabel:'練習・会場B', pack:'practice', hint:'場所分離の他方'},
+      kata_practice:{groupLabel:'練習組', pack:'practice', hint:'片方試合の練習側'},
+      kata_game:{groupLabel:'試合組', pack:'game', hint:'片方試合の試合側'},
+      ryoho_a:{groupLabel:'試合A組', pack:'game', hint:'両方試合の一方'},
+      ryoho_b:{groupLabel:'試合B組', pack:'game', hint:'両方試合の他方'},
+      practice:{groupLabel:'練習組', pack:'practice', hint:''},
+      game:{groupLabel:'試合組', pack:'game', hint:''}
+    };
+    return map[m]||map.renshu;
+  }
+
   global.TCB_AttBriefing={
     formatPracticeBriefing:formatPracticeBriefing,
     formatGameBriefing:formatGameBriefing,
     defaultFieldPack:defaultFieldPack,
+    packKindOf:packKindOf,
+    patternPreset:patternPreset,
     DEFAULT_PRACTICE:DEFAULT_PRACTICE,
     DEFAULT_GAME:DEFAULT_GAME
   };

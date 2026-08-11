@@ -185,7 +185,9 @@
     var btn=$('att-submit');
     if(btn&&!submitting){
       btn.disabled=!canUnlockForm();
-      btn.textContent='送信する';
+      var name=($('att-pick')&&$('att-pick').value)||'';
+      var hasPrev=!!(name&&data.responses&&data.responses[name]);
+      btn.textContent=hasPrev?'訂正して送信':'送信する';
     }
   }
 
@@ -243,9 +245,9 @@
     }).join('');
 
     var note=(t.form==='family')
-      ? '① 選手と回答者を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
+      ? '① 選手と回答者を選ぶ → ② 日ごとに入力 → ③ 送信 → ④ 投稿文をコピーしてLINEへ。\n訂正は同じ画面で内容を直して「訂正して送信」です。'
         +(t.note?'\n'+t.note:'')
-      : '① 選手と回答者を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。'
+      : '① 選手と回答者を選ぶ → ② 日ごとに◯／△／✕ → ③ 送信 → ④ 投稿文をコピーしてLINEへ。\n訂正は同じ画面で直して「訂正して送信」です（LINEスケジュールへの転記は不要）。'
         +(t.note?'\n'+t.note:'');
 
     var dlText='';
@@ -279,7 +281,7 @@
       +'</div></div>'
       +'<div id="att-result" class="att-card att-hidden">'
       +'<div class="att-step"><span class="att-step-num">3</span><span>LINE投稿用テキスト</span></div>'
-      +'<p class="att-act-meta" style="margin:8px 0">コピーして、該当のLINEグループへ貼り付けてください。</p>'
+      +'<p class="att-act-meta" style="margin:8px 0">コピーしてLINEグループへ貼ってください。訂正後もここが最新の投稿文になります。</p>'
       +'<pre id="att-line-out" class="att-preview" tabindex="0"></pre>'
       +'<div class="att-row" style="margin-top:8px">'
       +'<button type="button" id="att-copy" class="att-btn att-btn-line" style="flex:1">コピー</button>'
@@ -774,6 +776,7 @@
     }
     setBusy(true);
     setStatus('送信中…しばらくお待ちください');
+    var wasEdit=!!(data.responses&&data.responses[name]);
     try{
       data=await c.respond({sid:sid, memberName:name, payload:payload});
       persistPrefsFromPayload(name, payload);
@@ -791,7 +794,9 @@
       var out=$('att-line-out');
       if(result)result.classList.remove('att-hidden');
       if(out)out.textContent=text;
-      setStatus('受け付けました。下の投稿文をコピーしてLINEへ貼ってください');
+      setStatus(wasEdit
+        ?'訂正を受け付けました。下の投稿文をコピーしてLINEへ'
+        :'受け付けました。下の投稿文をコピーしてLINEへ貼ってください');
       if(result&&result.scrollIntoView){
         setTimeout(function(){result.scrollIntoView({behavior:'smooth', block:'start'});}, 50);
       }
@@ -811,6 +816,7 @@
     syncFormLock();
     if(!name)setStatus('選手名と回答者を選んで回答を始めてください');
     else if(!getRespondent())setStatus(respondentPrompt());
+    else if(data.responses&&data.responses[name])setStatus(name+' の回答を表示しています。内容を直して「訂正して送信」できます');
     else setStatus(name+' の回答を入力できます');
   }
 

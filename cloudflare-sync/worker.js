@@ -1220,7 +1220,8 @@ async function setAttendanceResponsePublic(env, body) {
     .first();
   if (recent && recent.updated_at) {
     const t = Date.parse(String(recent.updated_at));
-    if (!Number.isNaN(t) && Date.now() - t < 8000) throw new Error("too_fast");
+    /* 訂正を妨げないよう、連打抑制は1.5秒に短縮 */
+    if (!Number.isNaN(t) && Date.now() - t < 1500) throw new Error("too_fast");
   }
 
   await saveTrackResponse(env, found.row, found.track, memberName, body.payload || {});

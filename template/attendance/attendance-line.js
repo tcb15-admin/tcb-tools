@@ -124,12 +124,13 @@
       lines.push('');
     }
     if(campaign&&campaign.memo){lines.push(campaign.memo);lines.push('');}
-    lines.push('▼回答フォーム（こちらが正です）');
+    lines.push('▼回答フォーム（こちらが正・LINEスケジュールの代わりになります）');
     lines.push(url||'（URL未発行）');
     lines.push('');
-    lines.push('フォームで回答後、生成される文面をこのグループへ投稿してください。');
+    lines.push('フォームで○×△（または詳細）を回答し、生成文面をこのグループへ投稿してください。');
+    lines.push('一度送ったあとも、同じURLから訂正できます。');
     if(trackForm==='marks'){
-      lines.push('LINEスケジュールへも反映する場合は、同じ○×△を転記してください。');
+      lines.push('※LINEスケジュールへの転記は不要です（このフォームの回答を集計します）。');
     }
     if(extraNote)lines.push(extraNote);
     return lines.join('\n');

@@ -163,7 +163,7 @@ def build_portal_and_attendance(target, config, out_dir):
         'ATT_TRACK_B_FORM': 'marks',
         'ATT_TRACK_B_ROLE': '',
         'ATT_TRACK_A_NOTE': '',
-        'ATT_TRACK_B_NOTE': 'フォーム回答が正です。LINE投稿文は送信後にコピーできます。LINEスケジュールは必要に応じて同じ○×△を転記してください。',
+        'ATT_TRACK_B_NOTE': 'フォーム回答が正です（LINEスケジュールの代わり）。送信後も同じURLから訂正できます。',
     }
     att = {k: str(config.get(k, v)) for k, v in att_defaults.items()}
     tracks = {
