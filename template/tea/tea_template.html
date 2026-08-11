@@ -15,7 +15,6 @@
 <svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
   <symbol id="tea-i-undo" viewBox="0 0 24 24"><path d="M9 7H5V3"/><path d="M5 7a8 8 0 1 1-1.2 4.5"/><path d="M5 7l4.2 1.2"/></symbol>
   <symbol id="tea-i-print" viewBox="0 0 24 24"><path d="M7 8V4h10v4"/><path d="M6 14H4a1 1 0 0 1-1-1v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/><path d="M8 17h8"/></symbol>
-  <symbol id="tea-i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M4 14V5.5A1.5 1.5 0 0 1 5.5 4H14"/></symbol>
   <symbol id="tea-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="tea-i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M7 7l1 12h8l1-12"/><path d="M10 11v5M14 11v5"/></symbol>
 </svg>
@@ -23,7 +22,7 @@
 <header class="tea-hdr tcb-shell-hdr">
   <img class="tcb-shell-logo" src="../team-logo.png" width="42" height="42" alt="東海中央ボーイズ">
   <span class="tcb-shell-chip" aria-hidden="true">{{COHORT_LABEL}}</span>
-  <h1>お茶当番<span>{{TEAM_NAME}} · 月次表／MG LINE</span></h1>
+  <h1>お茶当番<span>{{TEAM_NAME}} · 月次表／PDF展開</span></h1>
   <a class="tea-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
@@ -44,14 +43,14 @@
     </button>
     <button type="button" class="tea-flow-btn" data-tea-flow="share" id="tea-flow-share">
       <span class="tea-flow-num">2</span>
-      <span class="tea-flow-lab">LINEで展開</span>
+      <span class="tea-flow-lab">PDFで展開</span>
     </button>
     <button type="button" class="tea-flow-btn" data-tea-flow="change" id="tea-flow-change">
       <span class="tea-flow-num">3</span>
       <span class="tea-flow-lab">変更を反映</span>
     </button>
   </nav>
-  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「LINEで展開」へ。</p>
+  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「PDFで展開」へ。</p>
 
   <section class="tea-card tea-card-main" id="tea-panel-table">
     <div class="tea-toolbar tea-no-print" role="navigation" aria-label="月の切替と操作">
@@ -76,6 +75,7 @@
 
     <p id="tea-month-badge" class="tea-meta tea-no-print"></p>
 
+    <p class="tea-print-only tea-print-title" id="tea-print-title"></p>
     <div class="tea-tbl-wrap" id="tea-print-area">
       <table class="tea-tbl" id="tea-day-tbl">
         <thead>
@@ -102,29 +102,15 @@
     </details>
   </section>
 
-  <section class="tea-card tea-no-print tea-card-compact" id="tea-panel-line">
-    <h2>MG LINEへ展開</h2>
-    <p class="tea-hint">文面を作ってコピーし、MG LINEに貼り付けてください。受領連絡は各当番が送るため、ここでは扱いません。</p>
-    <div class="tea-row tea-line-btns">
-      <button type="button" id="tea-line-roster" class="tea-btn tea-btn-line">当番表</button>
-      <button type="button" id="tea-line-swap" class="tea-btn tea-btn-ghost">交代連絡</button>
-      <button type="button" id="tea-line-pickup" class="tea-btn tea-btn-ghost">引き取り</button>
-      <button type="button" id="tea-line-restock" class="tea-btn tea-btn-ghost">補充</button>
-      <button type="button" id="tea-line-copy" class="tea-btn tea-btn-ico tea-btn-primary" title="文面をコピー" aria-label="文面をコピー">
-        <svg viewBox="0 0 24 24"><use href="#tea-i-copy"/></svg>
+  <section class="tea-card tea-no-print tea-card-compact" id="tea-panel-share">
+    <h2>PDFで展開</h2>
+    <p class="tea-hint">印刷ダイアログで「PDFに保存」し、そのファイルを MG LINE に添付して展開します。テキスト貼り付けは使いません。</p>
+    <div class="tea-row">
+      <button type="button" id="tea-btn-share-print" class="tea-btn tea-btn-primary">
+        <svg class="tea-btn-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#tea-i-print"/></svg>
+        印刷してPDF保存
       </button>
     </div>
-    <div class="tea-row" id="tea-line-opts">
-      <div class="tea-field">
-        <label for="tea-line-day">対象日（引き取り・交代）</label>
-        <select id="tea-line-day"></select>
-      </div>
-    </div>
-    <details class="tea-details" id="tea-restock-panel">
-      <summary>補充品目</summary>
-      <div id="tea-restock-checks" class="tea-supply-list" style="margin-top:6px"></div>
-    </details>
-    <pre class="tea-preview" id="tea-line-preview"></pre>
   </section>
 
   <details class="tea-card tea-details-card tea-no-print" id="tea-panel-groups">

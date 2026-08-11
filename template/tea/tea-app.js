@@ -130,7 +130,12 @@
 
   function updateMonthChrome() {
     var ym = currentYm();
-    if ($('tea-ym-label')) $('tea-ym-label').textContent = formatYmLabel(ym);
+    var lab = formatYmLabel(ym);
+    if ($('tea-ym-label')) $('tea-ym-label').textContent = lab;
+    if ($('tea-print-title')) {
+      $('tea-print-title').textContent =
+        (cfg.teamName || '') + ' お茶当番　' + lab;
+    }
     var now = new Date();
     var cur = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     ['tea-ym-prev', 'tea-ym-now', 'tea-ym-next'].forEach(function (id) {
@@ -254,8 +259,6 @@
       $('tea-revised').value = today.getFullYear() + '.' + (today.getMonth() + 1) + '.' + today.getDate() + '更新';
       updateRevisedFoot();
     }
-    if (srcDate && $('tea-line-day')) $('tea-line-day').value = srcDate;
-    refreshLineDaySelect();
     updateUndoBtn();
     setFlow('change');
     setStatus('入れ替え: ' + shortName(fromName) + ' ↔ ' + shortName(toName) + '（未保存・戻す可）');
@@ -272,7 +275,6 @@
     clearSwappedMarks();
     clearDutyPick();
     state.lastSwap = null;
-    refreshLineDaySelect();
     updateUndoBtn();
     setStatus('直前の交代を戻しました（保存するまでサーバには未反映）');
   }
@@ -363,11 +365,9 @@
     updatePlayerGroupHint(tr);
     tr.querySelector('.tea-d-date').addEventListener('change', function () {
       tr.querySelector('.tea-wd').textContent = weekdayLabel(this.value);
-      refreshLineDaySelect();
     });
     tr.querySelector('.tea-d-del').addEventListener('click', function () {
       tr.remove();
-      refreshLineDaySelect();
     });
     tr.querySelector('.tea-d-pg').addEventListener('change', function () {
       updatePlayerGroupHint(tr);
@@ -377,7 +377,6 @@
         var box = this.closest('.tea-duty-box');
         // 手動変更はD&D交代ハイライトを外す（元に戻した場合もオレンジが残らないように）
         if (box) box.classList.remove('is-swapped', 'is-pick');
-        refreshLineDaySelect();
       });
     });
   }
@@ -544,28 +543,10 @@
     return normalizePlayerGroups(state.playerGroups);
   }
 
-  function refreshLineDaySelect() {
-    var sel = $('tea-line-day');
-    if (!sel) return;
-    var cur = sel.value;
-    var days = collectDays();
-    sel.innerHTML = days.map(function (d) {
-      var lab = (Line.fmtDate ? Line.fmtDate(d.activityDate) : d.activityDate) +
-        ' A:' + (shortName(d.dutyA) || '—') + ' B:' + (shortName(d.dutyB) || '—');
-      return '<option value="' + esc(d.activityDate) + '">' + esc(lab) + '</option>';
-    }).join('') || '<option value="">（日付なし）</option>';
-    if (cur) sel.value = cur;
-  }
-
-  function selectedDay() {
-    var iso = $('tea-line-day') && $('tea-line-day').value;
-    return collectDays().filter(function (d) { return d.activityDate === iso; })[0] || null;
-  }
-
   var FLOW_HINTS = {
-    make: '前月から作成 → 内容確認 → 保存。そのあと「LINEで展開」へ。',
-    share: '「当番表」で文面を作り、コピーして MG LINE に貼ります。',
-    change: '枠をドラッグ／タップで入れ替え → 保存 →「交代連絡」または「当番表」で再展開。'
+    make: '前月から作成 → 内容確認 → 保存。そのあと「PDFで展開」へ。',
+    share: '「印刷してPDF保存」→ MG LINE にPDFを添付して展開します。',
+    change: '枠をドラッグ／タップで入れ替え → 保存 → もう一度PDFで再展開。'
   };
 
   function setFlow(mode) {
@@ -574,25 +555,17 @@
       btn.classList.toggle('is-active', btn.getAttribute('data-tea-flow') === mode);
     });
     if ($('tea-flow-hint')) $('tea-flow-hint').textContent = FLOW_HINTS[mode] || FLOW_HINTS.make;
-    if (mode === 'share' && $('tea-panel-line')) {
-      try { $('tea-panel-line').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    if (mode === 'share' && $('tea-panel-share')) {
+      try { $('tea-panel-share').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
     }
     if (mode === 'change' && $('tea-panel-table')) {
       try { $('tea-panel-table').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
     }
   }
 
-  function renderRestockChecks() {
-    var box = $('tea-restock-checks');
-    if (!box) return;
-    var items = state.supplies.filter(function (it) { return it.active == 1 || it.active === '1' || it.active === true; });
-    box.innerHTML = items.map(function (it, i) {
-      return '<label class="tea-supply-row" style="cursor:pointer">' +
-        '<input type="checkbox" class="tea-restock-cb" data-i="' + i + '" data-label="' + esc(it.label) + '" data-unit="' + esc(it.unitHint || '') + '">' +
-        '<span>' + esc(it.label) + (it.unitHint ? '（' + esc(it.unitHint) + '）' : '') + '</span>' +
-        '<input type="text" class="tea-restock-qty" placeholder="数量" style="flex:0 1 72px;min-height:36px" inputmode="numeric">' +
-        '</label>';
-    }).join('') || '<p class="tea-meta">品目マスタが空です</p>';
+  function doPrint() {
+    setFlow('share');
+    window.print();
   }
 
   function renderSupplyEdit() {
@@ -623,23 +596,6 @@
         active: row.querySelector('.tea-sup-active').checked ? 1 : 0
       };
     }).filter(function (it) { return !!it.label; });
-  }
-
-  function setPreview(t) {
-    if ($('tea-line-preview')) $('tea-line-preview').textContent = t || '';
-  }
-
-  async function copyText(t) {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(t);
-        setStatus('コピーしました');
-        return;
-      }
-      throw new Error('no_clipboard');
-    } catch (e) {
-      window.prompt('コピーできませんでした。次の文面を選択してコピーしてください:', t);
-    }
   }
 
   function fillWeekendDays() {
@@ -674,7 +630,6 @@
       }
       cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
     }
-    refreshLineDaySelect();
     setStatus(added ? ('土日祝を ' + added + ' 日追加しました（当番は未設定）') : '追加する土日祝はありませんでした');
   }
 
@@ -823,7 +778,6 @@
     if ($('tea-revised')) $('tea-revised').value = (res.month && res.month.revisedAt) || '';
     updateRevisedFoot();
     renderGroups();
-    refreshLineDaySelect();
     refreshAllPlayerGroupHints();
     if (res.month) {
       setMonthBadge('保存済み（最終更新: ' + (res.month.updatedAt || res.month.revisedAt || '—') + '）');
@@ -909,7 +863,6 @@
       $('tea-revised').value = today.getFullYear() + '.' + (today.getMonth() + 1) + '.' + today.getDate() + '作成';
       updateRevisedFoot();
     }
-    refreshLineDaySelect();
     refreshAllPlayerGroupHints();
     setMonthBadge(formatYmLabel(prevYm) + ' の続きで ' + dates.length + ' 日分を仮作成しました。確認して「保存」してください。');
     setStatus('前月から作成しました（未保存）');
@@ -968,7 +921,7 @@
     try {
       await client.saveTeaSettings({ playerGroups: state.playerGroups });
     } catch (e) { /* 月保存が本体 */ }
-    setStatus('当番表を保存しました。続けて「LINEで展開」できます');
+    setStatus('当番表を保存しました。続けて「PDFで展開」できます');
     updateRevisedFoot();
     setMonthBadge('保存済み');
     clearSwappedMarks();
@@ -988,7 +941,6 @@
     var res = await client.listTeaSupplies();
     state.supplies = res.items || [];
     renderSupplyEdit();
-    renderRestockChecks();
   }
 
   async function saveSupplies() {
@@ -998,7 +950,6 @@
     var res = await client.saveTeaSupplies({ items: collectSuppliesFromEdit() });
     state.supplies = res.items || [];
     renderSupplyEdit();
-    renderRestockChecks();
     setStatus('品目マスタを保存しました');
   }
 
@@ -1023,72 +974,6 @@
     setStatus('パスワードを変更しました（他端末でも新しいパスワードになります）');
   }
 
-  function genRoster() {
-    var days = collectDays();
-    if (!days.length) {
-      setStatus('当番表に日付がありません', true);
-      return;
-    }
-    var text = Line.formatMonthRoster({
-      title: (cfg.teamName || '') + ' お茶当番',
-      ymLabel: formatYmLabel(currentYm()),
-      revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
-      days: days.map(function (d) {
-        var names = d.playerGroup ? playerNamesForGroup(d.playerGroup).join('・') : '';
-        return {
-          activityDate: d.activityDate,
-          dutyA: shortName(d.dutyA),
-          dutyB: shortName(d.dutyB),
-          playerGroup: d.playerGroup,
-          playerNames: names
-        };
-      })
-    });
-    setPreview(text);
-    setStatus('当番表の文面を作成しました。コピーして MG LINE へ');
-    setFlow('share');
-  }
-  function genPickup() {
-    var d = selectedDay();
-    if (!d) { setStatus('対象日を選んでください', true); return; }
-    setPreview(Line.formatPickupAssign(shortName(d.dutyA), shortName(d.dutyB)));
-    setFlow('share');
-  }
-  function genRestock() {
-    var items = [];
-    [].slice.call(document.querySelectorAll('.tea-restock-cb:checked')).forEach(function (cb) {
-      var row = cb.closest('.tea-supply-row');
-      var qty = row ? (row.querySelector('.tea-restock-qty').value || '').trim() : '';
-      items.push({
-        label: cb.getAttribute('data-label') || '',
-        unitHint: cb.getAttribute('data-unit') || '',
-        qty: qty
-      });
-    });
-    setPreview(Line.formatRestock(items));
-    setFlow('share');
-  }
-  function genSwap() {
-    var ls = state.lastSwap;
-    var d = selectedDay();
-    var activityDate = (ls && ls.activityDate) || (d && d.activityDate) || '';
-    var fromName = ls ? shortName(ls.fromName) : '';
-    var toName = ls ? shortName(ls.toName) : '';
-    if (!activityDate || !fromName || !toName) {
-      setStatus('表の当番枠を入れ替えてから「交代連絡」を押してください', true);
-      setFlow('change');
-      return;
-    }
-    if ($('tea-line-day')) $('tea-line-day').value = activityDate;
-    setPreview(Line.formatSwap([{
-      activityDate: activityDate,
-      fromName: fromName,
-      toName: toName
-    }]));
-    setStatus('交代連絡の文面を作成しました。コピーして MG LINE へ');
-    setFlow('share');
-  }
-
   function bind() {
     var now = new Date();
     if ($('tea-ym') && !$('tea-ym').value) {
@@ -1104,7 +989,6 @@
     }
     $('tea-btn-add-day').addEventListener('click', function () {
       addDayRow();
-      refreshLineDaySelect();
     });
     if ($('tea-btn-undo-swap')) {
       $('tea-btn-undo-swap').addEventListener('click', undoLastSwap);
@@ -1117,7 +1001,9 @@
         savePlayerGroups().catch(function (e) { setStatus(e.message || String(e), true); });
       });
     }
-    $('tea-btn-print').addEventListener('click', function () { window.print(); });
+    function onPrint() { doPrint(); }
+    if ($('tea-btn-print')) $('tea-btn-print').addEventListener('click', onPrint);
+    if ($('tea-btn-share-print')) $('tea-btn-share-print').addEventListener('click', onPrint);
     $('tea-revised').addEventListener('input', updateRevisedFoot);
     $('tea-ym').addEventListener('change', function () {
       updateMonthChrome();
@@ -1138,16 +1024,6 @@
       btn.addEventListener('click', function () {
         setFlow(btn.getAttribute('data-tea-flow') || 'make');
       });
-    });
-    if ($('tea-line-roster')) $('tea-line-roster').addEventListener('click', genRoster);
-    $('tea-line-pickup').addEventListener('click', genPickup);
-    $('tea-line-restock').addEventListener('click', function () {
-      if ($('tea-restock-panel')) $('tea-restock-panel').open = true;
-      genRestock();
-    });
-    $('tea-line-swap').addEventListener('click', genSwap);
-    $('tea-line-copy').addEventListener('click', function () {
-      copyText(($('tea-line-preview') && $('tea-line-preview').textContent) || '');
     });
 
     $('tea-supply-add').addEventListener('click', function () {
