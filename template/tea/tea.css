@@ -49,7 +49,16 @@ body.tea-body{
   font:inherit;font-size:13px;font-weight:700;cursor:pointer;
 }
 .tea-btn-primary{background:var(--tea-navy);color:#fff;}
-.tea-btn-line{background:#06c755;color:#fff;}
+.tea-btn-line{
+  background:#06c755;color:#fff;
+  border:2px solid #048c44;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.tea-btn-line-wide{
+  width:100%;min-height:48px;font-size:15px;justify-content:center;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.tea-btn-svg-line{width:22px;height:22px;fill:currentColor;stroke:none;}
 .tea-btn-ghost{background:var(--tea-surface);color:var(--tea-heading);}
 .tea-btn-danger{background:#fdecec;color:var(--tea-red);}
 .tea-btn-warn{background:var(--tea-swap);color:#fff;}
@@ -146,8 +155,8 @@ body.tea-body{
 .tea-tbl{width:100%;border-collapse:collapse;table-layout:fixed;min-width:720px;font-size:13px;}
 .tea-col-date{width:118px;}
 .tea-col-wd{width:36px;}
-.tea-col-duty{width:18%;}
-.tea-col-pg{width:34%;}
+.tea-col-duty{width:28%;}
+.tea-col-pg{width:72px;}
 .tea-col-del{width:44px;}
 .tea-tbl th,.tea-tbl td{border-bottom:1px solid var(--tea-bdr);padding:4px 4px;vertical-align:middle;}
 .tea-tbl th{background:var(--tea-surface);font-size:11px;font-weight:800;color:var(--tea-heading);text-align:left;position:sticky;top:0;z-index:1;}
@@ -235,8 +244,6 @@ body.tea-body{
   padding:4px 6px;font:inherit;font-size:12px;background:#fff;
 }
 .tea-gadd .tea-btn{min-height:32px;padding:4px 8px;font-size:12px;}
-.tea-pg-cell{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.tea-pg-names{font-size:11px;color:var(--tea-txt2);line-height:1.35;word-break:break-word;}
 
 .tea-supply-list{display:flex;flex-direction:column;gap:6px;}
 .tea-supply-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
@@ -272,17 +279,6 @@ body.tea-body{
 }
 
 @media print{
-  .tea-hdr-link,.tea-btn,.tea-pw,.tea-no-print,.tea-flow,.tea-flow-hint,.tea-dirty-badge,.tea-note-edit{display:none !important;}
-  .tea-print-only{display:block !important;}
-  .tea-print-title{font-size:14px;font-weight:900;margin:0 0 8px;color:#000;}
-  .tea-wrap{max-width:none;padding:0;}
-  .tea-card{box-shadow:none;border:none;break-inside:avoid;padding:0;}
-  .tea-tbl{min-width:0;font-size:11px;}
-  .tea-col-duty{width:20%;}
-  .tea-col-pg{width:32%;}
-  .tea-duty-box{border:1px solid #999;background:#fff;}
-  .tea-duty-grip{display:none;}
-  .tea-pg-names{color:#333;}
-  .tea-note-lab{margin-top:10px;}
+  .tea-hdr-link,.tea-btn,.tea-pw,.tea-no-print,.tea-flow,.tea-flow-hint,.tea-dirty-badge{display:none !important;}
   body.tea-body{background:#fff;color:#000;}
 }

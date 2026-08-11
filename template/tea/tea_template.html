@@ -14,15 +14,15 @@
 <body class="tea-body">
 <svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
   <symbol id="tea-i-undo" viewBox="0 0 24 24"><path d="M9 7H5V3"/><path d="M5 7a8 8 0 1 1-1.2 4.5"/><path d="M5 7l4.2 1.2"/></symbol>
-  <symbol id="tea-i-print" viewBox="0 0 24 24"><path d="M7 8V4h10v4"/><path d="M6 14H4a1 1 0 0 1-1-1v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/><path d="M8 17h8"/></symbol>
   <symbol id="tea-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="tea-i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M7 7l1 12h8l1-12"/><path d="M10 11v5M14 11v5"/></symbol>
+  <symbol id="tea-i-line" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.065 9.61.391.084.924.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.958-4.097 9.491-7.015C23.176 14.393 24 12.458 24 10.314"/></symbol>
 </svg>
 
 <header class="tea-hdr tcb-shell-hdr">
   <img class="tcb-shell-logo" src="../team-logo.png" width="42" height="42" alt="東海中央ボーイズ">
   <span class="tcb-shell-chip" aria-hidden="true">{{COHORT_LABEL}}</span>
-  <h1>お茶当番<span>{{TEAM_NAME}} · 月次表／PDF展開</span></h1>
+  <h1>お茶当番<span>{{TEAM_NAME}} · 月次表／LINE展開</span></h1>
   <a class="tea-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
@@ -43,15 +43,15 @@
     </button>
     <button type="button" class="tea-flow-btn" data-tea-flow="share" id="tea-flow-share">
       <span class="tea-flow-num">2</span>
-      <span class="tea-flow-lab">PDFで展開</span>
+      <span class="tea-flow-lab">LINEで展開</span>
     </button>
     <button type="button" class="tea-flow-btn" data-tea-flow="change" id="tea-flow-change">
       <span class="tea-flow-num">3</span>
       <span class="tea-flow-lab">変更を反映</span>
     </button>
   </nav>
-  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「保存してPDF」へ。</p>
-  <p id="tea-dirty-badge" class="tea-dirty-badge tea-hidden tea-no-print" role="status">未保存の変更あり — 先に保存してからPDF展開してください</p>
+  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「保存・LINE送信」へ。</p>
+  <p id="tea-dirty-badge" class="tea-dirty-badge tea-hidden tea-no-print" role="status">未保存の変更あり — 「保存・LINE送信」で保存してから展開できます</p>
 
   <section class="tea-card tea-card-main" id="tea-panel-table">
     <div class="tea-toolbar tea-no-print" role="navigation" aria-label="月の切替と操作">
@@ -69,14 +69,10 @@
         <svg viewBox="0 0 24 24"><use href="#tea-i-undo"/></svg>
       </button>
       <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">保存</button>
-      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ico tea-btn-ghost" title="保存してPDF" aria-label="保存してPDF">
-        <svg viewBox="0 0 24 24"><use href="#tea-i-print"/></svg>
-      </button>
     </div>
 
     <p id="tea-month-badge" class="tea-meta tea-no-print"></p>
 
-    <p class="tea-print-only tea-print-title" id="tea-print-title"></p>
     <div class="tea-tbl-wrap" id="tea-print-area">
       <table class="tea-tbl" id="tea-day-tbl">
         <colgroup>
@@ -105,24 +101,23 @@
       <input id="tea-revised" class="tea-revised-inp" maxlength="40" placeholder="更新表記 例: 2026.8.11更新" aria-label="更新表記">
       <p id="tea-revised-foot" class="tea-revised-foot"></p>
     </div>
-    <p class="tea-print-only tea-revised-foot" id="tea-revised-print"></p>
 
-    <div class="tea-note-block">
+    <div class="tea-note-block tea-no-print">
       <label class="tea-note-lab" for="tea-note">備考</label>
       <textarea id="tea-note" class="tea-note-edit" maxlength="1200" rows="7" aria-label="備考"></textarea>
-      <pre class="tea-print-only tea-note-print" id="tea-note-print"></pre>
     </div>
   </section>
 
   <section class="tea-card tea-no-print tea-card-compact" id="tea-panel-share">
-    <h2>PDFで展開</h2>
-    <p class="tea-hint">内容を保存したうえで印刷し、「PDFに保存」したファイルを MG LINE に添付します。</p>
+    <h2>LINEで展開</h2>
+    <p class="tea-hint">保存したあと、共有PDF体裁のファイルを作成し、スマホでは共有シートからLINEへ送信できます（PCはPDFダウンロード）。</p>
     <div class="tea-row">
-      <button type="button" id="tea-btn-share-print" class="tea-btn tea-btn-primary">
-        <svg class="tea-btn-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#tea-i-print"/></svg>
-        保存してPDF
+      <button type="button" id="tea-btn-share-line" class="tea-btn tea-btn-line tea-btn-line-wide">
+        <svg class="tea-btn-svg tea-btn-svg-line" viewBox="0 0 24 24" aria-hidden="true"><use href="#tea-i-line"/></svg>
+        保存・LINE送信
       </button>
     </div>
+    <p id="tea-share-status" class="tea-status"></p>
   </section>
 
   <details class="tea-card tea-details-card tea-no-print" id="tea-panel-groups">
@@ -158,6 +153,7 @@
 <script>
 window.TCB_TEA_CFG={
   cohort:{{COHORT_KEY_JSON}},
+  cohortLabel:{{COHORT_LABEL_JSON}},
   apiBase:{{SYNC_API_BASE_URL_JSON}},
   apiToken:{{SYNC_API_TOKEN_JSON}},
   initialPw:{{INITIAL_PW_JSON}},
@@ -166,8 +162,14 @@ window.TCB_TEA_CFG={
 };
 </script>
 <script src="../tcb-sync-api.js"></script>
+<script src="../tcb-device.js"></script>
+<script src="../jspdf.umd.min.js"></script>
+<script src="../html2canvas.min.js"></script>
+<script src="../html2pdf.min.js"></script>
+<script src="../tcb-print-pdf.js"></script>
 <script src="../attendance/attendance-jp-calendar.js"></script>
 <script src="tea-line.js"></script>
+<script src="tea-print.js"></script>
 <script src="tea-seed-2026-08.js"></script>
 <script src="tea-app.js"></script>
 </body>

@@ -196,6 +196,7 @@ def build_portal_and_attendance(target, config, out_dir):
         'LS_PREFIX': str(config.get('LS_PREFIX', '')),
         'PAGES_BASE_URL': pages_base,
         'COHORT_KEY_JSON': json.dumps(cohort, ensure_ascii=False),
+        'COHORT_LABEL_JSON': json.dumps(str(config.get('COHORT_LABEL', '')), ensure_ascii=False),
         'TEAM_NAME_JSON': json.dumps(str(config.get('TEAM_NAME', '')), ensure_ascii=False),
         'SYNC_API_BASE_URL_JSON': json.dumps(str(config.get('SYNC_API_BASE_URL', '')), ensure_ascii=False),
         'SYNC_API_TOKEN_JSON': json.dumps(str(config.get('SYNC_API_TOKEN', '')), ensure_ascii=False),
@@ -285,7 +286,7 @@ def build_portal_and_attendance(target, config, out_dir):
         with open(os.path.join(tea_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(tea) → {tea_dir}/index.html')
-    tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js', 'tea-seed-2026-08.js')
+    tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js', 'tea-print.js', 'tea-seed-2026-08.js')
     tea_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tea')
     for name in tea_assets:
         src = os.path.join(tea_src_dir, name)

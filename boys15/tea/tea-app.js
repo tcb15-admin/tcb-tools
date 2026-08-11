@@ -212,10 +212,6 @@
     var ym = currentYm();
     var lab = formatYmLabel(ym);
     if ($('tea-ym-label')) $('tea-ym-label').textContent = lab;
-    if ($('tea-print-title')) {
-      $('tea-print-title').textContent =
-        (cfg.teamName || '') + ' お茶当番　' + lab;
-    }
     var now = new Date();
     var cur = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     ['tea-ym-prev', 'tea-ym-now', 'tea-ym-next'].forEach(function (id) {
@@ -428,20 +424,17 @@
       '<td><div class="tea-duty-box" data-slot="B" title="ドラッグ／タップで他の枠と入れ替え">' +
         '<span class="tea-duty-grip" aria-hidden="true">⇄</span>' +
         '<select class="tea-d-b">' + memberOptionsHtml(prefill.dutyB, true, 'tea') + '</select></div></td>' +
-      '<td><div class="tea-pg-cell">' +
-        '<select class="tea-d-pg" aria-label="選手班">' +
+      '<td><select class="tea-d-pg" aria-label="選手班">' +
         '<option value="">—</option>' +
         [1, 2, 3, 4, 5, 6].map(function (n) {
           return '<option value="' + n + '"' + (String(prefill.playerGroup) === String(n) ? ' selected' : '') + '>' + n + '班</option>';
         }).join('') +
-        '</select>' +
-        '<span class="tea-pg-names"></span></div></td>' +
+      '</select></td>' +
       '<td class="tea-no-print">' +
         '<button type="button" class="tea-btn tea-btn-ico tea-btn-danger tea-d-del" title="この行を削除" aria-label="この行を削除">' +
         '<svg viewBox="0 0 24 24"><use href="#tea-i-trash"/></svg></button></td>';
     $('tea-day-body').appendChild(tr);
     tr.querySelectorAll('.tea-duty-box').forEach(bindDutyBox);
-    updatePlayerGroupHint(tr);
     tr.querySelector('.tea-d-date').addEventListener('change', function () {
       tr.querySelector('.tea-wd').textContent = weekdayLabel(this.value);
       markDirty();
@@ -451,7 +444,6 @@
       markDirty();
     });
     tr.querySelector('.tea-d-pg').addEventListener('change', function () {
-      updatePlayerGroupHint(tr);
       markDirty();
     });
     ['.tea-d-a', '.tea-d-b'].forEach(function (sel) {
@@ -467,25 +459,6 @@
   function playerNamesForGroup(g) {
     var list = state.playerGroups[String(g)] || [];
     return list.map(shortName).filter(Boolean);
-  }
-
-  function updatePlayerGroupHint(tr) {
-    if (!tr) return;
-    var sel = tr.querySelector('.tea-d-pg');
-    var hint = tr.querySelector('.tea-pg-names');
-    if (!sel || !hint) return;
-    var g = sel.value;
-    if (!g) {
-      hint.textContent = '';
-      return;
-    }
-    var names = playerNamesForGroup(g);
-    hint.textContent = names.length ? names.join('・') : '（名簿未設定）';
-    hint.title = names.join('、');
-  }
-
-  function refreshAllPlayerGroupHints() {
-    document.querySelectorAll('.tea-day-row').forEach(updatePlayerGroupHint);
   }
 
   function collectDays() {
@@ -614,7 +587,6 @@
         state.playerGroups[String(g)] = sortNamesByRoster(state.playerGroups[String(g)]);
         markDirty();
         renderGroups();
-        refreshAllPlayerGroupHints();
         setStatus(shortName(name) + ' を ' + g + '班へ振り分けました（未保存）');
       });
     }
@@ -629,7 +601,6 @@
         );
         markDirty();
         renderGroups();
-        refreshAllPlayerGroupHints();
         setStatus(shortName(name) + ' を未割当に戻しました（未保存）');
       });
     });
@@ -640,9 +611,9 @@
   }
 
   var FLOW_HINTS = {
-    make: '前月から作成 → 内容確認 → 保存。そのあと「保存してPDF」へ。',
-    share: '「保存してPDF」で保存＋印刷し、PDFを MG LINE に添付します。',
-    change: '枠を入れ替え／名簿を修正 →「保存してPDF」で再展開。'
+    make: '前月から作成 → 内容確認 → 保存。そのあと「保存・LINE送信」へ。',
+    share: '「保存・LINE送信」でPDFを作成し、共有シートから MG LINE へ送ります。',
+    change: '枠を入れ替え／名簿を修正 →「保存・LINE送信」で再展開。'
   };
 
   function setFlow(mode) {
@@ -659,20 +630,68 @@
     }
   }
 
-  async function doPrint() {
+  function setShareStatus(msg, isErr) {
+    var el = $('tea-share-status');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.className = 'tea-status' + (isErr ? ' err' : '');
+  }
+
+  function shortNamesForPdf(groups) {
+    var out = { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] };
+    for (var i = 1; i <= 6; i++) {
+      out[String(i)] = (groups[String(i)] || []).map(shortName).filter(Boolean);
+    }
+    return out;
+  }
+
+  async function doShareLine() {
+    var Print = window.TCB_TeaPrint;
+    if (!Print || typeof Print.shareTeaPdf !== 'function') {
+      setShareStatus('PDF共有部品が読み込まれていません', true);
+      return;
+    }
     setFlow('share');
-    if (state.dirty) {
-      setStatus('未保存のため、先に保存してからPDFにします…');
-      try {
+    var btn = $('tea-btn-share-line');
+    if (btn) btn.disabled = true;
+    try {
+      if (state.dirty) {
+        setShareStatus('未保存のため、先に保存します…');
         await saveMonth();
-      } catch (e) {
-        setStatus((e && e.message) || '保存に失敗したため印刷を中止しました', true);
+      }
+      setShareStatus('PDFを作成しています…');
+      var result = await Print.shareTeaPdf({
+        ym: currentYm(),
+        cohortLabel: cfg.cohortLabel || (cfg.cohort ? cfg.cohort + '期' : ''),
+        revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
+        note: ($('tea-note') && $('tea-note').value) || '',
+        days: collectDays().map(function (d) {
+          return {
+            activityDate: d.activityDate,
+            dutyA: shortName(d.dutyA),
+            dutyB: shortName(d.dutyB),
+            playerGroup: d.playerGroup
+          };
+        }),
+        playerGroups: shortNamesForPdf(collectGroups())
+      });
+      if (result && result.mode === 'download') {
+        setShareStatus('PDFをダウンロードしました（' + result.fileName + '）。MG LINE に添付して送信してください。');
+        setStatus('PDFをダウンロードしました');
+      } else {
+        setShareStatus('共有シートを開きました。LINE を選んで送信してください。');
+        setStatus('LINE共有の準備ができました');
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') {
+        setShareStatus('共有をキャンセルしました');
         return;
       }
+      setShareStatus((e && e.message) || 'LINE送信に失敗しました', true);
+      setStatus((e && e.message) || 'LINE送信に失敗しました', true);
+    } finally {
+      if (btn) btn.disabled = false;
     }
-    syncNotePrint();
-    updateRevisedFoot();
-    window.print();
   }
 
   function renderSupplyEdit() {
@@ -896,7 +915,6 @@
     updateRevisedFoot();
     syncNotePrint();
     renderGroups();
-    refreshAllPlayerGroupHints();
     if (res.month) {
       setMonthBadge('保存済み（最終更新: ' + (res.month.updatedAt || res.month.revisedAt || '—') + '）');
       setStatus(formatYmLabel(ym) + ' の表を読み込みました');
@@ -990,7 +1008,6 @@
       $('tea-revised').value = today.getFullYear() + '.' + (today.getMonth() + 1) + '.' + today.getDate() + '作成';
       updateRevisedFoot();
     }
-    refreshAllPlayerGroupHints();
     setMonthBadge(formatYmLabel(prevYm) + ' の続きで ' + dates.length + ' 日分を仮作成しました。確認して「保存」してください。');
     setStatus('前月から作成しました（未保存）');
     setFlow('make');
@@ -1025,7 +1042,6 @@
       }
     }
     renderGroups();
-    refreshAllPlayerGroupHints();
     clearDirty();
     setStatus('選手班を保存しました');
   }
@@ -1050,21 +1066,19 @@
     try {
       await client.saveTeaSettings({ playerGroups: state.playerGroups });
     } catch (e) { /* 月保存が本体 */ }
-    setStatus('保存しました。「保存してPDF」で展開できます');
+    setStatus('保存しました。「保存・LINE送信」で展開できます');
     updateRevisedFoot();
     syncNotePrint();
     setMonthBadge('保存済み');
     clearSwappedMarks();
     state.swapUndoStack = [];
     updateUndoBtn();
-    refreshAllPlayerGroupHints();
     clearDirty();
   }
 
   function updateRevisedFoot() {
     var t = ($('tea-revised') && $('tea-revised').value) || '';
     if ($('tea-revised-foot')) $('tea-revised-foot').textContent = t;
-    if ($('tea-revised-print')) $('tea-revised-print').textContent = t;
   }
 
   async function loadSupplies() {
@@ -1134,11 +1148,11 @@
         savePlayerGroups().catch(function (e) { setStatus(e.message || String(e), true); });
       });
     }
-    function onPrint() {
-      doPrint().catch(function (e) { setStatus(e.message || String(e), true); });
+    if ($('tea-btn-share-line')) {
+      $('tea-btn-share-line').addEventListener('click', function () {
+        doShareLine().catch(function (e) { setStatus(e.message || String(e), true); });
+      });
     }
-    if ($('tea-btn-print')) $('tea-btn-print').addEventListener('click', onPrint);
-    if ($('tea-btn-share-print')) $('tea-btn-share-print').addEventListener('click', onPrint);
     if ($('tea-revised')) {
       $('tea-revised').addEventListener('input', function () {
         updateRevisedFoot();
