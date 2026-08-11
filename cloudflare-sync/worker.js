@@ -1288,27 +1288,82 @@ function mapTeaDay(r) {
 
 async function getTeaSettings(env, cohortRaw) {
   const cohort = mustCohort(cohortRaw);
-  const row = await env.DB.prepare("SELECT password_hash, updated_at FROM tea_settings WHERE cohort = ?")
-    .bind(cohort)
-    .first();
+  let row = null;
+  try {
+    row = await env.DB.prepare(
+      "SELECT password_hash, player_groups_json, updated_at FROM tea_settings WHERE cohort = ?"
+    )
+      .bind(cohort)
+      .first();
+  } catch (e) {
+    // 旧スキーマ（player_groups_json 未追加）向けフォールバック
+    row = await env.DB.prepare("SELECT password_hash, updated_at FROM tea_settings WHERE cohort = ?")
+      .bind(cohort)
+      .first();
+  }
   return {
     passwordHash: row ? String(row.password_hash || "") : "",
+    playerGroups: normalizePlayerGroups(row && row.player_groups_json),
     updatedAt: row ? String(row.updated_at || "") : "",
   };
 }
 
 async function saveTeaSettings(env, body) {
   const cohort = mustCohort(body && body.cohort);
-  const hash = String((body && body.passwordHash) || "").trim();
-  if (hash && !/^[0-9a-f]{32}$/i.test(hash)) throw new Error("password_hash_invalid");
+  const hasHash = body && Object.prototype.hasOwnProperty.call(body, "passwordHash");
+  const hasGroups = body && Object.prototype.hasOwnProperty.call(body, "playerGroups");
+  if (!hasHash && !hasGroups) throw new Error("settings_empty");
+
+  let hash = "";
+  if (hasHash) {
+    hash = String(body.passwordHash || "").trim();
+    if (hash && !/^[0-9a-f]{32}$/i.test(hash)) throw new Error("password_hash_invalid");
+  }
+
   const now = new Date().toISOString();
-  await env.DB.prepare(
-    "INSERT INTO tea_settings (cohort, password_hash, updated_at) VALUES (?, ?, ?) " +
-      "ON CONFLICT(cohort) DO UPDATE SET password_hash = excluded.password_hash, updated_at = excluded.updated_at"
-  )
-    .bind(cohort, hash, now)
-    .run();
-  return { ok: true, updatedAt: now };
+  let cur = null;
+  try {
+    cur = await env.DB.prepare(
+      "SELECT password_hash, player_groups_json FROM tea_settings WHERE cohort = ?"
+    )
+      .bind(cohort)
+      .first();
+  } catch (e) {
+    cur = await env.DB.prepare("SELECT password_hash FROM tea_settings WHERE cohort = ?")
+      .bind(cohort)
+      .first();
+  }
+
+  const nextHash = hasHash ? hash : cur ? String(cur.password_hash || "") : "";
+  const nextGroups = hasGroups
+    ? normalizePlayerGroups(body.playerGroups)
+    : normalizePlayerGroups(cur && cur.player_groups_json);
+
+  try {
+    await env.DB.prepare(
+      "INSERT INTO tea_settings (cohort, password_hash, player_groups_json, updated_at) VALUES (?, ?, ?, ?) " +
+        "ON CONFLICT(cohort) DO UPDATE SET " +
+        "password_hash = excluded.password_hash, " +
+        "player_groups_json = excluded.player_groups_json, " +
+        "updated_at = excluded.updated_at"
+    )
+      .bind(cohort, nextHash, JSON.stringify(nextGroups), now)
+      .run();
+  } catch (e) {
+    // カラム未追加時はパスワードのみ（migrate_tea_player_groups.sql を適用してください）
+    if (!hasHash) throw new Error("player_groups_column_missing");
+    await env.DB.prepare(
+      "INSERT INTO tea_settings (cohort, password_hash, updated_at) VALUES (?, ?, ?) " +
+        "ON CONFLICT(cohort) DO UPDATE SET password_hash = excluded.password_hash, updated_at = excluded.updated_at"
+    )
+      .bind(cohort, nextHash, now)
+      .run();
+  }
+  return {
+    ok: true,
+    updatedAt: now,
+    playerGroups: nextGroups,
+  };
 }
 
 async function listTeaMembers(env, cohortRaw) {
@@ -1376,6 +1431,12 @@ async function getTeaMonth(env, cohortRaw, yearMonthRaw) {
   const cohort = mustCohort(cohortRaw);
   const ym = String(yearMonthRaw || "").trim();
   if (!YM_RE.test(ym)) throw new Error("year_month_invalid");
+  const settings = await getTeaSettings(env, cohort);
+  const settingsGroups = settings.playerGroups || emptyPlayerGroups();
+  const hasSettingsGroups = Object.keys(settingsGroups).some(
+    (k) => Array.isArray(settingsGroups[k]) && settingsGroups[k].length > 0
+  );
+
   const row = await env.DB.prepare("SELECT * FROM tea_months WHERE cohort = ? AND year_month = ?")
     .bind(cohort, ym)
     .first();
@@ -1383,9 +1444,10 @@ async function getTeaMonth(env, cohortRaw, yearMonthRaw) {
     return {
       month: null,
       days: [],
-      playerGroups: emptyPlayerGroups(),
+      playerGroups: hasSettingsGroups ? settingsGroups : emptyPlayerGroups(),
     };
   }
+  const monthGroups = normalizePlayerGroups(row.player_groups_json);
   return {
     month: {
       id: String(row.id),
@@ -1396,7 +1458,7 @@ async function getTeaMonth(env, cohortRaw, yearMonthRaw) {
       updatedAt: String(row.updated_at || ""),
     },
     days: await loadTeaDays(env, row.id),
-    playerGroups: normalizePlayerGroups(row.player_groups_json),
+    playerGroups: hasSettingsGroups ? settingsGroups : monthGroups,
   };
 }
 
@@ -1455,6 +1517,13 @@ async function upsertTeaMonth(env, body) {
     )
       .bind(id, cohort, ym, note, JSON.stringify(playerGroups), revisedAt, createdAt, now)
       .run();
+  }
+
+  // 選手班は期共通設定としても保持（月をまたいでも同じ名簿）
+  try {
+    await saveTeaSettings(env, { cohort, playerGroups });
+  } catch (e) {
+    /* migrate 未適用でも月次保存は続行 */
   }
 
   for (const d of days) {

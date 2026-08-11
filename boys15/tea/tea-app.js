@@ -360,6 +360,120 @@
     setStatus(added ? ('土日祝を ' + added + ' 日追加しました（当番は未設定）') : '追加する土日祝はありませんでした');
   }
 
+  function groupsHaveMembers(groups) {
+    var g = groups || {};
+    return Object.keys(g).some(function (k) {
+      return Array.isArray(g[k]) && g[k].length > 0;
+    });
+  }
+
+  function emptyGroups() {
+    return { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] };
+  }
+
+  function resolveSeedGroups(seedGroups) {
+    var groups = emptyGroups();
+    Object.keys(seedGroups || {}).forEach(function (k) {
+      groups[k] = (seedGroups[k] || []).map(resolveMemberName).filter(Boolean);
+    });
+    return groups;
+  }
+
+  function teaRosterNames() {
+    return state.members
+      .filter(function (m) { return m.name && isOn(m.teaOk); })
+      .map(function (m) { return m.name; })
+      .sort(function (a, b) {
+        return shortName(a).localeCompare(shortName(b), 'ja');
+      });
+  }
+
+  function indexOfName(roster, name) {
+    var want = normalizeKey(shortName(name));
+    if (!want) return -1;
+    for (var i = 0; i < roster.length; i++) {
+      if (normalizeKey(shortName(roster[i])) === want || normalizeKey(roster[i]) === normalizeKey(name)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function nextName(roster, prevName) {
+    if (!roster.length) return '';
+    var idx = indexOfName(roster, prevName);
+    if (idx < 0) return roster[0];
+    return roster[(idx + 1) % roster.length];
+  }
+
+  function nextPlayerGroup(prev) {
+    var n = Number(prev);
+    if (!Number.isFinite(n) || n < 1 || n > 6) return 1;
+    return n === 6 ? 1 : n + 1;
+  }
+
+  function weekendDatesInMonth(ym) {
+    if (!Cal || !Cal.toISO) return [];
+    if (!/^\d{4}-\d{2}$/.test(ym)) return [];
+    var y = Number(ym.slice(0, 4));
+    var m = Number(ym.slice(5, 7));
+    var start = new Date(y, m - 1, 1);
+    var end = new Date(y, m, 0);
+    var out = [];
+    var cursor = start;
+    while (cursor <= end) {
+      var iso = Cal.toISO(cursor);
+      var dow = cursor.getDay();
+      var isHol = Cal.isHoliday && Cal.isHoliday(iso);
+      if (dow === 0 || dow === 6 || isHol) out.push(iso);
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+    }
+    return out;
+  }
+
+  async function ensureBaseline() {
+    var seed = window.TCB_TeaSeed;
+    var client = ensureSync();
+    if (!client || !seed) return;
+
+    var settings = await client.getTeaSettings();
+    state.passwordHash = settings.passwordHash || state.passwordHash;
+    if (groupsHaveMembers(settings.playerGroups)) {
+      state.playerGroups = settings.playerGroups;
+    } else {
+      state.playerGroups = resolveSeedGroups(seed.playerGroups);
+      try {
+        await client.saveTeaSettings({ playerGroups: state.playerGroups });
+      } catch (e) {
+        /* カラム未追加時は後で月保存時に載せる */
+      }
+    }
+
+    var aug = await client.getTeaMonth(seed.yearMonth);
+    if (!aug.month) {
+      var days = (seed.days || []).map(function (d) {
+        return {
+          activityDate: d.activityDate,
+          dutyA: resolveMemberName(d.dutyA),
+          dutyB: resolveMemberName(d.dutyB),
+          playerGroup: d.playerGroup
+        };
+      });
+      await client.saveTeaMonth({
+        yearMonth: seed.yearMonth,
+        note: seed.note || '',
+        revisedAt: seed.revisedAt || '',
+        playerGroups: state.playerGroups,
+        days: days
+      });
+    } else if (!groupsHaveMembers(state.playerGroups) && groupsHaveMembers(aug.playerGroups)) {
+      state.playerGroups = aug.playerGroups;
+      try {
+        await client.saveTeaSettings({ playerGroups: state.playerGroups });
+      } catch (e) {}
+    }
+  }
+
   async function loadMonth() {
     var client = ensureSync();
     if (!client) return;
@@ -371,7 +485,9 @@
     updateMonthChrome();
     setStatus('読込中…');
     var res = await client.getTeaMonth(ym);
-    state.playerGroups = res.playerGroups || state.playerGroups;
+    if (groupsHaveMembers(res.playerGroups)) {
+      state.playerGroups = res.playerGroups;
+    }
     $('tea-day-body').innerHTML = '';
     (res.days || []).forEach(function (d) {
       addDayRow({
@@ -390,43 +506,120 @@
       setMonthBadge('保存済み（最終更新: ' + (res.month.updatedAt || res.month.revisedAt || '—') + '）。交代があれば表を直して保存してください。');
       setStatus(formatYmLabel(ym) + ' の表を読み込みました');
     } else {
-      setMonthBadge('この月はまだ未保存です。共有表の登録、または土日祝の仮登録から始められます。');
+      setMonthBadge('この月はまだ未保存です。「前月を基に作成」で土日祝と持ち回りを埋められます。');
       setStatus(formatYmLabel(ym) + ' は未保存です');
     }
   }
 
-  async function applyAugSeed() {
-    var seed = window.TCB_TeaSeed;
-    if (!seed) {
-      setStatus('8月シードデータがありません', true);
+  async function createFromPreviousMonth() {
+    var client = ensureSync();
+    if (!client) return;
+    var ym = currentYm();
+    if (!/^\d{4}-\d{2}$/.test(ym)) {
+      setStatus('対象月を選んでください', true);
       return;
     }
-    if (!window.confirm('2026年8月の共有表（2026.7.31更新）を登録します。既存の8月データは上書きされます。よろしいですか？')) {
+    var existing = collectDays();
+    if (existing.length) {
+      if (!window.confirm(formatYmLabel(ym) + ' に既に日付があります。いったん消して前月から作り直しますか？')) {
+        return;
+      }
+    }
+
+    var prevYm = shiftYm(ym, -1);
+    setStatus(formatYmLabel(prevYm) + ' を参照して作成中…');
+    var prev = await client.getTeaMonth(prevYm);
+    var prevDays = (prev.days || []).slice().sort(function (a, b) {
+      return a.activityDate < b.activityDate ? -1 : 1;
+    });
+
+    if (!prevDays.length && window.TCB_TeaSeed && window.TCB_TeaSeed.yearMonth === prevYm) {
+      prevDays = (window.TCB_TeaSeed.days || []).map(function (d) {
+        return {
+          activityDate: d.activityDate,
+          dutyA: resolveMemberName(d.dutyA),
+          dutyB: resolveMemberName(d.dutyB),
+          playerGroup: d.playerGroup
+        };
+      });
+    }
+    if (!prevDays.length) {
+      setStatus(formatYmLabel(prevYm) + ' の当番表がありません。先に前月を保存してください', true);
       return;
     }
-    if ($('tea-ym')) $('tea-ym').value = seed.yearMonth;
-    updateMonthChrome();
+
+    var last = prevDays[prevDays.length - 1];
+    var roster = teaRosterNames();
+    var dutyA = last.dutyA || '';
+    var dutyB = last.dutyB || '';
+    var pg = last.playerGroup;
+
+    var dates = weekendDatesInMonth(ym);
+    if (!dates.length) {
+      setStatus('この月に土日祝がありません', true);
+      return;
+    }
+
     $('tea-day-body').innerHTML = '';
-    (seed.days || []).forEach(function (d) {
+    dates.forEach(function (iso) {
+      dutyA = nextName(roster, dutyA);
+      dutyB = nextName(roster, dutyB);
+      if (dutyB && dutyA && normalizeKey(shortName(dutyB)) === normalizeKey(shortName(dutyA))) {
+        dutyB = nextName(roster, dutyB);
+      }
+      pg = nextPlayerGroup(pg);
       addDayRow({
-        activityDate: d.activityDate,
-        dutyA: resolveMemberName(d.dutyA),
-        dutyB: resolveMemberName(d.dutyB),
-        playerGroup: d.playerGroup
+        activityDate: iso,
+        dutyA: dutyA,
+        dutyB: dutyB,
+        playerGroup: pg
       });
     });
-    var groups = { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] };
-    Object.keys(seed.playerGroups || {}).forEach(function (k) {
-      groups[k] = (seed.playerGroups[k] || []).map(resolveMemberName);
-    });
-    state.playerGroups = groups;
-    if ($('tea-note')) $('tea-note').value = seed.note || '';
-    if ($('tea-revised')) $('tea-revised').value = seed.revisedAt || '';
-    updateRevisedFoot();
-    renderGroups();
+
+    if ($('tea-note') && !$('tea-note').value) {
+      $('tea-note').value = (prev.month && prev.month.note) ||
+        (window.TCB_TeaSeed && window.TCB_TeaSeed.note) ||
+        'あいうえお順持ち回り（原則）。交代時のみ表を更新。';
+    }
+    var today = new Date();
+    if ($('tea-revised')) {
+      $('tea-revised').value = today.getFullYear() + '.' + (today.getMonth() + 1) + '.' + today.getDate() + '作成';
+      updateRevisedFoot();
+    }
     refreshLineDaySelect();
-    await saveMonth();
-    setMonthBadge('2026年8月共有表を登録しました。以降は交代時のみ更新してください。');
+    setMonthBadge(formatYmLabel(prevYm) + ' の続きで ' + dates.length + ' 日分を仮作成しました。内容を確認して「表を保存」してください。');
+    setStatus('前月を基に作成しました（未保存）');
+  }
+
+  async function savePlayerGroups() {
+    var client = ensureSync();
+    if (!client) return;
+    setStatus('選手班を保存中…');
+    state.playerGroups = collectGroups();
+    try {
+      await client.saveTeaSettings({ playerGroups: state.playerGroups });
+    } catch (e) {
+      setStatus((e && e.message) || '選手班の保存に失敗しました（D1マイグレーション未適用の可能性）', true);
+      return;
+    }
+    // 表示中の月があれば名簿も同期して保存（道具反映用の月次JSON互換）
+    var ym = currentYm();
+    if (ym && collectDays().length) {
+      try {
+        await client.saveTeaMonth({
+          yearMonth: ym,
+          note: ($('tea-note') && $('tea-note').value) || '',
+          revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
+          playerGroups: state.playerGroups,
+          days: collectDays()
+        });
+      } catch (e2) {
+        setStatus('選手班設定は保存しましたが、当月表への同期に失敗: ' + (e2.message || e2), true);
+        return;
+      }
+    }
+    renderGroups();
+    setStatus('選手班を保存しました（退部・休部時以外は変更不要）');
   }
 
   async function applySwapAndSave() {
@@ -485,15 +678,17 @@
       return;
     }
     setStatus('保存中…');
+    state.playerGroups = collectGroups();
     await client.saveTeaMonth({
       yearMonth: ym,
       note: ($('tea-note') && $('tea-note').value) || '',
       revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
-      playerGroups: collectGroups(),
+      playerGroups: state.playerGroups,
       days: collectDays()
     });
     setStatus('当番表を保存しました（道具割振りへ反映可能）');
     updateRevisedFoot();
+    setMonthBadge('保存済み。交代があれば表を直して保存してください。');
   }
 
   function updateRevisedFoot() {
@@ -595,9 +790,11 @@
     $('tea-btn-load').addEventListener('click', function () {
       loadMonth().catch(function (e) { setStatus(e.message || String(e), true); });
     });
-    $('tea-btn-seed-aug').addEventListener('click', function () {
-      applyAugSeed().catch(function (e) { setStatus(e.message || String(e), true); });
-    });
+    if ($('tea-btn-from-prev')) {
+      $('tea-btn-from-prev').addEventListener('click', function () {
+        createFromPreviousMonth().catch(function (e) { setStatus(e.message || String(e), true); });
+      });
+    }
     $('tea-btn-fill-cal').addEventListener('click', fillWeekendDays);
     $('tea-btn-add-day').addEventListener('click', function () {
       addDayRow();
@@ -606,6 +803,11 @@
     $('tea-btn-save').addEventListener('click', function () {
       saveMonth().catch(function (e) { setStatus(e.message || String(e), true); });
     });
+    if ($('tea-btn-save-groups')) {
+      $('tea-btn-save-groups').addEventListener('click', function () {
+        savePlayerGroups().catch(function (e) { setStatus(e.message || String(e), true); });
+      });
+    }
     $('tea-btn-print').addEventListener('click', function () { window.print(); });
     $('tea-revised').addEventListener('input', updateRevisedFoot);
     $('tea-ym').addEventListener('change', function () {
@@ -663,9 +865,13 @@
     try {
       var settings = await client.getTeaSettings();
       state.passwordHash = settings.passwordHash || '';
+      if (groupsHaveMembers(settings.playerGroups)) {
+        state.playerGroups = settings.playerGroups;
+      }
       var mem = await client.listTeaMembers();
       state.members = mem.members || [];
       await loadSupplies();
+      await ensureBaseline();
       await loadMonth();
     } catch (e) {
       setStatus(e.message || String(e), true);

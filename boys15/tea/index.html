@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.12.4">
-<link rel="stylesheet" href="tea.css?v=1.12.4">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.12.5">
+<link rel="stylesheet" href="tea.css?v=1.12.5">
 </head>
 <body class="tea-body">
 <header class="tea-hdr tcb-shell-hdr">
@@ -31,7 +31,7 @@
 <main class="tea-wrap" id="tea-main">
   <section class="tea-card">
     <h2>当番表</h2>
-    <p class="tea-meta">お茶当番A／Bは<strong>コーチ保護者</strong>のあいうえお順持ち回り（名簿は選手名で世帯識別）。原則は月次リリース後に毎回の組み直しはせず、<strong>交代時だけ表を更新</strong>します。選手当番も同様です。</p>
+    <p class="tea-meta">お茶当番A／Bは<strong>コーチ保護者</strong>のあいうえお順持ち回り（名簿は選手名で世帯識別）。原則は月次リリース後に毎回の組み直しはせず、<strong>交代時だけ表を更新</strong>します。新しい月は「前月を基に作成」で土日祝と持ち回りを埋められます。</p>
 
     <div class="tea-month-nav tea-no-print" role="navigation" aria-label="月の切替">
       <button type="button" id="tea-ym-prev" class="tea-btn tea-btn-ghost">◀ 前月</button>
@@ -56,8 +56,8 @@
     </div>
     <div class="tea-row tea-no-print">
       <button type="button" id="tea-btn-load" class="tea-btn tea-btn-ghost">読込</button>
-      <button type="button" id="tea-btn-seed-aug" class="tea-btn tea-btn-ghost">2026年8月共有表を登録</button>
-      <button type="button" id="tea-btn-fill-cal" class="tea-btn tea-btn-ghost">土日祝を仮登録</button>
+      <button type="button" id="tea-btn-from-prev" class="tea-btn tea-btn-ghost">前月を基に作成</button>
+      <button type="button" id="tea-btn-fill-cal" class="tea-btn tea-btn-ghost">土日祝のみ追加</button>
       <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ghost">日付追加</button>
       <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">表を保存</button>
       <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ghost">印刷／PDF</button>
@@ -83,8 +83,11 @@
 
   <section class="tea-card">
     <h2>選手当番（1〜6班）</h2>
-    <p class="tea-meta">選手のみ（コーチ保護者は含みません）。Cmd/Ctrl＋クリックで複数選択。表の「選手当番」列で班番号を指定します。</p>
+    <p class="tea-meta">選手のみ（コーチ保護者は含みません）。<strong>毎月は変わりません</strong>。退部・休部などで名簿が変わるときだけ修正してください。表の「選手当番」列でその日の班番号を指定します。</p>
     <div class="tea-groups" id="tea-groups"></div>
+    <div class="tea-row tea-no-print" style="margin-top:10px">
+      <button type="button" id="tea-btn-save-groups" class="tea-btn tea-btn-primary">選手班を保存</button>
+    </div>
   </section>
 
   <section class="tea-card tea-no-print">
@@ -163,10 +166,10 @@ window.TCB_TEA_CFG={
   teamName:"東海中央ボーイズ 15期"
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.12.4"></script>
-<script src="../attendance/attendance-jp-calendar.js?v=1.12.4"></script>
-<script src="tea-line.js?v=1.12.4"></script>
-<script src="tea-seed-2026-08.js?v=1.12.4"></script>
-<script src="tea-app.js?v=1.12.4"></script>
+<script src="../tcb-sync-api.js?v=1.12.5"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.12.5"></script>
+<script src="tea-line.js?v=1.12.5"></script>
+<script src="tea-seed-2026-08.js?v=1.12.5"></script>
+<script src="tea-app.js?v=1.12.5"></script>
 </body>
 </html>

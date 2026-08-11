@@ -1,0 +1,31 @@
+---
+description: 本番反映（D1マイグレーション・Workerデプロイ・Pages用push）はエージェントが実施する
+alwaysApply: true
+---
+
+# 本番反映はエージェントが実施
+
+ユーザー方針（2026-08-11）：**次回から本番反映作業もエージェント側で実施する。**
+
+## 実施対象
+
+機能改修・スキーマ変更・Worker 変更を完了したら、ユーザーにコマンドだけ渡して終わらせず、可能な範囲でこちらが実行する。
+
+| 作業 | 場所／例 |
+|---|---|
+| D1 マイグレーション | `cloudflare-sync/` で `npx wrangler d1 execute tcb-tools-sync --remote --file=./….sql` |
+| Worker デプロイ | `cloudflare-sync/` で `npx wrangler deploy` |
+| フロント公開 | `boys15/` を含むコミット後、`git push`（GitHub Pages） |
+
+## 手順の注意
+
+1. 作業ディレクトリは必ずリポジトリ直下から  
+   `cd /Users/kazuhiko/Applications/tcb-tools/cloudflare-sync`  
+   （ホーム `~` からの相対 `cd cloudflare-sync` は失敗する）
+2. SQL はリポジトリに用意し、**リモート適用もエージェントが実行**する（ユーザーが「クエリだけ／実行不要」と言った場合のみ省略）。
+3. トークン・シークレットの値をチャットに貼り出さない。ビルド時は既存の `SYNC_API_TOKEN` 注入手順に従う。
+4. 破壊的操作（D1 の DROP・データ削除・force push 等）は、ユーザーが明示したときだけ。
+
+## 完了報告
+
+マイグレーション／デプロイ／push の成否を短く報告する。失敗時は原因と再実行コマンドを示す。
