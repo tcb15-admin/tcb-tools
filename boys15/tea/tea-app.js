@@ -431,7 +431,7 @@
       updateRevisedFoot();
     }
     updateUndoBtn();
-    setFlow('change');
+    setFlow('make');
     markDirty();
     setStatus('入れ替え: ' + shortName(fromName) + ' ↔ ' + shortName(toName) + '（未保存・戻す可）');
     return true;
@@ -709,13 +709,14 @@
   }
 
   var FLOW_HINTS = {
-    make: '前月から作成 → 内容確認 → 保存。そのあと「保存・LINE送信」へ。',
-    share: '「保存・LINE送信」でPDFを作成し、共有シートから MG LINE へ送ります。',
-    change: '枠を入れ替え／名簿を修正 →「保存・LINE送信」で再展開。'
+    make: '前月から作成、または枠の入れ替え／名簿修正 → 保存。そのあと「LINEで展開」へ。',
+    share: '「保存・LINE送信」でPDFを作成し、共有シートから MG LINE へ送ります。'
   };
 
-  function setFlow(mode) {
+  function setFlow(mode, opts) {
     mode = mode || 'make';
+    if (mode === 'change') mode = 'make';
+    opts = opts || {};
     document.querySelectorAll('.tea-flow-btn').forEach(function (btn) {
       btn.classList.toggle('is-active', btn.getAttribute('data-tea-flow') === mode);
     });
@@ -731,8 +732,7 @@
       if ($('tea-panel-share')) {
         try { $('tea-panel-share').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
       }
-    }
-    if (mode === 'change' && $('tea-panel-table')) {
+    } else if (opts.scroll && $('tea-panel-table')) {
       try { $('tea-panel-table').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
     }
   }
@@ -1468,7 +1468,7 @@
 
     document.querySelectorAll('.tea-flow-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        setFlow(btn.getAttribute('data-tea-flow') || 'make');
+        setFlow(btn.getAttribute('data-tea-flow') || 'make', { scroll: true });
       });
     });
 

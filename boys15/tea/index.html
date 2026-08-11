@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.12.16">
-<link rel="stylesheet" href="tea.css?v=1.12.16">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.12.17">
+<link rel="stylesheet" href="tea.css?v=1.12.17">
 </head>
 <body class="tea-body">
 <svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
@@ -39,18 +39,14 @@
   <nav class="tea-flow tea-no-print" aria-label="お茶当番MGRの作業の流れ">
     <button type="button" class="tea-flow-btn is-active" data-tea-flow="make" id="tea-flow-make">
       <span class="tea-flow-num">1</span>
-      <span class="tea-flow-lab">当番表をつくる</span>
+      <span class="tea-flow-lab">当番表の作成／変更</span>
     </button>
     <button type="button" class="tea-flow-btn" data-tea-flow="share" id="tea-flow-share">
       <span class="tea-flow-num">2</span>
       <span class="tea-flow-lab">LINEで展開</span>
     </button>
-    <button type="button" class="tea-flow-btn" data-tea-flow="change" id="tea-flow-change">
-      <span class="tea-flow-num">3</span>
-      <span class="tea-flow-lab">変更を反映</span>
-    </button>
   </nav>
-  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「保存・LINE送信」へ。</p>
+  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成、または枠の入れ替え／名簿修正 → 保存。そのあと「LINEで展開」へ。</p>
   <p id="tea-dirty-badge" class="tea-dirty-badge tea-hidden tea-no-print" role="status">未保存の変更あり — 「保存・LINE送信」で保存してから展開できます</p>
 
   <section class="tea-card tea-card-main" id="tea-panel-table">
@@ -180,16 +176,16 @@ window.TCB_TEA_CFG={
   teamName:"東海中央ボーイズ 15期"
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.12.16"></script>
-<script src="../tcb-device.js?v=1.12.16"></script>
-<script src="../jspdf.umd.min.js?v=1.12.16"></script>
-<script src="../html2canvas.min.js?v=1.12.16"></script>
-<script src="../html2pdf.min.js?v=1.12.16"></script>
-<script src="../tcb-print-pdf.js?v=1.12.16"></script>
-<script src="../attendance/attendance-jp-calendar.js?v=1.12.16"></script>
-<script src="tea-line.js?v=1.12.16"></script>
-<script src="tea-print.js?v=1.12.16"></script>
-<script src="tea-seed-2026-08.js?v=1.12.16"></script>
-<script src="tea-app.js?v=1.12.16"></script>
+<script src="../tcb-sync-api.js?v=1.12.17"></script>
+<script src="../tcb-device.js?v=1.12.17"></script>
+<script src="../jspdf.umd.min.js?v=1.12.17"></script>
+<script src="../html2canvas.min.js?v=1.12.17"></script>
+<script src="../html2pdf.min.js?v=1.12.17"></script>
+<script src="../tcb-print-pdf.js?v=1.12.17"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.12.17"></script>
+<script src="tea-line.js?v=1.12.17"></script>
+<script src="tea-print.js?v=1.12.17"></script>
+<script src="tea-seed-2026-08.js?v=1.12.17"></script>
+<script src="tea-app.js?v=1.12.17"></script>
 </body>
 </html>
