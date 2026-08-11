@@ -58,6 +58,20 @@
   function markDirty() {
     state.dirty = true;
     updateDirtyUi();
+    refreshShareMsgAfterEdit();
+  }
+
+  /** 表・名簿の編集に合わせて、未手編集の案内文へ変更内容を反映 */
+  function refreshShareMsgAfterEdit() {
+    var el = $('tea-share-msg');
+    if (!el || !hasTableChanges()) return;
+    var cur = String(el.value || '');
+    var atDefault = !cur.trim() ||
+      cur === state._lastShareDefault ||
+      cur.indexOf('（変更内容を記入してください）') >= 0;
+    if (!atDefault) return;
+    setShareKind('revision', true);
+    fillShareMsg(true);
   }
 
   function clearDirty() {
@@ -785,10 +799,8 @@
   }
 
   function suggestShareKind() {
-    var revText = ($('tea-revised') && $('tea-revised').value) || '';
-    /* 新規「作成」表記のみで差分なし → 初回。差分あり or 「更新」 → 変更 */
+    /* 読込後に表・名簿が変わっているときだけ変更送付を自動選択 */
     if (hasTableChanges()) return 'revision';
-    if (/更新/.test(revText)) return 'revision';
     return 'initial';
   }
 

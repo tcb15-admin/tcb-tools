@@ -175,10 +175,12 @@ body.tea-body{
 .tea-share-kind-opt{
   display:inline-flex;align-items:center;gap:6px;
   border:1px solid var(--tea-bdr);border-radius:4px;padding:8px 12px;
-  background:var(--tea-surface);font-size:13px;font-weight:700;cursor:pointer;
+  background:var(--tea-surface);color:var(--tea-txt);
+  font-size:13px;font-weight:700;cursor:pointer;
 }
 .tea-share-kind-opt:has(input:checked){
-  border-color:var(--tea-navy);box-shadow:inset 0 0 0 1px var(--tea-navy);background:#fff;
+  border-color:var(--tea-navy);background:var(--tea-navy);color:#fff;
+  box-shadow:none;
 }
 .tea-share-msg-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .tea-btn-sm{min-height:32px;padding:4px 10px;font-size:12px;}
@@ -294,6 +296,10 @@ body.tea-body{
   .tea-flow-btn.is-active{background:#222428;}
   .tea-gchip{background:#2c2c2e;}
   .tea-gunassigned{background:var(--tea-card);}
+  .tea-share-kind-opt{color:var(--tea-txt);background:var(--tea-surface);}
+  .tea-share-kind-opt:has(input:checked){
+    background:#8fa6e0;color:#0b1224;border-color:#8fa6e0;
+  }
 }
 
 @media print{
