@@ -142,20 +142,22 @@
     row.innerHTML=
       '<div class="att-field att-day-date-field">'+
         '<label>日付'+tagHtml+'</label>'+
-        '<div class="att-day-date-line">'+
-          '<input type="date" class="att-d-date" required>'+
-          '<button type="button" class="att-btn att-btn-ghost att-d-del" aria-label="この日付を削除">削除</button>'+
-        '</div>'+
+        '<input type="date" class="att-d-date" required>'+
       '</div>'+
       '<div class="att-field"><label>開始</label><input type="time" class="att-d-time"></div>'+
-      '<div class="att-field"><label>種別</label><select class="att-d-kind"><option value="game">試合</option><option value="other">その他</option><option value="undecided" selected>未定</option></select></div>'+
-      '<div class="att-field"><label>場所</label><input class="att-d-place" maxlength="120" placeholder="任意"></div>';
+      '<div class="att-field"><label>種別</label><select class="att-d-kind">'+
+        '<option value="practice" selected>練習</option>'+
+        '<option value="game">試合</option>'+
+        '<option value="other">その他</option>'+
+        '<option value="undecided">未定</option>'+
+      '</select></div>'+
+      '<div class="att-field"><label>場所</label><input class="att-d-place" maxlength="120" placeholder="任意"></div>'+
+      '<button type="button" class="att-btn att-btn-ghost att-d-del" aria-label="この日付を削除">削除</button>';
     box.appendChild(row);
     if(prefill.activityDate)row.querySelector('.att-d-date').value=prefill.activityDate;
     if(prefill.startTime)row.querySelector('.att-d-time').value=prefill.startTime;
     if(prefill.kind){
       var kind=String(prefill.kind);
-      if(kind==='practice')kind='undecided'; /* 旧「練習」→未定 */
       var kindEl=row.querySelector('.att-d-kind');
       if([].some.call(kindEl.options, function(o){return o.value===kind;}))kindEl.value=kind;
     }
@@ -209,7 +211,7 @@
     items.forEach(function(it){
       addDayRow({
         activityDate:it.iso,
-        kind:it.kindHint||'undecided',
+        kind:it.kindHint||'practice',
         tagLabel:it.label||''
       });
     });

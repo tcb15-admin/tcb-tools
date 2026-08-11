@@ -168,16 +168,14 @@ body.att-body{
   margin-bottom:10px;
 }
 .att-day-row:last-child{border-bottom:none;padding-bottom:0;}
-.att-day-date-field{flex:1 1 220px;min-width:min(100%,220px);}
-.att-day-date-line{
-  display:flex;align-items:stretch;gap:8px;
-}
-.att-day-date-line .att-d-date{
-  flex:1 1 auto;min-width:0;width:auto;
-}
-.att-day-date-line .att-d-del{
-  flex:0 0 auto;align-self:stretch;
-  min-height:46px;padding:8px 12px;font-size:14px;white-space:nowrap;
+.att-day-date-field{flex:1 1 140px;}
+.att-day-row > .att-d-del{
+  flex:0 0 auto;
+  margin-left:auto;
+  min-height:46px;
+  padding:8px 12px;
+  font-size:14px;
+  white-space:nowrap;
 }
 .att-day-row-label{
   font-size:11px;font-weight:700;color:var(--att-txt2);white-space:nowrap;
