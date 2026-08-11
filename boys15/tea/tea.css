@@ -169,10 +169,9 @@ body.tea-body{
   width:100%;min-height:110px;border:1px solid var(--tea-bdr);border-radius:4px;
   padding:8px 10px;font:inherit;font-size:13px;line-height:1.55;background:#fff;color:var(--tea-txt);resize:vertical;
 }
-.tea-share-msg-reset{
-  margin-top:4px;padding:0;border:none;background:transparent;color:var(--tea-navy);
-  font:inherit;font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px;
-}
+.tea-share-msg-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.tea-btn-sm{min-height:32px;padding:4px 10px;font-size:12px;}
+.tea-share-msg-field .tea-hint{margin-top:6px;}
 .tea-note-lab{display:block;font-size:12px;font-weight:800;color:var(--tea-heading);margin-bottom:4px;}
 .tea-note-edit{
   width:100%;min-height:132px;border:1px solid var(--tea-bdr);border-radius:4px;

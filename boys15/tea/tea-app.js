@@ -40,6 +40,7 @@
     playerGroups: { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] },
     savedGroupsSnap: '',
     dirty: false,
+    shareMsgTemplate: '',
     swapUndoStack: [],
     lastSwap: null,
     dutyPick: null,
@@ -648,8 +649,22 @@
     };
   }
 
+  function activeShareTemplate() {
+    var Print = window.TCB_TeaPrint;
+    if (state.shareMsgTemplate && String(state.shareMsgTemplate).trim()) {
+      return String(state.shareMsgTemplate);
+    }
+    if (Print && typeof Print.systemShareTemplate === 'function') {
+      return Print.systemShareTemplate();
+    }
+    return '';
+  }
+
   function defaultShareMsgText() {
     var Print = window.TCB_TeaPrint;
+    if (Print && typeof Print.applyShareTemplate === 'function') {
+      return Print.applyShareTemplate(activeShareTemplate(), shareMsgPayload());
+    }
     if (Print && typeof Print.defaultShareMessage === 'function') {
       return Print.defaultShareMessage(shareMsgPayload());
     }
@@ -659,9 +674,60 @@
   function fillShareMsg(force) {
     var el = $('tea-share-msg');
     if (!el) return;
+    var def = defaultShareMsgText();
     if (force || !String(el.value || '').trim()) {
-      el.value = defaultShareMsgText();
+      el.value = def;
     }
+    state._lastShareDefault = def;
+  }
+
+  async function saveShareTemplateFromMessage() {
+    var Print = window.TCB_TeaPrint;
+    var el = $('tea-share-msg');
+    if (!el || !Print || typeof Print.messageToShareTemplate !== 'function') {
+      setShareStatus('定型登録に失敗しました', true);
+      return;
+    }
+    var tpl = Print.messageToShareTemplate(el.value, shareMsgPayload());
+    var client = ensureSync();
+    if (!client) return;
+    setShareStatus('定型を登録中…');
+    try {
+      await client.saveTeaSettings({ shareMsgTemplate: tpl });
+      state.shareMsgTemplate = tpl;
+      try {
+        localStorage.setItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl', tpl);
+      } catch (e) {}
+      fillShareMsg(true);
+      setShareStatus('定型文を登録しました（年・月・更新日は自動反映）');
+      setStatus('LINE案内の定型を登録しました');
+    } catch (e) {
+      /* カラム未追加時は端末のみ */
+      state.shareMsgTemplate = tpl;
+      try {
+        localStorage.setItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl', tpl);
+      } catch (e2) {}
+      fillShareMsg(true);
+      setShareStatus('サーバへ保存できないため、この端末に定型を保存しました');
+      setStatus('LINE案内の定型を端末に保存しました');
+    }
+  }
+
+  async function resetShareTemplateToSystem() {
+    var Print = window.TCB_TeaPrint;
+    var sys = Print && Print.systemShareTemplate ? Print.systemShareTemplate() : '';
+    var client = ensureSync();
+    state.shareMsgTemplate = '';
+    try {
+      localStorage.removeItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl');
+    } catch (e) {}
+    if (client) {
+      try {
+        await client.saveTeaSettings({ shareMsgTemplate: '' });
+      } catch (e2) { /* 端末クリアのみ */ }
+    }
+    fillShareMsg(true);
+    setShareStatus('システムの定型文に戻しました');
   }
 
   function shortNamesForPdf(groups) {
@@ -695,6 +761,7 @@
         revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
         note: ($('tea-note') && $('tea-note').value) || '',
         message: msg,
+        shareTemplate: activeShareTemplate(),
         days: collectDays().map(function (d) {
           return {
             activityDate: d.activityDate,
@@ -1191,7 +1258,26 @@
         doShareLine().catch(function (e) { setStatus(e.message || String(e), true); });
       });
     }
+    if ($('tea-share-msg-reset')) {
+      $('tea-share-msg-reset').addEventListener('click', function () {
+        fillShareMsg(true);
+        setShareStatus('登録済み定型（またはシステム定型）で案内文を作り直しました');
+      });
+    }
+    if ($('tea-share-msg-save')) {
+      $('tea-share-msg-save').addEventListener('click', function () {
+        saveShareTemplateFromMessage().catch(function (e) {
+          setShareStatus(e.message || String(e), true);
+        });
+      });
+    }
     if ($('tea-revised')) {
+      $('tea-revised').addEventListener('change', function () {
+        var el = $('tea-share-msg');
+        var cur = el ? String(el.value || '') : '';
+        if (!cur.trim() || cur === state._lastShareDefault) fillShareMsg(true);
+        else state._lastShareDefault = defaultShareMsgText();
+      });
       $('tea-revised').addEventListener('input', function () {
         updateRevisedFoot();
         markDirty();
@@ -1249,6 +1335,15 @@
       state.passwordHash = settings.passwordHash || '';
       if (groupsHaveMembers(settings.playerGroups)) {
         state.playerGroups = settings.playerGroups;
+      }
+      if (settings.shareMsgTemplate) {
+        state.shareMsgTemplate = String(settings.shareMsgTemplate);
+      } else {
+        try {
+          state.shareMsgTemplate = localStorage.getItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl') || '';
+        } catch (e) {
+          state.shareMsgTemplate = '';
+        }
       }
       var mem = await client.listTeaMembers();
       state.members = mem.members || [];

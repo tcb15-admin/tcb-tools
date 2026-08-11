@@ -181,20 +181,63 @@
     }
   }
 
-  function defaultShareMessage(data) {
-    data = data || {};
-    var lab = String(data.cohortLabel || '');
-    var title = titleFor(data.ym, lab).replace(/　/g, ' ');
-    var rev = String(data.revisedAt || '').trim();
-    var lines = [
+  function systemShareTemplate() {
+    return [
       'お疲れ様です。',
-      '【' + lab + '】' + title + (rev ? '（' + rev + '）' : '') + 'です。',
+      '{期} {年}年 {月}月 お茶当番表を展開いたします。',
+      '（{更新}）',
       '',
-      'PDFを添付しますのでご確認ください。',
-      'よろしくお願いします。',
+      'ご確認いただき、お気づきの点や変更依頼などありましたら、',
+      '個別にご連絡ください。',
+      '以上、よろしくお願いします。',
       ''
-    ];
-    return lines.join('\n');
+    ].join('\n');
+  }
+
+  function applyShareTemplate(tpl, data) {
+    data = data || {};
+    var m = String(data.ym || '').match(/^(\d{4})-(\d{2})$/);
+    var year = m ? m[1] : '';
+    var month = m ? String(Number(m[2])) : '';
+    var cohort = String(data.cohortLabel || '');
+    var rev = String(data.revisedAt || '').trim();
+    var text = String(tpl || systemShareTemplate());
+    text = text.split('{期}').join(cohort);
+    text = text.split('{年}').join(year);
+    text = text.split('{月}').join(month);
+    if (rev) {
+      text = text.split('{更新}').join(rev);
+    } else {
+      text = text.replace(/（\{更新\}）\n?/g, '');
+      text = text.split('{更新}').join('');
+    }
+    return text.replace(/\n{3,}/g, '\n\n');
+  }
+
+  /** 表示中の案内文から、現在の年・月・期・更新表記をプレースホルダに戻して定型化する */
+  function messageToShareTemplate(msg, data) {
+    data = data || {};
+    var m = String(data.ym || '').match(/^(\d{4})-(\d{2})$/);
+    var year = m ? m[1] : '';
+    var month = m ? String(Number(m[2])) : '';
+    var cohort = String(data.cohortLabel || '');
+    var rev = String(data.revisedAt || '').trim();
+    var t = String(msg || '');
+    if (rev) t = t.split(rev).join('{更新}');
+    if (cohort) t = t.split(cohort).join('{期}');
+    if (year) t = t.split(year).join('{年}');
+    if (month) {
+      t = t.replace(new RegExp('(^|[^0-9{])' + month + '月', 'g'), '$1{月}月');
+    }
+    if (t.indexOf('{期}') < 0 || t.indexOf('{年}') < 0 || t.indexOf('{月}') < 0) {
+      /* 置換しきれない場合はシステム定型を使う */
+      return systemShareTemplate();
+    }
+    return t;
+  }
+
+  function defaultShareMessage(data) {
+    return applyShareTemplate(systemShareTemplate(), data);
   }
 
   /**
@@ -207,7 +250,8 @@
     }
     var base = fileBase(data.ym, data.cohortLabel);
     var fileName = base + '.pdf';
-    var msg = String(data.message || '').trim() || defaultShareMessage(data);
+    var msg = String(data.message || '').trim() ||
+      applyShareTemplate(data.shareTemplate || systemShareTemplate(), data);
     var html = buildPrintHtml(data);
 
     return global.TCB_generateAssignPdfBlob(html).then(function (blob) {
@@ -257,6 +301,9 @@
   global.TCB_TeaPrint = {
     buildPrintHtml: buildPrintHtml,
     shareTeaPdf: shareTeaPdf,
+    systemShareTemplate: systemShareTemplate,
+    applyShareTemplate: applyShareTemplate,
+    messageToShareTemplate: messageToShareTemplate,
     defaultShareMessage: defaultShareMessage,
     titleFor: titleFor,
     canShareFiles: canShareFiles

@@ -1291,19 +1291,27 @@ async function getTeaSettings(env, cohortRaw) {
   let row = null;
   try {
     row = await env.DB.prepare(
-      "SELECT password_hash, player_groups_json, updated_at FROM tea_settings WHERE cohort = ?"
+      "SELECT password_hash, player_groups_json, share_msg_template, updated_at FROM tea_settings WHERE cohort = ?"
     )
       .bind(cohort)
       .first();
   } catch (e) {
-    // 旧スキーマ（player_groups_json 未追加）向けフォールバック
-    row = await env.DB.prepare("SELECT password_hash, updated_at FROM tea_settings WHERE cohort = ?")
-      .bind(cohort)
-      .first();
+    try {
+      row = await env.DB.prepare(
+        "SELECT password_hash, player_groups_json, updated_at FROM tea_settings WHERE cohort = ?"
+      )
+        .bind(cohort)
+        .first();
+    } catch (e2) {
+      row = await env.DB.prepare("SELECT password_hash, updated_at FROM tea_settings WHERE cohort = ?")
+        .bind(cohort)
+        .first();
+    }
   }
   return {
     passwordHash: row ? String(row.password_hash || "") : "",
     playerGroups: normalizePlayerGroups(row && row.player_groups_json),
+    shareMsgTemplate: row && row.share_msg_template != null ? String(row.share_msg_template) : "",
     updatedAt: row ? String(row.updated_at || "") : "",
   };
 }
@@ -1312,7 +1320,8 @@ async function saveTeaSettings(env, body) {
   const cohort = mustCohort(body && body.cohort);
   const hasHash = body && Object.prototype.hasOwnProperty.call(body, "passwordHash");
   const hasGroups = body && Object.prototype.hasOwnProperty.call(body, "playerGroups");
-  if (!hasHash && !hasGroups) throw new Error("settings_empty");
+  const hasShareMsg = body && Object.prototype.hasOwnProperty.call(body, "shareMsgTemplate");
+  if (!hasHash && !hasGroups && !hasShareMsg) throw new Error("settings_empty");
 
   let hash = "";
   if (hasHash) {
@@ -1324,44 +1333,73 @@ async function saveTeaSettings(env, body) {
   let cur = null;
   try {
     cur = await env.DB.prepare(
-      "SELECT password_hash, player_groups_json FROM tea_settings WHERE cohort = ?"
+      "SELECT password_hash, player_groups_json, share_msg_template FROM tea_settings WHERE cohort = ?"
     )
       .bind(cohort)
       .first();
   } catch (e) {
-    cur = await env.DB.prepare("SELECT password_hash FROM tea_settings WHERE cohort = ?")
-      .bind(cohort)
-      .first();
+    try {
+      cur = await env.DB.prepare(
+        "SELECT password_hash, player_groups_json FROM tea_settings WHERE cohort = ?"
+      )
+        .bind(cohort)
+        .first();
+    } catch (e2) {
+      cur = await env.DB.prepare("SELECT password_hash FROM tea_settings WHERE cohort = ?")
+        .bind(cohort)
+        .first();
+    }
   }
 
   const nextHash = hasHash ? hash : cur ? String(cur.password_hash || "") : "";
   const nextGroups = hasGroups
     ? normalizePlayerGroups(body.playerGroups)
     : normalizePlayerGroups(cur && cur.player_groups_json);
+  let nextShare = cur && cur.share_msg_template != null ? String(cur.share_msg_template) : "";
+  if (hasShareMsg) {
+    nextShare = String(body.shareMsgTemplate || "").trim();
+    if (nextShare.length > 2000) throw new Error("share_msg_too_long");
+  }
 
   try {
     await env.DB.prepare(
-      "INSERT INTO tea_settings (cohort, password_hash, player_groups_json, updated_at) VALUES (?, ?, ?, ?) " +
+      "INSERT INTO tea_settings (cohort, password_hash, player_groups_json, share_msg_template, updated_at) VALUES (?, ?, ?, ?, ?) " +
         "ON CONFLICT(cohort) DO UPDATE SET " +
         "password_hash = excluded.password_hash, " +
         "player_groups_json = excluded.player_groups_json, " +
+        "share_msg_template = excluded.share_msg_template, " +
         "updated_at = excluded.updated_at"
     )
-      .bind(cohort, nextHash, JSON.stringify(nextGroups), now)
+      .bind(cohort, nextHash, JSON.stringify(nextGroups), nextShare || null, now)
       .run();
   } catch (e) {
-    // カラム未追加時はパスワードのみ（migrate_tea_player_groups.sql を適用してください）
-    if (!hasHash) throw new Error("player_groups_column_missing");
-    await env.DB.prepare(
-      "INSERT INTO tea_settings (cohort, password_hash, updated_at) VALUES (?, ?, ?) " +
-        "ON CONFLICT(cohort) DO UPDATE SET password_hash = excluded.password_hash, updated_at = excluded.updated_at"
-    )
-      .bind(cohort, nextHash, now)
-      .run();
+    // share_msg_template 未追加時は従来カラムのみ
+    try {
+      await env.DB.prepare(
+        "INSERT INTO tea_settings (cohort, password_hash, player_groups_json, updated_at) VALUES (?, ?, ?, ?) " +
+          "ON CONFLICT(cohort) DO UPDATE SET " +
+          "password_hash = excluded.password_hash, " +
+          "player_groups_json = excluded.player_groups_json, " +
+          "updated_at = excluded.updated_at"
+      )
+        .bind(cohort, nextHash, JSON.stringify(nextGroups), now)
+        .run();
+      if (hasShareMsg) throw new Error("share_msg_column_missing");
+    } catch (e2) {
+      if (String(e2 && e2.message) === "share_msg_column_missing") throw e2;
+      if (!hasHash) throw new Error("player_groups_column_missing");
+      await env.DB.prepare(
+        "INSERT INTO tea_settings (cohort, password_hash, updated_at) VALUES (?, ?, ?) " +
+          "ON CONFLICT(cohort) DO UPDATE SET password_hash = excluded.password_hash, updated_at = excluded.updated_at"
+      )
+        .bind(cohort, nextHash, now)
+        .run();
+    }
   }
   return {
     ok: true,
     updatedAt: now,
+    shareMsgTemplate: nextShare,
     playerGroups: nextGroups,
   };
 }

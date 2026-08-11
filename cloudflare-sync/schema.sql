@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS tea_settings (
   cohort TEXT PRIMARY KEY,
   password_hash TEXT NOT NULL DEFAULT '',
   player_groups_json TEXT DEFAULT '{}',
+  share_msg_template TEXT,
   updated_at TEXT NOT NULL
 );
 

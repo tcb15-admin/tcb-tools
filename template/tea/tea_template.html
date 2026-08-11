@@ -113,8 +113,12 @@
     <p class="tea-hint">案内文を編集してから送信します。スマホは共有シートからLINEへ。PCは案内文をコピー＋PDFダウンロード後、LINEに貼り付け・添付してください。</p>
     <div class="tea-field tea-share-msg-field">
       <label for="tea-share-msg">案内文（LINE本文）</label>
-      <textarea id="tea-share-msg" class="tea-share-msg" rows="5" maxlength="800" aria-label="LINE案内文"></textarea>
-      <button type="button" id="tea-share-msg-reset" class="tea-share-msg-reset">定型に戻す</button>
+      <textarea id="tea-share-msg" class="tea-share-msg" rows="7" maxlength="800" aria-label="LINE案内文"></textarea>
+      <div class="tea-share-msg-actions">
+        <button type="button" id="tea-share-msg-reset" class="tea-btn tea-btn-ghost tea-btn-sm">定型に戻す</button>
+        <button type="button" id="tea-share-msg-save" class="tea-btn tea-btn-ghost tea-btn-sm">この内容を定型登録</button>
+      </div>
+      <p class="tea-hint">定型登録すると、次回以降の「定型に戻す」と月切替時の初期文に使います。年・月・更新日は展開内容に合わせて自動で入ります。</p>
     </div>
     <div class="tea-row">
       <button type="button" id="tea-btn-share-line" class="tea-btn tea-btn-line tea-btn-line-wide">
