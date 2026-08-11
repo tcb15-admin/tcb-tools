@@ -50,7 +50,8 @@
       <span class="tea-flow-lab">変更を反映</span>
     </button>
   </nav>
-  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「PDFで展開」へ。</p>
+  <p id="tea-flow-hint" class="tea-flow-hint tea-no-print">前月から作成 → 内容確認 → 保存。そのあと「保存してPDF」へ。</p>
+  <p id="tea-dirty-badge" class="tea-dirty-badge tea-hidden tea-no-print" role="status">未保存の変更あり — 先に保存してからPDF展開してください</p>
 
   <section class="tea-card tea-card-main" id="tea-panel-table">
     <div class="tea-toolbar tea-no-print" role="navigation" aria-label="月の切替と操作">
@@ -68,7 +69,7 @@
         <svg viewBox="0 0 24 24"><use href="#tea-i-undo"/></svg>
       </button>
       <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">保存</button>
-      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ico tea-btn-ghost" title="印刷" aria-label="印刷">
+      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ico tea-btn-ghost" title="保存してPDF" aria-label="保存してPDF">
         <svg viewBox="0 0 24 24"><use href="#tea-i-print"/></svg>
       </button>
     </div>
@@ -78,44 +79,55 @@
     <p class="tea-print-only tea-print-title" id="tea-print-title"></p>
     <div class="tea-tbl-wrap" id="tea-print-area">
       <table class="tea-tbl" id="tea-day-tbl">
+        <colgroup>
+          <col class="tea-col-date">
+          <col class="tea-col-wd">
+          <col class="tea-col-duty">
+          <col class="tea-col-duty">
+          <col class="tea-col-pg">
+          <col class="tea-col-del tea-no-print">
+        </colgroup>
         <thead>
           <tr>
-            <th style="width:118px">日付</th>
-            <th style="width:36px">曜</th>
+            <th>日付</th>
+            <th>曜</th>
             <th>当番A</th>
             <th>当番B</th>
-            <th style="width:88px">選手班</th>
-            <th class="tea-no-print" style="width:44px"></th>
+            <th>選手班</th>
+            <th class="tea-no-print"></th>
           </tr>
         </thead>
         <tbody id="tea-day-body"></tbody>
       </table>
     </div>
 
-    <div class="tea-foot-row">
+    <div class="tea-foot-row tea-no-print">
       <input id="tea-revised" class="tea-revised-inp" maxlength="40" placeholder="更新表記 例: 2026.8.11更新" aria-label="更新表記">
       <p id="tea-revised-foot" class="tea-revised-foot"></p>
     </div>
-    <details class="tea-details tea-no-print">
-      <summary>メモ</summary>
-      <textarea id="tea-note" maxlength="500" placeholder="注意書きなど" rows="2"></textarea>
-    </details>
+    <p class="tea-print-only tea-revised-foot" id="tea-revised-print"></p>
+
+    <div class="tea-note-block">
+      <label class="tea-note-lab" for="tea-note">備考</label>
+      <textarea id="tea-note" class="tea-note-edit" maxlength="1200" rows="7" aria-label="備考"></textarea>
+      <pre class="tea-print-only tea-note-print" id="tea-note-print"></pre>
+    </div>
   </section>
 
   <section class="tea-card tea-no-print tea-card-compact" id="tea-panel-share">
     <h2>PDFで展開</h2>
-    <p class="tea-hint">印刷ダイアログで「PDFに保存」し、そのファイルを MG LINE に添付して展開します。テキスト貼り付けは使いません。</p>
+    <p class="tea-hint">内容を保存したうえで印刷し、「PDFに保存」したファイルを MG LINE に添付します。</p>
     <div class="tea-row">
       <button type="button" id="tea-btn-share-print" class="tea-btn tea-btn-primary">
         <svg class="tea-btn-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#tea-i-print"/></svg>
-        印刷してPDF保存
+        保存してPDF
       </button>
     </div>
   </section>
 
   <details class="tea-card tea-details-card tea-no-print" id="tea-panel-groups">
-    <summary class="tea-card-sum">選手班名簿<span class="tea-sum-note">固定・退部などのときだけ修正</span></summary>
-    <p class="tea-hint">未割当の選手を班へ振り分けます。1人は1班のみです。</p>
+    <summary class="tea-card-sum">選手班名簿</summary>
+    <p class="tea-hint">未割当の選手を班へ振り分けます。1人は1班のみ。変更した班はオレンジで表示されます。</p>
     <div class="tea-groups" id="tea-groups"></div>
     <div class="tea-row" style="margin-top:8px">
       <button type="button" id="tea-btn-save-groups" class="tea-btn tea-btn-primary">選手班を保存</button>
