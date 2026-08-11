@@ -675,7 +675,14 @@
         }),
         playerGroups: shortNamesForPdf(collectGroups())
       });
-      if (result && result.mode === 'download') {
+      if (result && result.mode === 'desktop') {
+        setShareStatus(
+          (result.copied ? '案内文をコピーし、' : '') +
+          'PDFをダウンロードしました（' + result.fileName + '）。' +
+          'MG LINE に本文を貼り付け、PDFを手動添付して送信してください。'
+        );
+        setStatus('PC向け：PDFダウンロード＋案内文コピー済み');
+      } else if (result && result.mode === 'download') {
         setShareStatus('PDFをダウンロードしました（' + result.fileName + '）。MG LINE に添付して送信してください。');
         setStatus('PDFをダウンロードしました');
       } else {

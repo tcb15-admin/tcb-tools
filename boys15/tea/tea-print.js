@@ -155,6 +155,17 @@
       '</div></body></html>';
   }
 
+  function copyTextSilent(text) {
+    var t = String(text || '');
+    if (!t) return Promise.resolve(false);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t).then(function () { return true; }).catch(function () {
+        return false;
+      });
+    }
+    return Promise.resolve(false);
+  }
+
   function downloadBlob(blob, fileName) {
     var url = URL.createObjectURL(blob);
     try {
@@ -171,7 +182,7 @@
   }
 
   /**
-   * 保存済みデータから PDF を作り、スマホは共有シート／PC はダウンロード
+   * 保存済みデータから PDF を作り、スマホは共有シート／PC は本文コピー＋ダウンロード
    * @returns {Promise<{mode:string,fileName:string}>}
    */
   function shareTeaPdf(data) {
@@ -190,6 +201,7 @@
       }
       var file = new File([blob], fileName, { type: 'application/pdf' });
 
+      /* スマホ: 共有シートで LINE へ本文＋PDF */
       if (!shouldAvoidPdfFileWebShare() && canShareFiles()) {
         var payload = { files: [file], title: base, text: msg };
         try {
@@ -219,8 +231,11 @@
         } catch (e3) { /* fall through */ }
       }
 
-      downloadBlob(blob, fileName);
-      return { mode: 'download', fileName: fileName };
+      /* PC: ブラウザから LINE へ直接送れないため、本文コピー＋PDFダウンロード */
+      return copyTextSilent(msg).then(function (copied) {
+        downloadBlob(blob, fileName);
+        return { mode: 'desktop', fileName: fileName, copied: !!copied };
+      });
     });
   }
 
