@@ -37,7 +37,11 @@
     passwordHash: '',
     supplies: [],
     days: [],
-    playerGroups: { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] }
+    playerGroups: { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] },
+    swapUndoStack: [],
+    lastSwap: null,
+    dutyPick: null,
+    dragSrc: null
   };
 
   function setStatus(msg, isErr) {
@@ -169,6 +173,166 @@
     return '';
   }
 
+  function snapshotDuties() {
+    return [].slice.call(document.querySelectorAll('.tea-day-row')).map(function (tr) {
+      return {
+        date: tr.querySelector('.tea-d-date').value,
+        a: tr.querySelector('.tea-d-a').value,
+        b: tr.querySelector('.tea-d-b').value
+      };
+    });
+  }
+
+  function applyDutySnapshot(snap) {
+    var map = {};
+    (snap || []).forEach(function (s) { map[s.date] = s; });
+    [].slice.call(document.querySelectorAll('.tea-day-row')).forEach(function (tr) {
+      var d = tr.querySelector('.tea-d-date').value;
+      var s = map[d];
+      if (!s) return;
+      var a = tr.querySelector('.tea-d-a');
+      var b = tr.querySelector('.tea-d-b');
+      if (a) a.value = s.a;
+      if (b) b.value = s.b;
+    });
+  }
+
+  function updateUndoBtn() {
+    var btn = $('tea-btn-undo-swap');
+    if (btn) btn.disabled = !state.swapUndoStack.length;
+  }
+
+  function clearDutyPick() {
+    state.dutyPick = null;
+    document.querySelectorAll('.tea-duty-box.is-pick').forEach(function (el) {
+      el.classList.remove('is-pick');
+    });
+  }
+
+  function markSwapped(box1, box2) {
+    if (box1) box1.classList.add('is-swapped');
+    if (box2) box2.classList.add('is-swapped');
+  }
+
+  function clearSwappedMarks() {
+    document.querySelectorAll('.tea-duty-box.is-swapped').forEach(function (el) {
+      el.classList.remove('is-swapped');
+    });
+  }
+
+  function selectOfBox(box) {
+    return box ? box.querySelector('select') : null;
+  }
+
+  function swapDutyBoxes(srcBox, dstBox) {
+    if (!srcBox || !dstBox || srcBox === dstBox) return false;
+    var sa = selectOfBox(srcBox);
+    var sb = selectOfBox(dstBox);
+    if (!sa || !sb) return false;
+    var fromName = sa.value;
+    var toName = sb.value;
+    if (fromName === toName) {
+      setStatus('同じ名前同士のため入れ替え不要です');
+      return false;
+    }
+    state.swapUndoStack.push(snapshotDuties());
+    if (state.swapUndoStack.length > 30) state.swapUndoStack.shift();
+    sa.value = toName;
+    sb.value = fromName;
+    srcBox.classList.remove('is-pick', 'is-drag-over');
+    dstBox.classList.remove('is-pick', 'is-drag-over');
+    markSwapped(srcBox, dstBox);
+    var srcTr = srcBox.closest('.tea-day-row');
+    var srcDate = srcTr ? srcTr.querySelector('.tea-d-date').value : '';
+    state.lastSwap = {
+      activityDate: srcDate,
+      fromName: fromName,
+      toName: toName
+    };
+    var today = new Date();
+    if ($('tea-revised')) {
+      $('tea-revised').value = today.getFullYear() + '.' + (today.getMonth() + 1) + '.' + today.getDate() + '更新';
+      updateRevisedFoot();
+    }
+    if (srcDate && $('tea-line-day')) $('tea-line-day').value = srcDate;
+    refreshLineDaySelect();
+    updateUndoBtn();
+    setStatus('入れ替え: ' + shortName(fromName) + ' ↔ ' + shortName(toName) + '（未保存・「交代を戻す」可）');
+    return true;
+  }
+
+  function undoLastSwap() {
+    if (!state.swapUndoStack.length) {
+      setStatus('戻せる交代がありません');
+      return;
+    }
+    var snap = state.swapUndoStack.pop();
+    applyDutySnapshot(snap);
+    clearSwappedMarks();
+    clearDutyPick();
+    state.lastSwap = null;
+    refreshLineDaySelect();
+    updateUndoBtn();
+    setStatus('直前の交代を戻しました（保存するまでサーバには未反映）');
+  }
+
+  function bindDutyBox(box) {
+    if (!box || box.dataset.bound === '1') return;
+    box.dataset.bound = '1';
+    box.setAttribute('draggable', 'true');
+
+    box.addEventListener('dragstart', function (ev) {
+      state.dragSrc = box;
+      box.classList.add('is-dragging');
+      clearDutyPick();
+      try {
+        ev.dataTransfer.effectAllowed = 'move';
+        ev.dataTransfer.setData('text/plain', 'tea-duty');
+      } catch (e) {}
+    });
+    box.addEventListener('dragend', function () {
+      box.classList.remove('is-dragging');
+      document.querySelectorAll('.tea-duty-box.is-drag-over').forEach(function (el) {
+        el.classList.remove('is-drag-over');
+      });
+      state.dragSrc = null;
+    });
+    box.addEventListener('dragover', function (ev) {
+      ev.preventDefault();
+      if (state.dragSrc && state.dragSrc !== box) box.classList.add('is-drag-over');
+    });
+    box.addEventListener('dragleave', function () {
+      box.classList.remove('is-drag-over');
+    });
+    box.addEventListener('drop', function (ev) {
+      ev.preventDefault();
+      box.classList.remove('is-drag-over');
+      var src = state.dragSrc;
+      state.dragSrc = null;
+      if (src) swapDutyBoxes(src, box);
+    });
+
+    // スマホ等: ⇄ または枠（select以外）タップで元→先
+    box.addEventListener('click', function (ev) {
+      if (ev.target && (ev.target.tagName === 'SELECT' || ev.target.closest('select'))) return;
+      if (!state.dutyPick) {
+        clearDutyPick();
+        state.dutyPick = box;
+        box.classList.add('is-pick');
+        setStatus('交代元を選択しました。入れ替え先の枠（⇄）をタップしてください');
+        return;
+      }
+      if (state.dutyPick === box) {
+        clearDutyPick();
+        setStatus('交代元の選択を解除しました');
+        return;
+      }
+      var src = state.dutyPick;
+      clearDutyPick();
+      swapDutyBoxes(src, box);
+    });
+  }
+
   function addDayRow(prefill) {
     prefill = prefill || {};
     var tr = document.createElement('tr');
@@ -176,16 +340,21 @@
     tr.innerHTML =
       '<td><input type="date" class="tea-d-date" value="' + esc(prefill.activityDate || '') + '"></td>' +
       '<td class="tea-wd">' + esc(weekdayLabel(prefill.activityDate || '')) + '</td>' +
-      '<td><select class="tea-d-a">' + memberOptionsHtml(prefill.dutyA, true, 'tea') + '</select></td>' +
-      '<td><select class="tea-d-b">' + memberOptionsHtml(prefill.dutyB, true, 'tea') + '</select></td>' +
+      '<td><div class="tea-duty-box" data-slot="A" title="ドラッグ／タップで他の枠と入れ替え">' +
+        '<span class="tea-duty-grip" aria-hidden="true">⇄</span>' +
+        '<select class="tea-d-a">' + memberOptionsHtml(prefill.dutyA, true, 'tea') + '</select></div></td>' +
+      '<td><div class="tea-duty-box" data-slot="B" title="ドラッグ／タップで他の枠と入れ替え">' +
+        '<span class="tea-duty-grip" aria-hidden="true">⇄</span>' +
+        '<select class="tea-d-b">' + memberOptionsHtml(prefill.dutyB, true, 'tea') + '</select></div></td>' +
       '<td><select class="tea-d-pg">' +
         '<option value="">—</option>' +
         [1, 2, 3, 4, 5, 6].map(function (n) {
           return '<option value="' + n + '"' + (String(prefill.playerGroup) === String(n) ? ' selected' : '') + '>' + n + '班</option>';
         }).join('') +
       '</select></td>' +
-      '<td class="tea-no-print"><button type="button" class="tea-btn tea-btn-danger tea-d-del" style="min-height:36px;padding:6px 10px;font-size:13px">削除</button></td>';
+      '<td class="tea-no-print"><button type="button" class="tea-btn tea-btn-danger tea-d-del" style="min-height:32px;padding:4px 8px;font-size:12px">削除</button></td>';
     $('tea-day-body').appendChild(tr);
+    tr.querySelectorAll('.tea-duty-box').forEach(bindDutyBox);
     tr.querySelector('.tea-d-date').addEventListener('change', function () {
       tr.querySelector('.tea-wd').textContent = weekdayLabel(this.value);
       refreshLineDaySelect();
@@ -193,6 +362,13 @@
     tr.querySelector('.tea-d-del').addEventListener('click', function () {
       tr.remove();
       refreshLineDaySelect();
+    });
+    ['.tea-d-a', '.tea-d-b'].forEach(function (sel) {
+      tr.querySelector(sel).addEventListener('change', function () {
+        var box = this.closest('.tea-duty-box');
+        if (box) box.classList.add('is-swapped');
+        refreshLineDaySelect();
+      });
     });
   }
 
@@ -222,7 +398,7 @@
           var sel = (state.playerGroups[k] || []).indexOf(m.name) >= 0;
           return '<option value="' + esc(m.name) + '"' + (sel ? ' selected' : '') + '>' + esc(m.name) + '</option>';
         }).join('');
-      div.innerHTML = '<h3>' + i + '班</h3><select multiple size="6" data-g="' + k + '">' + opts + '</select>';
+      div.innerHTML = '<h3>' + i + '班</h3><select multiple size="5" data-g="' + k + '">' + opts + '</select>';
       box.appendChild(div);
     }
   }
@@ -247,19 +423,9 @@
       return '<option value="' + esc(d.activityDate) + '">' + esc(lab) + '</option>';
     }).join('') || '<option value="">（日付なし）</option>';
     if (cur) sel.value = cur;
-    fillSwapSelects();
   }
 
-  function fillSwapSelects() {
-    ['tea-swap-from', 'tea-swap-to'].forEach(function (id) {
-      var el = $(id);
-      if (!el) return;
-      var cur = el.value;
-      el.innerHTML = memberOptionsHtml(cur, true, 'tea');
-    });
-  }
-
-  function selectedDay() {
+    function selectedDay() {
     var iso = $('tea-line-day') && $('tea-line-day').value;
     return collectDays().filter(function (d) { return d.activityDate === iso; })[0] || null;
   }
@@ -489,6 +655,9 @@
       state.playerGroups = res.playerGroups;
     }
     $('tea-day-body').innerHTML = '';
+    state.swapUndoStack = [];
+    state.lastSwap = null;
+    clearDutyPick();
     (res.days || []).forEach(function (d) {
       addDayRow({
         activityDate: d.activityDate,
@@ -497,6 +666,7 @@
         playerGroup: d.playerGroup
       });
     });
+    updateUndoBtn();
     if ($('tea-note')) $('tea-note').value = (res.month && res.month.note) || '';
     if ($('tea-revised')) $('tea-revised').value = (res.month && res.month.revisedAt) || '';
     updateRevisedFoot();
@@ -622,53 +792,6 @@
     setStatus('選手班を保存しました（退部・休部時以外は変更不要）');
   }
 
-  async function applySwapAndSave() {
-    var d = selectedDay();
-    if (!d) { setStatus('対象日を選んでください', true); return; }
-    var fromName = resolveMemberName(($('tea-swap-from') && $('tea-swap-from').value) || '');
-    var toName = resolveMemberName(($('tea-swap-to') && $('tea-swap-to').value) || '');
-    if (!fromName || !toName) {
-      setStatus('交代の元・先を選んでください', true);
-      return;
-    }
-    var slot = ($('tea-swap-slot') && $('tea-swap-slot').value) || 'auto';
-    var rows = document.querySelectorAll('.tea-day-row');
-    var target = null;
-    [].slice.call(rows).forEach(function (tr) {
-      if (tr.querySelector('.tea-d-date').value === d.activityDate) target = tr;
-    });
-    if (!target) {
-      setStatus('対象日の行が見つかりません', true);
-      return;
-    }
-    var selA = target.querySelector('.tea-d-a');
-    var selB = target.querySelector('.tea-d-b');
-    var applied = false;
-    if (slot === 'A' || (slot === 'auto' && selA.value === fromName)) {
-      selA.value = toName;
-      applied = true;
-    } else if (slot === 'B' || (slot === 'auto' && selB.value === fromName)) {
-      selB.value = toName;
-      applied = true;
-    } else if (slot === 'auto') {
-      setStatus('対象日の当番A/Bに「' + shortName(fromName) + '」が見つかりません。枠を指定してください', true);
-      return;
-    }
-    if (!applied) {
-      setStatus('交代を適用できませんでした', true);
-      return;
-    }
-    var today = new Date();
-    if ($('tea-revised')) {
-      $('tea-revised').value = today.getFullYear() + '.' + (today.getMonth() + 1) + '.' + today.getDate() + '更新';
-      updateRevisedFoot();
-    }
-    genSwap();
-    refreshLineDaySelect();
-    await saveMonth();
-    setStatus('交代を反映して保存しました（' + shortName(fromName) + '→' + shortName(toName) + '）');
-  }
-
   async function saveMonth() {
     var client = ensureSync();
     if (!client) return;
@@ -688,7 +811,10 @@
     });
     setStatus('当番表を保存しました（道具割振りへ反映可能）');
     updateRevisedFoot();
-    setMonthBadge('保存済み。交代があれば表を直して保存してください。');
+    setMonthBadge('保存済み。交代があれば枠をドラッグで入れ替えて保存してください。');
+    clearSwappedMarks();
+    state.swapUndoStack = [];
+    updateUndoBtn();
   }
 
   function updateRevisedFoot() {
@@ -763,12 +889,20 @@
     setPreview(Line.formatReceived(d.activityDate, set, shortName(name)));
   }
   function genSwap() {
+    var ls = state.lastSwap;
     var d = selectedDay();
-    if (!d) { setStatus('対象日を選んでください', true); return; }
+    var activityDate = (ls && ls.activityDate) || (d && d.activityDate) || '';
+    var fromName = ls ? shortName(ls.fromName) : '';
+    var toName = ls ? shortName(ls.toName) : '';
+    if (!activityDate || !fromName || !toName) {
+      setStatus('表の当番枠を入れ替えてから「交代連絡」を押してください', true);
+      return;
+    }
+    if ($('tea-line-day')) $('tea-line-day').value = activityDate;
     setPreview(Line.formatSwap([{
-      activityDate: d.activityDate,
-      fromName: shortName(($('tea-swap-from') && $('tea-swap-from').value) || ''),
-      toName: shortName(($('tea-swap-to') && $('tea-swap-to').value) || '')
+      activityDate: activityDate,
+      fromName: fromName,
+      toName: toName
     }]));
   }
   function genToday() {
@@ -787,19 +921,18 @@
     updateMonthChrome();
     $('tea-pw-btn').addEventListener('click', tryLogin);
     $('tea-pw-inp').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') tryLogin(); });
-    $('tea-btn-load').addEventListener('click', function () {
-      loadMonth().catch(function (e) { setStatus(e.message || String(e), true); });
-    });
     if ($('tea-btn-from-prev')) {
       $('tea-btn-from-prev').addEventListener('click', function () {
         createFromPreviousMonth().catch(function (e) { setStatus(e.message || String(e), true); });
       });
     }
-    $('tea-btn-fill-cal').addEventListener('click', fillWeekendDays);
     $('tea-btn-add-day').addEventListener('click', function () {
       addDayRow();
       refreshLineDaySelect();
     });
+    if ($('tea-btn-undo-swap')) {
+      $('tea-btn-undo-swap').addEventListener('click', undoLastSwap);
+    }
     $('tea-btn-save').addEventListener('click', function () {
       saveMonth().catch(function (e) { setStatus(e.message || String(e), true); });
     });
@@ -831,17 +964,7 @@
       genRestock();
     });
     $('tea-line-recv').addEventListener('click', genRecv);
-    function openSwapAndGen() {
-      if ($('tea-swap-panel')) $('tea-swap-panel').open = true;
-      genSwap();
-    }
-    $('tea-line-swap').addEventListener('click', openSwapAndGen);
-    if ($('tea-line-swap-gen')) $('tea-line-swap-gen').addEventListener('click', genSwap);
-    if ($('tea-swap-apply')) {
-      $('tea-swap-apply').addEventListener('click', function () {
-        applySwapAndSave().catch(function (e) { setStatus(e.message || String(e), true); });
-      });
-    }
+    $('tea-line-swap').addEventListener('click', genSwap);
     $('tea-line-today').addEventListener('click', genToday);
     $('tea-line-copy').addEventListener('click', function () {
       copyText(($('tea-line-preview') && $('tea-line-preview').textContent) || '');

@@ -29,129 +29,102 @@
 </div>
 
 <main class="tea-wrap" id="tea-main">
-  <section class="tea-card">
-    <h2>当番表</h2>
-    <p class="tea-meta">お茶当番A／Bは<strong>コーチ保護者</strong>のあいうえお順持ち回り（名簿は選手名で世帯識別）。原則は月次リリース後に毎回の組み直しはせず、<strong>交代時だけ表を更新</strong>します。新しい月は「前月を基に作成」で土日祝と持ち回りを埋められます。</p>
-
-    <div class="tea-month-nav tea-no-print" role="navigation" aria-label="月の切替">
-      <button type="button" id="tea-ym-prev" class="tea-btn tea-btn-ghost">◀ 前月</button>
+  <section class="tea-card tea-card-main">
+    <div class="tea-toolbar tea-no-print" role="navigation" aria-label="月の切替と操作">
+      <button type="button" id="tea-ym-prev" class="tea-btn tea-btn-ghost">◀</button>
       <button type="button" id="tea-ym-now" class="tea-btn tea-btn-ghost">当月</button>
-      <button type="button" id="tea-ym-next" class="tea-btn tea-btn-ghost">来月 ▶</button>
+      <button type="button" id="tea-ym-next" class="tea-btn tea-btn-ghost">▶</button>
+      <input id="tea-ym" type="month" required aria-label="対象月">
       <span id="tea-ym-label" class="tea-ym-label"></span>
+      <span class="tea-toolbar-gap"></span>
+      <button type="button" id="tea-btn-from-prev" class="tea-btn tea-btn-ghost">前月から作成</button>
+      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ghost">日付追加</button>
+      <button type="button" id="tea-btn-undo-swap" class="tea-btn tea-btn-ghost" disabled>交代を戻す</button>
+      <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">表を保存</button>
+      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ghost">印刷</button>
     </div>
 
-    <div class="tea-row">
-      <div class="tea-field" style="flex:0 1 180px">
-        <label for="tea-ym">対象月</label>
-        <input id="tea-ym" type="month" required>
-      </div>
-      <div class="tea-field">
-        <label for="tea-revised">更新表記（表フッター）</label>
-        <input id="tea-revised" maxlength="40" placeholder="例: 2026.7.31更新">
-      </div>
-    </div>
-    <div class="tea-field">
-      <label for="tea-note">メモ（任意）</label>
-      <textarea id="tea-note" maxlength="500" placeholder="注意書きなど"></textarea>
-    </div>
-    <div class="tea-row tea-no-print">
-      <button type="button" id="tea-btn-load" class="tea-btn tea-btn-ghost">読込</button>
-      <button type="button" id="tea-btn-from-prev" class="tea-btn tea-btn-ghost">前月を基に作成</button>
-      <button type="button" id="tea-btn-fill-cal" class="tea-btn tea-btn-ghost">土日祝のみ追加</button>
-      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ghost">日付追加</button>
-      <button type="button" id="tea-btn-save" class="tea-btn tea-btn-primary">表を保存</button>
-      <button type="button" id="tea-btn-print" class="tea-btn tea-btn-ghost">印刷／PDF</button>
-    </div>
+    <p class="tea-hint tea-no-print">当番A／Bの枠を<strong>ドラッグ＆ドロップ</strong>（スマホは枠を順にタップ）で入れ替え。色が付いた枠は交代済みです。月切替で自動読込。</p>
     <p id="tea-month-badge" class="tea-meta tea-no-print"></p>
+
     <div class="tea-tbl-wrap" id="tea-print-area">
       <table class="tea-tbl" id="tea-day-tbl">
         <thead>
           <tr>
-            <th style="width:132px">日付</th>
-            <th style="width:48px">曜</th>
-            <th>当番A（保護者）</th>
-            <th>当番B（保護者）</th>
-            <th style="width:88px">選手当番</th>
-            <th class="tea-no-print" style="width:64px"></th>
+            <th style="width:118px">日付</th>
+            <th style="width:36px">曜</th>
+            <th>当番A</th>
+            <th>当番B</th>
+            <th style="width:72px">選手</th>
+            <th class="tea-no-print" style="width:52px"></th>
           </tr>
         </thead>
         <tbody id="tea-day-body"></tbody>
       </table>
     </div>
-    <p id="tea-revised-foot" class="tea-meta" style="margin-top:8px;color:var(--tea-red);font-weight:700"></p>
+
+    <div class="tea-foot-row">
+      <input id="tea-revised" class="tea-revised-inp" maxlength="40" placeholder="更新表記 例: 2026.8.11更新" aria-label="更新表記">
+      <p id="tea-revised-foot" class="tea-revised-foot"></p>
+    </div>
+    <details class="tea-details tea-no-print">
+      <summary>メモ</summary>
+      <textarea id="tea-note" maxlength="500" placeholder="注意書きなど" rows="2"></textarea>
+    </details>
   </section>
 
-  <section class="tea-card">
-    <h2>選手当番（1〜6班）</h2>
-    <p class="tea-meta">選手のみ（コーチ保護者は含みません）。<strong>毎月は変わりません</strong>。退部・休部などで名簿が変わるときだけ修正してください。表の「選手当番」列でその日の班番号を指定します。</p>
+  <details class="tea-card tea-details-card tea-no-print">
+    <summary class="tea-card-sum">選手当番（1〜6班）<span class="tea-sum-note">毎月固定・退部等のときだけ修正</span></summary>
     <div class="tea-groups" id="tea-groups"></div>
-    <div class="tea-row tea-no-print" style="margin-top:10px">
+    <div class="tea-row" style="margin-top:8px">
       <button type="button" id="tea-btn-save-groups" class="tea-btn tea-btn-primary">選手班を保存</button>
     </div>
-  </section>
+  </details>
 
-  <section class="tea-card tea-no-print">
+  <section class="tea-card tea-no-print tea-card-compact">
     <h2>LINE文面</h2>
-    <div class="tea-row">
-      <button type="button" id="tea-line-pickup" class="tea-btn tea-btn-line">引き取り連絡</button>
-      <button type="button" id="tea-line-restock" class="tea-btn tea-btn-ghost">補充依頼</button>
-      <button type="button" id="tea-line-recv" class="tea-btn tea-btn-ghost">受領連絡</button>
+    <div class="tea-row tea-line-btns">
+      <button type="button" id="tea-line-pickup" class="tea-btn tea-btn-line">引き取り</button>
+      <button type="button" id="tea-line-restock" class="tea-btn tea-btn-ghost">補充</button>
+      <button type="button" id="tea-line-recv" class="tea-btn tea-btn-ghost">受領</button>
       <button type="button" id="tea-line-swap" class="tea-btn tea-btn-ghost">交代連絡</button>
-      <button type="button" id="tea-line-today" class="tea-btn tea-btn-ghost">当日引き取り</button>
+      <button type="button" id="tea-line-today" class="tea-btn tea-btn-ghost">当日</button>
       <button type="button" id="tea-line-copy" class="tea-btn tea-btn-primary">コピー</button>
     </div>
     <div class="tea-row" id="tea-line-opts">
       <div class="tea-field">
-        <label for="tea-line-day">対象日（表から）</label>
+        <label for="tea-line-day">対象日</label>
         <select id="tea-line-day"></select>
       </div>
-      <div class="tea-field" style="flex:0 1 100px">
+      <div class="tea-field" style="flex:0 1 88px">
         <label for="tea-line-set">セット</label>
         <select id="tea-line-set"><option value="A">A</option><option value="B">B</option></select>
       </div>
     </div>
     <details class="tea-details" id="tea-restock-panel">
-      <summary>補充品目（チェック）</summary>
-      <div id="tea-restock-checks" class="tea-supply-list" style="margin-top:8px"></div>
-    </details>
-    <details class="tea-details" id="tea-swap-panel">
-      <summary>交代を表に反映（元→先）</summary>
-      <p class="tea-meta" style="margin-top:8px">対象日の当番AまたはBを入れ替え、保存まで一気に行います。LINE文面も同時に生成します。</p>
-      <div class="tea-row" style="margin-top:8px">
-        <div class="tea-field"><label>元</label><select id="tea-swap-from"></select></div>
-        <div class="tea-field"><label>先</label><select id="tea-swap-to"></select></div>
-        <div class="tea-field" style="flex:0 1 120px">
-          <label for="tea-swap-slot">枠</label>
-          <select id="tea-swap-slot"><option value="auto">自動</option><option value="A">当番A</option><option value="B">当番B</option></select>
-        </div>
-      </div>
-      <div class="tea-row">
-        <button type="button" id="tea-swap-apply" class="tea-btn tea-btn-primary">交代を反映して保存</button>
-        <button type="button" id="tea-line-swap-gen" class="tea-btn tea-btn-ghost">文面のみ生成</button>
-      </div>
+      <summary>補充品目</summary>
+      <div id="tea-restock-checks" class="tea-supply-list" style="margin-top:6px"></div>
     </details>
     <pre class="tea-preview" id="tea-line-preview"></pre>
   </section>
 
-  <section class="tea-card tea-no-print">
-    <h2>補充品目マスタ</h2>
-    <p class="tea-meta">補充依頼の定型候補です。編集後に保存してください。</p>
+  <details class="tea-card tea-details-card tea-no-print">
+    <summary class="tea-card-sum">補充品目マスタ</summary>
     <div id="tea-supply-edit" class="tea-supply-list"></div>
-    <div class="tea-row">
+    <div class="tea-row" style="margin-top:8px">
       <button type="button" id="tea-supply-add" class="tea-btn tea-btn-ghost">品目追加</button>
       <button type="button" id="tea-supply-save" class="tea-btn tea-btn-primary">品目を保存</button>
     </div>
-  </section>
+  </details>
 
-  <section class="tea-card tea-no-print">
-    <h2>パスワード変更</h2>
-    <p class="tea-meta">世代で共有するお茶当番用パスワードです（未変更時は初期パスワード）。全端末で共通になります。</p>
+  <details class="tea-card tea-details-card tea-no-print">
+    <summary class="tea-card-sum">パスワード変更</summary>
     <div class="tea-row">
       <div class="tea-field"><label for="tea-pw-new">新しいパスワード</label><input id="tea-pw-new" type="password" autocomplete="new-password"></div>
       <div class="tea-field"><label for="tea-pw-new2">確認</label><input id="tea-pw-new2" type="password" autocomplete="new-password"></div>
     </div>
     <button type="button" id="tea-pw-change" class="tea-btn tea-btn-ghost">パスワードを変更</button>
-  </section>
+  </details>
 
   <p id="tea-status" class="tea-status"></p>
 </main>
