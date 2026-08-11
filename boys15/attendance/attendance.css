@@ -161,9 +161,26 @@ body.att-body{
 }
 .att-day-toolbar{align-items:center;margin-bottom:4px;}
 .att-day-hint{margin:0 0 8px;min-height:1.2em;}
+.att-day-row{
+  align-items:flex-end;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--att-bdr);
+  margin-bottom:10px;
+}
+.att-day-row:last-child{border-bottom:none;padding-bottom:0;}
+.att-day-date-field{flex:1 1 220px;min-width:min(100%,220px);}
+.att-day-date-line{
+  display:flex;align-items:stretch;gap:8px;
+}
+.att-day-date-line .att-d-date{
+  flex:1 1 auto;min-width:0;width:auto;
+}
+.att-day-date-line .att-d-del{
+  flex:0 0 auto;align-self:stretch;
+  min-height:46px;padding:8px 12px;font-size:14px;white-space:nowrap;
+}
 .att-day-row-label{
-  font-size:11px;font-weight:700;color:var(--att-txt2);
-  align-self:flex-end;padding-bottom:12px;white-space:nowrap;
+  font-size:11px;font-weight:700;color:var(--att-txt2);white-space:nowrap;
 }
 
 @media (prefers-color-scheme:dark){

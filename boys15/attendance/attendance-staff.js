@@ -136,14 +136,20 @@
     var box=$('att-day-rows');
     var row=document.createElement('div');
     row.className='att-row att-day-row';
-    var tag=prefill.tagLabel?('<span class="att-day-row-label">'+esc(prefill.tagLabel)+'</span>'):'';
+    var tagHtml=prefill.tagLabel
+      ?(' <span class="att-day-row-label">'+esc(prefill.tagLabel)+'</span>')
+      :'';
     row.innerHTML=
-      '<div class="att-field"><label>日付</label><input type="date" class="att-d-date" required></div>'+
+      '<div class="att-field att-day-date-field">'+
+        '<label>日付'+tagHtml+'</label>'+
+        '<div class="att-day-date-line">'+
+          '<input type="date" class="att-d-date" required>'+
+          '<button type="button" class="att-btn att-btn-ghost att-d-del" aria-label="この日付を削除">削除</button>'+
+        '</div>'+
+      '</div>'+
       '<div class="att-field"><label>開始</label><input type="time" class="att-d-time"></div>'+
       '<div class="att-field"><label>種別</label><select class="att-d-kind"><option value="game">試合</option><option value="other">その他</option><option value="undecided" selected>未定</option></select></div>'+
-      '<div class="att-field"><label>場所</label><input class="att-d-place" maxlength="120" placeholder="任意"></div>'+
-      tag+
-      '<button type="button" class="att-btn att-btn-ghost att-d-del">削除</button>';
+      '<div class="att-field"><label>場所</label><input class="att-d-place" maxlength="120" placeholder="任意"></div>';
     box.appendChild(row);
     if(prefill.activityDate)row.querySelector('.att-d-date').value=prefill.activityDate;
     if(prefill.startTime)row.querySelector('.att-d-time').value=prefill.startTime;
