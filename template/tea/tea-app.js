@@ -366,7 +366,8 @@
     ['.tea-d-a', '.tea-d-b'].forEach(function (sel) {
       tr.querySelector(sel).addEventListener('change', function () {
         var box = this.closest('.tea-duty-box');
-        if (box) box.classList.add('is-swapped');
+        // 手動変更はD&D交代ハイライトを外す（元に戻した場合もオレンジが残らないように）
+        if (box) box.classList.remove('is-swapped', 'is-pick');
         refreshLineDaySelect();
       });
     });
