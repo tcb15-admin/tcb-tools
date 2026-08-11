@@ -181,6 +181,22 @@
     }
   }
 
+  function defaultShareMessage(data) {
+    data = data || {};
+    var lab = String(data.cohortLabel || '');
+    var title = titleFor(data.ym, lab).replace(/　/g, ' ');
+    var rev = String(data.revisedAt || '').trim();
+    var lines = [
+      'お疲れ様です。',
+      '【' + lab + '】' + title + (rev ? '（' + rev + '）' : '') + 'です。',
+      '',
+      'PDFを添付しますのでご確認ください。',
+      'よろしくお願いします。',
+      ''
+    ];
+    return lines.join('\n');
+  }
+
   /**
    * 保存済みデータから PDF を作り、スマホは共有シート／PC は本文コピー＋ダウンロード
    * @returns {Promise<{mode:string,fileName:string}>}
@@ -191,8 +207,7 @@
     }
     var base = fileBase(data.ym, data.cohortLabel);
     var fileName = base + '.pdf';
-    var msg = '【' + (data.cohortLabel || '') + '】' +
-      titleFor(data.ym, data.cohortLabel).replace(/　/g, '') + '\n';
+    var msg = String(data.message || '').trim() || defaultShareMessage(data);
     var html = buildPrintHtml(data);
 
     return global.TCB_generateAssignPdfBlob(html).then(function (blob) {
@@ -242,6 +257,7 @@
   global.TCB_TeaPrint = {
     buildPrintHtml: buildPrintHtml,
     shareTeaPdf: shareTeaPdf,
+    defaultShareMessage: defaultShareMessage,
     titleFor: titleFor,
     canShareFiles: canShareFiles
   };

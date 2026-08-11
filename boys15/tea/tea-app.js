@@ -622,8 +622,11 @@
       btn.classList.toggle('is-active', btn.getAttribute('data-tea-flow') === mode);
     });
     if ($('tea-flow-hint')) $('tea-flow-hint').textContent = FLOW_HINTS[mode] || FLOW_HINTS.make;
-    if (mode === 'share' && $('tea-panel-share')) {
-      try { $('tea-panel-share').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    if (mode === 'share') {
+      fillShareMsg(false);
+      if ($('tea-panel-share')) {
+        try { $('tea-panel-share').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }
     }
     if (mode === 'change' && $('tea-panel-table')) {
       try { $('tea-panel-table').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
@@ -635,6 +638,30 @@
     if (!el) return;
     el.textContent = msg || '';
     el.className = 'tea-status' + (isErr ? ' err' : '');
+  }
+
+  function shareMsgPayload() {
+    return {
+      ym: currentYm(),
+      cohortLabel: cfg.cohortLabel || (cfg.cohort ? cfg.cohort + '期' : ''),
+      revisedAt: ($('tea-revised') && $('tea-revised').value) || ''
+    };
+  }
+
+  function defaultShareMsgText() {
+    var Print = window.TCB_TeaPrint;
+    if (Print && typeof Print.defaultShareMessage === 'function') {
+      return Print.defaultShareMessage(shareMsgPayload());
+    }
+    return '';
+  }
+
+  function fillShareMsg(force) {
+    var el = $('tea-share-msg');
+    if (!el) return;
+    if (force || !String(el.value || '').trim()) {
+      el.value = defaultShareMsgText();
+    }
   }
 
   function shortNamesForPdf(groups) {
@@ -652,6 +679,7 @@
       return;
     }
     setFlow('share');
+    fillShareMsg(false);
     var btn = $('tea-btn-share-line');
     if (btn) btn.disabled = true;
     try {
@@ -660,11 +688,13 @@
         await saveMonth();
       }
       setShareStatus('PDFを作成しています…');
+      var msg = ($('tea-share-msg') && $('tea-share-msg').value) || '';
       var result = await Print.shareTeaPdf({
         ym: currentYm(),
         cohortLabel: cfg.cohortLabel || (cfg.cohort ? cfg.cohort + '期' : ''),
         revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
         note: ($('tea-note') && $('tea-note').value) || '',
+        message: msg,
         days: collectDays().map(function (d) {
           return {
             activityDate: d.activityDate,
@@ -922,6 +952,7 @@
     updateRevisedFoot();
     syncNotePrint();
     renderGroups();
+    fillShareMsg(true);
     if (res.month) {
       setMonthBadge('保存済み（最終更新: ' + (res.month.updatedAt || res.month.revisedAt || '—') + '）');
       setStatus(formatYmLabel(ym) + ' の表を読み込みました');
