@@ -41,6 +41,9 @@
     savedGroupsSnap: '',
     dirty: false,
     shareMsgTemplate: '',
+    shareMsgTemplateRev: '',
+    shareBaselineDays: [],
+    shareBaselineGroups: null,
     swapUndoStack: [],
     lastSwap: null,
     dutyPick: null,
@@ -62,6 +65,86 @@
     state.savedGroupsSnap = groupsSnap(collectGroups());
     updateDirtyUi();
     clearGroupChangeMarks();
+  }
+
+  /** 変更送付の差分基準（読込／新規作成時点。保存や共有では更新しない） */
+  function captureShareBaseline() {
+    state.shareBaselineDays = collectDays().map(function (d) {
+      return {
+        activityDate: d.activityDate,
+        dutyA: d.dutyA || '',
+        dutyB: d.dutyB || '',
+        playerGroup: d.playerGroup == null ? null : Number(d.playerGroup)
+      };
+    });
+    state.shareBaselineGroups = collectGroups();
+  }
+
+  function fmtShareDate(iso) {
+    var Line = window.TCB_TeaLine;
+    if (Line && Line.fmtDate) return Line.fmtDate(iso);
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return String(iso || '');
+    return String(Number(m[2])) + '/' + String(Number(m[3]));
+  }
+
+  function samePerson(a, b) {
+    return normalizeKey(shortName(a)) === normalizeKey(shortName(b));
+  }
+
+  function buildChangeSummary() {
+    var lines = [];
+    var baseMap = {};
+    (state.shareBaselineDays || []).forEach(function (d) {
+      baseMap[d.activityDate] = d;
+    });
+    var curDays = collectDays();
+    var curMap = {};
+    curDays.forEach(function (d) {
+      curMap[d.activityDate] = d;
+      var b = baseMap[d.activityDate];
+      if (!b) {
+        lines.push(fmtShareDate(d.activityDate) + '　追加　A:' + (shortName(d.dutyA) || '—') +
+          '　B:' + (shortName(d.dutyB) || '—') +
+          (d.playerGroup ? '　選手:' + d.playerGroup + '班' : ''));
+        return;
+      }
+      var parts = [];
+      if (!samePerson(b.dutyA, d.dutyA)) {
+        parts.push('A:' + (shortName(b.dutyA) || '—') + '→' + (shortName(d.dutyA) || '—'));
+      }
+      if (!samePerson(b.dutyB, d.dutyB)) {
+        parts.push('B:' + (shortName(b.dutyB) || '—') + '→' + (shortName(d.dutyB) || '—'));
+      }
+      var bpg = b.playerGroup == null || b.playerGroup === '' ? '' : String(b.playerGroup);
+      var cpg = d.playerGroup == null || d.playerGroup === '' ? '' : String(d.playerGroup);
+      if (bpg !== cpg) {
+        parts.push('選手:' + (bpg ? bpg + '班' : '—') + '→' + (cpg ? cpg + '班' : '—'));
+      }
+      if (parts.length) {
+        lines.push(fmtShareDate(d.activityDate) + '　' + parts.join('　'));
+      }
+    });
+    Object.keys(baseMap).forEach(function (iso) {
+      if (!curMap[iso]) lines.push(fmtShareDate(iso) + '　削除');
+    });
+
+    var bg = state.shareBaselineGroups || emptyGroups();
+    var cg = collectGroups();
+    for (var i = 1; i <= 6; i++) {
+      var k = String(i);
+      var a = (bg[k] || []).map(shortName).join('・');
+      var b = (cg[k] || []).map(shortName).join('・');
+      if (a !== b) {
+        lines.push(i + '班名簿　' + (a || '（空）') + ' → ' + (b || '（空）'));
+      }
+    }
+
+    return lines.length ? lines.join('\n') : '';
+  }
+
+  function hasTableChanges() {
+    return !!buildChangeSummary();
   }
 
   function groupsSnap(groups) {
@@ -624,7 +707,13 @@
     });
     if ($('tea-flow-hint')) $('tea-flow-hint').textContent = FLOW_HINTS[mode] || FLOW_HINTS.make;
     if (mode === 'share') {
-      fillShareMsg(false);
+      var prevKind = getShareKind();
+      var nextKind = suggestShareKind();
+      setShareKind(nextKind, true);
+      var el = $('tea-share-msg');
+      var cur = el ? String(el.value || '') : '';
+      var atDefault = !cur.trim() || cur === state._lastShareDefault;
+      if (prevKind !== nextKind || atDefault) fillShareMsg(true);
       if ($('tea-panel-share')) {
         try { $('tea-panel-share').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
       }
@@ -641,21 +730,48 @@
     el.className = 'tea-status' + (isErr ? ' err' : '');
   }
 
+  function getShareKind() {
+    var rev = $('tea-share-kind-revision');
+    return (rev && rev.checked) ? 'revision' : 'initial';
+  }
+
+  function setShareKind(kind, silent) {
+    var isRev = kind === 'revision';
+    if ($('tea-share-kind-revision')) $('tea-share-kind-revision').checked = isRev;
+    if ($('tea-share-kind-initial')) $('tea-share-kind-initial').checked = !isRev;
+    if (!silent) fillShareMsg(true);
+  }
+
   function shareMsgPayload() {
     return {
       ym: currentYm(),
       cohortLabel: cfg.cohortLabel || (cfg.cohort ? cfg.cohort + '期' : ''),
-      revisedAt: ($('tea-revised') && $('tea-revised').value) || ''
+      revisedAt: ($('tea-revised') && $('tea-revised').value) || '',
+      kind: getShareKind(),
+      changeSummary: buildChangeSummary()
     };
   }
 
   function activeShareTemplate() {
     var Print = window.TCB_TeaPrint;
-    if (state.shareMsgTemplate && String(state.shareMsgTemplate).trim()) {
-      return String(state.shareMsgTemplate);
-    }
-    if (Print && typeof Print.systemShareTemplate === 'function') {
-      return Print.systemShareTemplate();
+    var kind = getShareKind();
+    if (kind === 'revision') {
+      if (state.shareMsgTemplateRev && String(state.shareMsgTemplateRev).trim()) {
+        return String(state.shareMsgTemplateRev);
+      }
+      if (Print && typeof Print.systemShareTemplateRevision === 'function') {
+        return Print.systemShareTemplateRevision();
+      }
+    } else {
+      if (state.shareMsgTemplate && String(state.shareMsgTemplate).trim()) {
+        return String(state.shareMsgTemplate);
+      }
+      if (Print && typeof Print.systemShareTemplateInitial === 'function') {
+        return Print.systemShareTemplateInitial();
+      }
+      if (Print && typeof Print.systemShareTemplate === 'function') {
+        return Print.systemShareTemplate();
+      }
     }
     return '';
   }
@@ -665,10 +781,15 @@
     if (Print && typeof Print.applyShareTemplate === 'function') {
       return Print.applyShareTemplate(activeShareTemplate(), shareMsgPayload());
     }
-    if (Print && typeof Print.defaultShareMessage === 'function') {
-      return Print.defaultShareMessage(shareMsgPayload());
-    }
     return '';
+  }
+
+  function suggestShareKind() {
+    var revText = ($('tea-revised') && $('tea-revised').value) || '';
+    /* 新規「作成」表記のみで差分なし → 初回。差分あり or 「更新」 → 変更 */
+    if (hasTableChanges()) return 'revision';
+    if (/更新/.test(revText)) return 'revision';
+    return 'initial';
   }
 
   function fillShareMsg(force) {
@@ -681,6 +802,15 @@
     state._lastShareDefault = def;
   }
 
+  function loadShareTemplatesFromRaw(raw) {
+    var Print = window.TCB_TeaPrint;
+    var parsed = Print && Print.parseStoredShareTemplates
+      ? Print.parseStoredShareTemplates(raw)
+      : { initial: String(raw || ''), revision: '' };
+    state.shareMsgTemplate = parsed.initial || '';
+    state.shareMsgTemplateRev = parsed.revision || '';
+  }
+
   async function saveShareTemplateFromMessage() {
     var Print = window.TCB_TeaPrint;
     var el = $('tea-share-msg');
@@ -688,46 +818,34 @@
       setShareStatus('定型登録に失敗しました', true);
       return;
     }
-    var tpl = Print.messageToShareTemplate(el.value, shareMsgPayload());
+    var kind = getShareKind();
+    var payload = shareMsgPayload();
+    payload.kind = kind;
+    var tpl = Print.messageToShareTemplate(el.value, payload);
+    if (kind === 'revision') state.shareMsgTemplateRev = tpl;
+    else state.shareMsgTemplate = tpl;
+
+    var packed = Print.serializeShareTemplates
+      ? Print.serializeShareTemplates(state.shareMsgTemplate, state.shareMsgTemplateRev)
+      : state.shareMsgTemplate;
     var client = ensureSync();
     if (!client) return;
     setShareStatus('定型を登録中…');
     try {
-      await client.saveTeaSettings({ shareMsgTemplate: tpl });
-      state.shareMsgTemplate = tpl;
+      await client.saveTeaSettings({ shareMsgTemplate: packed });
       try {
-        localStorage.setItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl', tpl);
+        localStorage.setItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl', packed);
       } catch (e) {}
       fillShareMsg(true);
-      setShareStatus('定型文を登録しました（年・月・更新日は自動反映）');
+      setShareStatus((kind === 'revision' ? '変更送付' : '初回送付') + 'の定型を登録しました');
       setStatus('LINE案内の定型を登録しました');
     } catch (e) {
-      /* カラム未追加時は端末のみ */
-      state.shareMsgTemplate = tpl;
       try {
-        localStorage.setItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl', tpl);
+        localStorage.setItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl', packed);
       } catch (e2) {}
       fillShareMsg(true);
       setShareStatus('サーバへ保存できないため、この端末に定型を保存しました');
-      setStatus('LINE案内の定型を端末に保存しました');
     }
-  }
-
-  async function resetShareTemplateToSystem() {
-    var Print = window.TCB_TeaPrint;
-    var sys = Print && Print.systemShareTemplate ? Print.systemShareTemplate() : '';
-    var client = ensureSync();
-    state.shareMsgTemplate = '';
-    try {
-      localStorage.removeItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl');
-    } catch (e) {}
-    if (client) {
-      try {
-        await client.saveTeaSettings({ shareMsgTemplate: '' });
-      } catch (e2) { /* 端末クリアのみ */ }
-    }
-    fillShareMsg(true);
-    setShareStatus('システムの定型文に戻しました');
   }
 
   function shortNamesForPdf(groups) {
@@ -745,7 +863,15 @@
       return;
     }
     setFlow('share');
-    fillShareMsg(false);
+    if (getShareKind() === 'revision' && !buildChangeSummary()) {
+      setShareStatus('変更点が検出できません。必要なら案内文の「変更内容」を手編集してください');
+    }
+    var msgEl = $('tea-share-msg');
+    var curMsg = msgEl ? String(msgEl.value || '') : '';
+    if (!curMsg.trim() || curMsg === state._lastShareDefault) {
+      if (hasTableChanges()) setShareKind('revision', true);
+      fillShareMsg(true);
+    }
     var btn = $('tea-btn-share-line');
     if (btn) btn.disabled = true;
     try {
@@ -762,6 +888,7 @@
         note: ($('tea-note') && $('tea-note').value) || '',
         message: msg,
         shareTemplate: activeShareTemplate(),
+        changeSummary: buildChangeSummary(),
         days: collectDays().map(function (d) {
           return {
             activityDate: d.activityDate,
@@ -1019,6 +1146,8 @@
     updateRevisedFoot();
     syncNotePrint();
     renderGroups();
+    captureShareBaseline();
+    setShareKind(suggestShareKind(), true);
     fillShareMsg(true);
     if (res.month) {
       setMonthBadge('保存済み（最終更新: ' + (res.month.updatedAt || res.month.revisedAt || '—') + '）');
@@ -1115,6 +1244,9 @@
     }
     setMonthBadge(formatYmLabel(prevYm) + ' の続きで ' + dates.length + ' 日分を仮作成しました。確認して「保存」してください。');
     setStatus('前月から作成しました（未保存）');
+    captureShareBaseline();
+    setShareKind('initial', true);
+    fillShareMsg(true);
     setFlow('make');
     markDirty();
   }
@@ -1261,7 +1393,10 @@
     if ($('tea-share-msg-reset')) {
       $('tea-share-msg-reset').addEventListener('click', function () {
         fillShareMsg(true);
-        setShareStatus('登録済み定型（またはシステム定型）で案内文を作り直しました');
+        setShareStatus(
+          (getShareKind() === 'revision' ? '変更送付' : '初回送付') +
+          'の定型（またはシステム定型）で案内文を作り直しました'
+        );
       });
     }
     if ($('tea-share-msg-save')) {
@@ -1271,6 +1406,16 @@
         });
       });
     }
+    document.querySelectorAll('input[name="tea-share-kind"]').forEach(function (inp) {
+      inp.addEventListener('change', function () {
+        fillShareMsg(true);
+        setShareStatus(
+          getShareKind() === 'revision'
+            ? '変更送付の定型に切り替えました（変更内容を本文に掲載）'
+            : '初回送付の定型に切り替えました'
+        );
+      });
+    });
     if ($('tea-revised')) {
       $('tea-revised').addEventListener('change', function () {
         var el = $('tea-share-msg');
@@ -1336,15 +1481,17 @@
       if (groupsHaveMembers(settings.playerGroups)) {
         state.playerGroups = settings.playerGroups;
       }
+      var rawTpl = '';
       if (settings.shareMsgTemplate) {
-        state.shareMsgTemplate = String(settings.shareMsgTemplate);
+        rawTpl = String(settings.shareMsgTemplate);
       } else {
         try {
-          state.shareMsgTemplate = localStorage.getItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl') || '';
+          rawTpl = localStorage.getItem((cfg.lsPrefix || 'tcb15') + '_tea_share_tpl') || '';
         } catch (e) {
-          state.shareMsgTemplate = '';
+          rawTpl = '';
         }
       }
+      loadShareTemplatesFromRaw(rawTpl);
       var mem = await client.listTeaMembers();
       state.members = mem.members || [];
       await loadSupplies();

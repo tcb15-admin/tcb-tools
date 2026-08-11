@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.12.14">
-<link rel="stylesheet" href="tea.css?v=1.12.14">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.12.15">
+<link rel="stylesheet" href="tea.css?v=1.12.15">
 </head>
 <body class="tea-body">
 <svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
@@ -111,14 +111,24 @@
   <section class="tea-card tea-no-print tea-card-compact" id="tea-panel-share">
     <h2>LINEで展開</h2>
     <p class="tea-hint">案内文を編集してから送信します。スマホは共有シートからLINEへ。PCは案内文をコピー＋PDFダウンロード後、LINEに貼り付け・添付してください。</p>
+    <div class="tea-share-kind" role="radiogroup" aria-label="展開の種類">
+      <label class="tea-share-kind-opt">
+        <input type="radio" name="tea-share-kind" id="tea-share-kind-initial" value="initial" checked>
+        初回送付
+      </label>
+      <label class="tea-share-kind-opt">
+        <input type="radio" name="tea-share-kind" id="tea-share-kind-revision" value="revision">
+        変更送付
+      </label>
+    </div>
     <div class="tea-field tea-share-msg-field">
       <label for="tea-share-msg">案内文（LINE本文）</label>
-      <textarea id="tea-share-msg" class="tea-share-msg" rows="7" maxlength="800" aria-label="LINE案内文"></textarea>
+      <textarea id="tea-share-msg" class="tea-share-msg" rows="10" maxlength="2000" aria-label="LINE案内文"></textarea>
       <div class="tea-share-msg-actions">
         <button type="button" id="tea-share-msg-reset" class="tea-btn tea-btn-ghost tea-btn-sm">定型に戻す</button>
         <button type="button" id="tea-share-msg-save" class="tea-btn tea-btn-ghost tea-btn-sm">この内容を定型登録</button>
       </div>
-      <p class="tea-hint">定型登録すると、次回以降の「定型に戻す」と月切替時の初期文に使います。年・月・更新日は展開内容に合わせて自動で入ります。</p>
+      <p class="tea-hint">「変更送付」では当番A/B・選手班の変更点を案内文に自動掲載します。定型登録は選択中の種類（初回／変更）ごとに保存されます。</p>
     </div>
     <div class="tea-row">
       <button type="button" id="tea-btn-share-line" class="tea-btn tea-btn-line tea-btn-line-wide">
@@ -170,16 +180,16 @@ window.TCB_TEA_CFG={
   teamName:"東海中央ボーイズ 15期"
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.12.14"></script>
-<script src="../tcb-device.js?v=1.12.14"></script>
-<script src="../jspdf.umd.min.js?v=1.12.14"></script>
-<script src="../html2canvas.min.js?v=1.12.14"></script>
-<script src="../html2pdf.min.js?v=1.12.14"></script>
-<script src="../tcb-print-pdf.js?v=1.12.14"></script>
-<script src="../attendance/attendance-jp-calendar.js?v=1.12.14"></script>
-<script src="tea-line.js?v=1.12.14"></script>
-<script src="tea-print.js?v=1.12.14"></script>
-<script src="tea-seed-2026-08.js?v=1.12.14"></script>
-<script src="tea-app.js?v=1.12.14"></script>
+<script src="../tcb-sync-api.js?v=1.12.15"></script>
+<script src="../tcb-device.js?v=1.12.15"></script>
+<script src="../jspdf.umd.min.js?v=1.12.15"></script>
+<script src="../html2canvas.min.js?v=1.12.15"></script>
+<script src="../html2pdf.min.js?v=1.12.15"></script>
+<script src="../tcb-print-pdf.js?v=1.12.15"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.12.15"></script>
+<script src="tea-line.js?v=1.12.15"></script>
+<script src="tea-print.js?v=1.12.15"></script>
+<script src="tea-seed-2026-08.js?v=1.12.15"></script>
+<script src="tea-app.js?v=1.12.15"></script>
 </body>
 </html>

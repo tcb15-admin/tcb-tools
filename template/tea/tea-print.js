@@ -181,7 +181,7 @@
     }
   }
 
-  function systemShareTemplate() {
+  function systemShareTemplateInitial() {
     return [
       'お疲れ様です。',
       '{期} {年}年 {月}月 お茶当番表を展開いたします。',
@@ -194,6 +194,51 @@
     ].join('\n');
   }
 
+  function systemShareTemplateRevision() {
+    return [
+      'お疲れ様です。',
+      '{期} {年}年 {月}月 お茶当番表の【変更版】を展開いたします。',
+      '（{更新}）',
+      '',
+      '■変更内容',
+      '{変更内容}',
+      '',
+      'ご確認いただき、お気づきの点や変更依頼などありましたら、',
+      '個別にご連絡ください。',
+      '以上、よろしくお願いします。',
+      ''
+    ].join('\n');
+  }
+
+  /** 互換: 旧API名 → 初回定型 */
+  function systemShareTemplate() {
+    return systemShareTemplateInitial();
+  }
+
+  function parseStoredShareTemplates(raw) {
+    var s = String(raw == null ? '' : raw).trim();
+    if (!s) return { initial: '', revision: '' };
+    if (s.charAt(0) === '{') {
+      try {
+        var o = JSON.parse(s);
+        if (o && typeof o === 'object') {
+          return {
+            initial: String(o.initial || o.first || ''),
+            revision: String(o.revision || o.change || '')
+          };
+        }
+      } catch (e) { /* plain text */ }
+    }
+    return { initial: s, revision: '' };
+  }
+
+  function serializeShareTemplates(initial, revision) {
+    return JSON.stringify({
+      initial: String(initial || ''),
+      revision: String(revision || '')
+    });
+  }
+
   function applyShareTemplate(tpl, data) {
     data = data || {};
     var m = String(data.ym || '').match(/^(\d{4})-(\d{2})$/);
@@ -201,10 +246,12 @@
     var month = m ? String(Number(m[2])) : '';
     var cohort = String(data.cohortLabel || '');
     var rev = String(data.revisedAt || '').trim();
-    var text = String(tpl || systemShareTemplate());
+    var changes = String(data.changeSummary || '').trim() || '（変更内容を記入してください）';
+    var text = String(tpl || systemShareTemplateInitial());
     text = text.split('{期}').join(cohort);
     text = text.split('{年}').join(year);
     text = text.split('{月}').join(month);
+    text = text.split('{変更内容}').join(changes);
     if (rev) {
       text = text.split('{更新}').join(rev);
     } else {
@@ -214,15 +261,18 @@
     return text.replace(/\n{3,}/g, '\n\n');
   }
 
-  /** 表示中の案内文から、現在の年・月・期・更新表記をプレースホルダに戻して定型化する */
+  /** 表示中の案内文から、現在の年・月・期・更新・変更内容をプレースホルダに戻して定型化する */
   function messageToShareTemplate(msg, data) {
     data = data || {};
+    var kind = data.kind === 'revision' ? 'revision' : 'initial';
     var m = String(data.ym || '').match(/^(\d{4})-(\d{2})$/);
     var year = m ? m[1] : '';
     var month = m ? String(Number(m[2])) : '';
     var cohort = String(data.cohortLabel || '');
     var rev = String(data.revisedAt || '').trim();
+    var changes = String(data.changeSummary || '').trim();
     var t = String(msg || '');
+    if (changes) t = t.split(changes).join('{変更内容}');
     if (rev) t = t.split(rev).join('{更新}');
     if (cohort) t = t.split(cohort).join('{期}');
     if (year) t = t.split(year).join('{年}');
@@ -230,14 +280,22 @@
       t = t.replace(new RegExp('(^|[^0-9{])' + month + '月', 'g'), '$1{月}月');
     }
     if (t.indexOf('{期}') < 0 || t.indexOf('{年}') < 0 || t.indexOf('{月}') < 0) {
-      /* 置換しきれない場合はシステム定型を使う */
-      return systemShareTemplate();
+      return kind === 'revision' ? systemShareTemplateRevision() : systemShareTemplateInitial();
+    }
+    if (kind === 'revision' && t.indexOf('{変更内容}') < 0) {
+      t = t.replace(/■変更内容\n?/, '■変更内容\n{変更内容}\n');
+      if (t.indexOf('{変更内容}') < 0) {
+        return systemShareTemplateRevision();
+      }
     }
     return t;
   }
 
   function defaultShareMessage(data) {
-    return applyShareTemplate(systemShareTemplate(), data);
+    data = data || {};
+    var kind = data.kind === 'revision' ? 'revision' : 'initial';
+    var tpl = kind === 'revision' ? systemShareTemplateRevision() : systemShareTemplateInitial();
+    return applyShareTemplate(tpl, data);
   }
 
   /**
@@ -302,6 +360,10 @@
     buildPrintHtml: buildPrintHtml,
     shareTeaPdf: shareTeaPdf,
     systemShareTemplate: systemShareTemplate,
+    systemShareTemplateInitial: systemShareTemplateInitial,
+    systemShareTemplateRevision: systemShareTemplateRevision,
+    parseStoredShareTemplates: parseStoredShareTemplates,
+    serializeShareTemplates: serializeShareTemplates,
     applyShareTemplate: applyShareTemplate,
     messageToShareTemplate: messageToShareTemplate,
     defaultShareMessage: defaultShareMessage,
