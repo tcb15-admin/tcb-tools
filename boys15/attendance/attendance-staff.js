@@ -140,14 +140,19 @@
     row.innerHTML=
       '<div class="att-field"><label>日付</label><input type="date" class="att-d-date" required></div>'+
       '<div class="att-field"><label>開始</label><input type="time" class="att-d-time"></div>'+
-      '<div class="att-field"><label>種別</label><select class="att-d-kind"><option value="practice">練習</option><option value="game">試合</option><option value="other">その他</option></select></div>'+
+      '<div class="att-field"><label>種別</label><select class="att-d-kind"><option value="game">試合</option><option value="other">その他</option><option value="undecided" selected>未定</option></select></div>'+
       '<div class="att-field"><label>場所</label><input class="att-d-place" maxlength="120" placeholder="任意"></div>'+
       tag+
       '<button type="button" class="att-btn att-btn-ghost att-d-del">削除</button>';
     box.appendChild(row);
     if(prefill.activityDate)row.querySelector('.att-d-date').value=prefill.activityDate;
     if(prefill.startTime)row.querySelector('.att-d-time').value=prefill.startTime;
-    if(prefill.kind)row.querySelector('.att-d-kind').value=prefill.kind;
+    if(prefill.kind){
+      var kind=String(prefill.kind);
+      if(kind==='practice')kind='undecided'; /* 旧「練習」→未定 */
+      var kindEl=row.querySelector('.att-d-kind');
+      if([].some.call(kindEl.options, function(o){return o.value===kind;}))kindEl.value=kind;
+    }
     if(prefill.place)row.querySelector('.att-d-place').value=prefill.place;
     row.querySelector('.att-d-del').addEventListener('click', function(){
       if(box.querySelectorAll('.att-day-row').length<=1)return;
@@ -198,7 +203,7 @@
     items.forEach(function(it){
       addDayRow({
         activityDate:it.iso,
-        kind:it.kindHint||'practice',
+        kind:it.kindHint||'undecided',
         tagLabel:it.label||''
       });
     });

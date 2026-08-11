@@ -173,7 +173,7 @@
       byIso[iso] = {
         iso: iso,
         label: label,
-        kindHint: 'practice',
+        kindHint: 'undecided',
         holidayName: hName || '',
         weekday: wd
       };

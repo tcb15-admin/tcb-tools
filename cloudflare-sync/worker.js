@@ -758,7 +758,7 @@ async function notifySwapReportPush(env, cohortRaw, report) {
 // 表示文言はフロントの config で注入し、サーバー／DB には持ち込まない。
 
 const MARKS = new Set(["o", "x", "t", "unset"]); // ○ ✕ △ 未
-const ATT_KINDS = new Set(["practice", "game", "other"]);
+const ATT_KINDS = new Set(["game", "other", "undecided", "practice"]); /* practice は既存データ互換 */
 const ATT_TRACKS = new Set(["a", "b"]);
 // トラックごとの入力形式。将来チーム設定（cohort 単位）に外出しする想定
 const TRACK_FORMS = { a: "family", b: "marks" };
@@ -844,7 +844,7 @@ function mapDay(row) {
     activityDate: String(row.activity_date || ""),
     startTime: String(row.start_time || ""),
     place: String(row.place || ""),
-    kind: String(row.kind || "practice"),
+    kind: String(row.kind || "undecided"),
     label: String(row.label || ""),
     sortOrder: Number(row.sort_order) || 0,
   };
@@ -962,7 +962,7 @@ async function upsertCampaign(env, body) {
   const days = daysIn.map((d, i) => {
     const activityDate = String((d && d.activityDate) || "").trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) throw new Error("activity_date_invalid");
-    const kind = String((d && d.kind) || "practice").trim();
+    const kind = String((d && d.kind) || "undecided").trim();
     if (!ATT_KINDS.has(kind)) throw new Error("kind_invalid");
     return {
       activityDate,

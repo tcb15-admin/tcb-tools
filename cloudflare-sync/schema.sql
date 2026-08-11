@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS attendance_days (
   activity_date TEXT NOT NULL,
   start_time TEXT NOT NULL DEFAULT '',
   place TEXT NOT NULL DEFAULT '',
-  kind TEXT NOT NULL DEFAULT 'practice',
+  kind TEXT NOT NULL DEFAULT 'undecided',
   label TEXT NOT NULL DEFAULT '',
   sort_order INTEGER NOT NULL DEFAULT 0,
   UNIQUE(campaign_id, activity_date)
