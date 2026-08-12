@@ -6,11 +6,16 @@
 <title>15期ポータル — 東海中央ボーイズ 15期</title>
 <meta name="theme-color" content="#f3f3f5">
 <meta name="description" content="東海中央ボーイズ 15期 マネージャー用ポータル。出欠・道具割振りなど各ツールへの入口です。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="15期ポータル">
+<link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.16.0">
-<link rel="stylesheet" href="portal.css?v=1.16.0">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.17.0">
+<link rel="stylesheet" href="../tcb-pwa-install.css?v=1.17.0">
+<link rel="stylesheet" href="portal.css?v=1.17.0">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -26,9 +31,26 @@
   <div class="pt-hdr-titles tcb-shell-titles">
     <h1>ポータル<span>東海中央ボーイズ 15期　｜　不屈不撓の精神で全員野球</span></h1>
   </div>
+  <button type="button" class="tcb-shell-link pt-hdr-pwa" id="btn-pwa-install">ホーム画面に追加</button>
 </header>
 
 <main class="pt-wrap">
+  <div class="tcb-pwa-banner" id="pwa-install-banner" role="region" aria-label="ホーム画面に追加の案内">
+    <div class="tcb-pwa-banner-hd">ホーム画面に追加すると便利です</div>
+    <div>アイコンから起動すると、ポータルがトップになります。各ツールへすぐ進めます。</div>
+    <div class="tcb-pwa-banner-actions">
+      <button type="button" class="tcb-pwa-banner-btn" id="pwa-install-banner-open">追加手順を見る</button>
+      <button type="button" class="tcb-pwa-banner-dismiss" id="pwa-install-banner-dismiss">あとで</button>
+    </div>
+  </div>
+  <div class="tcb-pwa-overlay" id="pwa-install-modal">
+    <div class="tcb-pwa-modal" role="dialog" aria-labelledby="pwa-install-title">
+      <button type="button" class="tcb-pwa-mclose" id="pwa-install-close" aria-label="閉じる">×</button>
+      <h2 id="pwa-install-title">ホーム画面に追加</h2>
+      <div id="pwa-install-body"></div>
+    </div>
+  </div>
+
   <section class="pt-lead" aria-label="案内">
     <div class="pt-lead-kicker">MGR ENTRY</div>
     <p>各ツールへ進んでください。状況サマリーは直近の活動日を横断表示します。</p>
@@ -112,10 +134,22 @@
 window.TCB_PT_CFG={
   cohort:"15",
   apiBase:"https://tcb-tools-sync.kazoo-matsu.workers.dev",
-  apiToken:"4af3b2f262a5ed38fc396cac3fd0740de5eca97288d70602"
+  apiToken:"4af3b2f262a5ed38fc396cac3fd0740de5eca97288d70602",
+  lsPrefix:"tcb15"
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.16.0"></script>
-<script src="portal-summary.js?v=1.16.0"></script>
+<script src="../tcb-sync-api.js?v=1.17.0"></script>
+<script src="../tcb-pwa-install.js?v=1.17.0"></script>
+<script src="portal-summary.js?v=1.17.0"></script>
+<script>
+(function(){
+  if(window.TCB_PwaInstall){
+    TCB_PwaInstall.init({lsPrefix:(window.TCB_PT_CFG&&TCB_PT_CFG.lsPrefix)||'tcb'});
+  }
+  if('serviceWorker' in navigator){
+    try{navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});}catch(e){}
+  }
+})();
+</script>
 </body>
 </html>

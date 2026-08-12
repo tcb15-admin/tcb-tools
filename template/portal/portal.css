@@ -26,6 +26,8 @@ body{
 }
 
 .pt-hdr.tcb-shell-hdr{flex-wrap:nowrap;}
+.pt-hdr-pwa{margin-left:auto;flex-shrink:0;}
+.pt-wrap .tcb-pwa-banner{margin:0 0 14px;}
 
 .pt-wrap{
   max-width:720px;margin:0 auto;

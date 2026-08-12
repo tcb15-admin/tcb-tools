@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""チームロゴ（円形エンブレム）＋「XX期道具」でアプリ用アイコンを生成する。
+"""チームロゴ（円形エンブレム）＋アイコン文言でアプリ用アイコンを生成する。
 
 tool_template.html に埋め込まれたロゴ(base64)を元に、各期の出力先へ PNG を書き出す。
+文言は config の PWA_ICON_LABEL（なければ PWA_SHORT_NAME）を使う。
 - 生成物: icon-512.png / icon-192.png / apple-touch-icon.png(180) / favicon-32.png
 - 依存: Pillow（pip install pillow）と日本語フォント（macOS の Hiragino Sans GB）
 - 実行: リポジトリのルートで  python3 template/gen_icons.py
 
-ロゴを差し替えたら本スクリプトを再実行し、続けて build.py で manifest を再生成する。
+ロゴや文言を差し替えたら本スクリプトを再実行し、続けて build.py で manifest を再生成する。
 """
-import re, base64, io, os
+import re, base64, io, json, os
 from PIL import Image, ImageDraw, ImageFont
 
 TEMPLATE = 'template/tool_template.html'
@@ -44,7 +45,18 @@ def fit_font(text, max_w, start, ss):
     return ImageFont.truetype(FONT_PATH, 10 * ss, index=FONT_INDEX), 10
 
 
-def make_icon(crest, cohort, ss=3):
+def icon_label(cohort):
+    cfg_path = os.path.join('template', f'config_boys{cohort}.json')
+    if os.path.isfile(cfg_path):
+        with open(cfg_path, encoding='utf-8') as f:
+            cfg = json.load(f)
+        label = str(cfg.get('PWA_ICON_LABEL') or cfg.get('PWA_SHORT_NAME') or '').strip()
+        if label:
+            return label
+    return cohort + '期ポータル'
+
+
+def make_icon(crest, label, ss=3):
     # すべての要素を中央80%（安全域 y,x = 約[52,460]）に収め、maskable でも欠けないようにする
     S = 512 * ss
     canvas = Image.new('RGBA', (S, S), NAVY)  # full-bleed navy（maskable対応）
@@ -63,10 +75,9 @@ def make_icon(crest, cohort, ss=3):
     ringd.ellipse([cx - ring_pad, cy - ring_pad, cx + diam + ring_pad, cy + diam + ring_pad], fill=GOLD)
     canvas.paste(crest_r, (cx, cy), mask)
 
-    # テキスト「XX期道具」
-    text = cohort + '期道具'
-    max_w = int(346 * ss)
-    font, size = fit_font(text, max_w, 84, ss)
+    text = str(label or '').strip() or 'ポータル'
+    max_w = int(380 * ss)
+    font, size = fit_font(text, max_w, 72, ss)
     stroke = max(1, int(size * ss * 0.04))
     d = ImageDraw.Draw(canvas)
     text_top = int(354 * ss)
@@ -98,13 +109,14 @@ def main():
     crest = load_crest()
     for cohort, folder in TARGETS.items():
         os.makedirs(folder, exist_ok=True)
-        icon = make_icon(crest, cohort)
+        label = icon_label(cohort)
+        icon = make_icon(crest, label)
         icon.save(os.path.join(folder, 'icon-512.png'))
         icon.resize((192, 192), Image.LANCZOS).save(os.path.join(folder, 'icon-192.png'))
         icon.resize((180, 180), Image.LANCZOS).save(os.path.join(folder, 'apple-touch-icon.png'))
         icon.resize((32, 32), Image.LANCZOS).save(os.path.join(folder, 'favicon-32.png'))
         save_team_logo(crest, folder)
-        print('[OK]', folder, '→ icon-512/192, apple-touch-icon(180), favicon-32, team-logo')
+        print('[OK]', folder, f'→ icon-512/192, apple-touch-icon(180), favicon-32, team-logo ({label})')
 
 
 if __name__ == '__main__':

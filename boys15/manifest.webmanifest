@@ -1,8 +1,8 @@
 {
-  "name": "東海中央ボーイズ 15期 道具割振り",
-  "short_name": "15期道具",
+  "name": "東海中央ボーイズ 15期ポータル",
+  "short_name": "15期ポータル",
   "lang": "ja",
-  "start_url": "./index.html",
+  "start_url": "./portal/",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

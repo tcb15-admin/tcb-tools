@@ -106,10 +106,10 @@ def build_manifest(target, config, out_dir):
     ホーム画面追加時の名称・テーマ色・アイコンを定義。アイコンPNGは別途 .tmp-gen-icons.py 等で生成し配置しておく。"""
     theme = str(config.get('THEME_COLOR', '#122050') or '#122050')
     manifest = {
-        'name': str(config.get('PWA_NAME', config.get('TEAM_NAME', '道具割振り'))),
-        'short_name': str(config.get('PWA_SHORT_NAME', config.get('COHORT_LABEL', '道具'))),
+        'name': str(config.get('PWA_NAME', config.get('TEAM_NAME', 'ポータル'))),
+        'short_name': str(config.get('PWA_SHORT_NAME', config.get('COHORT_LABEL', 'ポータル'))),
         'lang': 'ja',
-        'start_url': './index.html',
+        'start_url': './portal/',
         'scope': './',
         'display': 'standalone',
         'orientation': 'portrait',
@@ -206,6 +206,8 @@ def build_portal_and_attendance(target, config, out_dir):
         'LS_PREFIX_JSON': json.dumps(str(config.get('LS_PREFIX', '')), ensure_ascii=False),
         'PAGES_BASE_URL_JSON': json.dumps(pages_base, ensure_ascii=False),
         'ATT_TRACKS_JSON': json.dumps(tracks, ensure_ascii=False),
+        'PWA_NAME': str(config.get('PWA_NAME', '')),
+        'PWA_SHORT_NAME': str(config.get('PWA_SHORT_NAME', '')),
     }
     mapping.update(att)
 
