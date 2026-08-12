@@ -150,6 +150,10 @@ body.tea-body{
 .tea-pw-card{background:var(--tea-card);border-radius:8px;padding:24px 18px;width:92%;max-width:360px;text-align:center;}
 .tea-pw-card h2{font-size:16px;margin-bottom:12px;color:var(--tea-heading);}
 .tea-pw-card input{width:100%;min-height:46px;border:1px solid var(--tea-bdr);border-radius:4px;padding:10px;font:inherit;font-size:16px;margin-bottom:10px;}
+.tea-pw-back{
+  display:inline-block;margin-top:12px;font-size:13px;font-weight:700;
+  color:var(--tea-heading);text-decoration:underline;text-underline-offset:2px;
+}
 
 .tea-tbl-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--tea-bdr);border-radius:4px;}
 .tea-tbl{width:100%;border-collapse:collapse;table-layout:fixed;min-width:720px;font-size:13px;}

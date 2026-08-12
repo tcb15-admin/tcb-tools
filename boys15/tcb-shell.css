@@ -116,5 +116,7 @@ a.tcb-shell-link:hover,
   .tcb-shell-titles h1,
   .tcb-shell-hdr h1{font-size:14px;}
   .tcb-shell-titles h1 span,
-  .tcb-shell-hdr h1 span{font-size:10px;}
+  .tcb-shell-hdr h1 span{
+    font-size:10px;white-space:normal;overflow:visible;text-overflow:unset;
+  }
 }

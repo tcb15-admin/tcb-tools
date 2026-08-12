@@ -42,17 +42,18 @@
     var btn = el('btn-pwa-install');
     if (!btn) return;
     if (isStandalone()) {
-      btn.textContent = '\u2713 ホーム画面から起動中';
-      btn.title = 'ホーム画面に追加済みのアプリとして起動しています';
+      btn.textContent = '\u2713 起動中';
+      btn.title = 'ホーム画面から起動しています';
+      btn.setAttribute('aria-label', 'ホーム画面から起動中');
       btn.classList.add('tcb-pwa-hbtn-on');
       return;
     }
     var kind = guideKind();
     if (kind === 'windows' || kind === 'mac') {
-      btn.textContent = '\uD83D\uDDA5 アプリ化の手順';
+      btn.textContent = 'アプリ化';
       btn.title = 'ブラウザからアプリのように使う手順';
     } else {
-      btn.textContent = '\uD83D\uDCF2 ホーム画面に追加';
+      btn.textContent = 'ホームに追加';
       btn.title = 'ホーム画面にショートカットを追加する手順';
     }
     btn.classList.remove('tcb-pwa-hbtn-on');

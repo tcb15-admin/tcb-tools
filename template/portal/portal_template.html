@@ -53,18 +53,13 @@
 
   <section class="pt-lead" aria-label="案内">
     <div class="pt-lead-kicker">MGR ENTRY</div>
-    <p>各ツールへ進んでください。状況サマリーは直近の活動日を横断表示します。</p>
+    <p>担当ツールを選んでください。下の「直近の活動日」は出欠・配車・お茶・道具の横断確認用です。</p>
     <p id="pt-sum-status" class="pt-sum-status" aria-live="polite"></p>
   </section>
 
   <div id="pt-alerts" class="pt-alerts pt-hidden" aria-label="要確認"></div>
 
-  <div class="pt-sec-label">直近の活動日</div>
-  <div id="pt-hub" class="pt-hub" aria-live="polite">
-    <p class="pt-hub-empty">読込中…</p>
-  </div>
-
-  <div class="pt-sec-label" style="margin-top:22px;">利用できるツール</div>
+  <div class="pt-sec-label">利用できるツール</div>
   <div class="pt-grid" role="list">
     <a class="pt-tile" href="../index.html" role="listitem">
       <span class="pt-tile-num" aria-hidden="true">01</span>
@@ -125,6 +120,12 @@
       </div>
       <span class="pt-tile-arrow" aria-hidden="true">›</span>
     </a>
+  </div>
+
+  <div class="pt-sec-label" style="margin-top:22px;">直近の活動日</div>
+  <p class="pt-hub-lead">出欠・配車・お茶・道具を同じ日付で横断確認します（作業の入口ではありません）。</p>
+  <div id="pt-hub" class="pt-hub" aria-live="polite">
+    <p class="pt-hub-empty">読込中…</p>
   </div>
 
   <p class="pt-foot">保護者の方はポータルを使いません。LINEで届く確認・回答用URLだけをご利用ください。</p>
