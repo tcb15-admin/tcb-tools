@@ -163,7 +163,7 @@ async function main() {
     api(`/api/history?cohort=${encodeURIComponent(COHORT)}&days=365`),
   ]);
 
-  const teamName = COHORT === '16' ? '東海中央ボーイズ 16期' : '東海中央ボーイズ 15期';
+  const teamName = '東海中央ボーイズ 15期';
   const mb = (master && master.MB) || [];
   const payload = buildParentPublishPayload(history, teamName, mb);
   if (!payload.days.length) {

@@ -9,7 +9,7 @@
 出力:
   boys15/index.html
 
-※16期（boys16）は不使用確定のため 2026-08-09 にビルド対象から削除。
+※ビルド対象は boys15 のみ。
 """
 
 import json, os, sys, re, shutil
@@ -54,7 +54,7 @@ def add_asset_version(html, version):
 
 
 def html_body_class(config):
-    """html 要素の class。テーマ（16期）と 15期シンプルUI（tcb-ui-simple）を合成。"""
+    """html 要素の class。テーマクラスとシンプルUI（tcb-ui-simple）を合成。"""
     parts = []
     tc = str(config.get('HTML_THEME_CLASS', '') or '').strip()
     if tc:

@@ -421,21 +421,6 @@ tr.p3-carry-changed-row{background:#fff3e0!important;}
 .tcb-share-preview-hd{font-size:12px;font-weight:700;color:#48484f;margin-bottom:6px;}
 #print-frame{display:block;width:100%;min-height:min(52vh,420px);border:none;background:#fff;}
 #print-frame.tcb-print-frame-preview{min-height:min(70vh,560px);}
-html.theme-b16 .print-header{
-  background:#fff;
-  border-bottom:3px solid #c0000a;
-  box-shadow:0 2px 14px rgba(18,32,80,.12);
-}
-html.theme-b16 .tcb-print-hdr-title{color:#122050;}
-html.theme-b16 .tcb-print-hdr-sub{color:#64748b;}
-html.theme-b16 .print-close-btn{
-  border:1px solid rgba(18,32,80,.28);
-  background:#f1f5f9;
-  color:#122050;
-}
-html.theme-b16 .print-actions{background:#f1f5f9;border-bottom:1px solid #e2e8f0;}
-html.theme-b16 .tcb-share-panel{background:#f1f5f9;}
-html.theme-b16 .print-scroll-body{background:#e8ecf4;}
 .p3-rh-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center;}
 .p3-rh-actions .nb:disabled{opacity:.45;cursor:not-allowed;}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
@@ -650,7 +635,7 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
 .tcb-sameday-hint-p1{margin-top:12px;font-size:12px;line-height:1.6;color:var(--ink-info);}
 .tcb-sameday-hint-p2-card{margin-bottom:14px;border:1px solid var(--ui-accent-bd);background:var(--ui-accent-bg);}
 .tcb-sameday-hint-p2-txt{font-size:12px;color:var(--ink-info);line-height:1.6;margin:0;padding:0 2px 2px 0;}
-/* 期別表示（15期・16期の取り違え防止）— セレクタは tcb-cohort-* で既存と分離 */
+/* 期表示チップ — セレクタは tcb-cohort-* で既存と分離 */
 .tcb-cohort-chip{
   flex-shrink:0;
   font-size:11px;
@@ -664,8 +649,7 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
   color:var(--ink-heading);
   border:1.5px solid var(--ink-heading);
 }
-html[data-cohort="15"] .tcb-cohort-chip,
-html[data-cohort="16"] .tcb-cohort-chip{
+html[data-cohort="15"] .tcb-cohort-chip{
   background:transparent;
   color:var(--ink-heading);
   border:1.5px solid var(--ink-heading);
@@ -688,12 +672,6 @@ html[data-cohort="15"] .tcb-pw-cohort-banner{
   color:#fff;
   box-shadow:0 4px 14px rgba(180,83,9,.35);
 }
-html[data-cohort="16"] .tcb-pw-cohort-banner{
-  background:#122050;
-  color:#fff;
-  border-bottom:3px solid #c0000a;
-  box-shadow:0 4px 16px rgba(18,32,80,.25);
-}
 /* 15期シンプルUI（build で html に tcb-ui-simple）：上級機能ブロックを非表示 */
 html.tcb-ui-simple .tcb-ui-advanced{display:none!important;}
 /* ログインオーバーレイ・補助ボタン */
@@ -714,92 +692,6 @@ html.tcb-ui-simple .tcb-ui-advanced{display:none!important;}
 .tcb-master-pw-title{font-size:13px;font-weight:700;color:var(--ink-heading);margin-bottom:8px;}
 .tcb-master-pw-note{font-size:11px;color:var(--txt2);margin-top:6px;}
 .tcb-master-pw-btn:active{opacity:.92;}
-/* ========== 16期：白ベース＋ユニフォーム紺×赤（15期は紺グラデ画面／16期は明るい下地で差別化） ========== */
-html.theme-b16{
-  --navy:#122050;
-  --navy2:#1a2d68;
-  --blue:#122050;
-  --blue2:#2c5282;
-  --ta:#122050;
-  --ta-bg:#e8edf5;
-  --ta-bd:#5c7cad;
-  --tb:#b91c1c;
-  --tb-bg:#fef2f2;
-  --tb-bd:#f87171;
-  --acc:#c0000a;
-  --grn:#15803d;
-  --grn-l:#dcfce7;
-  --red:#c0000a;
-  --red-l:#fef2f2;
-  --bg:#f5f5f7;
-  --card:#ffffff;
-  --bdr:#e5e5ea;
-  --txt:#1c1c22;
-  --txt2:#6e6e78;
-  --coach:#6d4c41;
-  --coach-bg:#efebe9;
-  --coach-bd:#bcaaa4;
-  --hdr-g1:#122050;
-  --hdr-g2:#1a2d68;
-  --hdr-sh:rgba(18,32,80,.2);
-  --act:#c0000a;
-  --act2:#9f0010;
-  --step-on-bg:#fff0f0;
-  --h1-sub:#93c5fd;
-  --ink-info:#1e3a5f;
-  --ui-accent:#1a2d68;
-  --ui-accent-bg:#eef1f8;
-  --ui-accent-bd:#aab6d4;
-  --surface-2:#f2f2f5;--hairline:#ededf0;--label-3:#9a9aa4;
-}
-html.theme-b16 header{
-  background:#fff;
-  border-bottom:3px solid #c0000a;
-  box-shadow:0 2px 14px rgba(18,32,80,.12);
-}
-html.theme-b16 header h1{
-  color:#122050;
-}
-html.theme-b16 header h1 span{
-  color:#64748b;
-}
-html.theme-b16 #tool-version{
-  color:rgba(18,32,80,.45)!important;
-}
-html.theme-b16 .steps{
-  border:1px solid var(--bdr);
-  box-shadow:var(--sh-soft);
-}
-html.theme-b16 .card{
-  border:1px solid var(--bdr);
-  box-shadow:var(--sh-card);
-}
-html.theme-b16 .master-tl-mrow{
-  border-color:#cbd5e1;
-  border-left-width:4px;
-  border-left-color:#122050;
-}
-html.theme-b16 .master-tl-mrow:nth-child(even){
-  background:#f8fafc;
-  border-left-color:#c0000a;
-  border-color:#e2e8f0;
-}
-html.theme-b16 .master-tl-mrow:nth-child(even) .master-tl-name-ta{
-  background:#fff;
-}
-html.theme-b16 .hbtn{
-  border:none;
-  background:var(--surface-2);
-  color:#122050;
-}
-html.theme-b16 .hbtn:active{
-  opacity:.88;
-}
-html.theme-b16 #pw-screen .tcb-pw-login-card{
-  border-top:3px solid #c0000a;
-  box-shadow:0 12px 40px rgba(18,32,80,.14);
-}
-
 /* スマホ：割振り（STEP3 中心）・親指操作しやすいタップ領域 */
 @media (max-width:520px){
   :root{ --tap:50px; }
@@ -1066,7 +958,7 @@ html{color-scheme:light;}
 
 /* ==== ダークモード（iPhoneのシステム設定に自動追従／印刷・PDFは常にライト） ==== */
 @media (prefers-color-scheme:dark){
-  :root, html.theme-b16{
+  :root{
     --bg:#000000;--card:#1c1c1e;--surface-2:#2c2c2e;--bdr:#38383a;--hairline:#2c2c2e;
     --txt:#f5f5f7;--txt2:#a1a1ac;--label-3:#8e8e97;
     --navy:#f4f4f5;--navy2:#d4d4d8;--blue:#f4f4f5;--blue2:#a1a1aa;
@@ -1102,12 +994,6 @@ html{color-scheme:light;}
   .al.ali{background:var(--surface-2);color:#cdd6ec;}
   .al.alb{background:rgba(255,90,95,.16);border-left-color:#ff5a5f;color:#ffd7d9;}
   .al.als{background:rgba(48,209,88,.12);color:#8ee6a3;}
-  /* 16期：白ヘッダをダーク面に */
-  html.theme-b16 header{background:#1c1c1e;border-bottom-color:#e5484d;box-shadow:0 1px 0 rgba(255,255,255,.04);}
-  html.theme-b16 header h1{color:#f5f5f7;}
-  html.theme-b16 header h1 span{color:#a1a1ac;}
-  html.theme-b16 .card{border-color:var(--bdr);box-shadow:0 0 0 1px rgba(255,255,255,.02);}
-  html.theme-b16 .hbtn{background:rgba(255,255,255,.14);color:#f5f5f7;}
   /* 淡色ハードコード背景の小ブロックをダーク面に */
   .p1-mem-unpublished-wrap,.p3-cross-team-wrap,.p1-from-prev-block{background:var(--surface-2);border-color:var(--bdr);color:var(--txt2);}
   .p3-cross-handoff-notice{background:rgba(230,81,0,.14);border-left-color:#ff9800;color:#ffccbc;}
@@ -1211,7 +1097,7 @@ html{color-scheme:light;}
 
 /* ==== 印刷はどのモードでも常にライト（紙面） ==== */
 @media print{
-  :root, html.theme-b16{--bg:#ffffff;--card:#ffffff;--txt:#111;--txt2:#555;--bdr:#ccc;}
+  :root{--bg:#ffffff;--card:#ffffff;--txt:#111;--txt2:#555;--bdr:#ccc;}
   html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
@@ -5846,11 +5732,10 @@ function buildPrintHTML(opts){
   /* 変更案内（入れ替え説明）はPDFには載せない。LINE本文のみで要点を案内する方針。 */
   var hasChangePage=false;
   var pageCls='page'+(densityLevel?' tcb-print-density-'+densityLevel:'')+(isPreview?' tcb-print-preview':'');
-  var _b16Print=document.documentElement.classList.contains('theme-b16');
   var _ph='#122050';
-  var _ps=_b16Print?'#93c5fd':'#90caf9';
+  var _ps='#90caf9';
   var _pl='#1565c0';
-  var _plb=_b16Print?'#e8edf5':'#e3f2fd';
+  var _plb='#e3f2fd';
   var bodyHeightRule=isPreview?'min-height:auto;height:auto;max-height:none;overflow:visible;':'min-height:auto;height:auto;max-height:285mm;overflow:hidden;';
   var css=[
     '*{box-sizing:border-box;margin:0;padding:0;}',
@@ -7988,7 +7873,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(pwEye){
     pwEye.addEventListener('click',function(){
       var inp=document.getElementById('pw-inp');
-      if(inp.type==='password'){inp.type='text';pwEye.style.color=document.documentElement.classList.contains('theme-b16')?'#122050':'#1565c0';}
+      if(inp.type==='password'){inp.type='text';pwEye.style.color='#1565c0';}
       else{inp.type='password';pwEye.style.color='#90a4ae';}
     });
   }
@@ -7997,7 +7882,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(pwNewEye){
     pwNewEye.addEventListener('click',function(){
       var inp=document.getElementById('pw-new');
-      if(inp.type==='password'){inp.type='text';pwNewEye.style.color=document.documentElement.classList.contains('theme-b16')?'#122050':'#1565c0';}
+      if(inp.type==='password'){inp.type='text';pwNewEye.style.color='#1565c0';}
       else{inp.type='password';pwNewEye.style.color='#90a4ae';}
     });
   }

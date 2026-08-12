@@ -15,15 +15,15 @@ GitHub Pages 運用手順書（版 1.11）
 1.0	2026年3月15日	初版作成	15期管理担当
 1.1	2026年3月15日	master.json自動同期フロー追加	15期管理担当
 1.2	2026年3月21日	GitHubアカウント情報確定・ドキュメント管理方法追加	15期管理担当
-1.3	2026年3月27日	マルチ世代テンプレート方式・build.py運用・16期追加手順	15期管理担当
-1.4	2026年4月26日	PASTは実施確定後のみ反映（仕様変更）・配布ファイル名修正・master_defaults_boys16・tcb-print-pdf.js・履歴PDF運用を追記	15期管理担当
-1.5	2026年5月6日	Cloudflare 同期をマスタの正とする運用を追記・boys16/master.json はリポジトリに置かない・git 整理（.gitignore・旧ファイル削除）	15期管理担当
-1.6	2026年5月10日	リポジトリを Public 化し GitHub Pages を有効化（main・/(root)）。15/16期ツールの正式アクセス URL を §1 に明記	15期管理担当
-1.7	2026年5月22日	TOOL_VERSION 1.6.3・持ち帰り調整モード・UI_SIMPLE・ドキュメント版更新（SPEC/MAN 1.5・16期マニュアル 1.6）・SYNC_API_TOKEN ビルド時注入を追記	15期管理担当
+1.3	2026年3月27日	マルチ世代テンプレート方式・build.py運用	15期管理担当
+1.4	2026年4月26日	PASTは実施確定後のみ反映（仕様変更）・配布ファイル名修正・tcb-print-pdf.js・履歴PDF運用を追記	15期管理担当
+1.5	2026年5月6日	Cloudflare 同期をマスタの正とする運用を追記・git 整理（.gitignore・旧ファイル削除）	15期管理担当
+1.6	2026年5月10日	リポジトリを Public 化し GitHub Pages を有効化（main・/(root)）。15期ツールの正式アクセス URL を §1 に明記	15期管理担当
+1.7	2026年5月22日	TOOL_VERSION 1.6.3・持ち帰り調整モード・UI_SIMPLE・ドキュメント版更新（SPEC/MAN 1.5）・SYNC_API_TOKEN ビルド時注入を追記	15期管理担当
 1.8	2026年5月22日	PAST を lscore 加算・prio 片側ペナルティ（v1.6.4）・Worker 同期	15期管理担当
 1.9	2026年7月5日	現行 TOOL_VERSION 1.7.4 に更新。html2pdf.bundle.min.js を同梱アセット化（build.py がコピー。CDN はフォールバックのみ）。SYNC_API_TOKEN 未注入ビルドは同期無効化＋build.py が警告。交代報告 Web Push 用アセット（tcb-push-mgr.js/css・sw.js・tcb-pwa-install.js/css）を追記	15期管理担当
 1.10	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更（bundle 版が html2canvas / jspdf をグローバル公開せず iPhone で PDF 生成に失敗するため）。未ロード時は tcb-print-pdf.js がローカル→CDN の順で動的ロードして復旧	15期管理担当
-1.11	2026年8月9日	16期（boys16）を廃止し関連手順・URL を削除（ビルド対象・リポジトリ・D1 から削除済み。復活しない）。現行 TOOL_VERSION 1.11.1。ビルドは boys15 のみ（python3 template/build.py boys15）。JS/CSS 参照へ ?v=TOOL_VERSION を自動付与（キャッシュバスティング。ブラウザキャッシュ起因の版ずれ対策）。追加アセット（tcb-group-hold・tcb-feedback・tcb-presummary・tcb-today-card の js/css）。スモークテスト手順（npm run smoke）を追加。マニュアルは版 1.14（PDF ファイル名 v1.5 のまま差し替え）	15期管理担当
+1.11	2026年8月9日	現行 TOOL_VERSION 1.11.1。ビルドは boys15 のみ（python3 template/build.py boys15）。JS/CSS 参照へ ?v=TOOL_VERSION を自動付与（キャッシュバスティング。ブラウザキャッシュ起因の版ずれ対策）。追加アセット（tcb-group-hold・tcb-feedback・tcb-presummary・tcb-today-card の js/css）。スモークテスト手順（npm run smoke）を追加。マニュアルは版 1.14（PDF ファイル名 v1.5 のまま差し替え）	15期管理担当
 
 1. アカウント・リポジトリ情報
 項目	内容
@@ -34,7 +34,7 @@ GitHub Pages ベース URL	https://tcb15-admin.github.io/tcb-tools/（Settings �
 15期ツールURL（GitHub Pages）	https://tcb15-admin.github.io/tcb-tools/boys15/（ブックマーク推奨）
 GitHubリポジトリ	https://github.com/tcb15-admin/tcb-tools
 認証情報管理	Googleドライブ（TCB-ACC-001参照）
-現行 TOOL_VERSION（2026-08-09 時点）	1.11.1（15期のみ。16期は廃止・削除済み）
+現行 TOOL_VERSION（2026-08-09 時点）	1.11.1（15期）
 
 2. リポジトリ構成
 パス	内容
@@ -53,7 +53,6 @@ boys15/images/	15期道具写真（任意）
 boys15/docs/	15期ドキュメント類（本書・仕様書・ユーザーマニュアル）
 cloudflare-sync/	Worker + D1 スキーマ・デプロイ手順（README 参照）
 tests/smoke.mjs・package.json	Playwright スモークテスト（npm run smoke。改修後の回帰確認用）
-（16期は 2026-08-09 に廃止。関連ファイル・データは削除済みで再作成しない）
 
 3. 日常の更新フロー
 
@@ -102,7 +101,7 @@ TCB-OPS-001 GitHub運用手順書	1.11（ファイル名 v1.7）	boys15/docs/ �
 TCB-ACC-001 アカウント管理台帳	v1.0	Google ドライブのみ（機密）
 
 5. 世代の管理
-運用対象は 15期（boys15）のみ。16期（boys16）は 2026-08-09 に廃止し、ビルド対象・リポジトリ・Cloudflare D1 のデータを削除済み（個人名を含むため。再作成しない）。
+運用対象は 15期（boys15）のみ。
 項目	15期
 ツール URL（利用者向け）	https://tcb15-admin.github.io/tcb-tools/boys15/
 マスタの正（推奨）	Cloudflare 同期 API

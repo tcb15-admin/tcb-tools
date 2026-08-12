@@ -148,17 +148,17 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 - 実施確定は `cohort + activityDate` で上書き（同日再確定）
 - PAST 更新はサーバ側で処理（`confirm-carryout`）。リクエストに `map` に加え **`tools` 配列**（wt/sz/name）を含めると、道具ごとの **lscore（負荷pt）** を加算。未送信時は道具あたり 15pt 相当
 
-## 11. 15期/16期の履歴・PAST を一括クリア
+## 11. 15期の履歴・PAST を一括クリア
 
 **実行前にバックアップ推奨。**
 
 リポジトリルートから:
 
 ```bash
-npx wrangler d1 execute tcb-tools-sync --remote --file=cloudflare-sync/reset_15_16.sql
+npx wrangler d1 execute tcb-tools-sync --remote --file=cloudflare-sync/reset_15.sql
 ```
 
-`cd cloudflare-sync` 済みなら `--file=./reset_15_16.sql` でよい。
+`cd cloudflare-sync` 済みなら `--file=./reset_15.sql` でよい。
 
 ## 12. 保護者向け確認ページ（案2 Step2-1）のデプロイ
 

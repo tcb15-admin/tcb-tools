@@ -15,7 +15,7 @@
 1.0	2026年3月15日	初版作成	15期管理担当
 1.1	2026年3月15日	GitHub 同期・パスワード方式変更	15期管理担当
 1.2	2026年3月21日	道具一時除外・ドラッグ＆ドロップ・割振り履歴・複数担当強調・固定担当公平性改善	15期管理担当
-1.3	2026年3月27日	マルチ世代テンプレート方式（build.py）・16 期対応	15期管理担当
+1.3	2026年3月27日	マルチ世代テンプレート方式（build.py）	15期管理担当
 1.4	2026年4月26日	PAST は実施確定時のみ更新／CarryoutConfirmed／両方練習の場所分離・会場列／前回ベース再割当／公平に再分配・Undo/Redo／メンバー別タブ／履歴モーダル・直近 PDF／html2pdf＋tcb-print-pdf.js	15期管理担当
 1.5	2026年5月22日	Cloudflare 同期をマスタの正に／持ち帰り調整モード（runAlgoCarryAdjust・mergePoolSideState）／欠席・お茶当番のプール再配分除外／UI_SIMPLE／班跨ぎ手動割当／LINE タブ統合（印刷内コピー）／再編集時 LS_PREV 上書き防止	15期管理担当
 1.6	2026年5月22日	PAST を道具 lscore（負荷pt）加算に変更／割振りは班内中央値超のみ sqrt ペナルティ（WA=1）／表示は回相当（÷15）／Worker confirm-carryout も同期	15期管理担当
@@ -26,7 +26,7 @@
 1.11	2026年7月5日	html2pdf.bundle.min.js を同梱（読込失敗時のみ CDN フォールバック）／LINE共有の iOS 再タップ対応（_lineShareReady・PDF Blob キャッシュ）と割振り・オプション変更時のキャッシュ無効化（invalidateShareCaches）／モーダル統合（tcb-scroll-modal・body スクロールロック・swap-modal/print-overlay を共通管理・hist-month-overlay z-index 525）／マスタ削除の確認モーダル（tcbMasterConfirm）・未保存で閉じた際の自動復元（revertMasterToSessionOpenIfDirty）・クラウド loadState 適用前の未保存確認／前回基準モード中のパターン変更確認（confirmPatChangeInSeedMode）／道具0件時の runAlgo ガード／グループ名 esc 徹底／STEP3 ボタン「実施確定」に統一／build.py SYNC_API_TOKEN プレースホルダ警告・未注入時は同期無効化（syncHeadersReady）／Web Push（tcb-push-mgr.js・sw.js）・PWAインストール導線（tcb-pwa-install.js）／ツール v1.7.4	15期管理担当
 1.12	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更。bundle 版は html2canvas / jspdf をグローバル公開しないため tcb-print-pdf.js の担当表（縦A4）生成が「PDFライブラリが読み込まれていません」で失敗していた（iPhone で顕在化）。未ロード時は ensurePdfLibs() がローカル同梱→CDN の順で動的ロードして復旧	15期管理担当
 1.13	2026年7月8日	メンバー対象外フラグ quit（退部）を追加。休部と同様に割振り対象・STEP1/2 候補から常時除外（バッジ quit-badge）。マスタ UI に「退部」チェックを追加	15期管理担当
-1.14	2026年8月9日	16期（boys16）を廃止（ビルド対象・リポジトリ・D1から削除。復活しない）。グループ保有（tcb-group-hold：現時点の保有グループ内のみで割振り・端末永続化）。割り振り方法の選択（公平に分散＝assignPoolFair 再プール／前回のまま維持＝assignPoolCarryAdjust。LS SeedAllocMethod）。UX改修 Phase1〜2：実行前サマリー（tcb-presummary）・詳細オプション折りたたみ・用語刷新（試合メンバー未発表／現地で受け渡した道具を直す／いま道具を持っているグループ）・きょうの割振りカード（tcb-today-card：前回結果基準で欠席当番のみクリアし1タップ開始 beginTodayAllocation）。フィードバック部品（tcb-feedback：トースト・同期状態表示）。グリッド名前折返し（最小11px）。SW を network-first に変更（tcb-shell-v2）。build.py で JS/CSS 参照へ ?v=TOOL_VERSION 付与（キャッシュバスティング）。Playwright スモークテスト（tests/smoke.mjs）。保護者ページ拡充（受け渡しナビ・担当できない報告・道具写真・オフライン表示）／ツール v1.11.1	15期管理担当
+1.14	2026年8月9日	グループ保有（tcb-group-hold：現時点の保有グループ内のみで割振り・端末永続化）。割り振り方法の選択（公平に分散＝assignPoolFair 再プール／前回のまま維持＝assignPoolCarryAdjust。LS SeedAllocMethod）。UX改修 Phase1〜2：実行前サマリー（tcb-presummary）・詳細オプション折りたたみ・用語刷新（試合メンバー未発表／現地で受け渡した道具を直す／いま道具を持っているグループ）・きょうの割振りカード（tcb-today-card：前回結果基準で欠席当番のみクリアし1タップ開始 beginTodayAllocation）。フィードバック部品（tcb-feedback：トースト・同期状態表示）。グリッド名前折返し（最小11px）。SW を network-first に変更（tcb-shell-v2）。build.py で JS/CSS 参照へ ?v=TOOL_VERSION 付与（キャッシュバスティング）。Playwright スモークテスト（tests/smoke.mjs）。保護者ページ拡充（受け渡しナビ・担当できない報告・道具写真・オフライン表示）／ツール v1.11.1	15期管理担当
 
 1. システム概要
 項目	内容
@@ -38,7 +38,7 @@
 チームカラー	濃紺（#122050）・赤（#C0000A）・白
 バージョン	v1.11.1 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み。JS/CSS 参照にも ?v= として付与）
 操作マニュアル	ヘッダ「マニュアル」→ config MANUAL_URL（15期は GitHub Pages 上の PDF）。未設定世代は非表示
-世代管理	boys15 のみ（テンプレート＋config ビルド方式。16期は 2026-08-09 に廃止・削除済み。復活しない）
+世代管理	boys15 のみ（テンプレート＋config ビルド方式）
 UI_SIMPLE	config で true の世代は html.tcb-ui-simple を付与し、.tcb-ui-advanced ブロックを非表示（公平再分配・履歴1年 PDF・デフォルト保存読込等）
 
 1.1 URL 一覧
