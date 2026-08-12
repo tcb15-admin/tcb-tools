@@ -3,7 +3,7 @@
    セレクタは既存と重複しない tcb-presum- プレフィックスを使用
    ============================================================ */
 
-.tcb-presum-card{border-left:4px solid var(--ui-accent,#4f79d0);}
+.tcb-presum-card{border-left:4px solid var(--tcb-ink,var(--ui-accent,#141416));border-radius:var(--tcb-r,4px);}
 .tcb-presum-rows{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
 .tcb-presum-row{display:flex;align-items:baseline;gap:8px;font-size:13.5px;line-height:1.5;}
 .tcb-presum-key{flex:0 0 6.5em;color:var(--txt2,#6e6e78);font-size:12px;font-weight:600;letter-spacing:.02em;}

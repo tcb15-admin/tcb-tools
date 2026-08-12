@@ -1,0 +1,204 @@
+/* ============================================================
+   道具割り振り — 墨紙トーン合わせ（tcb-gear- は新規のみ）
+   既存セレクタの上書きはトーン／ダーク／マルチ環境の補正に限定。
+   読み込み順: インライン style → tcb-shell.css → 本ファイル
+   ============================================================ */
+
+html{color-scheme:light dark;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{
+  -webkit-text-size-adjust:100%;
+  background-color:var(--tcb-paper,var(--bg,#f3f3f5));
+}
+
+/* ---- ヘッダ：スローガン折り返し／ボタン行 ---- */
+.tcb-shell-hdr > h1{flex:1 1 140px;min-width:0;}
+.tcb-shell-hdr > h1 span{white-space:normal;overflow:visible;text-overflow:unset;}
+.tcb-hdr-actions{min-width:0;}
+.tcb-pwa-hbtn.tcb-pwa-hbtn-on{
+  background:rgba(21,128,61,.12);
+  border-color:var(--tcb-ok,#15803d);
+  color:var(--tcb-ok,#15803d);
+}
+
+/* PC（マウス）だけホバー反転。タッチ端末では sticky hover を出さない */
+@media (hover:hover) and (pointer:fine){
+  .tcb-shell-hdr .hbtn:hover,
+  a.hbtn:hover{
+    background:var(--tcb-ink,var(--ink-heading,#141416));
+    color:var(--tcb-surface,var(--card,#fff));
+  }
+}
+.tcb-shell-hdr .hbtn:focus-visible,
+a.hbtn:focus-visible,
+.rbtn:focus-visible,
+.nb:focus-visible,
+.si:focus-visible,
+.tb2:focus-visible{
+  outline:2px solid var(--tcb-focus,#0f766e);
+  outline-offset:2px;
+}
+
+/* ---- カード／主ボタン：赤影・白ベタを墨紙へ ---- */
+.card{
+  border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
+  border-radius:var(--tcb-r,4px);
+  box-shadow:none;
+}
+.wrap{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
+.nbp,.rbtn{box-shadow:none;}
+.nbs{
+  background:var(--tcb-paper,var(--surface-2,#ececee));
+  color:var(--tcb-ink,var(--ink-heading,#141416));
+}
+.tb2.on{
+  background:var(--tcb-surface,var(--card,#fff));
+  color:var(--tcb-ink,var(--ink-heading,#141416));
+  box-shadow:none;
+  border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
+}
+.date-inp,.tninp,.asel,.dfbtn,.tcb-actual-hold-sel,.tcb-ghold-sel{
+  background:var(--tcb-surface,var(--card,#fff));
+  color:var(--tcb-ink,var(--txt,#141416));
+  font-size:16px;
+}
+.mc,.tc2{background:var(--tcb-surface,var(--card,#fff));}
+
+/* ---- ログイン ---- */
+#pw-screen{
+  background:var(--tcb-paper,var(--bg,#f3f3f5));
+}
+.tcb-pw-cohort-banner,
+html[data-cohort="15"] .tcb-pw-cohort-banner{
+  background:transparent;
+  color:var(--tcb-ink,var(--ink-heading,#141416));
+  border:1.5px solid var(--tcb-ink,var(--ink-heading,#141416));
+  box-shadow:none;
+  border-radius:2px;
+}
+.tcb-pw-login-card{
+  background:var(--tcb-surface,var(--card,#fff)) !important;
+  color:var(--tcb-ink,var(--txt,#141416));
+  border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
+  border-radius:var(--tcb-r,4px) !important;
+  box-shadow:none !important;
+}
+.tcb-pw-title{color:var(--tcb-ink,var(--ink-heading,#141416)) !important;}
+.tcb-pw-team{color:var(--tcb-muted,var(--txt2,#71717a)) !important;}
+#pw-inp{
+  background:var(--tcb-surface,var(--card,#fff)) !important;
+  color:var(--tcb-ink,var(--txt,#141416)) !important;
+  border:1px solid var(--tcb-line,var(--bdr,#d4d4d8)) !important;
+  font-size:16px !important;
+}
+.tcb-pw-login-btn{
+  background:var(--tcb-ink,var(--ink-heading,#141416));
+  color:var(--tcb-surface,#fff);
+}
+.tcb-pw-back{color:var(--tcb-ink,var(--ink-heading,#141416));}
+
+/* ---- 展開オーバーレイ（旧紺グラデ／白文字を墨紙へ） ---- */
+.print-header{
+  background:var(--tcb-surface,var(--card,#fff));
+  color:var(--tcb-ink,var(--ink-heading,#141416));
+  border-bottom:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
+  box-shadow:none;
+}
+.tcb-print-hdr-title{color:var(--tcb-ink,var(--ink-heading,#141416));}
+.tcb-print-hdr-sub{color:var(--tcb-muted,var(--h1-sub,#71717a));}
+.print-close-btn{
+  background:var(--tcb-surface,var(--card,#fff));
+  color:var(--tcb-ink,var(--ink-heading,#141416));
+  border:1.5px solid var(--tcb-ink,var(--ink-heading,#141416));
+}
+.print-scroll-body{background:var(--tcb-paper,var(--bg,#f3f3f5));}
+.tcb-share-panel{background:var(--tcb-paper,var(--surface-2,#f3f3f5));}
+.tcb-share-section{
+  background:var(--tcb-surface,#fff);
+  border:1px solid var(--tcb-line,#d4d4d8);
+  box-shadow:none;
+  border-radius:var(--tcb-r,4px);
+}
+.tcb-share-section-hd{color:var(--tcb-ink,#141416);}
+.tcb-share-secondary{
+  background:var(--tcb-ink,#141416);
+  color:var(--tcb-surface,#fff);
+}
+
+/* ---- きょうのカード／サマリーを墨紙半径に ---- */
+.tcb-today-card,.tcb-presum-card{
+  border-radius:var(--tcb-r,4px);
+  border-color:var(--tcb-line,var(--bdr,#d4d4d8));
+}
+
+/* ---- 幅広PC ---- */
+@media (min-width:900px){
+  .wrap{max-width:760px;padding-left:20px;padding-right:20px;}
+}
+
+/* ---- スマホ：入力16px（iOSズーム抑制）・セーフエリア ---- */
+@media (max-width:520px){
+  .date-inp,.tninp,.asel,#pw-inp{font-size:16px;}
+  .tcb-flow-hint{margin-bottom:10px;}
+  .card{padding:16px 12px;}
+  .si .sl{word-break:keep-all;}
+}
+
+/* ---- ダークモード：白ベタ／紺文字の残りを紙面へ ---- */
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0c0c0e;
+  }
+  html{color-scheme:dark;}
+  body{background-color:var(--tcb-paper,#0c0c0e);}
+  .tb2.on{
+    background:var(--tcb-surface,#18181b);
+    color:var(--tcb-ink,#f4f4f5);
+    border-color:var(--tcb-line,#3f3f46);
+  }
+  .tabbtn.on{background:var(--tcb-ink,#f4f4f5);color:var(--tcb-paper,#0c0c0e);}
+  .bdg{background:var(--tcb-ink,#f4f4f5);color:var(--tcb-paper,#0c0c0e);}
+  .tcb-pw-back{color:var(--tcb-ink,#f4f4f5);}
+  .tcb-pw-login-btn{
+    background:var(--tcb-ink,#f4f4f5);
+    color:var(--tcb-paper,#0c0c0e);
+  }
+  .print-header{
+    background:var(--tcb-surface,#18181b);
+    border-bottom-color:var(--tcb-line,#3f3f46);
+  }
+  .tcb-print-hdr-title{color:var(--tcb-ink,#f4f4f5);}
+  .print-close-btn{
+    background:var(--tcb-surface,#18181b);
+    color:var(--tcb-ink,#f4f4f5);
+    border-color:var(--tcb-ink,#f4f4f5);
+  }
+  .print-scroll-body,.tcb-share-panel{background:var(--tcb-paper,#0c0c0e);}
+  .tcb-share-section{
+    background:var(--tcb-surface,#18181b);
+    border-color:var(--tcb-line,#3f3f46);
+    color:var(--tcb-ink,#f4f4f5);
+    color-scheme:dark;
+  }
+  .tcb-share-section-hd,.tcb-share-opt{color:var(--tcb-ink,#f4f4f5);}
+  .tcb-share-intro,.tcb-share-preview,.tcb-share-extra{
+    background:var(--tcb-paper,#0c0c0e);
+    color:var(--tcb-ink,#f4f4f5);
+    border-color:var(--tcb-line,#3f3f46);
+  }
+  .tcb-pwa-hbtn.tcb-pwa-hbtn-on{
+    background:rgba(46,125,50,.28);
+    border-color:#6ee7b7;
+    color:#6ee7b7;
+  }
+  .tcb-tip-bubble{background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;}
+  .sc{background:var(--tcb-surface,#18181b);}
+  .tbl-wrap{box-shadow:none;border:1px solid var(--tcb-line,#3f3f46);}
+  th,.hist-dtl-table th,.prev-table th{
+    background:var(--tcb-surface,#18181b);
+    color:var(--tcb-ink,#f4f4f5);
+  }
+}
+
+@media print{
+  .tcb-flow-hint,.steps,header .tcb-hdr-actions,#pw-screen{display:none !important;}
+}

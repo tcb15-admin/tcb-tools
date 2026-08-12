@@ -21,8 +21,16 @@
   font-size:18px;color:var(--tcb-ink,#141416);
 }
 .tcb-pwa-hbtn.tcb-pwa-hbtn-on {
-  background: rgba(46, 125, 50, 0.35);
-  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(21, 128, 61, 0.12);
+  border-color: var(--tcb-ok, #15803d);
+  color: var(--tcb-ok, #15803d);
+}
+@media (prefers-color-scheme: dark) {
+  .tcb-pwa-hbtn.tcb-pwa-hbtn-on {
+    background: rgba(46, 125, 50, 0.28);
+    border-color: #6ee7b7;
+    color: #6ee7b7;
+  }
 }
 .tcb-pwa-banner {
   display: none;

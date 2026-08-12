@@ -469,6 +469,7 @@ def build(target):
         'tcb-presummary.js', 'tcb-presummary.css',
         'tcb-today-card.js', 'tcb-today-card.css',
         'tcb-shell.css',
+        'tcb-gear-ui.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )
