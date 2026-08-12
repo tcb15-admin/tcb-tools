@@ -69,13 +69,29 @@ html[data-cohort="15"] header{
   box-shadow:none;
 }
 .wrap{max-width:680px;margin:0 auto;padding:14px 12px 64px;}
-.steps{display:flex;background:var(--card);border-radius:14px;box-shadow:var(--sh-soft);overflow:hidden;margin-bottom:16px;}
-.si{flex:1;padding:10px 4px;text-align:center;cursor:pointer;border-bottom:3px solid transparent;}
-.si.on{border-bottom-color:var(--act);background:var(--step-on-bg);}
-.si.done{border-bottom-color:var(--grn);background:var(--grn-l);}
-.sn{width:22px;height:22px;border-radius:50%;background:var(--bdr);color:#fff;font-size:11px;font-weight:700;margin:0 auto 2px;display:flex;align-items:center;justify-content:center;}
-.si.on .sn{background:var(--act);}.si.done .sn{background:var(--grn);}
-.sl{font-size:11px;font-weight:700;color:var(--txt2);}.si.on .sl{color:var(--txt);}
+.steps{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+  margin:0 0 8px;background:transparent;border-radius:0;overflow:visible;
+}
+.si{
+  display:flex;align-items:center;gap:8px;
+  padding:10px;text-align:left;cursor:pointer;
+  border:1px solid var(--bdr);border-radius:12px;background:var(--card);
+  font:inherit;color:inherit;appearance:none;-webkit-appearance:none;
+  min-height:var(--tap);
+}
+.si.on{border-color:var(--ink-heading);box-shadow:inset 0 0 0 1px var(--ink-heading);background:var(--card);}
+.si.done{border-color:var(--grn);background:var(--grn-l);}
+.sn{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  background:var(--surface-2);color:var(--txt2);
+  font-size:12px;font-weight:800;
+  display:inline-flex;align-items:center;justify-content:center;margin:0;
+}
+.si.on .sn{background:var(--ink-heading);color:#fff;}
+.si.done .sn{background:var(--grn);color:#fff;}
+.sl{font-size:12px;font-weight:800;color:var(--ink-heading);line-height:1.3;}
+.tcb-flow-hint{font-size:12px;color:var(--txt2);line-height:1.45;margin:0 0 12px;}
 .pnl{display:none;}.pnl.on{display:block;}
 .card{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:20px;margin-bottom:16px;}
 .ct{font-weight:750;font-size:18px;letter-spacing:-.3px;color:var(--ink-heading);margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
@@ -707,16 +723,11 @@ html.tcb-ui-simple .tcb-ui-advanced{display:none!important;}
   .tcb-cohort-chip{font-size:10px;padding:6px 10px;}
   header .tcb-hdr-actions{width:100%;margin-left:0!important;flex-direction:column!important;align-items:stretch!important;}
   header .tcb-hdr-btn-row{
-    flex-wrap:nowrap;
+    flex-wrap:wrap;
     justify-content:flex-start;
-    gap:5px;
-    overflow-x:auto;
+    gap:6px;
     max-width:100%;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    padding-bottom:2px;
   }
-  header .tcb-hdr-btn-row::-webkit-scrollbar{display:none;}
   header .tcb-hdr-btn-row .hbtn{
     padding:7px 9px;
     font-size:11px;
@@ -727,8 +738,9 @@ html.tcb-ui-simple .tcb-ui-advanced{display:none!important;}
   #btn-pwa-install .tcb-hdr-lbl-full{display:none;}
   #btn-pwa-install .tcb-hdr-lbl-short{display:inline;}
   .tcb-seed-mode-banner{font-size:11px;line-height:1.5;padding:10px;}
-  .steps{margin-bottom:12px;}
-  .si .sl{font-size:10px;}
+  .steps{margin-bottom:8px;gap:6px;}
+  .si{padding:8px;gap:6px;}
+  .si .sl{font-size:11px;}
   .wrap{
     padding:12px 10px calc(72px + env(safe-area-inset-bottom,0px));
   }
@@ -1045,8 +1057,11 @@ html{color-scheme:light;}
   /* 選択タブを明るいブルーで強調（選択が分かりやすいように） */
   .tabbtn.on{background:#3f5bd0;color:#fff;}
   .tb2.on{background:#4a5fb0;color:#fff;box-shadow:none;}
-  .si.on{background:rgba(229,72,77,.16);}
-  .si.done{background:rgba(48,209,88,.14);}
+  .si{background:var(--card);border-color:var(--bdr);}
+  .si.on{background:var(--card);border-color:var(--ink-heading);box-shadow:inset 0 0 0 1px var(--ink-heading);}
+  .si.done{background:rgba(48,209,88,.14);border-color:var(--grn);}
+  .sn{background:var(--surface-2);color:var(--txt2);}
+  .si.on .sn{background:var(--ink-heading);color:var(--card);}
   /* マスタ編集：白面/淡色面 → ダーク面 */
   .master-tl-mrow{background:var(--card);border-color:var(--bdr);border-left-color:#9fb4e8;}
   .master-tl-mrow:nth-child(even){background:var(--surface-2);border-color:var(--bdr);}
@@ -1350,11 +1365,12 @@ html{color-scheme:light;}
 <input type="file" id="import-file" accept=".json" style="display:none;">
 
 <div class="wrap">
-  <div class="steps">
-    <div class="si on" id="st1"><div class="sn">1</div><div class="sl">活動設定</div></div>
-    <div class="si"    id="st2"><div class="sn">2</div><div class="sl">欠席・当番</div></div>
-    <div class="si"    id="st3"><div class="sn">3</div><div class="sl">割振り結果</div></div>
-  </div>
+  <nav class="steps" aria-label="作業の流れ">
+    <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・班分け</span></button>
+    <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">欠席・当番</span></button>
+    <button type="button" class="si" id="st3"><span class="sn">3</span><span class="sl">割振り・展開</span></button>
+  </nav>
+  <p class="tcb-flow-hint">パターンと班分け → 欠席・お茶当番 → 割振り実行 → LINE／PDF展開</p>
   <!-- STEP1 -->
   <div class="pnl on" id="p1">
     <div class="card">
