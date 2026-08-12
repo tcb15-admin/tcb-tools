@@ -9,8 +9,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.14.2">
-<link rel="stylesheet" href="portal.css?v=1.14.2">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.15.0">
+<link rel="stylesheet" href="portal.css?v=1.15.0">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -31,7 +31,7 @@
 <main class="pt-wrap">
   <section class="pt-lead" aria-label="案内">
     <div class="pt-lead-kicker">MGR ENTRY</div>
-    <p>各ツールへ進んでください。道具割り振り・出欠・お茶当番は利用できます。配車は準備中です。</p>
+    <p>各ツールへ進んでください。道具割り振り・出欠・お茶当番・配車が利用できます。</p>
   </section>
 
   <div class="pt-sec-label">利用できるツール</div>
@@ -80,11 +80,8 @@
       </div>
       <span class="pt-tile-arrow" aria-hidden="true">›</span>
     </a>
-  </div>
 
-  <div class="pt-sec-label" style="margin-top:22px;">準備中</div>
-  <div class="pt-grid" role="list">
-    <div class="pt-tile is-soon" role="listitem" aria-disabled="true">
+    <a class="pt-tile" href="../carpool/" role="listitem">
       <span class="pt-tile-num" aria-hidden="true">04</span>
       <div class="pt-tile-ico pt-ico-car" aria-hidden="true">
         <svg viewBox="0 0 24 24"><use href="#pt-i-car"/></svg>
@@ -92,12 +89,12 @@
       <div class="pt-tile-body">
         <div class="pt-tile-top">
           <span class="pt-tile-title">配車管理</span>
-          <span class="pt-tile-badge pt-badge-soon">準備中</span>
+          <span class="pt-tile-badge pt-badge-ready">利用可</span>
         </div>
-        <p class="pt-tile-desc">車出し・乗車・積み込み（出欠連携予定）</p>
+        <p class="pt-tile-desc">手組み配車・出欠／お茶連携・確認依頼／承認・MG／親父LINE展開</p>
       </div>
       <span class="pt-tile-arrow" aria-hidden="true">›</span>
-    </div>
+    </a>
   </div>
 
   <p class="pt-foot">保護者の方はポータルを使いません。LINEで届く確認・回答用URLだけをご利用ください。</p>

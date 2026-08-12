@@ -22,6 +22,7 @@ ATT_STAFF_TEMPLATE = 'template/attendance/staff_template.html'
 ATT_PARENT_TEMPLATE = 'template/attendance/parent_template.html'
 PORTAL_TEMPLATE = 'template/portal/portal_template.html'
 TEA_TEMPLATE = 'template/tea/tea_template.html'
+CARPOOL_TEMPLATE = 'template/carpool/staff_template.html'
 MASTER_BLOCK_START = '/*DEFAULT_MASTER_BLOCK*/'
 MASTER_BLOCK_END = '/*END_DEFAULT_MASTER_BLOCK*/'
 CONFIGS = {
@@ -198,6 +199,7 @@ def build_portal_and_attendance(target, config, out_dir):
         'COHORT_KEY_JSON': json.dumps(cohort, ensure_ascii=False),
         'COHORT_LABEL_JSON': json.dumps(str(config.get('COHORT_LABEL', '')), ensure_ascii=False),
         'TEAM_NAME_JSON': json.dumps(str(config.get('TEAM_NAME', '')), ensure_ascii=False),
+        'TEAM_SHORT_NAME_JSON': json.dumps(str(config.get('TEAM_SHORT_NAME', '')), ensure_ascii=False),
         'SYNC_API_BASE_URL_JSON': json.dumps(str(config.get('SYNC_API_BASE_URL', '')), ensure_ascii=False),
         'SYNC_API_TOKEN_JSON': json.dumps(str(config.get('SYNC_API_TOKEN', '')), ensure_ascii=False),
         'INITIAL_PW_JSON': json.dumps(str(config.get('INITIAL_PW', '')), ensure_ascii=False),
@@ -293,6 +295,31 @@ def build_portal_and_attendance(target, config, out_dir):
         src = os.path.join(tea_src_dir, name)
         if os.path.isfile(src):
             shutil.copy2(src, os.path.join(tea_dir, name))
+
+    # 配車
+    carpool_dir = os.path.join(out_dir, 'carpool')
+    os.makedirs(carpool_dir, exist_ok=True)
+    if os.path.exists(CARPOOL_TEMPLATE):
+        with open(CARPOOL_TEMPLATE, encoding='utf-8') as f:
+            html = f.read()
+        html, rem = apply_placeholders(html, mapping)
+        if rem:
+            print(f'[WARN] {target}(carpool): 未置換 {set(rem)}')
+        html = add_asset_version(html, config.get('TOOL_VERSION'))
+        with open(os.path.join(carpool_dir, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(html)
+        print(f'[OK] {target}(carpool) → {carpool_dir}/index.html')
+    carpool_assets = ('carpool.css', 'carpool-staff.js', 'carpool-validate.js', 'carpool-line.js')
+    carpool_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'carpool')
+    for name in carpool_assets:
+        src = os.path.join(carpool_src_dir, name)
+        if os.path.isfile(src):
+            shutil.copy2(src, os.path.join(carpool_dir, name))
+
+    # 同期クライアント（出欠／お茶／配車が ../tcb-sync-api.js を参照）
+    sync_src = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tcb-sync-api.js')
+    if os.path.isfile(sync_src):
+        shutil.copy2(sync_src, os.path.join(out_dir, 'tcb-sync-api.js'))
 
     return True
 

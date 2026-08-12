@@ -160,6 +160,40 @@ export default {
         const activityDate = (url.searchParams.get("activityDate") || "").trim();
         return json(await getTeaReflect(env, cohort, activityDate));
       }
+      if (url.pathname === "/api/tea/duty-on-date" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const activityDate = (url.searchParams.get("activityDate") || "").trim();
+        return json(await getTeaDutyOnDate(env, cohort, activityDate));
+      }
+      // ===== 配車（Bearer） =====
+      if (url.pathname === "/api/carpool/sheets" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await listCarpoolSheets(env, cohort));
+      }
+      if (url.pathname === "/api/carpool/sheets" && request.method === "POST") {
+        const body = await request.json();
+        return json(await upsertCarpoolSheet(env, body));
+      }
+      if (url.pathname === "/api/carpool/sheet" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const id = (url.searchParams.get("id") || "").trim();
+        return json(await getCarpoolSheet(env, cohort, id));
+      }
+      if (url.pathname === "/api/carpool/candidates" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const campaignId = (url.searchParams.get("campaignId") || "").trim();
+        const date = (url.searchParams.get("date") || "").trim();
+        return json(await getCarpoolCandidates(env, cohort, campaignId, date));
+      }
+      if (url.pathname === "/api/carpool/action" && request.method === "POST") {
+        const body = await request.json();
+        return json(await carpoolSheetAction(env, body));
+      }
+      if (url.pathname === "/api/carpool/events" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        const id = (url.searchParams.get("id") || "").trim();
+        return json(await listCarpoolEvents(env, cohort, id));
+      }
       return json({ error: "not_found" }, 404);
     } catch (e) {
       return json({ error: e.message || "server_error" }, 400);
@@ -193,6 +227,10 @@ function mustCohort(v) {
   const c = String(v || "").trim();
   if (!c) throw new Error("cohort_required");
   return c;
+}
+
+function sliceStr(v, max) {
+  return String(v == null ? "" : v).trim().slice(0, max);
 }
 
 async function ensureState(env, cohort) {
@@ -1691,5 +1729,398 @@ async function getTeaReflect(env, cohortRaw, activityDateRaw) {
     dutyB,
     playerGroup: pg === null || pg === undefined || pg === "" ? null : Number(pg),
     names,
+  };
+}
+
+/** 指定日のお茶当番（配車の当番車自動登録用） */
+async function getTeaDutyOnDate(env, cohortRaw, activityDateRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const activityDate = String(activityDateRaw || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) {
+    return { activityDate: "", dutyA: "", dutyB: "", names: [] };
+  }
+  const row = await env.DB.prepare(
+    "SELECT activity_date, duty_a, duty_b, player_group FROM tea_days " +
+      "WHERE cohort = ? AND activity_date = ? LIMIT 1"
+  )
+    .bind(cohort, activityDate)
+    .first();
+  if (!row) {
+    return { activityDate, dutyA: "", dutyB: "", playerGroup: null, names: [] };
+  }
+  const dutyA = String(row.duty_a || "").trim();
+  const dutyB = String(row.duty_b || "").trim();
+  const names = [];
+  if (dutyA) names.push(dutyA);
+  if (dutyB && dutyB !== dutyA) names.push(dutyB);
+  const pg = row.player_group;
+  return {
+    activityDate: String(row.activity_date || activityDate),
+    dutyA,
+    dutyB,
+    playerGroup: pg === null || pg === undefined || pg === "" ? null : Number(pg),
+    names,
+  };
+}
+
+const CARPOOL_STATUSES = ["draft", "submitted", "approved", "published", "returned"];
+
+function emptyCarpoolRow(sortOrder) {
+  return {
+    sortOrder: Number(sortOrder) || 1,
+    category: "",
+    carModel: "",
+    duty: "",
+    driver: "",
+    front: "",
+    rear1: "",
+    rear2: "",
+    rear3: "",
+    rear4: "",
+    rear5: "",
+    note: "",
+    block: "general",
+  };
+}
+
+function normalizeCarpoolRows(rows) {
+  const list = Array.isArray(rows) ? rows.slice(0, 60) : [];
+  return list.map((r, i) => ({
+    sortOrder: Number(r && r.sortOrder != null ? r.sortOrder : i + 1) || i + 1,
+    category: sliceStr(r && r.category, 40),
+    carModel: sliceStr(r && r.carModel, 40),
+    duty: sliceStr(r && r.duty, 80),
+    driver: sliceStr(r && r.driver, 40),
+    front: sliceStr(r && r.front, 40),
+    rear1: sliceStr(r && r.rear1, 40),
+    rear2: sliceStr(r && r.rear2, 40),
+    rear3: sliceStr(r && r.rear3, 40),
+    rear4: sliceStr(r && r.rear4, 40),
+    rear5: sliceStr(r && r.rear5, 40),
+    note: sliceStr(r && r.note, 120),
+    block: String((r && r.block) || "general") === "staff" ? "staff" : "general",
+  }));
+}
+
+function mapCarpoolSheet(row) {
+  let rows = [];
+  try {
+    rows = JSON.parse(String(row.rows_json || "[]"));
+  } catch (e) {
+    rows = [];
+  }
+  const status = String(row.status || "draft");
+  return {
+    id: String(row.id || ""),
+    cohort: String(row.cohort || ""),
+    title: String(row.title || ""),
+    activityDate: String(row.activity_date || ""),
+    fromPlace: String(row.from_place || ""),
+    toPlace: String(row.to_place || ""),
+    groupLabel: String(row.group_label || ""),
+    attendanceCampaignId: row.attendance_campaign_id ? String(row.attendance_campaign_id) : "",
+    rows: normalizeCarpoolRows(rows),
+    noteFooter: String(row.note_footer || ""),
+    status: CARPOOL_STATUSES.indexOf(status) >= 0 ? status : "draft",
+    reviewNote: String(row.review_note || ""),
+    publishedAt: String(row.published_at || ""),
+    createdAt: String(row.created_at || ""),
+    updatedAt: String(row.updated_at || ""),
+  };
+}
+
+async function appendCarpoolEvent(env, sheetId, cohort, actor, action, summary) {
+  const now = new Date().toISOString();
+  await env.DB.prepare(
+    "INSERT INTO carpool_sheet_events (id, sheet_id, cohort, actor, action, summary, created_at) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?)"
+  )
+    .bind(genId(), sheetId, cohort, sliceStr(actor, 40) || "mgr", sliceStr(action, 40), sliceStr(summary, 240), now)
+    .run();
+  await env.DB.prepare(
+    "DELETE FROM carpool_sheet_events WHERE sheet_id = ? AND id NOT IN (" +
+      "SELECT id FROM carpool_sheet_events WHERE sheet_id = ? ORDER BY created_at DESC LIMIT 80)"
+  )
+    .bind(sheetId, sheetId)
+    .run();
+}
+
+async function listCarpoolEvents(env, cohort, id) {
+  if (!cohort || !id) throw new Error("invalid_request");
+  const rs = await env.DB.prepare(
+    "SELECT id, actor, action, summary, created_at FROM carpool_sheet_events " +
+      "WHERE sheet_id = ? AND cohort = ? ORDER BY created_at DESC LIMIT 40"
+  )
+    .bind(id, cohort)
+    .all();
+  return {
+    events: (rs.results || []).map((r) => ({
+      id: String(r.id || ""),
+      actor: String(r.actor || ""),
+      action: String(r.action || ""),
+      summary: String(r.summary || ""),
+      createdAt: String(r.created_at || ""),
+    })),
+  };
+}
+
+async function listCarpoolSheets(env, cohort) {
+  if (!cohort) throw new Error("cohort_required");
+  const rs = await env.DB.prepare(
+    "SELECT * FROM carpool_sheets WHERE cohort = ? ORDER BY activity_date DESC, updated_at DESC LIMIT 40"
+  )
+    .bind(cohort)
+    .all();
+  return { sheets: (rs.results || []).map(mapCarpoolSheet) };
+}
+
+async function getCarpoolSheet(env, cohort, id) {
+  if (!cohort || !id) throw new Error("invalid_request");
+  const row = await env.DB.prepare("SELECT * FROM carpool_sheets WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!row) throw new Error("sheet_not_found");
+  return { sheet: mapCarpoolSheet(row) };
+}
+
+async function upsertCarpoolSheet(env, body) {
+  const cohort = String((body && body.cohort) || "").trim();
+  if (!cohort) throw new Error("cohort_required");
+  const now = new Date().toISOString();
+  let id = String((body && body.id) || "").trim().slice(0, 64);
+  const title = sliceStr((body && body.title) || "配車表", 120) || "配車表";
+  const activityDate = sliceStr(body && body.activityDate, 32);
+  const fromPlace = sliceStr(body && body.fromPlace, 80);
+  const toPlace = sliceStr(body && body.toPlace, 80);
+  const groupLabel = sliceStr(body && body.groupLabel, 40);
+  const attendanceCampaignId = sliceStr(body && body.attendanceCampaignId, 64) || null;
+  const noteFooter =
+    sliceStr(body && body.noteFooter, 500) ||
+    "※　安全運転でお願いします。\n※　車内は換気を行ってください。\n※　出発時は配車NO順での移動をお願いします。";
+  let rows = normalizeCarpoolRows(body && body.rows);
+  if (!rows.length) rows = [emptyCarpoolRow(1)];
+  const actor = sliceStr(body && body.actor, 40) || "carpool_mgr";
+  const changeSummary = sliceStr(body && body.changeSummary, 240);
+
+  if (id) {
+    const cur = await env.DB.prepare("SELECT * FROM carpool_sheets WHERE id = ? AND cohort = ?")
+      .bind(id, cohort)
+      .first();
+    if (!cur) throw new Error("sheet_not_found");
+    const curStatus = String(cur.status || "draft");
+    // 公開済を直接上書き保存した場合は承認済に戻す（再展開前に確認できるように）
+    let nextStatus = curStatus;
+    if (curStatus === "published" && (body.keepPublished !== true)) {
+      nextStatus = "approved";
+    }
+    if (body.status && CARPOOL_STATUSES.indexOf(String(body.status)) >= 0 && body.forceStatus === true) {
+      nextStatus = String(body.status);
+    }
+    await env.DB.prepare(
+      "UPDATE carpool_sheets SET title = ?, activity_date = ?, from_place = ?, to_place = ?, group_label = ?, " +
+        "attendance_campaign_id = ?, rows_json = ?, note_footer = ?, status = ?, updated_at = ? " +
+        "WHERE id = ? AND cohort = ?"
+    )
+      .bind(
+        title,
+        activityDate,
+        fromPlace,
+        toPlace,
+        groupLabel,
+        attendanceCampaignId,
+        JSON.stringify(rows),
+        noteFooter,
+        nextStatus,
+        now,
+        id,
+        cohort
+      )
+      .run();
+    const summary =
+      changeSummary ||
+      (actor === "chief_mgr" ? "チーフMGRが配車表を修正" : "配車表を保存");
+    await appendCarpoolEvent(env, id, cohort, actor, "save", summary);
+    if (nextStatus !== curStatus) {
+      await appendCarpoolEvent(env, id, cohort, actor, "status", "状態: " + curStatus + " → " + nextStatus);
+    }
+  } else {
+    id = genId();
+    await env.DB.prepare(
+      "INSERT INTO carpool_sheets (id, cohort, title, activity_date, from_place, to_place, group_label, attendance_campaign_id, rows_json, note_footer, status, review_note, published_at, created_at, updated_at) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', '', '', ?, ?)"
+    )
+      .bind(
+        id,
+        cohort,
+        title,
+        activityDate,
+        fromPlace,
+        toPlace,
+        groupLabel,
+        attendanceCampaignId,
+        JSON.stringify(rows),
+        noteFooter,
+        now,
+        now
+      )
+      .run();
+    await appendCarpoolEvent(env, id, cohort, actor, "create", "配車表を作成");
+  }
+
+  await env.DB.prepare(
+    "INSERT INTO cross_role_events (id, cohort, activity_id, source_role, event_type, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  )
+    .bind(genId(), cohort, id, "carpool", "carpool_updated", title + " を更新", now)
+    .run();
+
+  return getCarpoolSheet(env, cohort, id);
+}
+
+async function carpoolSheetAction(env, body) {
+  const cohort = String((body && body.cohort) || "").trim();
+  const id = String((body && body.id) || "").trim();
+  const action = String((body && body.action) || "").trim();
+  const actor = sliceStr(body && body.actor, 40) || "mgr";
+  const note = sliceStr(body && body.note, 240);
+  if (!cohort || !id || !action) throw new Error("invalid_request");
+
+  const cur = await env.DB.prepare("SELECT * FROM carpool_sheets WHERE id = ? AND cohort = ?")
+    .bind(id, cohort)
+    .first();
+  if (!cur) throw new Error("sheet_not_found");
+  const status = String(cur.status || "draft");
+  const now = new Date().toISOString();
+  let next = status;
+  let eventAction = action;
+  let summary = "";
+
+  if (action === "submit") {
+    if (status !== "draft" && status !== "returned" && status !== "approved") {
+      throw new Error("invalid_status_for_submit");
+    }
+    next = "submitted";
+    summary = "確認依頼を送信";
+  } else if (action === "approve") {
+    if (status !== "submitted" && status !== "returned" && status !== "approved") {
+      throw new Error("invalid_status_for_approve");
+    }
+    next = "approved";
+    summary = "承認";
+  } else if (action === "return") {
+    if (status !== "submitted" && status !== "approved") {
+      throw new Error("invalid_status_for_return");
+    }
+    next = "returned";
+    summary = note ? "差し戻し: " + note : "差し戻し（コメントなし）";
+  } else if (action === "publish") {
+    if (status !== "approved" && status !== "published") {
+      throw new Error("invalid_status_for_publish");
+    }
+    next = "published";
+    summary = "MG LINE／親父 LINE へ展開（コピー用）";
+  } else if (action === "reopen") {
+    next = "draft";
+    summary = "作成中に戻す";
+  } else {
+    throw new Error("unknown_action");
+  }
+
+  await env.DB.prepare(
+    "UPDATE carpool_sheets SET status = ?, review_note = ?, published_at = CASE WHEN ? = 'published' THEN ? ELSE published_at END, updated_at = ? WHERE id = ? AND cohort = ?"
+  )
+    .bind(next, action === "return" ? note : String(cur.review_note || ""), next, now, now, id, cohort)
+    .run();
+
+  await appendCarpoolEvent(env, id, cohort, actor, eventAction, summary);
+
+  await env.DB.prepare(
+    "INSERT INTO cross_role_events (id, cohort, activity_id, source_role, event_type, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  )
+    .bind(
+      genId(),
+      cohort,
+      id,
+      "carpool",
+      "carpool_" + action,
+      (cur.title || "配車表") + " — " + summary,
+      now
+    )
+    .run();
+
+  return getCarpoolSheet(env, cohort, id);
+}
+
+/** MG出欠（track a / family）から配車候補を抽出 */
+async function getCarpoolCandidates(env, cohort, campaignId, date) {
+  if (!cohort || !campaignId || !date) throw new Error("invalid_request");
+  const camp = await env.DB.prepare("SELECT id, title FROM attendance_campaigns WHERE id = ? AND cohort = ?")
+    .bind(campaignId, cohort)
+    .first();
+  if (!camp) throw new Error("campaign_not_found");
+
+  const rs = await env.DB.prepare(
+    "SELECT member_name, payload_json FROM attendance_track_responses WHERE campaign_id = ? AND track = ?"
+  )
+    .bind(campaignId, "a")
+    .all();
+
+  const cars = [];
+  const riders = [];
+  const absent = [];
+
+  for (const r of rs.results || []) {
+    const name = String(r.member_name || "");
+    let payload = {};
+    try {
+      payload = JSON.parse(String(r.payload_json || "{}"));
+    } catch (e) {
+      payload = {};
+    }
+    const day = payload && payload.days ? payload.days[date] : null;
+    if (!day) {
+      absent.push({ memberName: name, reason: "未回答" });
+      continue;
+    }
+    if (day.mode === "off") {
+      absent.push({ memberName: name, reason: day.note ? String(day.note) : "欠席" });
+      continue;
+    }
+    riders.push({ memberName: name });
+    const carOk = String(day.carOk || "");
+    if (carOk === "o") {
+      cars.push({
+        memberName: name,
+        carModel: String(day.carModel || ""),
+        seats: day.seats != null ? String(day.seats) : "",
+        send: String(day.send || ""),
+        pickup: String(day.pickup || ""),
+        father: String(day.father || ""),
+        mother: String(day.mother || ""),
+      });
+    }
+  }
+
+  let tea = { dutyA: "", dutyB: "", names: [] };
+  try {
+    tea = await getTeaDutyOnDate(env, cohort, date);
+  } catch (e) {
+    tea = { dutyA: "", dutyB: "", names: [] };
+  }
+
+  return {
+    campaignId: String(camp.id),
+    campaignTitle: String(camp.title || ""),
+    activityDate: date,
+    cars: cars,
+    riders: riders,
+    absent: absent,
+    carCount: cars.length | 0,
+    riderCount: riders.length | 0,
+    absentCount: absent.length | 0,
+    teaDuty: {
+      dutyA: tea.dutyA || "",
+      dutyB: tea.dutyB || "",
+      names: tea.names || [],
+    },
   };
 }

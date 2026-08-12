@@ -185,6 +185,36 @@
       },
       getTeaReflect:function(activityDate){
         return req('/api/tea/reflect?cohort='+encodeURIComponent(cohort)+'&activityDate='+encodeURIComponent(activityDate||''),'GET');
+      },
+      getTeaDutyOnDate:function(activityDate){
+        return req('/api/tea/duty-on-date?cohort='+encodeURIComponent(cohort)+'&activityDate='+encodeURIComponent(activityDate||''),'GET');
+      },
+      listCarpoolSheets:function(){
+        return req('/api/carpool/sheets?cohort='+encodeURIComponent(cohort),'GET');
+      },
+      getCarpoolSheet:function(id){
+        return req('/api/carpool/sheet?cohort='+encodeURIComponent(cohort)+'&id='+encodeURIComponent(id||''),'GET');
+      },
+      upsertCarpoolSheet:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/carpool/sheets','POST',payload);
+      },
+      carpoolAction:function(payload){
+        payload=payload||{};
+        payload.cohort=cohort;
+        return req('/api/carpool/action','POST',payload);
+      },
+      listCarpoolEvents:function(id){
+        return req('/api/carpool/events?cohort='+encodeURIComponent(cohort)+'&id='+encodeURIComponent(id||''),'GET');
+      },
+      getCarpoolCandidates:function(campaignId, date){
+        return req(
+          '/api/carpool/candidates?cohort='+encodeURIComponent(cohort)
+            +'&campaignId='+encodeURIComponent(campaignId||'')
+            +'&date='+encodeURIComponent(date||''),
+          'GET'
+        );
       }
     };
   }
