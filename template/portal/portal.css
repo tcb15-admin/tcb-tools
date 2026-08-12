@@ -9,20 +9,9 @@ body{
   font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",system-ui,sans-serif;
   color:var(--tcb-ink);min-height:100vh;
   -webkit-tap-highlight-color:transparent;
-  background-color:var(--tcb-paper);
-  background-image:
-    linear-gradient(var(--tcb-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--tcb-line) 1px, transparent 1px);
-  background-size:24px 24px;
-  background-position:-1px -1px;
-  background-attachment:fixed;
-}
-@media (prefers-color-scheme:dark){
-  body{
-    background-image:
-      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-  }
+  /* 他ツールと同じ墨紙の単色紙面（マス目は視認性を落とすため使わない） */
+  background:var(--tcb-paper);
+  -webkit-font-smoothing:antialiased;
 }
 
 .pt-hdr.tcb-shell-hdr{
@@ -59,13 +48,12 @@ body{
   padding:20px 14px calc(36px + env(safe-area-inset-bottom,0px));
 }
 .pt-lead{
-  margin-bottom:22px;padding:0 0 14px;
-  border-bottom:2px solid var(--tcb-ink);
+  margin-bottom:22px;
   background:var(--tcb-surface);
   padding:14px 14px 12px;
-  border:1px solid var(--tcb-line);
-  border-bottom-width:2px;
+  border:1.5px solid var(--tcb-line-strong);
   border-radius:var(--tcb-r);
+  box-shadow:0 1px 2px rgba(20,20,22,.04),0 6px 16px rgba(20,20,22,.06);
 }
 .pt-lead-kicker{
   font-size:11px;font-weight:900;color:var(--tcb-ink);letter-spacing:.14em;
@@ -85,10 +73,10 @@ body{
 .pt-grid{
   display:grid;
   grid-template-columns:1fr;
-  gap:10px;
+  gap:12px;
 }
 @media (min-width:560px){
-  .pt-grid{grid-template-columns:1fr 1fr;gap:12px;}
+  .pt-grid{grid-template-columns:1fr 1fr;gap:14px;}
 }
 
 .pt-tile{
@@ -98,31 +86,41 @@ body{
   gap:12px;
   text-decoration:none;color:inherit;
   background:var(--tcb-surface);
-  border:1px solid var(--tcb-line);
+  border:1.5px solid var(--tcb-line-strong);
   border-radius:var(--tcb-r);
   padding:14px 12px;
   min-height:var(--tcb-tap);
-  transition:background .12s ease, border-color .12s ease, transform .12s ease;
+  box-shadow:0 1px 2px rgba(20,20,22,.04),0 6px 16px rgba(20,20,22,.06);
+  transition:background .12s ease, border-color .12s ease, box-shadow .12s ease, transform .12s ease;
   -webkit-user-select:none;user-select:none;
 }
 a.pt-tile:hover{
-  border-color:var(--tcb-focus);
-  background:var(--tcb-surface);
+  border-color:var(--tcb-ink);
+  box-shadow:0 2px 4px rgba(20,20,22,.06),0 10px 22px rgba(20,20,22,.1);
 }
 a.pt-tile:active{transform:translateY(1px);}
 a.pt-tile:focus-visible{
   outline:2px solid var(--tcb-focus);
   outline-offset:2px;
 }
+@media (hover:none){
+  a.pt-tile:hover{
+    border-color:var(--tcb-line-strong);
+    box-shadow:0 1px 2px rgba(20,20,22,.04),0 6px 16px rgba(20,20,22,.06);
+  }
+}
 
 .pt-tile.is-soon{
   opacity:1;cursor:default;
   background:transparent;
   border-style:dashed;
+  border-color:var(--tcb-line);
+  box-shadow:none;
 }
 .pt-tile.is-soon:hover{
   border-color:var(--tcb-line);
   background:transparent;
+  box-shadow:none;
   transform:none;
 }
 
@@ -136,8 +134,8 @@ a.pt-tile:focus-visible{
 .pt-tile-ico{
   flex:0 0 auto;width:48px;height:48px;border-radius:var(--tcb-r);
   display:flex;align-items:center;justify-content:center;
-  border:1px solid var(--tcb-ink);
-  background:transparent;
+  border:1.5px solid var(--tcb-ink);
+  background:var(--tcb-paper);
   color:var(--tcb-ink);
 }
 .pt-tile-ico svg{
@@ -154,7 +152,7 @@ a.pt-tile:focus-visible{
   font-size:16px;font-weight:900;color:var(--tcb-ink);letter-spacing:-.02em;
   border-bottom:2px solid transparent;
 }
-a.pt-tile:hover .pt-tile-title{border-bottom-color:var(--tcb-focus);}
+a.pt-tile:hover .pt-tile-title{border-bottom-color:var(--tcb-ink);}
 
 .pt-tile-badge{
   display:inline-block;font-size:10px;font-weight:800;
@@ -215,6 +213,17 @@ a.pt-tile:hover .pt-tile-title{border-bottom-color:var(--tcb-focus);}
 .pt-alert-item:hover{text-decoration:underline;}
 
 @media (prefers-color-scheme:dark){
+  .pt-lead,.pt-tile{
+    box-shadow:0 1px 2px rgba(0,0,0,.35),0 8px 20px rgba(0,0,0,.45);
+  }
+  a.pt-tile:hover{
+    box-shadow:0 2px 4px rgba(0,0,0,.4),0 12px 28px rgba(0,0,0,.55);
+  }
+  @media (hover:none){
+    a.pt-tile:hover{
+      box-shadow:0 1px 2px rgba(0,0,0,.35),0 8px 20px rgba(0,0,0,.45);
+    }
+  }
   .pt-alerts{background:#422006;border-color:#b45309;}
   .pt-alerts-title,.pt-alert-item{color:#fdba74;}
   .pt-alert-item{border-top-color:#78350f;}
