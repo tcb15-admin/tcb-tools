@@ -1,0 +1,149 @@
+/* ============================================================
+   TCB 共通ログイン「墨紙」— 道具割り振りツール準拠
+   セレクタは tcb-pw- 接頭辞（既存ツール固有クラスと併用可）
+   ============================================================ */
+
+.tcb-pw-screen,
+#pw-screen{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:var(--tcb-paper,#f3f3f5);
+  padding:max(16px,env(safe-area-inset-top,0px)) 14px max(20px,env(safe-area-inset-bottom,0px));
+  box-sizing:border-box;
+}
+
+.tcb-pw-cohort-banner,
+html[data-cohort="15"] .tcb-pw-cohort-banner{
+  width:92%;max-width:360px;box-sizing:border-box;
+  margin:0 0 10px;padding:11px 16px;
+  border-radius:2px;
+  font-size:13px;font-weight:900;letter-spacing:.05em;
+  text-align:center;line-height:1.35;
+  background:transparent;
+  color:var(--tcb-ink,#141416);
+  border:1.5px solid var(--tcb-ink,#141416);
+  box-shadow:none;
+}
+
+.tcb-pw-login-card{
+  background:var(--tcb-surface,#fff);
+  color:var(--tcb-ink,#141416);
+  border:1px solid var(--tcb-line,#d4d4d8);
+  border-radius:var(--tcb-r,4px);
+  padding:32px 24px;
+  width:92%;max-width:360px;
+  text-align:center;
+  box-shadow:none;
+  box-sizing:border-box;
+}
+
+.tcb-pw-logo{
+  width:80px;height:80px;border-radius:12px;object-fit:cover;
+  margin:0 auto 12px;display:block;
+  background:var(--tcb-paper,#f3f3f5);
+}
+
+.tcb-pw-title{
+  font-size:17px;font-weight:900;
+  color:var(--tcb-ink,#141416);
+  margin:0 0 4px;letter-spacing:-.02em;
+}
+
+.tcb-pw-team{
+  font-size:12px;
+  color:var(--tcb-muted,#71717a);
+  margin:0 0 24px;line-height:1.45;
+}
+
+.tcb-pw-field{
+  position:relative;margin-bottom:8px;
+}
+
+.tcb-pw-field input,
+.tcb-pw-login-card input[type="password"],
+.tcb-pw-login-card input[type="text"]{
+  width:100%;box-sizing:border-box;
+  padding:12px 44px 12px 14px;
+  border:1px solid var(--tcb-line,#d4d4d8);
+  border-radius:var(--tcb-r,4px);
+  font-size:16px;font-family:inherit;
+  outline:none;text-align:center;
+  min-height:var(--tcb-tap,46px);
+  background:var(--tcb-surface,#fff);
+  color:var(--tcb-ink,#141416);
+  margin:0;
+}
+.tcb-pw-field input:focus-visible,
+.tcb-pw-login-card input:focus-visible{
+  outline:2px solid var(--tcb-focus,#0f766e);
+  outline-offset:2px;
+}
+
+.tcb-pw-eye{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  font-size:20px;color:var(--tcb-muted,#90a4ae);
+  padding:4px;line-height:1;
+  min-width:36px;min-height:36px;
+}
+.tcb-pw-eye[aria-pressed="true"]{color:var(--tcb-focus,#0f766e);}
+
+.tcb-pw-err{
+  font-size:12px;color:var(--tcb-bad,#c62828);
+  margin:0 0 10px;min-height:18px;line-height:1.4;
+}
+
+.tcb-pw-login-btn{
+  display:block;width:100%;box-sizing:border-box;
+  padding:13px;border:none;
+  border-radius:var(--tcb-r,4px);
+  font-size:16px;font-weight:900;font-family:inherit;
+  cursor:pointer;
+  background:var(--tcb-ink,#141416);
+  color:var(--tcb-surface,#fff);
+  min-height:var(--tcb-tap,46px);
+}
+.tcb-pw-login-btn:active{opacity:.94;}
+.tcb-pw-login-btn:focus-visible{
+  outline:2px solid var(--tcb-focus,#0f766e);
+  outline-offset:2px;
+}
+
+.tcb-pw-back{
+  display:inline-block;margin-top:14px;
+  font-size:13px;font-weight:700;
+  color:var(--tcb-ink,#141416);
+  text-decoration:underline;text-underline-offset:2px;
+}
+
+@media (prefers-color-scheme:dark){
+  .tcb-pw-screen,
+  #pw-screen{background:var(--tcb-paper,#0c0c0e);}
+  .tcb-pw-cohort-banner,
+  html[data-cohort="15"] .tcb-pw-cohort-banner{
+    color:var(--tcb-ink,#f4f4f5);
+    border-color:var(--tcb-ink,#f4f4f5);
+  }
+  .tcb-pw-login-card{
+    background:var(--tcb-surface,#18181b);
+    border-color:var(--tcb-line,#3f3f46);
+    color:var(--tcb-ink,#f4f4f5);
+  }
+  .tcb-pw-title{color:var(--tcb-ink,#f4f4f5);}
+  .tcb-pw-team{color:var(--tcb-muted,#a1a1aa);}
+  .tcb-pw-field input,
+  .tcb-pw-login-card input[type="password"],
+  .tcb-pw-login-card input[type="text"]{
+    background:var(--tcb-surface,#18181b);
+    color:var(--tcb-ink,#f4f4f5);
+    border-color:var(--tcb-line,#3f3f46);
+  }
+  .tcb-pw-login-btn{
+    background:var(--tcb-ink,#f4f4f5);
+    color:var(--tcb-paper,#0c0c0e);
+  }
+  .tcb-pw-back{color:var(--tcb-ink,#f4f4f5);}
+  .tcb-pw-eye{color:var(--tcb-muted,#a1a1aa);}
+  .tcb-pw-eye[aria-pressed="true"]{color:var(--tcb-focus,#2dd4bf);}
+}

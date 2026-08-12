@@ -63,38 +63,7 @@ a.hbtn:focus-visible,
 }
 .mc,.tc2{background:var(--tcb-surface,var(--card,#fff));}
 
-/* ---- ログイン ---- */
-#pw-screen{
-  background:var(--tcb-paper,var(--bg,#f3f3f5));
-}
-.tcb-pw-cohort-banner,
-html[data-cohort="15"] .tcb-pw-cohort-banner{
-  background:transparent;
-  color:var(--tcb-ink,var(--ink-heading,#141416));
-  border:1.5px solid var(--tcb-ink,var(--ink-heading,#141416));
-  box-shadow:none;
-  border-radius:2px;
-}
-.tcb-pw-login-card{
-  background:var(--tcb-surface,var(--card,#fff)) !important;
-  color:var(--tcb-ink,var(--txt,#141416));
-  border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
-  border-radius:var(--tcb-r,4px) !important;
-  box-shadow:none !important;
-}
-.tcb-pw-title{color:var(--tcb-ink,var(--ink-heading,#141416)) !important;}
-.tcb-pw-team{color:var(--tcb-muted,var(--txt2,#71717a)) !important;}
-#pw-inp{
-  background:var(--tcb-surface,var(--card,#fff)) !important;
-  color:var(--tcb-ink,var(--txt,#141416)) !important;
-  border:1px solid var(--tcb-line,var(--bdr,#d4d4d8)) !important;
-  font-size:16px !important;
-}
-.tcb-pw-login-btn{
-  background:var(--tcb-ink,var(--ink-heading,#141416));
-  color:var(--tcb-surface,#fff);
-}
-.tcb-pw-back{color:var(--tcb-ink,var(--ink-heading,#141416));}
+/* ---- ログインは tcb-login.css に委譲 ---- */
 
 /* ---- 展開オーバーレイ（旧紺グラデ／白文字を墨紙へ） ---- */
 .print-header{
@@ -157,11 +126,6 @@ html[data-cohort="15"] .tcb-pw-cohort-banner{
   }
   .tabbtn.on{background:var(--tcb-ink,#f4f4f5);color:var(--tcb-paper,#0c0c0e);}
   .bdg{background:var(--tcb-ink,#f4f4f5);color:var(--tcb-paper,#0c0c0e);}
-  .tcb-pw-back{color:var(--tcb-ink,#f4f4f5);}
-  .tcb-pw-login-btn{
-    background:var(--tcb-ink,#f4f4f5);
-    color:var(--tcb-paper,#0c0c0e);
-  }
   .print-header{
     background:var(--tcb-surface,#18181b);
     border-bottom-color:var(--tcb-line,#3f3f46);

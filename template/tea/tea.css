@@ -144,13 +144,15 @@ body.tea-body{
 .tea-sum-note{font-size:11px;font-weight:600;color:var(--tea-txt2);}
 .tea-details-card > *:not(summary){padding:0 12px 10px;}
 
-.tea-pw{
+/* ログイン面は tcb-login.css（墨紙共通）に委譲 */
+.tea-pw:not(.tcb-pw-screen){
   position:fixed;inset:0;background:rgba(18,32,80,.72);display:flex;align-items:center;justify-content:center;z-index:100;
 }
-.tea-pw-card{background:var(--tea-card);border-radius:8px;padding:24px 18px;width:92%;max-width:360px;text-align:center;}
-.tea-pw-card h2{font-size:16px;margin-bottom:12px;color:var(--tea-heading);}
-.tea-pw-card input{width:100%;min-height:46px;border:1px solid var(--tea-bdr);border-radius:4px;padding:10px;font:inherit;font-size:16px;margin-bottom:10px;}
-.tea-pw-back{
+.tea-pw.tcb-pw-screen{background:var(--tcb-paper,var(--tea-bg,#f3f3f5));}
+.tea-pw-card:not(.tcb-pw-login-card){background:var(--tea-card);border-radius:8px;padding:24px 18px;width:92%;max-width:360px;text-align:center;}
+.tea-pw-card:not(.tcb-pw-login-card) h2{font-size:16px;margin-bottom:12px;color:var(--tea-heading);}
+.tea-pw-card:not(.tcb-pw-login-card) input{width:100%;min-height:46px;border:1px solid var(--tea-bdr);border-radius:4px;padding:10px;font:inherit;font-size:16px;margin-bottom:10px;}
+.tea-pw-back:not(.tcb-pw-back){
   display:inline-block;margin-top:12px;font-size:13px;font-weight:700;
   color:var(--tea-heading);text-decoration:underline;text-underline-offset:2px;
 }

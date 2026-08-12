@@ -8,8 +8,9 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.18.1">
-<link rel="stylesheet" href="carpool.css?v=1.18.1">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.18.2">
+<link rel="stylesheet" href="../tcb-login.css?v=1.18.2">
+<link rel="stylesheet" href="carpool.css?v=1.18.2">
 </head>
 <body class="cp-body">
 <svg width="0" height="0" class="cp-svg-defs" aria-hidden="true" focusable="false">
@@ -33,13 +34,19 @@
   <a class="cp-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
-<div id="cp-pw" class="cp-pw">
-  <div class="cp-pw-card">
-    <h2>配車管理ログイン</h2>
-    <input id="cp-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
-    <button type="button" id="cp-pw-btn" class="cp-btn cp-btn-primary" style="width:100%">ログイン</button>
-    <a class="cp-pw-back" href="../portal/">ポータルへ戻る</a>
-    <p id="cp-pw-err" class="cp-status err"></p>
+<div id="cp-pw" class="cp-pw tcb-pw-screen">
+  <p class="tcb-pw-cohort-banner" role="status">15期 専用・ログイン</p>
+  <div class="cp-pw-card tcb-pw-login-card">
+    <img class="tcb-pw-logo" src="../team-logo.png" width="80" height="80" alt="東海中央ボーイズ">
+    <div class="tcb-pw-title">配車管理</div>
+    <div class="tcb-pw-team">東海中央ボーイズ 15期</div>
+    <div class="tcb-pw-field">
+      <input id="cp-pw-inp" type="password" placeholder="パスワードを入力" autocomplete="current-password">
+      <button type="button" class="tcb-pw-eye" data-tcb-pw-eye="cp-pw-inp" aria-label="パスワードを表示">&#128065;</button>
+    </div>
+    <div id="cp-pw-err" class="tcb-pw-err" role="status"></div>
+    <button type="button" id="cp-pw-btn" class="tcb-pw-login-btn">&#8594; ログイン</button>
+    <a class="tcb-pw-back" href="../portal/">ポータルへ戻る</a>
   </div>
 </div>
 
@@ -186,12 +193,13 @@ window.TCB_CP_CFG={
   teamShort:"東海中央ボーイズ15期"
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.18.1"></script>
-<script src="../jspdf.umd.min.js?v=1.18.1"></script>
-<script src="../html2canvas.min.js?v=1.18.1"></script>
-<script src="../html2pdf.min.js?v=1.18.1"></script>
-<script src="carpool-validate.js?v=1.18.1"></script>
-<script src="carpool-line.js?v=1.18.1"></script>
-<script src="carpool-staff.js?v=1.18.1"></script>
+<script src="../tcb-login.js?v=1.18.2"></script>
+<script src="../tcb-sync-api.js?v=1.18.2"></script>
+<script src="../jspdf.umd.min.js?v=1.18.2"></script>
+<script src="../html2canvas.min.js?v=1.18.2"></script>
+<script src="../html2pdf.min.js?v=1.18.2"></script>
+<script src="carpool-validate.js?v=1.18.2"></script>
+<script src="carpool-line.js?v=1.18.2"></script>
+<script src="carpool-staff.js?v=1.18.2"></script>
 </body>
 </html>

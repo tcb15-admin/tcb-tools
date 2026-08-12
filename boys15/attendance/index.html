@@ -8,8 +8,9 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.18.1">
-<link rel="stylesheet" href="attendance.css?v=1.18.1">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.18.2">
+<link rel="stylesheet" href="../tcb-login.css?v=1.18.2">
+<link rel="stylesheet" href="attendance.css?v=1.18.2">
 </head>
 <body class="att-body">
 <svg width="0" height="0" class="att-svg-defs" aria-hidden="true" focusable="false">
@@ -33,13 +34,19 @@
   <a class="att-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
-<div id="att-pw" class="att-pw">
-  <div class="att-pw-card">
-    <h2>出欠管理ログイン</h2>
-    <input id="att-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
-    <button type="button" id="att-pw-btn" class="att-btn att-btn-primary" style="width:100%">ログイン</button>
-    <a class="att-pw-back" href="../portal/">ポータルへ戻る</a>
-    <p id="att-pw-err" class="att-status err"></p>
+<div id="att-pw" class="att-pw tcb-pw-screen">
+  <p class="tcb-pw-cohort-banner" role="status">15期 専用・ログイン</p>
+  <div class="att-pw-card tcb-pw-login-card">
+    <img class="tcb-pw-logo" src="../team-logo.png" width="80" height="80" alt="東海中央ボーイズ">
+    <div class="tcb-pw-title">出欠管理</div>
+    <div class="tcb-pw-team">東海中央ボーイズ 15期</div>
+    <div class="tcb-pw-field">
+      <input id="att-pw-inp" type="password" placeholder="パスワードを入力" autocomplete="current-password">
+      <button type="button" class="tcb-pw-eye" data-tcb-pw-eye="att-pw-inp" aria-label="パスワードを表示">&#128065;</button>
+    </div>
+    <div id="att-pw-err" class="tcb-pw-err" role="status"></div>
+    <button type="button" id="att-pw-btn" class="tcb-pw-login-btn">&#8594; ログイン</button>
+    <a class="tcb-pw-back" href="../portal/">ポータルへ戻る</a>
   </div>
 </div>
 
@@ -271,10 +278,11 @@ window.TCB_ATT_CFG={
   tracks:{"a": {"label": "MG LINE", "short": "MG", "form": "family", "role": "", "note": ""}, "b": {"label": "親父 LINE", "short": "親父", "form": "marks", "role": "", "note": "フォーム回答が正です（LINEスケジュールの代わり）。送信後も同じURLから訂正できます。"}}
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.18.1"></script>
-<script src="attendance-jp-calendar.js?v=1.18.1"></script>
-<script src="attendance-line.js?v=1.18.1"></script>
-<script src="attendance-briefing.js?v=1.18.1"></script>
-<script src="attendance-staff.js?v=1.18.1"></script>
+<script src="../tcb-login.js?v=1.18.2"></script>
+<script src="../tcb-sync-api.js?v=1.18.2"></script>
+<script src="attendance-jp-calendar.js?v=1.18.2"></script>
+<script src="attendance-line.js?v=1.18.2"></script>
+<script src="attendance-briefing.js?v=1.18.2"></script>
+<script src="attendance-staff.js?v=1.18.2"></script>
 </body>
 </html>

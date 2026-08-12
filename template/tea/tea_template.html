@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="stylesheet" href="../tcb-shell.css">
+<link rel="stylesheet" href="../tcb-login.css">
 <link rel="stylesheet" href="tea.css">
 </head>
 <body class="tea-body">
@@ -26,13 +27,19 @@
   <a class="tea-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
-<div id="tea-pw" class="tea-pw">
-  <div class="tea-pw-card">
-    <h2>お茶当番ログイン</h2>
-    <input id="tea-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
-    <button type="button" id="tea-pw-btn" class="tea-btn tea-btn-primary" style="width:100%">ログイン</button>
-    <a class="tea-pw-back" href="../portal/">ポータルへ戻る</a>
-    <p id="tea-pw-err" class="tea-status err"></p>
+<div id="tea-pw" class="tea-pw tcb-pw-screen">
+  <p class="tcb-pw-cohort-banner" role="status">{{COHORT_LABEL}} 専用・ログイン</p>
+  <div class="tea-pw-card tcb-pw-login-card">
+    <img class="tcb-pw-logo" src="../team-logo.png" width="80" height="80" alt="東海中央ボーイズ">
+    <div class="tcb-pw-title">お茶当番</div>
+    <div class="tcb-pw-team">{{TEAM_NAME}}</div>
+    <div class="tcb-pw-field">
+      <input id="tea-pw-inp" type="password" placeholder="パスワードを入力" autocomplete="current-password">
+      <button type="button" class="tcb-pw-eye" data-tcb-pw-eye="tea-pw-inp" aria-label="パスワードを表示">&#128065;</button>
+    </div>
+    <div id="tea-pw-err" class="tcb-pw-err" role="status"></div>
+    <button type="button" id="tea-pw-btn" class="tcb-pw-login-btn">&#8594; ログイン</button>
+    <a class="tcb-pw-back" href="../portal/">ポータルへ戻る</a>
   </div>
 </div>
 
@@ -177,6 +184,7 @@ window.TCB_TEA_CFG={
   teamName:{{TEAM_NAME_JSON}}
 };
 </script>
+<script src="../tcb-login.js"></script>
 <script src="../tcb-sync-api.js"></script>
 <script src="../tcb-device.js"></script>
 <script src="../jspdf.umd.min.js"></script>

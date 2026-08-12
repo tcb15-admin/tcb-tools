@@ -8,8 +8,9 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.18.1">
-<link rel="stylesheet" href="tea.css?v=1.18.1">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.18.2">
+<link rel="stylesheet" href="../tcb-login.css?v=1.18.2">
+<link rel="stylesheet" href="tea.css?v=1.18.2">
 </head>
 <body class="tea-body">
 <svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
@@ -26,13 +27,19 @@
   <a class="tea-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
 </header>
 
-<div id="tea-pw" class="tea-pw">
-  <div class="tea-pw-card">
-    <h2>お茶当番ログイン</h2>
-    <input id="tea-pw-inp" type="password" placeholder="パスワード" autocomplete="current-password">
-    <button type="button" id="tea-pw-btn" class="tea-btn tea-btn-primary" style="width:100%">ログイン</button>
-    <a class="tea-pw-back" href="../portal/">ポータルへ戻る</a>
-    <p id="tea-pw-err" class="tea-status err"></p>
+<div id="tea-pw" class="tea-pw tcb-pw-screen">
+  <p class="tcb-pw-cohort-banner" role="status">15期 専用・ログイン</p>
+  <div class="tea-pw-card tcb-pw-login-card">
+    <img class="tcb-pw-logo" src="../team-logo.png" width="80" height="80" alt="東海中央ボーイズ">
+    <div class="tcb-pw-title">お茶当番</div>
+    <div class="tcb-pw-team">東海中央ボーイズ 15期</div>
+    <div class="tcb-pw-field">
+      <input id="tea-pw-inp" type="password" placeholder="パスワードを入力" autocomplete="current-password">
+      <button type="button" class="tcb-pw-eye" data-tcb-pw-eye="tea-pw-inp" aria-label="パスワードを表示">&#128065;</button>
+    </div>
+    <div id="tea-pw-err" class="tcb-pw-err" role="status"></div>
+    <button type="button" id="tea-pw-btn" class="tcb-pw-login-btn">&#8594; ログイン</button>
+    <a class="tcb-pw-back" href="../portal/">ポータルへ戻る</a>
   </div>
 </div>
 
@@ -177,16 +184,17 @@ window.TCB_TEA_CFG={
   teamName:"東海中央ボーイズ 15期"
 };
 </script>
-<script src="../tcb-sync-api.js?v=1.18.1"></script>
-<script src="../tcb-device.js?v=1.18.1"></script>
-<script src="../jspdf.umd.min.js?v=1.18.1"></script>
-<script src="../html2canvas.min.js?v=1.18.1"></script>
-<script src="../html2pdf.min.js?v=1.18.1"></script>
-<script src="../tcb-print-pdf.js?v=1.18.1"></script>
-<script src="../attendance/attendance-jp-calendar.js?v=1.18.1"></script>
-<script src="tea-line.js?v=1.18.1"></script>
-<script src="tea-print.js?v=1.18.1"></script>
-<script src="tea-seed-2026-08.js?v=1.18.1"></script>
-<script src="tea-app.js?v=1.18.1"></script>
+<script src="../tcb-login.js?v=1.18.2"></script>
+<script src="../tcb-sync-api.js?v=1.18.2"></script>
+<script src="../tcb-device.js?v=1.18.2"></script>
+<script src="../jspdf.umd.min.js?v=1.18.2"></script>
+<script src="../html2canvas.min.js?v=1.18.2"></script>
+<script src="../html2pdf.min.js?v=1.18.2"></script>
+<script src="../tcb-print-pdf.js?v=1.18.2"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.18.2"></script>
+<script src="tea-line.js?v=1.18.2"></script>
+<script src="tea-print.js?v=1.18.2"></script>
+<script src="tea-seed-2026-08.js?v=1.18.2"></script>
+<script src="tea-app.js?v=1.18.2"></script>
 </body>
 </html>
