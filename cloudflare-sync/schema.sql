@@ -209,6 +209,7 @@ CREATE TABLE IF NOT EXISTS carpool_sheets (
   status TEXT NOT NULL DEFAULT 'draft',
   review_note TEXT NOT NULL DEFAULT '',
   published_at TEXT NOT NULL DEFAULT '',
+  attendance_synced_at TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -228,3 +229,16 @@ CREATE TABLE IF NOT EXISTS carpool_sheet_events (
 
 CREATE INDEX IF NOT EXISTS idx_carpool_events_sheet
   ON carpool_sheet_events(sheet_id, created_at DESC);
+
+-- 活動日ハブ（横断キー: cohort + activity_date）
+CREATE TABLE IF NOT EXISTS activity_hub (
+  id TEXT PRIMARY KEY,
+  cohort TEXT NOT NULL,
+  activity_date TEXT NOT NULL,
+  label TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL,
+  UNIQUE(cohort, activity_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_hub_cohort_date
+  ON activity_hub(cohort, activity_date DESC);

@@ -16,6 +16,7 @@
     sheet: null,
     candidates: null,
     events: [],
+    attendanceAlert: null,
     flow: 'make',
     role: 'carpool_mgr'
   };
@@ -237,11 +238,27 @@
     $('cp-counts').innerHTML =
       '<span>台数 ' + (d.rows ? d.rows.length : 0) + '</span>'
       + '<span>乗車名 ' + countPeople(d.rows) + '</span>';
+    renderAttendanceAlert();
     renderTable();
     runValidate();
     renderList();
     renderReviewActions();
     updateSharePreview();
+  }
+
+  function renderAttendanceAlert() {
+    var box = $('cp-att-alert');
+    if (!box) return;
+    var alert = state.attendanceAlert;
+    if (!alert) {
+      box.classList.add('cp-hidden');
+      box.innerHTML = '';
+      return;
+    }
+    box.classList.remove('cp-hidden');
+    box.innerHTML = '<strong>出欠が更新されています</strong><br>' + esc(alert.message || '')
+      + '<div style="margin-top:8px"><button type="button" id="cp-btn-resync" class="cp-btn cp-btn-primary cp-btn-sm">'
+      + '<svg class="cp-btn-svg" viewBox="0 0 24 24"><use href="#cp-i-users"/></svg>MG候補を再取得</button></div>';
   }
 
   function catOptions(cur) {
@@ -359,6 +376,7 @@
     setStatus('読込中…');
     var res = await c.getCarpoolSheet(id);
     state.sheet = res.sheet;
+    state.attendanceAlert = res.attendanceAlert || null;
     state.candidates = null;
     var box = $('cp-cand-box');
     if (box) { box.classList.add('cp-hidden'); box.textContent = ''; }
@@ -411,6 +429,7 @@
     });
     var res = await c.upsertCarpoolSheet(payload);
     state.sheet = res.sheet;
+    state.attendanceAlert = res.attendanceAlert || null;
     await loadSheets();
     renderDetail();
     await loadEvents();
@@ -452,8 +471,12 @@
       return;
     }
     setStatus('MG候補を取得中…');
-    var cand = await c.getCarpoolCandidates(campId, date);
+    var cand = await c.getCarpoolCandidates(campId, date, state.sheet.id);
     state.candidates = cand;
+    state.attendanceAlert = null;
+    // 同期時刻をローカルにも反映
+    state.sheet.attendanceSyncedAt = new Date().toISOString();
+    renderAttendanceAlert();
     var lines = [];
     lines.push('配車可: ' + (cand.carCount || 0) + '台　出席: ' + (cand.riderCount || 0)
       + '　欠席・未回答: ' + (cand.absentCount || 0));
@@ -709,8 +732,12 @@
     });
 
     $('cp-detail').addEventListener('click', function (ev) {
-      if (ev.target && ev.target.id === 'cp-btn-apply-cand') {
+      if (ev.target && (ev.target.id === 'cp-btn-apply-cand' || ev.target.closest('#cp-btn-apply-cand'))) {
         applyCandidates();
+        return;
+      }
+      if (ev.target && (ev.target.id === 'cp-btn-resync' || ev.target.closest('#cp-btn-resync'))) {
+        loadCandidates().catch(function (e) { setStatus(e.message || String(e), true); });
         return;
       }
       var actBtn = ev.target.closest('[data-act]');

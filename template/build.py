@@ -229,6 +229,10 @@ def build_portal_and_attendance(target, config, out_dir):
     if os.path.exists(portal_css_src):
         shutil.copy2(portal_css_src, os.path.join(portal_dir, 'portal.css'))
         print(f'[OK] {target}(portal.css) → {portal_dir}/portal.css')
+    portal_js_src = 'template/portal/portal-summary.js'
+    if os.path.exists(portal_js_src):
+        shutil.copy2(portal_js_src, os.path.join(portal_dir, 'portal-summary.js'))
+        print(f'[OK] {target}(portal-summary.js) → {portal_dir}/portal-summary.js')
     shell_css_src = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tcb-shell.css')
     if os.path.isfile(shell_css_src):
         # ポータル／出欠／お茶は ../tcb-shell.css を参照（道具と同階層）

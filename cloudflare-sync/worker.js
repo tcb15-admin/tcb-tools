@@ -183,7 +183,8 @@ export default {
         const cohort = (url.searchParams.get("cohort") || "").trim();
         const campaignId = (url.searchParams.get("campaignId") || "").trim();
         const date = (url.searchParams.get("date") || "").trim();
-        return json(await getCarpoolCandidates(env, cohort, campaignId, date));
+        const sheetId = (url.searchParams.get("sheetId") || "").trim();
+        return json(await getCarpoolCandidates(env, cohort, campaignId, date, sheetId));
       }
       if (url.pathname === "/api/carpool/action" && request.method === "POST") {
         const body = await request.json();
@@ -193,6 +194,10 @@ export default {
         const cohort = (url.searchParams.get("cohort") || "").trim();
         const id = (url.searchParams.get("id") || "").trim();
         return json(await listCarpoolEvents(env, cohort, id));
+      }
+      if (url.pathname === "/api/portal/summary" && request.method === "GET") {
+        const cohort = (url.searchParams.get("cohort") || "").trim();
+        return json(await getPortalSummary(env, cohort));
       }
       return json({ error: "not_found" }, 404);
     } catch (e) {
@@ -1059,6 +1064,7 @@ async function upsertCampaign(env, body) {
     )
       .bind(genId(), id, cohort, d.activityDate, d.startTime, d.place, d.kind, d.label, d.sortOrder)
       .run();
+    await ensureActivityHub(env, cohort, d.activityDate, d.label || title);
   }
 
   return getCampaignDetail(env, cohort, id);
@@ -1632,6 +1638,7 @@ async function upsertTeaMonth(env, body) {
     )
       .bind(genId(), id, cohort, d.activityDate, d.dutyA, d.dutyB, d.playerGroup, d.sortOrder)
       .run();
+    await ensureActivityHub(env, cohort, d.activityDate, ym + " お茶当番");
   }
 
   const nowEvt = new Date().toISOString();
@@ -1824,6 +1831,7 @@ function mapCarpoolSheet(row) {
     status: CARPOOL_STATUSES.indexOf(status) >= 0 ? status : "draft",
     reviewNote: String(row.review_note || ""),
     publishedAt: String(row.published_at || ""),
+    attendanceSyncedAt: String(row.attendance_synced_at || ""),
     createdAt: String(row.created_at || ""),
     updatedAt: String(row.updated_at || ""),
   };
@@ -1880,7 +1888,38 @@ async function getCarpoolSheet(env, cohort, id) {
     .bind(id, cohort)
     .first();
   if (!row) throw new Error("sheet_not_found");
-  return { sheet: mapCarpoolSheet(row) };
+  const sheet = mapCarpoolSheet(row);
+  const attendanceAlert = await buildCarpoolAttendanceAlert(env, sheet);
+  return { sheet: sheet, attendanceAlert: attendanceAlert };
+}
+
+async function buildCarpoolAttendanceAlert(env, sheet) {
+  if (!sheet || !sheet.attendanceCampaignId) return null;
+  let camp;
+  try {
+    camp = await env.DB.prepare(
+      "SELECT id, title, responses_updated_at FROM attendance_campaigns WHERE id = ? AND cohort = ?"
+    )
+      .bind(sheet.attendanceCampaignId, sheet.cohort)
+      .first();
+  } catch (e) {
+    return null;
+  }
+  if (!camp || !camp.responses_updated_at) return null;
+  const respAt = String(camp.responses_updated_at || "");
+  const synced = String(sheet.attendanceSyncedAt || "");
+  const baseline = synced || String(sheet.createdAt || "");
+  if (!respAt || !baseline) return null;
+  if (respAt <= baseline) return null;
+  return {
+    kind: "attendance_changed",
+    message:
+      "紐づく出欠の回答が配車の候補取込後に更新されています。MG候補を再確認してください。",
+    responsesUpdatedAt: respAt,
+    attendanceSyncedAt: synced,
+    campaignId: String(camp.id || ""),
+    campaignTitle: String(camp.title || ""),
+  };
 }
 
 async function upsertCarpoolSheet(env, body) {
@@ -1901,6 +1940,8 @@ async function upsertCarpoolSheet(env, body) {
   if (!rows.length) rows = [emptyCarpoolRow(1)];
   const actor = sliceStr(body && body.actor, 40) || "carpool_mgr";
   const changeSummary = sliceStr(body && body.changeSummary, 240);
+  const markSynced = body && body.markAttendanceSynced === true;
+  let attendanceSyncedAt = sliceStr(body && body.attendanceSyncedAt, 40);
 
   if (id) {
     const cur = await env.DB.prepare("SELECT * FROM carpool_sheets WHERE id = ? AND cohort = ?")
@@ -1908,17 +1949,18 @@ async function upsertCarpoolSheet(env, body) {
       .first();
     if (!cur) throw new Error("sheet_not_found");
     const curStatus = String(cur.status || "draft");
-    // 公開済を直接上書き保存した場合は承認済に戻す（再展開前に確認できるように）
     let nextStatus = curStatus;
-    if (curStatus === "published" && (body.keepPublished !== true)) {
+    if (curStatus === "published" && body.keepPublished !== true) {
       nextStatus = "approved";
     }
     if (body.status && CARPOOL_STATUSES.indexOf(String(body.status)) >= 0 && body.forceStatus === true) {
       nextStatus = String(body.status);
     }
+    if (markSynced) attendanceSyncedAt = now;
+    else if (!attendanceSyncedAt) attendanceSyncedAt = String(cur.attendance_synced_at || "");
     await env.DB.prepare(
       "UPDATE carpool_sheets SET title = ?, activity_date = ?, from_place = ?, to_place = ?, group_label = ?, " +
-        "attendance_campaign_id = ?, rows_json = ?, note_footer = ?, status = ?, updated_at = ? " +
+        "attendance_campaign_id = ?, rows_json = ?, note_footer = ?, status = ?, attendance_synced_at = ?, updated_at = ? " +
         "WHERE id = ? AND cohort = ?"
     )
       .bind(
@@ -1931,6 +1973,7 @@ async function upsertCarpoolSheet(env, body) {
         JSON.stringify(rows),
         noteFooter,
         nextStatus,
+        attendanceSyncedAt,
         now,
         id,
         cohort
@@ -1943,11 +1986,15 @@ async function upsertCarpoolSheet(env, body) {
     if (nextStatus !== curStatus) {
       await appendCarpoolEvent(env, id, cohort, actor, "status", "状態: " + curStatus + " → " + nextStatus);
     }
+    if (markSynced) {
+      await appendCarpoolEvent(env, id, cohort, actor, "attendance_sync", "出欠候補を同期");
+    }
   } else {
     id = genId();
+    if (markSynced) attendanceSyncedAt = now;
     await env.DB.prepare(
-      "INSERT INTO carpool_sheets (id, cohort, title, activity_date, from_place, to_place, group_label, attendance_campaign_id, rows_json, note_footer, status, review_note, published_at, created_at, updated_at) " +
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', '', '', ?, ?)"
+      "INSERT INTO carpool_sheets (id, cohort, title, activity_date, from_place, to_place, group_label, attendance_campaign_id, rows_json, note_footer, status, review_note, published_at, attendance_synced_at, created_at, updated_at) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', '', '', ?, ?, ?)"
     )
       .bind(
         id,
@@ -1960,11 +2007,16 @@ async function upsertCarpoolSheet(env, body) {
         attendanceCampaignId,
         JSON.stringify(rows),
         noteFooter,
+        attendanceSyncedAt || "",
         now,
         now
       )
       .run();
     await appendCarpoolEvent(env, id, cohort, actor, "create", "配車表を作成");
+  }
+
+  if (activityDate) {
+    await ensureActivityHub(env, cohort, activityDate, groupLabel || title);
   }
 
   await env.DB.prepare(
@@ -2051,7 +2103,7 @@ async function carpoolSheetAction(env, body) {
 }
 
 /** MG出欠（track a / family）から配車候補を抽出 */
-async function getCarpoolCandidates(env, cohort, campaignId, date) {
+async function getCarpoolCandidates(env, cohort, campaignId, date, sheetId) {
   if (!cohort || !campaignId || !date) throw new Error("invalid_request");
   const camp = await env.DB.prepare("SELECT id, title FROM attendance_campaigns WHERE id = ? AND cohort = ?")
     .bind(campaignId, cohort)
@@ -2107,6 +2159,21 @@ async function getCarpoolCandidates(env, cohort, campaignId, date) {
     tea = { dutyA: "", dutyB: "", names: [] };
   }
 
+  if (sheetId) {
+    const now = new Date().toISOString();
+    try {
+      await env.DB.prepare(
+        "UPDATE carpool_sheets SET attendance_synced_at = ?, updated_at = ? WHERE id = ? AND cohort = ?"
+      )
+        .bind(now, now, sheetId, cohort)
+        .run();
+      await appendCarpoolEvent(env, sheetId, cohort, "carpool_mgr", "attendance_sync", "MG候補を同期");
+      await ensureActivityHub(env, cohort, date, "");
+    } catch (e) {
+      /* sheet 未作成など */
+    }
+  }
+
   return {
     campaignId: String(camp.id),
     campaignTitle: String(camp.title || ""),
@@ -2122,5 +2189,249 @@ async function getCarpoolCandidates(env, cohort, campaignId, date) {
       dutyB: tea.dutyB || "",
       names: tea.names || [],
     },
+  };
+}
+
+async function ensureActivityHub(env, cohort, activityDate, label) {
+  const date = String(activityDate || "").trim();
+  if (!cohort || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+  const now = new Date().toISOString();
+  const lab = sliceStr(label, 80);
+  const cur = await env.DB.prepare(
+    "SELECT id, label FROM activity_hub WHERE cohort = ? AND activity_date = ?"
+  )
+    .bind(cohort, date)
+    .first();
+  if (cur) {
+    const nextLabel = lab || String(cur.label || "");
+    await env.DB.prepare(
+      "UPDATE activity_hub SET label = ?, updated_at = ? WHERE id = ?"
+    )
+      .bind(nextLabel, now, cur.id)
+      .run();
+    return;
+  }
+  await env.DB.prepare(
+    "INSERT INTO activity_hub (id, cohort, activity_date, label, updated_at) VALUES (?, ?, ?, ?, ?)"
+  )
+    .bind(genId(), cohort, date, lab, now)
+    .run();
+}
+
+function addDaysIso(iso, delta) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return "";
+  const dt = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + delta);
+  const y = dt.getFullYear();
+  const mo = String(dt.getMonth() + 1).padStart(2, "0");
+  const d = String(dt.getDate()).padStart(2, "0");
+  return y + "-" + mo + "-" + d;
+}
+
+function todayIsoJst() {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return fmt.format(new Date());
+}
+
+async function getPortalSummary(env, cohortRaw) {
+  const cohort = mustCohort(cohortRaw);
+  const today = todayIsoJst();
+  const until = addDaysIso(today, 21);
+  const members = (await loadMasterMembers(env, cohort)).filter((m) => !m.excluded);
+  const memberTotal = members.length;
+
+  // 直近の open 出欠
+  const campRow = await env.DB.prepare(
+    "SELECT * FROM attendance_campaigns WHERE cohort = ? AND status = 'open' ORDER BY created_at DESC LIMIT 1"
+  )
+    .bind(cohort)
+    .first();
+  let attTile = { status: "idle", line: "出欠なし", sub: "未作成" };
+  let attDetail = null;
+  if (campRow) {
+    const detail = await getCampaignDetail(env, cohort, campRow.id);
+    attDetail = detail;
+    const a = (detail.answered && detail.answered.a) || 0;
+    const total = detail.memberTotal || memberTotal;
+    attTile = {
+      status: a < total ? "warn" : "ok",
+      line: "MG " + a + "/" + total,
+      sub: String(detail.campaign.title || "出欠"),
+    };
+  }
+
+  // 配車ステータス集計（直近40）
+  const cpRs = await env.DB.prepare(
+    "SELECT * FROM carpool_sheets WHERE cohort = ? ORDER BY activity_date DESC, updated_at DESC LIMIT 40"
+  )
+    .bind(cohort)
+    .all();
+  const sheets = (cpRs.results || []).map(mapCarpoolSheet);
+  const submitted = sheets.filter((s) => s.status === "submitted").length;
+  const returned = sheets.filter((s) => s.status === "returned").length;
+  let cpTile = { status: "idle", line: "配車なし", sub: "未作成" };
+  if (sheets.length) {
+    if (submitted) cpTile = { status: "warn", line: "確認依頼中 " + submitted, sub: "チーフ確認待ち" };
+    else if (returned) cpTile = { status: "warn", line: "差し戻し " + returned, sub: "配車MGR対応" };
+    else cpTile = { status: "ok", line: sheets.length + "件", sub: "直近の配車表" };
+  }
+
+  // お茶当番（当月）
+  const ym = today.slice(0, 7);
+  let teaTile = { status: "idle", line: "当番表なし", sub: ym };
+  try {
+    const tea = await getTeaMonth(env, cohort, ym);
+    const n = (tea.days || []).length;
+    if (n) teaTile = { status: "ok", line: ym.replace("-", "/") + " " + n + "日", sub: "お茶当番" };
+  } catch (e) {
+    teaTile = { status: "idle", line: "当番表なし", sub: ym };
+  }
+
+  // 道具（history 直近）
+  let gearTile = { status: "idle", line: "履歴なし", sub: "道具割振り" };
+  try {
+    const hist = await env.DB.prepare(
+      "SELECT activity_date, saved_at FROM history_events WHERE cohort = ? ORDER BY saved_at DESC LIMIT 1"
+    )
+      .bind(cohort)
+      .first();
+    if (hist && hist.activity_date) {
+      gearTile = {
+        status: "ok",
+        line: String(hist.activity_date).slice(5).replace("-", "/") + " 保存",
+        sub: "直近の割振り",
+      };
+    }
+  } catch (e) {
+    /* ignore */
+  }
+
+  // 日付ハブ: 出欠日・配車・お茶・既存 hub から収集
+  const dateSet = {};
+  function touchDate(d, label) {
+    if (!d || d < today || d > until) return;
+    if (!dateSet[d]) dateSet[d] = { activityDate: d, label: "" };
+    if (label && !dateSet[d].label) dateSet[d].label = label;
+  }
+  try {
+    const hubRs = await env.DB.prepare(
+      "SELECT activity_date, label FROM activity_hub WHERE cohort = ? AND activity_date >= ? AND activity_date <= ? ORDER BY activity_date ASC"
+    )
+      .bind(cohort, today, until)
+      .all();
+    for (const r of hubRs.results || []) touchDate(String(r.activity_date), String(r.label || ""));
+  } catch (e) {
+    /* migrate 前 */
+  }
+  if (attDetail && attDetail.campaign && attDetail.campaign.days) {
+    for (const d of attDetail.campaign.days) {
+      touchDate(d.activityDate, attDetail.campaign.title || "");
+      await ensureActivityHub(env, cohort, d.activityDate, attDetail.campaign.title || "");
+    }
+  }
+  for (const s of sheets) touchDate(s.activityDate, s.title || "");
+  try {
+    const teaDays = await env.DB.prepare(
+      "SELECT activity_date FROM tea_days WHERE cohort = ? AND activity_date >= ? AND activity_date <= ?"
+    )
+      .bind(cohort, today, until)
+      .all();
+    for (const r of teaDays.results || []) touchDate(String(r.activity_date), "お茶当番");
+  } catch (e) {
+    /* ignore */
+  }
+
+  const hub = [];
+  const dates = Object.keys(dateSet).sort();
+  for (const dt of dates.slice(0, 14)) {
+    const item = {
+      activityDate: dt,
+      label: dateSet[dt].label || "",
+      attendance: null,
+      carpool: [],
+      tea: null,
+      gear: null,
+    };
+    if (attDetail && attDetail.campaign) {
+      const hasDay = (attDetail.campaign.days || []).some((d) => d.activityDate === dt);
+      if (hasDay) {
+        item.attendance = {
+          campaignId: attDetail.campaign.id,
+          campaignTitle: attDetail.campaign.title || "",
+          mgAnswered: (attDetail.answered && attDetail.answered.a) || 0,
+          memberTotal: attDetail.memberTotal || memberTotal,
+        };
+      }
+    }
+    item.carpool = sheets
+      .filter((s) => s.activityDate === dt)
+      .map((s) => ({
+        id: s.id,
+        title: s.title,
+        status: s.status,
+        groupLabel: s.groupLabel || "",
+      }));
+    try {
+      const tea = await getTeaDutyOnDate(env, cohort, dt);
+      if (tea.dutyA || tea.dutyB) {
+        item.tea = { dutyA: tea.dutyA || "", dutyB: tea.dutyB || "" };
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    try {
+      const g = await env.DB.prepare(
+        "SELECT activity_date FROM history_events WHERE cohort = ? AND activity_date = ? LIMIT 1"
+      )
+        .bind(cohort, dt)
+        .first();
+      if (g) item.gear = { hasHistory: true };
+    } catch (e) {
+      /* ignore */
+    }
+    hub.push(item);
+  }
+
+  // アラート: 出欠更新が配車候補より新しい
+  const alerts = [];
+  for (const s of sheets) {
+    if (!s.attendanceCampaignId) continue;
+    if (s.activityDate && s.activityDate < today) continue;
+    const alert = await buildCarpoolAttendanceAlert(env, s);
+    if (alert) {
+      alerts.push({
+        kind: "attendance_to_carpool",
+        summary: (s.title || "配車表") + " — " + alert.message,
+        href: "../carpool/",
+        sheetId: s.id,
+        activityDate: s.activityDate || "",
+      });
+    }
+  }
+  if (submitted) {
+    alerts.push({
+      kind: "carpool_review",
+      summary: "配車の確認依頼が " + submitted + " 件あります",
+      href: "../carpool/",
+      sheetId: "",
+      activityDate: "",
+    });
+  }
+
+  return {
+    generatedAt: new Date().toISOString(),
+    tiles: {
+      attendance: attTile,
+      carpool: cpTile,
+      tea: teaTile,
+      gear: gearTile,
+    },
+    hub: hub,
+    alerts: alerts.slice(0, 8),
   };
 }

@@ -9,8 +9,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.15.0">
-<link rel="stylesheet" href="portal.css?v=1.15.0">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.16.0">
+<link rel="stylesheet" href="portal.css?v=1.16.0">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -31,10 +31,18 @@
 <main class="pt-wrap">
   <section class="pt-lead" aria-label="案内">
     <div class="pt-lead-kicker">MGR ENTRY</div>
-    <p>各ツールへ進んでください。道具割り振り・出欠・お茶当番・配車が利用できます。</p>
+    <p>各ツールへ進んでください。状況サマリーは直近の活動日を横断表示します。</p>
+    <p id="pt-sum-status" class="pt-sum-status" aria-live="polite"></p>
   </section>
 
-  <div class="pt-sec-label">利用できるツール</div>
+  <div id="pt-alerts" class="pt-alerts pt-hidden" aria-label="要確認"></div>
+
+  <div class="pt-sec-label">直近の活動日</div>
+  <div id="pt-hub" class="pt-hub" aria-live="polite">
+    <p class="pt-hub-empty">読込中…</p>
+  </div>
+
+  <div class="pt-sec-label" style="margin-top:22px;">利用できるツール</div>
   <div class="pt-grid" role="list">
     <a class="pt-tile" href="../index.html" role="listitem">
       <span class="pt-tile-num" aria-hidden="true">01</span>
@@ -44,7 +52,7 @@
       <div class="pt-tile-body">
         <div class="pt-tile-top">
           <span class="pt-tile-title">道具割り振り</span>
-          <span class="pt-tile-badge pt-badge-ready">利用可</span>
+          <span class="pt-tile-sum" data-pt-sum="gear">—</span>
         </div>
         <p class="pt-tile-desc">持ち帰り割振り・実施確定・保護者確認・交代報告・LINE／PDF展開</p>
       </div>
@@ -59,7 +67,7 @@
       <div class="pt-tile-body">
         <div class="pt-tile-top">
           <span class="pt-tile-title">出欠管理</span>
-          <span class="pt-tile-badge pt-badge-ready">利用可</span>
+          <span class="pt-tile-sum" data-pt-sum="attendance">—</span>
         </div>
         <p class="pt-tile-desc">MG LINE／親父 LINE の2系統。複数日出欠・回答URL・投稿文生成</p>
       </div>
@@ -74,7 +82,7 @@
       <div class="pt-tile-body">
         <div class="pt-tile-top">
           <span class="pt-tile-title">お茶当番</span>
-          <span class="pt-tile-badge pt-badge-ready">利用可</span>
+          <span class="pt-tile-sum" data-pt-sum="tea">—</span>
         </div>
         <p class="pt-tile-desc">当番表作成・LINE／PDF展開・変更反映・道具STEP2反映</p>
       </div>
@@ -89,7 +97,7 @@
       <div class="pt-tile-body">
         <div class="pt-tile-top">
           <span class="pt-tile-title">配車管理</span>
-          <span class="pt-tile-badge pt-badge-ready">利用可</span>
+          <span class="pt-tile-sum" data-pt-sum="carpool">—</span>
         </div>
         <p class="pt-tile-desc">手組み配車・出欠／お茶連携・確認依頼／承認・MG／親父LINE展開</p>
       </div>
@@ -99,5 +107,15 @@
 
   <p class="pt-foot">保護者の方はポータルを使いません。LINEで届く確認・回答用URLだけをご利用ください。</p>
 </main>
+
+<script>
+window.TCB_PT_CFG={
+  cohort:"15",
+  apiBase:"https://tcb-tools-sync.kazoo-matsu.workers.dev",
+  apiToken:"4af3b2f262a5ed38fc396cac3fd0740de5eca97288d70602"
+};
+</script>
+<script src="../tcb-sync-api.js?v=1.16.0"></script>
+<script src="portal-summary.js?v=1.16.0"></script>
 </body>
 </html>

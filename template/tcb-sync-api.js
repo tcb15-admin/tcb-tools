@@ -208,13 +208,15 @@
       listCarpoolEvents:function(id){
         return req('/api/carpool/events?cohort='+encodeURIComponent(cohort)+'&id='+encodeURIComponent(id||''),'GET');
       },
-      getCarpoolCandidates:function(campaignId, date){
-        return req(
-          '/api/carpool/candidates?cohort='+encodeURIComponent(cohort)
-            +'&campaignId='+encodeURIComponent(campaignId||'')
-            +'&date='+encodeURIComponent(date||''),
-          'GET'
-        );
+      getCarpoolCandidates:function(campaignId, date, sheetId){
+        var q='/api/carpool/candidates?cohort='+encodeURIComponent(cohort)
+          +'&campaignId='+encodeURIComponent(campaignId||'')
+          +'&date='+encodeURIComponent(date||'');
+        if(sheetId)q+='&sheetId='+encodeURIComponent(sheetId);
+        return req(q,'GET');
+      },
+      getPortalSummary:function(){
+        return req('/api/portal/summary?cohort='+encodeURIComponent(cohort),'GET');
       }
     };
   }

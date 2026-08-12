@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS carpool_sheets (
   status TEXT NOT NULL DEFAULT 'draft',
   review_note TEXT NOT NULL DEFAULT '',
   published_at TEXT NOT NULL DEFAULT '',
+  attendance_synced_at TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
