@@ -472,6 +472,7 @@ def build(target):
         'tcb-login.css',
         'tcb-login.js',
         'tcb-gear-ui.css',
+        'tcb-swap-list.js', 'tcb-swap-list.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )

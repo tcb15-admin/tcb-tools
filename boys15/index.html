@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-today-card.css?v=1.18.2">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-today-card.css?v=1.18.3">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1118,9 +1118,10 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-login.css?v=1.18.2">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.18.2">
+<link rel="stylesheet" href="tcb-shell.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-login.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.18.3">
 </head>
 <body>
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1634,7 +1635,8 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.18.2"></script>
+<script src="tcb-device.js?v=1.18.3"></script>
+<script src="tcb-swap-list.js?v=1.18.3"></script>
 <script>
 
 
@@ -3857,36 +3859,48 @@ function buildCarryAdjustChangeReport(refMap, curMap, allTools){
     curBy:curBy
   };
 }
+/* 班ラベル付き氏名（試合組／練習組）。班非表示時は氏名のみ */
+function carryAdjustPersonLabel(name){
+  if(!name)return '';
+  if(!R||R.mode!=='team'||shareHidesTeamSplit())return name;
+  var team=memberDisplayTeam(name);
+  var lbl=teamGroupLabel(team);
+  return lbl?(name+'（'+lbl+'）'):name;
+}
 function formatCarryAdjustChangeText(report){
   if(!report)return '';
+  if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.formatFullText==='function'){
+    return TCB_SWAP_LIST.formatFullText(report,{labelPerson:carryAdjustPersonLabel});
+  }
+  /* フォールバック（外部JS未読込時） */
   if(!report.changed){
-    return '【前回からの変更なし】\nすべて前回と同じ担当です（'+report.kept+'点）。';
+    return '【次回活動までの道具入れ替え】\n変更なし（すべて前回と同じ担当・'+report.kept+'点）。';
   }
   var lines=[];
-  lines.push('【前日の道具調整・入れ替え案内】');
+  lines.push('【次回活動までの道具入れ替え案内】');
+  lines.push('次回活動日までに、下記の保護者間で道具を受け渡してください。');
   lines.push('維持 '+report.kept+' 点／変更 '+report.changed+' 点');
   lines.push('');
   if(report.swapGroups.length){
-    lines.push('■ 2名で道具を交換（前日に持ち帰りを入れ替え）');
+    lines.push('■ 2名で道具を交換（お互い渡し合う）');
     report.swapGroups.forEach(function(g,idx){
-      lines.push((idx+1)+'. '+g.pA+' ⇔ '+g.pB);
+      var a=carryAdjustPersonLabel(g.pA), b=carryAdjustPersonLabel(g.pB);
+      lines.push((idx+1)+'. '+a+' ⇔ '+b);
       g.tools.forEach(function(t){
-        lines.push('   '+g.pA+'：「'+t.toolA+'」→「'+t.toolB+'」');
-        lines.push('   '+g.pB+'：「'+t.toolB+'」→「'+t.toolA+'」');
+        lines.push('   '+a+' が持つ「'+t.toolA+'」→ '+b+' へ');
+        lines.push('   '+b+' が持つ「'+t.toolB+'」→ '+a+' へ');
       });
     });
     lines.push('');
   }
   if(report.others.length){
-    lines.push('■ その他の担当変更');
+    lines.push('■ その他の受け渡し（一方向）');
     report.others.forEach(function(o){
-      if(o.prev&&o.curr){
-        lines.push('・「'+o.tn+'」 '+o.prev+' → '+o.curr);
-      }else if(o.prev&&!o.curr){
-        lines.push('・「'+o.tn+'」 '+o.prev+' → 未割当');
-      }else if(!o.prev&&o.curr){
-        lines.push('・「'+o.tn+'」 → '+o.curr+'（新規担当）');
-      }
+      var prev=o.prev?carryAdjustPersonLabel(o.prev):'';
+      var curr=o.curr?carryAdjustPersonLabel(o.curr):'';
+      if(o.prev&&o.curr)lines.push('・「'+o.tn+'」 '+prev+' → '+curr);
+      else if(o.prev&&!o.curr)lines.push('・「'+o.tn+'」 '+prev+' → 未割当');
+      else if(!o.prev&&o.curr)lines.push('・「'+o.tn+'」 → '+curr+'（新規担当）');
     });
     lines.push('');
   }
@@ -3895,11 +3909,9 @@ function formatCarryAdjustChangeText(report){
     report.peopleMustChange.forEach(function(p){
       var before=report.prevBy[p]||[];
       var after=report.curBy[p]||[];
-      var bStr=before.length?before.join('、'):'（なし）';
-      var aStr=after.length?after.join('、'):'（なし）';
-      lines.push('・'+p);
-      lines.push('   前回：'+bStr);
-      lines.push('   今回：'+aStr);
+      lines.push('・'+carryAdjustPersonLabel(p));
+      lines.push('   いま持っている：'+(before.length?before.join('、'):'（なし）'));
+      lines.push('   次回担当：'+(after.length?after.join('、'):'（なし）'));
     });
   }
   return lines.join('\n');
@@ -3983,6 +3995,14 @@ function copyCarryAdjustChangeText(){
     return;
   }
   copyTextToClipboard(text,'入れ替え案内（要点）をコピーしました。LINE等に貼り付けてください。','以下をコピーしてLINE等に貼り付けてください');
+}
+function copyCarryAdjustFullText(){
+  var text=getCarryAdjustChangeTextPlain();
+  if(!text){
+    alert('前回からの調整データがありません。\n前回の結果を元に割振った結果画面でお試しください。');
+    return;
+  }
+  copyTextToClipboard(text,'入れ替えリスト（全文）をコピーしました。保護者への依頼に使えます。','以下をコピーして保護者へ共有してください');
 }
 function teamGroupLabel(teamCode){
   if(!R||!teamCode)return '';
@@ -4075,19 +4095,27 @@ function renderCarryAdjustDiffSummary(){
         var html='<strong>前回からの調整：</strong>維持 '+report.kept+' 点';
         if(report.changed)html+='／変更 '+report.changed+' 点';
         if(report.changed)html+='。<span class="p3-carry-adjust-legend">色分けは下の「道具別」表（緑＝維持・橙＝変更）。</span>';
-        if(report.changed){
-          html+='<div class="p3-carry-adjust-text-wrap">'
-            +'<div class="p3-carry-adjust-text-hd">LINE用の要点（この本文がコピーされます）</div>'
-            +'<pre class="p3-carry-adjust-text" id="p3-carry-adjust-text">'+esc(lineBody)+'</pre>'
-            +'<button type="button" class="p3-carry-adjust-copybtn" id="btn-copy-carry-adjust">&#128203; この要点をコピー</button>'
-            +'</div>';
-        }else if(report.peopleMustChange.length){
+        if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function'){
+          html+=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:carryAdjustPersonLabel});
+        }else if(!report.changed){
           html+='<div class="p3-carry-adjust-people"><strong>変更はありません。</strong></div>';
+        }
+        if(report.changed){
+          html+='<div class="tcb-swap-list-actions">'
+            +'<button type="button" class="tcb-swap-list-copybtn" id="btn-copy-carry-adjust-full">入れ替えリスト（全文）をコピー</button>'
+            +'<button type="button" class="tcb-swap-list-copybtn tcb-swap-list-copybtn-sec" id="btn-copy-carry-adjust">LINE用の要点をコピー</button>'
+            +'</div>';
+          html+='<div class="tcb-swap-list-line-wrap">'
+            +'<div class="tcb-swap-list-line-hd">LINE本文に自動で入る要点（参考）</div>'
+            +'<pre class="tcb-swap-list-line-pre" id="p3-carry-adjust-text">'+esc(lineBody)+'</pre>'
+            +'</div>';
         }
         el.className='p3-carry-adjust-summary on';
         el.innerHTML=html;
         var copyBtn=document.getElementById('btn-copy-carry-adjust');
         if(copyBtn)copyBtn.addEventListener('click',copyCarryAdjustChangeText);
+        var fullBtn=document.getElementById('btn-copy-carry-adjust-full');
+        if(fullBtn)fullBtn.addEventListener('click',copyCarryAdjustFullText);
       }
     }
   }
@@ -7357,7 +7385,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.18.2';
+  if(vEl)vEl.textContent='v1.18.3';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7866,18 +7894,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.18.2"></script>
-<script src="html2canvas.min.js?v=1.18.2"></script>
-<script src="html2pdf.min.js?v=1.18.2"></script>
-<script src="tcb-print-pdf.js?v=1.18.2"></script>
-<script src="tcb-feedback.js?v=1.18.2"></script>
-<script src="tcb-sync-api.js?v=1.18.2"></script>
-<script src="tcb-swap-mgr.js?v=1.18.2"></script>
-<script src="tcb-push-mgr.js?v=1.18.2"></script>
-<script src="tcb-login.js?v=1.18.2"></script>
-<script src="tcb-pwa-install.js?v=1.18.2"></script>
-<script src="tcb-group-hold.js?v=1.18.2"></script>
-<script src="tcb-presummary.js?v=1.18.2"></script>
-<script src="tcb-today-card.js?v=1.18.2"></script>
+<script src="jspdf.umd.min.js?v=1.18.3"></script>
+<script src="html2canvas.min.js?v=1.18.3"></script>
+<script src="html2pdf.min.js?v=1.18.3"></script>
+<script src="tcb-print-pdf.js?v=1.18.3"></script>
+<script src="tcb-feedback.js?v=1.18.3"></script>
+<script src="tcb-sync-api.js?v=1.18.3"></script>
+<script src="tcb-swap-mgr.js?v=1.18.3"></script>
+<script src="tcb-push-mgr.js?v=1.18.3"></script>
+<script src="tcb-login.js?v=1.18.3"></script>
+<script src="tcb-pwa-install.js?v=1.18.3"></script>
+<script src="tcb-group-hold.js?v=1.18.3"></script>
+<script src="tcb-presummary.js?v=1.18.3"></script>
+<script src="tcb-today-card.js?v=1.18.3"></script>
 </body>
 </html>

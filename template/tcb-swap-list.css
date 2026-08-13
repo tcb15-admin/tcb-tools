@@ -1,0 +1,187 @@
+/* 道具入れ替えリスト（STEP3・前回結果基準の調整時）
+ * 既存 .p3-carry-adjust-* と役割を分け、tcb-swap-list- のみ新規定義
+ */
+
+.tcb-swap-list{
+  margin-top:10px;
+  padding:12px 12px 10px;
+  background:var(--tcb-surface,var(--card,#fff));
+  border:1px solid #ce93d8;
+  border-radius:8px;
+}
+.tcb-swap-list-hd{
+  font-size:14px;
+  font-weight:900;
+  color:#4a148c;
+  margin:0 0 4px;
+  letter-spacing:.02em;
+}
+.tcb-swap-list-lead{
+  margin:0 0 8px;
+  font-size:12px;
+  line-height:1.55;
+  color:var(--txt2,#71717a);
+}
+.tcb-swap-list-meta{
+  font-size:12px;
+  color:#6a1b9a;
+  margin-bottom:10px;
+}
+.tcb-swap-list-meta strong{color:#4a148c;font-weight:900;}
+.tcb-swap-list-empty{
+  margin:0;
+  font-size:13px;
+  color:var(--txt2,#71717a);
+}
+.tcb-swap-list-sec{margin-top:12px;}
+.tcb-swap-list-sec:first-of-type{margin-top:4px;}
+.tcb-swap-list-sec-hd{
+  font-size:12px;
+  font-weight:900;
+  color:#4a148c;
+  margin:0 0 6px;
+  padding-bottom:4px;
+  border-bottom:1px solid #e1bee7;
+}
+.tcb-swap-list-pairs{
+  margin:0;
+  padding:0 0 0 1.25em;
+  list-style:decimal;
+}
+.tcb-swap-list-pair{
+  margin:0 0 10px;
+  padding:8px 10px;
+  background:#faf5fc;
+  border-radius:6px;
+  border:1px solid #f3e5f5;
+}
+.tcb-swap-list-pair-who{
+  font-size:13px;
+  font-weight:800;
+  color:var(--ink-heading,#141416);
+  margin-bottom:6px;
+  line-height:1.45;
+}
+.tcb-swap-list-name{font-weight:900;}
+.tcb-swap-list-arrow{
+  display:inline-block;
+  margin:0 4px;
+  color:#7b1fa2;
+  font-weight:900;
+}
+.tcb-swap-list-tools{
+  margin:0;
+  padding:0 0 0 1em;
+  list-style:disc;
+  font-size:12px;
+  line-height:1.6;
+  color:var(--txt,#141416);
+}
+.tcb-swap-list-tools li{margin:2px 0;}
+.tcb-swap-list-from,
+.tcb-swap-list-to{font-weight:700;}
+.tcb-swap-list-others{
+  margin:0;
+  padding:0 0 0 1.1em;
+  list-style:disc;
+  font-size:12px;
+  line-height:1.65;
+}
+.tcb-swap-list-others li{margin:4px 0;}
+.tcb-swap-list-people{
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+.tcb-swap-list-people > li{
+  margin:0 0 8px;
+  padding:8px 10px;
+  background:var(--surface-2,#ececee);
+  border-radius:6px;
+  font-size:12px;
+  line-height:1.55;
+}
+.tcb-swap-list-pname{
+  font-weight:900;
+  color:var(--ink-heading,#141416);
+  margin-bottom:2px;
+}
+.tcb-swap-list-pchg{color:var(--txt2,#71717a);}
+.tcb-swap-list-actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:12px;
+}
+.tcb-swap-list-copybtn{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#6a1b9a;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+  cursor:pointer;
+  min-height:var(--tap,46px);
+  font-family:inherit;
+}
+.tcb-swap-list-copybtn:active{opacity:.92;}
+.tcb-swap-list-copybtn-sec{
+  background:transparent;
+  color:#6a1b9a;
+  border:2px solid #ce93d8;
+}
+.tcb-swap-list-line-wrap{margin-top:10px;}
+.tcb-swap-list-line-hd{
+  font-weight:900;
+  font-size:11px;
+  color:#6a1b9a;
+  margin-bottom:4px;
+}
+.tcb-swap-list-line-pre{
+  margin:0;
+  padding:8px 10px;
+  background:#faf5fc;
+  border:1px dashed #ce93d8;
+  border-radius:6px;
+  font-size:11px;
+  line-height:1.55;
+  color:#4a148c;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  max-height:9em;
+  overflow:auto;
+}
+
+@media (prefers-color-scheme:dark){
+  .tcb-swap-list{
+    background:var(--tcb-surface,var(--card,#1a1a1c));
+    border-color:#6a1b9a;
+  }
+  .tcb-swap-list-hd,
+  .tcb-swap-list-sec-hd,
+  .tcb-swap-list-meta strong{color:#e1bee7;}
+  .tcb-swap-list-meta,
+  .tcb-swap-list-lead,
+  .tcb-swap-list-line-hd{color:#ce93d8;}
+  .tcb-swap-list-pair{
+    background:rgba(106,27,154,.18);
+    border-color:rgba(206,147,216,.35);
+  }
+  .tcb-swap-list-pair-who,
+  .tcb-swap-list-pname{color:var(--ink-heading,#f4f4f5);}
+  .tcb-swap-list-tools,
+  .tcb-swap-list-others{color:var(--txt,#e4e4e7);}
+  .tcb-swap-list-people > li{background:var(--surface-2,#27272a);}
+  .tcb-swap-list-line-pre{
+    background:rgba(106,27,154,.15);
+    border-color:#7b1fa2;
+    color:#e1bee7;
+  }
+  .tcb-swap-list-copybtn-sec{
+    color:#e1bee7;
+    border-color:#7b1fa2;
+  }
+}
