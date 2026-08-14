@@ -161,10 +161,12 @@
 
   function open() {
     if (ctx.onOpen) ctx.onOpen();
+    /* 先にモーダルを表示してからグリッドを構築する
+       （非表示のまま構築すると幅0で測られ、文字サイズの自動調整が効かない） */
+    if (ctx.openModal) ctx.openModal('tcb-handoff-overlay');
     fillBaseSelect();
     refreshForm();
     clearResult();
-    if (ctx.openModal) ctx.openModal('tcb-handoff-overlay');
     /* クラウド同期があれば履歴を取り直し、他端末の実施確定も候補に反映する */
     if (ctx.refreshHistory) {
       ctx.refreshHistory().then(function () {

@@ -123,6 +123,42 @@
 }
 .tcb-handoff-team-wrap{margin-top:4px;}
 
+/* 班グリッド：STEP2 の #tgrid と同じレイアウトを適用
+   （PC＝列幅148pxで氏名を1行に収める／スマホ＝2列・氏名を全幅2行目に） */
+#handoff-tgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}
+#handoff-tgrid .tc2{flex-direction:row;align-items:center;flex-wrap:nowrap;gap:4px;}
+#handoff-tgrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;font-size:13px;line-height:1.25;}
+#handoff-tgrid .tbdg{max-width:none;font-size:10px;min-width:26px;height:24px;padding:0 4px;}
+#handoff-tgrid .tc2.tcb-namewrap{flex-wrap:wrap;gap:4px 6px;}
+#handoff-tgrid .tcb-namewrap > .tbdg{order:1;flex-shrink:0;}
+#handoff-tgrid .tcb-namewrap > .cv,
+#handoff-tgrid .tcb-namewrap > .rest-badge,
+#handoff-tgrid .tcb-namewrap > .quit-badge,
+#handoff-tgrid .tcb-namewrap > .coach-badge,
+#handoff-tgrid .tcb-namewrap > .master-excl-badge{order:2;margin-left:auto;flex-shrink:0;}
+#handoff-tgrid .tcb-namewrap > .cn{order:3;flex:0 0 100%;width:100%;max-width:100%;}
+@media (max-width:520px){
+  #handoff-tgrid.mgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  #handoff-tgrid .tc2{padding:8px 8px;min-height:auto;align-items:center;flex-wrap:wrap;gap:4px 6px;}
+  #handoff-tgrid .tbdg{order:1;font-size:10px;min-width:28px;height:24px;padding:0 4px;flex-shrink:0;}
+  #handoff-tgrid .cv{order:2;margin-left:auto;flex-shrink:0;font-size:10px;padding:2px 5px;}
+  #handoff-tgrid .rest-badge,
+  #handoff-tgrid .quit-badge,
+  #handoff-tgrid .coach-badge,
+  #handoff-tgrid .master-excl-badge{order:2;margin-left:auto;flex-shrink:0;font-size:9px;}
+  #handoff-tgrid .cn{
+    order:3;
+    flex:0 0 100%;
+    width:100%;
+    max-width:100%;
+    font-weight:800;
+    line-height:1.2;
+    overflow:visible;
+    white-space:nowrap;
+    text-overflow:clip;
+  }
+}
+
 @media (prefers-color-scheme:dark){
   .tcb-handoff-entry{
     background:rgba(106,27,154,.18);
