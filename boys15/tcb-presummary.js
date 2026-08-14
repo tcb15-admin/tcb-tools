@@ -54,7 +54,7 @@
     } else if (d.teamUI) {
       unit = '<strong>' + esc(d.la) + '</strong>（' + d.cA + '名）／<strong>' + esc(d.lb) + '</strong>（' + d.cB + '名）の2グループ';
     } else {
-      unit = '全員一括（マスタの班・会場どおり）';
+      unit = '全員一括（グループ分けなし）';
     }
     html += row('割振り単位', unit);
 

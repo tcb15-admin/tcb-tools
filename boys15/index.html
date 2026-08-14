@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-today-card.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-today-card.css?v=1.19.0">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1118,10 +1118,10 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-login.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.18.3">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.18.3">
+<link rel="stylesheet" href="tcb-shell.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-login.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.19.0">
 </head>
 <body>
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1389,7 +1389,7 @@ html{color-scheme:light;}
       <div id="pdesc" class="desc-bar"></div>
       <div id="tcb-sameday-hint-p1" class="al ali tcb-sameday-hint-p1" style="display:none;" role="note"></div>
       <div id="renshu-split-wrap" class="p1-renshu-split-wrap" style="display:none;">
-        <label class="p1-renshu-split-lbl" for="chk-renshu-split"><input type="checkbox" id="chk-renshu-split" autocomplete="off">練習場所が分かれる<button type="button" class="tcb-tip" data-tip="2グループで<strong>会場ごと</strong>に割り振ります。会場は室内／屋外で指定。会場未選択の道具は試合用A/B列に従います。" aria-label="説明"></button></label>
+        <label class="p1-renshu-split-lbl" for="chk-renshu-split"><input type="checkbox" id="chk-renshu-split" autocomplete="off">練習場所が分かれる<button type="button" class="tcb-tip" data-tip="2グループに分けて割り振ります。各道具のグループは<strong>割振りルール</strong>（半々・試合組／練習組など）と、可能な範囲で前回保有側の維持で決まります。" aria-label="説明"></button></label>
       </div>
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
@@ -1468,12 +1468,12 @@ html{color-scheme:light;}
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
         <summary>
-          <div class="ct">いま道具を持っているグループ（任意）<button type="button" class="tcb-tip" data-tip="会場ごとに道具が分かれているとき、<strong>グループ間で道具を動かさず</strong>割振ります。<strong>次回が両方練習・同一場所でも</strong>、登録が有効ならそのグループ内だけで割振ります。必要なときだけ「登録／確認」してください。" aria-label="説明"></button></div>
+          <div class="ct">いま道具を持っているグループ（任意）<button type="button" class="tcb-tip" data-tip="会場ごとに道具が分かれているとき、<strong>グループ間で道具を動かさず</strong>割振ります。<strong>未使用時は割振りルール</strong>でグループ分けします。必要なときだけ「登録／確認」してください。" aria-label="説明"></button></div>
           <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
           <span class="tcb-fold-arrow">&#9660;</span>
         </summary>
         <div class="tcb-fold-body">
-          <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（従来どおりマスタの班・会場で割振り）。</p>
+          <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（割振りルールでグループ分け）。</p>
           <div class="tcb-ghold-actions">
             <button type="button" class="rbtn" id="btn-tcb-ghold-edit">持っているグループを登録／確認</button>
             <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
@@ -1616,7 +1616,7 @@ html{color-scheme:light;}
         </h3>
         <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示順：まず<strong>丸数字（①…）より前の同じ名前</strong>ごとにまとめ、その中で<strong>①→②→③…</strong>の順です。丸数字が無い行は同じグループ内では後ろになります。グループ同士は辞書順、同順位は道具ID（id）です。</div>
         <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
-        <div class="master-tl-venue-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;"><strong>会場</strong>列は<strong>両方練習・場所分離</strong>のときだけ使います。<strong>室内＝左グループ（A）</strong>、<strong>屋外＝右グループ（B）</strong>です。<strong>未選択</strong>の道具は、左の<strong>試合用A/B</strong>列の区分に従います（両方試合の割振りは試合A/Bのみで、会場列は使いません）。</div>
+        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">グループへの振り分け（試合組／練習組・両方試合のA/Bなど）は<strong>道具名に基づく割振りルール</strong>で自動決定します。マスタでの試合チェック・A/B・室内／屋外の指定は不要です。</div>
         <div id="m-tools"></div>
         <button class="madd" id="btn-add-tool">&#65291; 道具追加</button>
       </div>
@@ -1635,8 +1635,9 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.18.3"></script>
-<script src="tcb-swap-list.js?v=1.18.3"></script>
+<script src="tcb-device.js?v=1.19.0"></script>
+<script src="tcb-swap-list.js?v=1.19.0"></script>
+<script src="tcb-team-rules.js?v=1.19.0"></script>
 <script>
 
 
@@ -2401,20 +2402,14 @@ function syncMasterEditsFromDom(){
       if(ctl){
         var sels=ctl.querySelectorAll('select.msel');
         var tcbs=ctl.querySelectorAll('input[type="checkbox"]');
+        /* 長さ・重量・固定担当（試合A/B・会場列は振分ルール化によりUI廃止） */
         if(sels[0])TL[j].sz=normalizeToolLength(sels[0].value);
         if(sels[1])TL[j].wt=sels[1].value;
-        if(sels[2])TL[j].ryo=sels[2].value;
-        if(sels[3]){
-          var ven=sels[3].value;
-          if(ven==='indoor'||ven==='outdoor')TL[j].practiceVenue=ven;
-          else delete TL[j].practiceVenue;
-        }
-        if(sels[4]){
-          if(sels[4].value){TL[j].fixed=1;TL[j].note=sels[4].value;}
+        if(sels[2]){
+          if(sels[2].value){TL[j].fixed=1;TL[j].note=sels[2].value;}
           else{TL[j].fixed=0;TL[j].note=null;}
         }
-        if(tcbs[0])TL[j].kata=tcbs[0].checked?1:0;
-        if(tcbs[1])TL[j].broken=tcbs[1].checked?1:0;
+        if(tcbs[0])TL[j].broken=tcbs[0].checked?1:0;
       }
     }
   }
@@ -3499,19 +3494,51 @@ function applyGroupHoldIfEnabled(tA,tB){
   }
   return TCB_GroupHold.rebucketToolLists(tA,tB);
 }
+/* グループ振分の基準になる前回 map / 班（実施確定・seed・端末保存） */
+function prevSnapForTeamRules(){
+  if(seedBaseSnap&&typeof seedBaseSnap.map==='object')return seedBaseSnap;
+  if(carryAdjustRefSnap&&typeof carryAdjustRefSnap.map==='object')return carryAdjustRefSnap;
+  return loadStoredAllocationSnap();
+}
+function computeRuleTeamMap(activeTools){
+  if(typeof TCB_TEAM_RULES==='undefined'||!TCB_TEAM_RULES||typeof TCB_TEAM_RULES.assignTeams!=='function'){
+    return null;
+  }
+  var snap=prevSnapForTeamRules();
+  var prevMap=(snap&&snap.map&&typeof snap.map==='object')?snap.map:{};
+  var prevTm=(snap&&snap.tmMap&&typeof snap.tmMap==='object')?snap.tmMap:{};
+  return TCB_TEAM_RULES.assignTeams(activeTools||[],{
+    pat:pat,
+    renshuSplit:!!renshuSplit,
+    prevMap:prevMap,
+    prevTmMap:prevTm,
+    memberTeam:function(n){return (tmMap&&tmMap[n])||null;},
+    matchTeam:'A',
+    practiceTeam:'B'
+  });
+}
+function buildTeamToolListsByRules(){
+  var active=TL.filter(function(t){return !skipS[t.name];});
+  var teamMap=computeRuleTeamMap(active)||{};
+  var tA=[], tB=[];
+  active.forEach(function(t){
+    var g=teamMap[t.name];
+    if(g!=='A'&&g!=='B')g='A';
+    var copy=Object.assign({},t,{ls:lscore(t),team:g});
+    if(g==='A')tA.push(copy); else tB.push(copy);
+  });
+  return {tA:tA,tB:tB};
+}
 function buildToolsListsFromGroupHold(){
   var map=(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.getMap==='function')
     ?TCB_GroupHold.getMap():{};
+  var active=TL.filter(function(t){return !skipS[t.name];});
+  var ruleMap=computeRuleTeamMap(active)||{};
   var tA=[], tB=[];
-  TL.forEach(function(t){
-    if(skipS[t.name])return;
+  active.forEach(function(t){
     var g=map[t.name];
-    if(g!=='A'&&g!=='B'){
-      if(pat==='kata')g=t.kata===1?'A':'B';
-      else if(pat==='renshu'&&renshuSplit)g=effectivePracticeGroup(t)==='A'?'A':'B';
-      else if(pat==='ryoho')g=(t.ryo==='A')?'A':'B';
-      else g=(t.ryo==='A')?'A':'B';
-    }
+    if(g!=='A'&&g!=='B')g=ruleMap[t.name];
+    if(g!=='A'&&g!=='B')g='A';
     var copy=Object.assign({},t,{ls:lscore(t),team:g});
     if(g==='A')tA.push(copy); else tB.push(copy);
   });
@@ -3522,7 +3549,7 @@ function buildAssignmentContext(opts){
   var silent=!!opts.silent;
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
-  /* グループ保有が有効：活動パターンに関係なく、保有グループ×メンバー班で割振る */
+  /* グループ保有が有効：登録マップ優先。未登録は振分ルール */
   if(isGroupHoldEnabled()){
     var mAh=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
     var mBh=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
@@ -3530,17 +3557,8 @@ function buildAssignmentContext(opts){
     if(!mBh.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
     var listsH=buildToolsListsFromGroupHold();
     var tAh=listsH.tA, tBh=listsH.tB;
+    var mgh=mergeTeamToolListsForFixed(tAh,tBh,mAh,mBh); tAh=mgh.tA; tBh=mgh.tB;
     return {ex:ex,la:la,lb:lb,mode:'team',mA:mAh,mB:mBh,tA:tAh,tB:tBh,tools:null,members:null,allTools:tAh.concat(tBh)};
-  }
-  if(pat==='kata'){
-    var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
-    var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
-    if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
-    if(!mB.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
-    var tA=TL.filter(function(t){return t.kata===1&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
-    var tB=TL.filter(function(t){return t.kata===0&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
-    var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
-    return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
   }
   if(pat==='renshu'&&!renshuSplit){
     var members=MB.filter(function(m){return !ex[m.name];});
@@ -3548,24 +3566,15 @@ function buildAssignmentContext(opts){
     var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
     return {ex:ex,la:la,lb:lb,mode:'single',mA:null,mB:null,tA:null,tB:null,tools:tools,members:members,allTools:null};
   }
-  if(pat==='renshu'&&renshuSplit){
-    var mA2=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
-    var mB2=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
-    if(!mA2.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
-    if(!mB2.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
-    var tA2=TL.filter(function(t){return effectivePracticeGroup(t)==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
-    var tB2=TL.filter(function(t){return effectivePracticeGroup(t)==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
-    var mg2=mergeTeamToolListsForFixed(tA2,tB2,mA2,mB2); tA2=mg2.tA; tB2=mg2.tB;
-    return {ex:ex,la:la,lb:lb,mode:'team',mA:mA2,mB:mB2,tA:tA2,tB:tB2,tools:null,members:null,allTools:tA2.concat(tB2)};
-  }
-  var mA3=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
-  var mB3=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
-  if(!mA3.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
-  if(!mB3.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
-  var tA3=TL.filter(function(t){return t.ryo==='A'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'A'});});
-  var tB3=TL.filter(function(t){return t.ryo==='B'&&!skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t),team:'B'});});
-  var mg3=mergeTeamToolListsForFixed(tA3,tB3,mA3,mB3); tA3=mg3.tA; tB3=mg3.tB;
-  return {ex:ex,la:la,lb:lb,mode:'team',mA:mA3,mB:mB3,tA:tA3,tB:tB3,tools:null,members:null,allTools:tA3.concat(tB3)};
+  /* 片方試合／両方試合／両方練習・場所分離：振分ルールで A/B */
+  var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
+  var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
+  if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
+  if(!mB.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
+  var lists=buildTeamToolListsByRules();
+  var tA=lists.tA, tB=lists.tB;
+  var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
+  return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
 }
 /* STEP3 表示時：STEP2 の欠席・お茶当番変更を R のメンバー一覧へ反映（道具リストは変えない） */
 function refreshResultMemberLists(){
@@ -4823,7 +4832,7 @@ function updDesc(){
   var el=document.getElementById('pdesc');
   if(el){
     if(pat==='renshu'&&renshuSplit){
-      el.textContent=la+'（A）←会場「室内」／'+lb+'（B）←会場「屋外」。会場が未選択の道具は試合用A/B列に従います。';
+      el.textContent=la+'（A）／'+lb+'（B）。道具のグループ分けは割振りルール（半々・試合組／練習組など）に従います。';
     }else{
       var msgs={
         'kata':   la+'→片方チェックの道具 / '+lb+'→残りの道具',
@@ -6716,27 +6725,6 @@ function buildMasterTools(){
       var o=document.createElement('option'); o.value=pair[0]; o.textContent=pair[1];
       if(pair[0]===t.wt)o.selected=true; ws.appendChild(o);
     });
-    /* A/B（1文字）— 両方試合・片方試合の組み付け */
-    var rs=document.createElement('select'); rs.className='msel'; rs.style.width='44px'; rs.title='両方試合などでのA/B';
-    ['A','B'].forEach(function(v){
-      var o=document.createElement('option'); o.value=v; o.textContent=v;
-      if(v===t.ryo)o.selected=true; rs.appendChild(o);
-    });
-    /* 会場（場所分離練習）：室内=A・屋外=B。先頭の未選択＝試合用A/B列に従う */
-    var rrs=document.createElement('select'); rrs.className='msel master-tl-venue-sel'; rrs.style.minWidth='76px';
-    rrs.title='場所分離練習：室内＝左(A)、屋外＝右(B)。未選択＝試合用A/B列に従う';
-    [['','未選択'],['indoor','室内'],['outdoor','屋外']].forEach(function(pair){
-      var o=document.createElement('option'); o.value=pair[0]; o.textContent=pair[1];
-      var cur=t.practiceVenue;
-      if(pair[0]===''){ if(cur!=='indoor'&&cur!=='outdoor')o.selected=true; }
-      else if(cur===pair[0])o.selected=true;
-      rrs.appendChild(o);
-    });
-    /* 片方チェック */
-    var kl=document.createElement('label');
-    kl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
-    var kc=document.createElement('input'); kc.type='checkbox'; kc.checked=!!t.kata;
-    kl.appendChild(kc); kl.appendChild(document.createTextNode('試合'));
     /* 故障フラグ（割振り表・PDFの「故障」タグ表示） */
     var bl=document.createElement('label');
     bl.style.cssText='font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
@@ -6754,7 +6742,7 @@ function buildMasterTools(){
     /* 削除 */
     var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
     /* イベント */
-    (function(idx,n2,s2,w2,r2,r3,k2,b2,f2){
+    (function(idx,n2,s2,w2,b2,f2){
       n2.addEventListener('change',function(){
         var oldName=TL[idx].name;
         var newName=String(n2.value||'').replace(/\r?\n/g,'').trim();
@@ -6775,13 +6763,6 @@ function buildMasterTools(){
       });
       s2.addEventListener('change',function(){TL[idx].sz=normalizeToolLength(s2.value);});
       w2.addEventListener('change',function(){TL[idx].wt=w2.value;});
-      r2.addEventListener('change',function(){TL[idx].ryo=r2.value;});
-      r3.addEventListener('change',function(){
-        var v=r3.value;
-        if(v==='indoor'||v==='outdoor')TL[idx].practiceVenue=v;
-        else delete TL[idx].practiceVenue;
-      });
-      k2.addEventListener('change',function(){TL[idx].kata=k2.checked?1:0;});
       b2.addEventListener('change',function(){TL[idx].broken=b2.checked?1:0;});
       f2.addEventListener('change',function(){
         if(f2.value){TL[idx].fixed=1;TL[idx].note=f2.value;}
@@ -6801,8 +6782,8 @@ function buildMasterTools(){
           buildMasterTools();buildMasterDescs();
         });
       });
-    })(i,ni,ss,ws,rs,rrs,kc,bc,fs);
-    ctlRow.appendChild(ss); ctlRow.appendChild(ws); ctlRow.appendChild(rs); ctlRow.appendChild(rrs); ctlRow.appendChild(kl); ctlRow.appendChild(bl); ctlRow.appendChild(fs); ctlRow.appendChild(db);
+    })(i,ni,ss,ws,bc,fs);
+    ctlRow.appendChild(ss); ctlRow.appendChild(ws); ctlRow.appendChild(bl); ctlRow.appendChild(fs); ctlRow.appendChild(db);
     row.appendChild(nameWrap); row.appendChild(ctlRow);
     el.appendChild(row);
   });
@@ -7385,7 +7366,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.18.3';
+  if(vEl)vEl.textContent='v1.19.0';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7596,14 +7577,8 @@ document.addEventListener('DOMContentLoaded',function(){
         return TL.filter(function(t){return !skipS[t.name];}).map(function(t){return t.name;});
       },
       inferHoldFromMaster:function(){
-        var out={};
-        TL.forEach(function(t){
-          if(skipS[t.name])return;
-          if(pat==='kata')out[t.name]=t.kata===1?'A':'B';
-          else if(pat==='renshu'&&renshuSplit)out[t.name]=effectivePracticeGroup(t)==='A'?'A':'B';
-          else out[t.name]=(t.ryo==='A')?'A':'B';
-        });
-        return out;
+        var active=TL.filter(function(t){return !skipS[t.name];});
+        return computeRuleTeamMap(active)||{};
       },
       inferHoldFromPrevAssign:function(){
         var out={};
@@ -7894,18 +7869,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.18.3"></script>
-<script src="html2canvas.min.js?v=1.18.3"></script>
-<script src="html2pdf.min.js?v=1.18.3"></script>
-<script src="tcb-print-pdf.js?v=1.18.3"></script>
-<script src="tcb-feedback.js?v=1.18.3"></script>
-<script src="tcb-sync-api.js?v=1.18.3"></script>
-<script src="tcb-swap-mgr.js?v=1.18.3"></script>
-<script src="tcb-push-mgr.js?v=1.18.3"></script>
-<script src="tcb-login.js?v=1.18.3"></script>
-<script src="tcb-pwa-install.js?v=1.18.3"></script>
-<script src="tcb-group-hold.js?v=1.18.3"></script>
-<script src="tcb-presummary.js?v=1.18.3"></script>
-<script src="tcb-today-card.js?v=1.18.3"></script>
+<script src="jspdf.umd.min.js?v=1.19.0"></script>
+<script src="html2canvas.min.js?v=1.19.0"></script>
+<script src="html2pdf.min.js?v=1.19.0"></script>
+<script src="tcb-print-pdf.js?v=1.19.0"></script>
+<script src="tcb-feedback.js?v=1.19.0"></script>
+<script src="tcb-sync-api.js?v=1.19.0"></script>
+<script src="tcb-swap-mgr.js?v=1.19.0"></script>
+<script src="tcb-push-mgr.js?v=1.19.0"></script>
+<script src="tcb-login.js?v=1.19.0"></script>
+<script src="tcb-pwa-install.js?v=1.19.0"></script>
+<script src="tcb-group-hold.js?v=1.19.0"></script>
+<script src="tcb-presummary.js?v=1.19.0"></script>
+<script src="tcb-today-card.js?v=1.19.0"></script>
 </body>
 </html>

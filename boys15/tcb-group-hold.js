@@ -114,7 +114,7 @@
         status.textContent = '使用中：いま道具を持っているグループ（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。次回の活動パターンに関係なく、そのグループ内だけで割振ります。';
       } else {
         status.className = 'tcb-ghold-status';
-        status.textContent = '未使用（従来どおりマスタの班・会場で割振り）。会場が分かれているときや、次回も保有グループのまま割振りたいときは「登録／確認」してください。';
+        status.textContent = '未使用（割振りルールでグループ分け）。会場が分かれているときや、次回も保有グループのまま割振りたいときは「登録／確認」してください。';
       }
     }
     if (btnClear) btnClear.style.display = enabled ? '' : 'none';
@@ -196,7 +196,7 @@
 
   function clearHold() {
     if (!enabled) return;
-    if (!confirm('「いま道具を持っているグループ」の登録をやめます。次の割振りは従来どおり（マスタの班・会場）になります。よろしいですか？')) return;
+    if (!confirm('「いま道具を持っているグループ」の登録をやめます。次の割振りは割振りルールに従います。よろしいですか？')) return;
     enabled = false;
     holdMap = {};
     draftMap = {};
