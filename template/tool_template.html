@@ -4632,6 +4632,212 @@ function buildHandoffHoldingsHtml(finalMap, ctx, markerTm){
   html+='</div>';
   return html;
 }
+function handoffCircledNum(n){
+  if(n>=1&&n<=20)return String.fromCharCode(0x2460+n-1);
+  return '('+n+')';
+}
+function handoffIsGroupDest(name){
+  return /^【.+】$/.test(String(name||''));
+}
+/* LINE本文：受け渡しの指示だけを人単位・番号付きで（集計や対象者一覧は載せない） */
+function buildHandoffLineText(report, snap){
+  var baseMark=snap.confirmedAt?(normFlag01(snap.handoff)?'入れ替え確定':'実施確定'):'試行';
+  var head='【道具の入れ替えお願い】次回活動の前までに';
+  var sub='（基準：'+(fmtDayLabelJa(snap.date)||'前回')+' '+baseMark+'の保有 → 次回：'+patLabel(pat,renshuSplit)+(needsTeamUI()?'〔'+(tnA||'A')+'／'+(tnB||'B')+'〕':'')+'）';
+  if(!report.changed){
+    return head+'\n'+sub+'\n\n変更はありません。皆さんいまお持ちの道具のままで大丈夫です。';
+  }
+  var lines=[head,sub,''];
+  var num=0;
+  if(report.swapGroups&&report.swapGroups.length){
+    lines.push('◆ 交換（当人同士で直接受け渡し）');
+    report.swapGroups.forEach(function(g){
+      num++;
+      lines.push(handoffCircledNum(num)+' '+g.pA+'さん ⇔ '+g.pB+'さん');
+      (g.tools||[]).forEach(function(t){
+        lines.push('　「'+t.toolA+'」⇄「'+t.toolB+'」');
+      });
+    });
+    lines.push('');
+  }
+  var passes=[], fresh=[], unassigned=[];
+  (report.others||[]).forEach(function(o){
+    if(o.prev&&o.curr)passes.push(o);
+    else if(!o.prev&&o.curr)fresh.push(o);
+    else if(o.prev&&!o.curr)unassigned.push(o);
+  });
+  if(passes.length||fresh.length){
+    lines.push('◆ 渡す（受け取りはグループ内のどなたでもOK）');
+    /* 同じ「渡す人→宛先」は1ブロックにまとめる */
+    var byKey={}, order=[];
+    passes.forEach(function(o){
+      var k=o.prev+'\u0000'+o.curr;
+      if(!byKey[k]){byKey[k]={prev:o.prev,curr:o.curr,tools:[]};order.push(k);}
+      byKey[k].tools.push(o.tn);
+    });
+    order.forEach(function(k){
+      var e=byKey[k];
+      num++;
+      var dest=handoffIsGroupDest(e.curr)?(e.curr+'へ'):(e.curr+'さんへ');
+      lines.push(handoffCircledNum(num)+' '+e.prev+'さん → '+dest);
+      e.tools.forEach(function(tn){lines.push('　・'+tn);});
+    });
+    fresh.forEach(function(o){
+      num++;
+      var dest=handoffIsGroupDest(o.curr)?(o.curr+'で用意'):(o.curr+'さんが新たに担当');
+      lines.push(handoffCircledNum(num)+' '+dest);
+      lines.push('　・'+o.tn);
+    });
+    lines.push('');
+  }
+  if(unassigned.length){
+    lines.push('◆ 次回の担当がない道具（回収・保管を別途調整）');
+    unassigned.forEach(function(o){lines.push('・「'+o.tn+'」（いま：'+o.prev+'さん）');});
+    lines.push('');
+  }
+  lines.push('変更は以上の'+report.changed+'点です。ほかの道具はいまお持ちのままでお願いします。');
+  lines.push('変更前後の一覧は添付のPDFをご覧ください。');
+  return lines.join('\n');
+}
+/* 変更点PDF（A4縦1枚）：上段=変更点のビフォーアフター表、下段=入れ替え後の保有一覧 */
+function buildHandoffPdfDocument(){
+  var plan=handoffLastPlan;
+  var report=plan.report, snap=plan.baseSnap;
+  var teamShort='{{TEAM_SHORT_NAME}}';
+  var baseMark=snap.confirmedAt?(normFlag01(snap.handoff)?'入れ替え確定':'実施確定'):'試行';
+  var subTxt='基準：'+(fmtDayLabelJa(snap.date)||'前回')+'（'+baseMark+'）の保有 → 次回：'+patLabel(pat,renshuSplit)
+    +(needsTeamUI()?'〔'+(tnA||'A')+'／'+(tnB||'B')+'〕':'')
+    +'　発行：'+fmtDayLabelJa(localIsoDateFromDate());
+  function destCell(curr){
+    if(handoffIsGroupDest(curr))return esc(curr.replace(/^【|】$/g,''))+'<span class="hp-tbd">（組内で調整・担当は次回決定）</span>';
+    return esc(curr);
+  }
+  /* 上段：変更点表 */
+  var rows='';
+  var pairNo=0;
+  (report.swapGroups||[]).forEach(function(g){
+    pairNo++;
+    (g.tools||[]).forEach(function(t){
+      rows+='<tr class="hp-row-swap"><td class="hp-td-tool">'+esc(t.toolA)+'</td><td>'+esc(g.pA)+'</td><td>'+esc(g.pB)+'</td><td class="hp-td-kind">交換'+esc(handoffCircledNum(pairNo))+'</td></tr>';
+      rows+='<tr class="hp-row-swap"><td class="hp-td-tool">'+esc(t.toolB)+'</td><td>'+esc(g.pB)+'</td><td>'+esc(g.pA)+'</td><td class="hp-td-kind">交換'+esc(handoffCircledNum(pairNo))+'</td></tr>';
+    });
+  });
+  (report.others||[]).forEach(function(o){
+    if(o.prev&&o.curr){
+      rows+='<tr class="hp-row-pass"><td class="hp-td-tool">'+esc(o.tn)+'</td><td>'+esc(o.prev)+'</td><td>'+destCell(o.curr)+'</td><td class="hp-td-kind">渡す</td></tr>';
+    }else if(!o.prev&&o.curr){
+      rows+='<tr class="hp-row-pass"><td class="hp-td-tool">'+esc(o.tn)+'</td><td class="hp-none">（保有なし）</td><td>'+destCell(o.curr)+'</td><td class="hp-td-kind">新規</td></tr>';
+    }else if(o.prev&&!o.curr){
+      rows+='<tr class="hp-row-none"><td class="hp-td-tool">'+esc(o.tn)+'</td><td>'+esc(o.prev)+'</td><td class="hp-none">担当なし（要調整）</td><td class="hp-td-kind">回収</td></tr>';
+    }
+  });
+  var changesTable='<table class="hp-table"><thead><tr><th class="hp-th-tool">道具</th><th>いままで（前回）</th><th>これから</th><th class="hp-th-kind">受け渡し</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  /* 下段：入れ替え後の保有一覧（全道具・変更は●） */
+  var changedSet={};
+  (plan.allTools||[]).forEach(function(t){
+    var a=snap.map[t.name]||'', b=plan.map[t.name]||'';
+    if(a!==b)changedSet[t.name]=1;
+  });
+  var byHolder={};
+  (plan.allTools||[]).forEach(function(t){
+    var p=plan.map[t.name];
+    if(!p)return;
+    if(!byHolder[p])byHolder[p]=[];
+    byHolder[p].push(t.name);
+  });
+  function holdRow(label,toolNames,tbd){
+    var cells=toolNames.map(function(tn){
+      return esc(tn)+(changedSet[tn]?'<span class="hp-dot">●</span>':'');
+    }).join('、');
+    return '<tr><td class="hp-hold-name'+(tbd?' hp-hold-tbd':'')+'">'+label+'</td><td class="hp-hold-tools">'+cells+'</td></tr>';
+  }
+  var holdings='';
+  if(plan.mode==='team'){
+    ['A','B'].forEach(function(team){
+      var lbl=(team==='A')?(tnA||'試合組'):(tnB||'練習組');
+      var mk=handoffGroupMarker(team);
+      var persons=Object.keys(byHolder).filter(function(p){
+        return plan.markerTm[p]===undefined&&tmMap[p]===team;
+      }).sort(function(a,b){return String(a).localeCompare(String(b),'ja');});
+      holdings+='<div class="hp-hold-grphd hp-hold-grphd-'+team.toLowerCase()+'">'+esc(lbl)+'</div>';
+      holdings+='<table class="hp-hold-table"><tbody>';
+      persons.forEach(function(p){holdings+=holdRow(esc(p),byHolder[p]||[],false);});
+      if(byHolder[mk])holdings+=holdRow('担当未定（当日調整）',byHolder[mk],true);
+      holdings+='</tbody></table>';
+    });
+  }else{
+    holdings+='<table class="hp-hold-table"><tbody>';
+    Object.keys(byHolder).sort(function(a,b){return String(a).localeCompare(String(b),'ja');}).forEach(function(p){
+      holdings+=holdRow(esc(p),byHolder[p]||[],false);
+    });
+    holdings+='</tbody></table>';
+  }
+  var skipped=handoffSkippedToolNames();
+  var css=[
+    '*{box-sizing:border-box;}',
+    'html,body{margin:0;padding:0;font-family:Meiryo,MS PGothic,sans-serif;color:#111;}',
+    '.page{box-sizing:border-box;padding:8mm 9mm;}',
+    '.hp-title{font-size:14pt;font-weight:900;color:#4a148c;margin:0 0 1.5mm;}',
+    '.hp-sub{font-size:8.5pt;color:#455a64;margin:0 0 4mm;line-height:1.4;}',
+    '.hp-sec{font-size:10.5pt;font-weight:800;color:#311b92;margin:0 0 2mm;padding:1mm 2mm;background:#ede7f6;border-left:3mm solid #6a1b9a;}',
+    '.hp-table{width:100%;border-collapse:collapse;margin:0 0 2mm;}',
+    '.hp-table th,.hp-table td{border:1px solid #9e9e9e;padding:1.4mm 2mm;font-size:9pt;text-align:left;vertical-align:middle;}',
+    '.hp-table th{background:#4a148c;color:#fff;font-size:8.5pt;font-weight:700;}',
+    '.hp-table .hp-th-tool{width:34%;}',
+    '.hp-table .hp-th-kind{width:14%;}',
+    '.hp-td-tool{font-weight:700;}',
+    '.hp-td-kind{text-align:center;font-weight:700;font-size:8.5pt;}',
+    '.hp-row-swap td{background:#f3e5f5;}',
+    '.hp-row-pass td{background:#fff8e1;}',
+    '.hp-row-none td{background:#eceff1;}',
+    '.hp-tbd{font-size:7.5pt;color:#b26a00;}',
+    '.hp-none{color:#78909c;}',
+    '.hp-note{font-size:8pt;color:#546e7a;line-height:1.5;margin:0 0 5mm;}',
+    '.hp-hold-grphd{display:inline-block;font-size:9.5pt;font-weight:800;margin:1mm 0;padding:1mm 3mm;border-radius:2mm;}',
+    '.hp-hold-grphd-a{background:#ffebee;color:#b71c1c;}',
+    '.hp-hold-grphd-b{background:#e3f2fd;color:#0d47a1;}',
+    '.hp-hold-table{width:100%;border-collapse:collapse;margin:0 0 3mm;}',
+    '.hp-hold-table td{border:1px solid #cfd8dc;padding:1.2mm 2mm;font-size:8.5pt;vertical-align:top;}',
+    '.hp-hold-name{width:30%;font-weight:700;background:#fafafa;}',
+    '.hp-hold-tbd{color:#b26a00;}',
+    '.hp-hold-tools{line-height:1.5;}',
+    '.hp-dot{color:#e65100;font-weight:900;margin-left:0.5mm;}',
+    '.hp-foot{font-size:8pt;color:#546e7a;line-height:1.5;margin-top:2mm;}'
+  ].join('');
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<title>'+esc(teamShort+' 道具入れ替えのお願い')+'</title>'
+    +'<style>'+css+'</style></head><body>'
+    +'<div class="page">'
+    +'<div class="hp-title">【'+esc(teamShort)+'】道具入れ替えのお願い（次回活動前）</div>'
+    +'<div class="hp-sub">'+esc(subTxt)+'</div>'
+    +'<div class="hp-sec">1. 変更点（'+esc(String(report.changed))+'点）　※この受け渡しだけお願いします</div>'
+    +changesTable
+    +'<p class="hp-note">「交換①」＝同じ番号の2名が直接会って渡し合う／「渡す」＝これから欄のグループの誰かに渡ればOK（受け取る人は次回の割振りで決めます）。ここに載っていない道具は、いまお持ちのままです。</p>'
+    +'<div class="hp-sec">2. 入れ替え後の保有一覧（全道具）</div>'
+    +holdings
+    +'<p class="hp-foot">●＝今回の入れ替えで持ち主が変わった道具'
+    +(skipped.length?('　※一時除外中（次回は使用しない）：'+esc(skipped.join('、'))):'')
+    +'</p>'
+    +'</div></body></html>';
+}
+/* 変更点PDFを作成し、共有シートまたはダウンロードで渡す */
+function makeHandoffPdf(){
+  if(!handoffLastPlan||!handoffLastPlan.report||!handoffLastPlan.report.changed){
+    return Promise.reject(new Error('先に「入れ替え案を算出」を実行してください。'));
+  }
+  if(typeof TCB_generateAssignPdfBlob!=='function'){
+    return Promise.reject(new Error('PDFモジュールが読み込まれていません。ページを再読み込みしてください。'));
+  }
+  var baseName='道具入れ替えのお願い_'+localIsoDateFromDate()+'｜{{TEAM_SHORT_NAME}}';
+  var html=buildHandoffPdfDocument();
+  return TCB_generateAssignPdfBlob(html).then(function(blob){
+    return deliverAssignPdfBlob(blob,{
+      fileName:baseName+'.pdf',
+      baseName:baseName,
+      useShareFirst:assignShareFilesSupported()
+    });
+  });
+}
 /* 入れ替え内容を「いまの保有」として確定（PASTは増やさない・履歴とクラウドに記録） */
 function confirmHandoffPlan(){
   if(!handoffLastPlan||!handoffLastPlan.map){
@@ -4746,43 +4952,28 @@ function computeHandoffPlan(){
   var markerSet={};
   Object.keys(markerTm).forEach(function(mk){markerSet[mk]=1;});
   function isGroupHolder(n){return !!markerSet[n];}
-  var labelPerson=handoffPersonLabel;
-  var fullText='';
-  if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.formatFullText==='function'){
-    fullText=TCB_SWAP_LIST.formatFullText(report,{labelPerson:labelPerson,isGroupHolder:isGroupHolder});
-  }else{
-    fullText=formatCarryAdjustChangeText(report);
-  }
-  var lineText;
-  if(!report.changed){
-    lineText='【次回活動までの道具入れ替え】変更なし（すべて前回と同じ担当・'+report.kept+'点）。';
-  }else{
-    lineText=formatCarryAdjustChangeSummary(report,5).replace('【前日の道具調整】','【次回活動までの道具入れ替え】');
-    lineText+='\n\n'+CARRY_ADJUST_DETAIL_NOTE;
-  }
+  var lineText=buildHandoffLineText(report, snap);
   var html='';
   if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function'){
-    html=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:labelPerson,isGroupHolder:isGroupHolder});
+    html=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:handoffPersonLabel,isGroupHolder:isGroupHolder});
   }
-  var baseMark=snap.confirmedAt?(normFlag01(snap.handoff)?'（入れ替え確定）':'（実施確定）'):'（試行）';
-  var metaLine='基準：'+(fmtDayLabelJa(snap.date)||'前回')+baseMark+' の保有 → 次回：'+patLabel(pat,renshuSplit);
-  if(needsTeamUI())metaLine+='（'+(tnA||'A')+'／'+(tnB||'B')+'）';
   handoffLastPlan={
     baseSnap:snap,
     map:finalMap,
     mode:ctx.mode,
     allTools:allTools,
     markerTm:markerTm,
+    report:report,
+    lineText:lineText,
     changed:report.changed
   };
   return {
     report:report,
-    fullText:fullText,
     lineText:lineText,
     html:html,
     holdingsHtml:buildHandoffHoldingsHtml(finalMap, ctx, markerTm),
     canConfirm:report.changed>0,
-    meta:{line:metaLine}
+    canPdf:report.changed>0
   };
 }
 function prio(s, medianPast){
@@ -8281,6 +8472,7 @@ document.addEventListener('DOMContentLoaded',function(){
       getSkippedTools:handoffSkippedToolNames,
       compute:computeHandoffPlan,
       confirmPlan:confirmHandoffPlan,
+      makePdf:makeHandoffPdf,
       copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');}
     });
     var hoEntryInit=document.getElementById('tcb-handoff-entry');

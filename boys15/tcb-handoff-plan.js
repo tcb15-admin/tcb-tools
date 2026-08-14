@@ -5,8 +5,6 @@
   'use strict';
 
   var ctx = null;
-  var lastReport = null;
-  var lastFullText = '';
   var lastLineText = '';
 
   function esc(s) {
@@ -17,12 +15,6 @@
 
   function $(id) {
     return document.getElementById(id);
-  }
-
-  function prependMeta(body, meta) {
-    var text = String(body || '');
-    if (!text || !meta || !meta.line) return text;
-    return meta.line + '\n' + text;
   }
 
   function refreshForm() {
@@ -98,8 +90,6 @@
   }
 
   function clearResult() {
-    lastReport = null;
-    lastFullText = '';
     lastLineText = '';
     var box = $('tcb-handoff-result');
     if (box) box.innerHTML = '';
@@ -109,23 +99,19 @@
     var box = $('tcb-handoff-result');
     if (!box) return;
     if (!payload || payload.error) {
-      lastReport = null;
-      lastFullText = '';
       lastLineText = '';
       box.innerHTML = '<div class="tcb-handoff-err">' + esc((payload && payload.error) || '算出できませんでした。') + '</div>';
       return;
     }
-    lastReport = payload.report;
-    lastFullText = prependMeta(payload.fullText || '', payload.meta);
-    lastLineText = prependMeta(payload.lineText || '', payload.meta);
+    lastLineText = payload.lineText || '';
 
     var html = '<div class="tcb-handoff-oknote">最適解のみ表示しています。入れ替え不要の道具は前回の担当のままです。実際に受け渡しが決まったら「入れ替えを実施確定」で保有を記録できます。</div>';
     if (payload.html) html += payload.html;
     if (payload.holdingsHtml) html += payload.holdingsHtml;
     html += '<div class="tcb-swap-list-actions">';
-    html += '<button type="button" class="tcb-swap-list-copybtn" id="btn-handoff-copy-full">入れ替え案内（全文）をコピー</button>';
-    if (payload.report && payload.report.changed) {
-      html += '<button type="button" class="tcb-swap-list-copybtn tcb-swap-list-copybtn-sec" id="btn-handoff-copy-line">LINE用の要点をコピー</button>';
+    html += '<button type="button" class="tcb-swap-list-copybtn" id="btn-handoff-copy-line">LINE本文をコピー</button>';
+    if (payload.canPdf) {
+      html += '<button type="button" class="tcb-swap-list-copybtn tcb-swap-list-copybtn-sec" id="btn-handoff-pdf">変更点PDFを作成</button>';
     }
     html += '</div>';
     if (payload.canConfirm) {
@@ -136,22 +122,35 @@
     }
     if (lastLineText) {
       html += '<div class="tcb-swap-list-line-wrap">';
-      html += '<div class="tcb-swap-list-line-hd">LINE本文に使える文面</div>';
+      html += '<div class="tcb-swap-list-line-hd">LINE本文（このままコピーされます）</div>';
       html += '<pre class="tcb-swap-list-line-pre" id="tcb-handoff-line-pre">' + esc(lastLineText) + '</pre>';
       html += '</div>';
     }
     box.innerHTML = html;
 
-    var fullBtn = $('btn-handoff-copy-full');
-    if (fullBtn) {
-      fullBtn.addEventListener('click', function () {
-        if (ctx.copyText) ctx.copyText(lastFullText, '入れ替え案内をコピーしました');
-      });
-    }
     var lineBtn = $('btn-handoff-copy-line');
     if (lineBtn) {
       lineBtn.addEventListener('click', function () {
-        if (ctx.copyText) ctx.copyText(lastLineText, 'LINE用の要点をコピーしました');
+        if (ctx.copyText) ctx.copyText(lastLineText, 'LINE本文をコピーしました');
+      });
+    }
+    var pdfBtn = $('btn-handoff-pdf');
+    if (pdfBtn) {
+      pdfBtn.addEventListener('click', function () {
+        if (!ctx.makePdf) return;
+        var orig = pdfBtn.textContent;
+        pdfBtn.disabled = true;
+        pdfBtn.textContent = 'PDF作成中…';
+        ctx.makePdf().then(function () {
+          pdfBtn.disabled = false;
+          pdfBtn.textContent = orig;
+        }).catch(function (err) {
+          pdfBtn.disabled = false;
+          pdfBtn.textContent = orig;
+          /* 共有シートのキャンセルはエラー扱いにしない */
+          if (err && err.name === 'AbortError') return;
+          alert((err && err.message) || 'PDFの作成に失敗しました。');
+        });
       });
     }
     var confirmBtn = $('btn-handoff-confirm');
