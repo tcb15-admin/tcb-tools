@@ -149,6 +149,10 @@
           pdfBtn.textContent = orig;
           /* 共有シートのキャンセルはエラー扱いにしない */
           if (err && err.name === 'AbortError') return;
+          if (err && err.name === 'NotAllowedError') {
+            alert('準備ができました。もう一度「変更点PDFを作成」を押すと共有シートが開きます。');
+            return;
+          }
           alert((err && err.message) || 'PDFの作成に失敗しました。');
         });
       });

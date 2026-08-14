@@ -112,18 +112,28 @@
     return 'desktop-copy';
   }
 
-  /** デスクトップでは PDF を Web Share の files に載せない */
+  /** デスクトップでは PDF を「本文と同時の」Web Share に載せない
+   *（ファイル単体の共有シートは可。呼び出し側が canShareFiles() で判定） */
   function shouldAvoidPdfFileWebShare() {
     return lineShareStrategy() === 'desktop-copy';
   }
 
+  /** デスクトップでもファイル単体の共有シートが使えるか（Mac版LINE等が共有先に出る） */
+  function desktopCanSharePdf() {
+    return isDesktop() && canShareFiles();
+  }
+
   function sharePrimaryLabel() {
-    return lineShareStrategy() === 'desktop-copy' ? '本文をコピー' : 'LINEへ展開';
+    if (lineShareStrategy() !== 'desktop-copy') return 'LINEへ展開';
+    return desktopCanSharePdf() ? 'LINEへ展開' : '本文をコピー';
   }
 
   function pdfOptionLabel() {
     var s = lineShareStrategy();
     if (s === 'desktop-copy') {
+      if (desktopCanSharePdf()) {
+        return 'PDF（共有シートでLINEを選ぶと直接渡せます。本文は貼り付け）';
+      }
       if (isMacDesktop()) {
         return 'PDF（この端末にダウンロード。Mac版LINEへは自動添付されないため、必要なら手動添付）';
       }
@@ -141,6 +151,9 @@
   function sharePanelHint() {
     var s = lineShareStrategy();
     if (s === 'desktop-copy') {
+      if (desktopCanSharePdf()) {
+        return '本文をコピーし、PDFは共有シートで渡します。共有シートでLINEを選んでPDFを送り、本文はトークに貼り付けてください（シートにLINEが出ない場合はダウンロードされます）。';
+      }
       if (isMacDesktop()) {
         return 'MacではブラウザからLINEへ直接送れません。「本文をコピー」でメッセージだけをコピーします（PDFのローカルパスは貼り付けません）。PDFが必要なときはダウンロードしてLINEに手動添付してください。';
       }

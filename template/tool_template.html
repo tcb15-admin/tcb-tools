@@ -4820,7 +4820,9 @@ function buildHandoffPdfDocument(){
     +'</p>'
     +'</div></body></html>';
 }
-/* 変更点PDFを作成し、共有シートまたはダウンロードで渡す */
+/* 変更点PDF：同じ内容なら作り直さない（共有シートの再操作時に即開けるように） */
+var _handoffPdfBlobCache={html:'',blob:null};
+/* 変更点PDFを作成し、共有シート（LINE等を選択）またはダウンロードで渡す */
 function makeHandoffPdf(){
   if(!handoffLastPlan||!handoffLastPlan.report||!handoffLastPlan.report.changed){
     return Promise.reject(new Error('先に「入れ替え案を算出」を実行してください。'));
@@ -4829,19 +4831,29 @@ function makeHandoffPdf(){
     return Promise.reject(new Error('PDFモジュールが読み込まれていません。ページを再読み込みしてください。'));
   }
   var baseName='道具入れ替えのお願い_'+localIsoDateFromDate()+'｜{{TEAM_SHORT_NAME}}';
-  /* デスクトップ（Mac/Windows）は共有シートを使わずダウンロード保存（LINEへは手動添付） */
-  var avoidShare=!!(window.TCB_Device&&typeof TCB_Device.shouldAvoidPdfFileWebShare==='function'&&TCB_Device.shouldAvoidPdfFileWebShare());
   var html=buildHandoffPdfDocument();
-  return TCB_generateAssignPdfBlob(html).then(function(blob){
-    return deliverAssignPdfBlob(blob,{
-      fileName:baseName+'.pdf',
-      baseName:baseName,
-      useShareFirst:!avoidShare&&assignShareFilesSupported()
-    });
-  }).then(function(){
-    if(avoidShare){
+  function download(blob){
+    return deliverAssignPdfBlob(blob,{fileName:baseName+'.pdf',baseName:baseName,useShareFirst:false}).then(function(){
       tcbToast('PDFをダウンロードしました（ブラウザのダウンロード先／通常は「ダウンロード」フォルダ）。LINEへは手動で添付してください。','info');
+    });
+  }
+  var gen=(_handoffPdfBlobCache.html===html&&_handoffPdfBlobCache.blob)
+    ?Promise.resolve(_handoffPdfBlobCache.blob)
+    :TCB_generateAssignPdfBlob(html).then(function(b){
+      _handoffPdfBlobCache.html=html;
+      _handoffPdfBlobCache.blob=b;
+      return b;
+    });
+  return gen.then(function(blob){
+    if(assignShareFilesSupported()){
+      return deliverAssignPdfBlob(blob,{fileName:baseName+'.pdf',baseName:baseName,useShareFirst:true})
+        .catch(function(err){
+          /* キャンセル・再操作要求は呼び出し側で案内。それ以外はダウンロードに切り替え */
+          if(err&&(err.name==='AbortError'||err.name==='NotAllowedError'))throw err;
+          return download(blob);
+        });
     }
+    return download(blob);
   });
 }
 /* 入れ替え内容を「いまの保有」として確定（PASTは増やさない・履歴とクラウドに記録） */
@@ -6893,8 +6905,9 @@ function deliverLineShareBundle(opts){
     });
   }
 
-  /* ---- Mac / Windows / Linux：PDF付き Web Share はローカルパスが本文に
-         混ざることがあるため使わない。本文コピー + PDFダウンロード ---- */
+  /* ---- Mac / Windows / Linux：本文はコピー。PDFは「ファイル単体」で共有シートへ
+         （本文+ファイルの同時共有はローカルパスが本文に混ざることがあるため使わない）。
+         共有シート非対応ならダウンロードにフォールバック ---- */
   if(shouldAvoidPdfFileWebShare()){
     var deskChain=Promise.resolve();
     if(lineOn&&msg){
@@ -6902,16 +6915,35 @@ function deliverLineShareBundle(opts){
     }
     if(pdfOn&&blob){
       deskChain=deskChain.then(function(){
-        return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false});
+        if(assignShareFilesSupported()){
+          return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:true})
+            .then(function(){return 'shared';})
+            .catch(function(err){
+              /* キャンセル・再操作要求は上位で案内。それ以外はダウンロードに切り替え */
+              if(err&&(err.name==='AbortError'||err.name==='NotAllowedError'))throw err;
+              return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false})
+                .then(function(){return 'downloaded';});
+            });
+        }
+        return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false})
+          .then(function(){return 'downloaded';});
       });
     }else if(pdfOn&&!blob&&!lineOn){
       return Promise.reject(new Error('empty pdf'));
     }
-    return deskChain.then(function(){
-      if(lineOn&&msg&&pdfOn&&blob)setSharePanelStatus(shareLinePasteHint({pdfSaved:true}));
-      else if(lineOn&&msg&&pdfOn&&!blob)setSharePanelStatus('本文をコピーしました（PDFの生成に失敗したため本文のみ）。');
-      else if(lineOn&&msg)setSharePanelStatus(shareLinePasteHint());
-      else if(pdfOn&&blob)setSharePanelStatus('PDFをダウンロードしました。');
+    return deskChain.then(function(pdfOutcome){
+      if(pdfOn&&blob&&pdfOutcome==='shared'){
+        setSharePanelStatus(lineOn&&msg
+          ?'本文をコピーしました。共有シートでLINEを選んでPDFを送り、本文はトークに貼り付けてください。'
+          :'共有シートでLINEを選ぶとPDFを送れます。');
+      }else if(pdfOn&&blob&&pdfOutcome==='downloaded'){
+        if(lineOn&&msg)setSharePanelStatus(shareLinePasteHint({pdfSaved:true}));
+        else setSharePanelStatus('PDFをダウンロードしました。');
+      }else if(lineOn&&msg&&pdfOn&&!blob){
+        setSharePanelStatus('本文をコピーしました（PDFの生成に失敗したため本文のみ）。');
+      }else if(lineOn&&msg){
+        setSharePanelStatus(shareLinePasteHint());
+      }
     });
   }
 
