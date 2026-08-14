@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-today-card.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-today-card.css?v=1.19.1">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1118,10 +1118,10 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-login.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.19.0">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.19.0">
+<link rel="stylesheet" href="tcb-shell.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-login.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.19.1">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.19.1">
 </head>
 <body>
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1635,9 +1635,9 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.19.0"></script>
-<script src="tcb-swap-list.js?v=1.19.0"></script>
-<script src="tcb-team-rules.js?v=1.19.0"></script>
+<script src="tcb-device.js?v=1.19.1"></script>
+<script src="tcb-swap-list.js?v=1.19.1"></script>
+<script src="tcb-team-rules.js?v=1.19.1"></script>
 <script>
 
 
@@ -1759,6 +1759,8 @@ var WA=1,WB=1,WC=6;
 /* PAST は道具ごとの lscore（負荷pt）を加算。表示は ÷PAST_DISPLAY_UNIT で「回相当」 */
 var PAST_DISPLAY_UNIT=15;
 var pat='kata', absS={}, ochS={}, skipS={}, tmMap={}, R=null;
+/* デフォルト一時除外をユーザーが解除した道具（再適用しない） */
+var skipDefaultOptOut={};
 /* 前回 map を基準に差分だけ再割当（STEP1前回／STEP3元に再編集で開始） */
 var seedFromPrev=false, seedBaseSnap=null;
 /* 持ち帰り調整：当番引き継ぎ・欠席復帰優先（再編集開始時に有効） */
@@ -2939,6 +2941,8 @@ function restoreExclusionStateFromSnap(snap){
   absS=clonePlainObj(s.absS||{});
   ochS=clonePlainObj(s.ochS||{});
   skipS=clonePlainObj(s.skipS||{});
+  skipDefaultOptOut={};
+  syncSkipDefaultOptOutFromSkipS();
   tmMap={};
   MB.forEach(function(m){
     if(memberMasterExcluded(m))return;
@@ -4835,8 +4839,8 @@ function updDesc(){
       el.textContent=la+'（A）／'+lb+'（B）。道具のグループ分けは割振りルール（半々・試合組／練習組など）に従います。';
     }else{
       var msgs={
-        'kata':   la+'→片方チェックの道具 / '+lb+'→残りの道具',
-        'ryoho':  la+'→Aグループ道具 / '+lb+'→Bグループ道具',
+        'kata':   '道具のグループ分けは割振りルールに従います（試合組／練習組・半々など）',
+        'ryoho':  '道具のグループ分けは割振りルールに従います（半々・1点ずつ・前回保有側の維持など）',
         'renshu': (pat==='renshu'&&isGroupHoldEnabled())
           ?'グループ保有が有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
           :'全道具を全メンバーで分担'
@@ -5046,6 +5050,26 @@ function buildAGrid(){
   });
   scheduleStep2GridFit();
 }
+function isDefaultTemporarySkipTool(name){
+  return /^ストレッチポール/.test(String(name||''));
+}
+/* ストレッチポール等：デフォルトで一時除外。ユーザーが外した道具は skipDefaultOptOut で再適用しない */
+function applyDefaultTemporarySkips(){
+  (TL||[]).forEach(function(t){
+    if(!t||!t.name)return;
+    if(!isDefaultTemporarySkipTool(t.name))return;
+    if(skipDefaultOptOut[t.name])return;
+    skipS[t.name]=1;
+  });
+}
+function syncSkipDefaultOptOutFromSkipS(){
+  (TL||[]).forEach(function(t){
+    if(!t||!t.name)return;
+    if(!isDefaultTemporarySkipTool(t.name))return;
+    if(skipS[t.name])delete skipDefaultOptOut[t.name];
+    else skipDefaultOptOut[t.name]=1;
+  });
+}
 function updateSkipToolsFoldUI(){
   var n=Object.keys(skipS).length;
   var st=document.getElementById('skip-tools-state');
@@ -5057,6 +5081,7 @@ function updateSkipToolsFoldUI(){
   if(dt&&n&&!dt.open)dt.open=true;
 }
 function buildSkipGrid(){
+  applyDefaultTemporarySkips();
   updateSkipToolsFoldUI();
   var g=document.getElementById('skipgrid'); if(!g)return; g.innerHTML='';
   TL.forEach(function(t){
@@ -5069,7 +5094,13 @@ function buildSkipGrid(){
     }
     (function(tt,cc){
       cc.addEventListener('click',function(){
-        if(skipS[tt.name])delete skipS[tt.name]; else skipS[tt.name]=1;
+        if(skipS[tt.name]){
+          delete skipS[tt.name];
+          if(isDefaultTemporarySkipTool(tt.name))skipDefaultOptOut[tt.name]=1;
+        }else{
+          skipS[tt.name]=1;
+          delete skipDefaultOptOut[tt.name];
+        }
         buildSkipGrid();
       });
     })(t,c);
@@ -7366,7 +7397,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.19.0';
+  if(vEl)vEl.textContent='v1.19.1';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7790,6 +7821,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
   /* STEP1初期表示 */
   setPat('kata');
+  applyDefaultTemporarySkips();
 
   /* パスワード表示切替（ログイン画面）は tcb-login.js（data-tcb-pw-eye） */
   /* パスワード表示切替（マスタ変更欄） */
@@ -7869,18 +7901,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.19.0"></script>
-<script src="html2canvas.min.js?v=1.19.0"></script>
-<script src="html2pdf.min.js?v=1.19.0"></script>
-<script src="tcb-print-pdf.js?v=1.19.0"></script>
-<script src="tcb-feedback.js?v=1.19.0"></script>
-<script src="tcb-sync-api.js?v=1.19.0"></script>
-<script src="tcb-swap-mgr.js?v=1.19.0"></script>
-<script src="tcb-push-mgr.js?v=1.19.0"></script>
-<script src="tcb-login.js?v=1.19.0"></script>
-<script src="tcb-pwa-install.js?v=1.19.0"></script>
-<script src="tcb-group-hold.js?v=1.19.0"></script>
-<script src="tcb-presummary.js?v=1.19.0"></script>
-<script src="tcb-today-card.js?v=1.19.0"></script>
+<script src="jspdf.umd.min.js?v=1.19.1"></script>
+<script src="html2canvas.min.js?v=1.19.1"></script>
+<script src="html2pdf.min.js?v=1.19.1"></script>
+<script src="tcb-print-pdf.js?v=1.19.1"></script>
+<script src="tcb-feedback.js?v=1.19.1"></script>
+<script src="tcb-sync-api.js?v=1.19.1"></script>
+<script src="tcb-swap-mgr.js?v=1.19.1"></script>
+<script src="tcb-push-mgr.js?v=1.19.1"></script>
+<script src="tcb-login.js?v=1.19.1"></script>
+<script src="tcb-pwa-install.js?v=1.19.1"></script>
+<script src="tcb-group-hold.js?v=1.19.1"></script>
+<script src="tcb-presummary.js?v=1.19.1"></script>
+<script src="tcb-today-card.js?v=1.19.1"></script>
 </body>
 </html>

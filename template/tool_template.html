@@ -1855,6 +1855,8 @@ var WA=1,WB=1,WC=6;
 /* PAST は道具ごとの lscore（負荷pt）を加算。表示は ÷PAST_DISPLAY_UNIT で「回相当」 */
 var PAST_DISPLAY_UNIT=15;
 var pat='kata', absS={}, ochS={}, skipS={}, tmMap={}, R=null;
+/* デフォルト一時除外をユーザーが解除した道具（再適用しない） */
+var skipDefaultOptOut={};
 /* 前回 map を基準に差分だけ再割当（STEP1前回／STEP3元に再編集で開始） */
 var seedFromPrev=false, seedBaseSnap=null;
 /* 持ち帰り調整：当番引き継ぎ・欠席復帰優先（再編集開始時に有効） */
@@ -3035,6 +3037,8 @@ function restoreExclusionStateFromSnap(snap){
   absS=clonePlainObj(s.absS||{});
   ochS=clonePlainObj(s.ochS||{});
   skipS=clonePlainObj(s.skipS||{});
+  skipDefaultOptOut={};
+  syncSkipDefaultOptOutFromSkipS();
   tmMap={};
   MB.forEach(function(m){
     if(memberMasterExcluded(m))return;
@@ -4931,8 +4935,8 @@ function updDesc(){
       el.textContent=la+'（A）／'+lb+'（B）。道具のグループ分けは割振りルール（半々・試合組／練習組など）に従います。';
     }else{
       var msgs={
-        'kata':   la+'→片方チェックの道具 / '+lb+'→残りの道具',
-        'ryoho':  la+'→Aグループ道具 / '+lb+'→Bグループ道具',
+        'kata':   '道具のグループ分けは割振りルールに従います（試合組／練習組・半々など）',
+        'ryoho':  '道具のグループ分けは割振りルールに従います（半々・1点ずつ・前回保有側の維持など）',
         'renshu': (pat==='renshu'&&isGroupHoldEnabled())
           ?'グループ保有が有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
           :'全道具を全メンバーで分担'
@@ -5142,6 +5146,26 @@ function buildAGrid(){
   });
   scheduleStep2GridFit();
 }
+function isDefaultTemporarySkipTool(name){
+  return /^ストレッチポール/.test(String(name||''));
+}
+/* ストレッチポール等：デフォルトで一時除外。ユーザーが外した道具は skipDefaultOptOut で再適用しない */
+function applyDefaultTemporarySkips(){
+  (TL||[]).forEach(function(t){
+    if(!t||!t.name)return;
+    if(!isDefaultTemporarySkipTool(t.name))return;
+    if(skipDefaultOptOut[t.name])return;
+    skipS[t.name]=1;
+  });
+}
+function syncSkipDefaultOptOutFromSkipS(){
+  (TL||[]).forEach(function(t){
+    if(!t||!t.name)return;
+    if(!isDefaultTemporarySkipTool(t.name))return;
+    if(skipS[t.name])delete skipDefaultOptOut[t.name];
+    else skipDefaultOptOut[t.name]=1;
+  });
+}
 function updateSkipToolsFoldUI(){
   var n=Object.keys(skipS).length;
   var st=document.getElementById('skip-tools-state');
@@ -5153,6 +5177,7 @@ function updateSkipToolsFoldUI(){
   if(dt&&n&&!dt.open)dt.open=true;
 }
 function buildSkipGrid(){
+  applyDefaultTemporarySkips();
   updateSkipToolsFoldUI();
   var g=document.getElementById('skipgrid'); if(!g)return; g.innerHTML='';
   TL.forEach(function(t){
@@ -5165,7 +5190,13 @@ function buildSkipGrid(){
     }
     (function(tt,cc){
       cc.addEventListener('click',function(){
-        if(skipS[tt.name])delete skipS[tt.name]; else skipS[tt.name]=1;
+        if(skipS[tt.name]){
+          delete skipS[tt.name];
+          if(isDefaultTemporarySkipTool(tt.name))skipDefaultOptOut[tt.name]=1;
+        }else{
+          skipS[tt.name]=1;
+          delete skipDefaultOptOut[tt.name];
+        }
         buildSkipGrid();
       });
     })(t,c);
@@ -7886,6 +7917,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
   /* STEP1初期表示 */
   setPat('kata');
+  applyDefaultTemporarySkips();
 
   /* パスワード表示切替（ログイン画面）は tcb-login.js（data-tcb-pw-eye） */
   /* パスワード表示切替（マスタ変更欄） */

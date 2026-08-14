@@ -39,7 +39,62 @@
     if (n === '長尺＆短尺バット' || n === '長尺バット' || n === '短尺バット') return 'longShortBat';
     if (/^トレーニング道具/.test(n)) return 'training';
     if (/^縄跳び/.test(n)) return 'jumpRope';
+    if (/^キャッチャー道具/.test(n)) return 'catcher';
+    if (/^ストレッチポール/.test(n)) return 'stretchPole';
     return 'other';
+  }
+
+  function resolveMemberTeam(person, opts) {
+    if (!person) return null;
+    var cur = opts.memberTeam;
+    var g = typeof cur === 'function' ? cur(person) : (cur && cur[person]);
+    return g === 'A' || g === 'B' ? g : null;
+  }
+
+  function isFixedTool(t) {
+    return !!(t && (t.fixed == 1 || t.fixed === '1' || t.fixed === true) && t.note);
+  }
+
+  /**
+   * キャッチャー道具：固定担当の所属グループへ。
+   * 固定メンバーがすべて同グループなら、非固定（もう一つ等）は反対グループへ振り、偏りを防ぐ。
+   */
+  function assignCatcher(tools, out, opts) {
+    var list = tools.slice().sort(sortByCircled);
+    var fixedTools = [];
+    var freeTools = [];
+    list.forEach(function (t) {
+      if (isFixedTool(t)) fixedTools.push(t);
+      else freeTools.push(t);
+    });
+    var sides = { A: 0, B: 0 };
+    fixedTools.forEach(function (t) {
+      var g = resolveMemberTeam(t.note, opts) || prevTeamOf(t.name, opts) || 'A';
+      out[t.name] = g;
+      sides[g]++;
+    });
+    var allFixedSame = null;
+    if (fixedTools.length && sides.A > 0 && sides.B === 0) allFixedSame = 'A';
+    else if (fixedTools.length && sides.B > 0 && sides.A === 0) allFixedSame = 'B';
+
+    freeTools.forEach(function (t, idx) {
+      if (allFixedSame) {
+        out[t.name] = allFixedSame === 'A' ? 'B' : 'A';
+        return;
+      }
+      if (!fixedTools.length) {
+        out[t.name] = prevTeamOf(t.name, opts) || (idx % 2 === 0 ? 'A' : 'B');
+        return;
+      }
+      /* 固定が両グループにいる： sticky → 少ない側 */
+      var pt = prevTeamOf(t.name, opts);
+      if (pt) {
+        out[t.name] = pt;
+      } else {
+        out[t.name] = sides.A <= sides.B ? 'A' : 'B';
+      }
+      sides[out[t.name]]++;
+    });
   }
 
   function prevTeamOf(toolName, opts) {
@@ -253,6 +308,12 @@
     if (by.practiceBall) {
       if (kata) assignFixedSide(by.practiceBall, out, pracT);
       else assignHalfSplit(by.practiceBall, out, opts);
+    }
+    if (by.catcher) assignCatcher(by.catcher, out, opts);
+    if (by.stretchPole) {
+      /* 一時除外解除後：試合組（片方試合）。両方試合等は sticky → A */
+      if (kata) assignFixedSide(by.stretchPole, out, matchT);
+      else assignStickyOr(by.stretchPole, out, opts, matchT);
     }
     if (by.other) {
       /* ルール未定義：前回保有グループ優先、なければ A */
