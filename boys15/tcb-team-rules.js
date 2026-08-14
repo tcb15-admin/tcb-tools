@@ -101,9 +101,12 @@
     var map = opts.prevMap || {};
     var person = map[toolName];
     if (!person) return null;
+    /* 前回所持者がいま属する班を優先（人が班移動しても同じ道具を持ち続けられる） */
+    var cur = opts.memberTeam;
+    var curG = typeof cur === 'function' ? cur(person) : (cur && cur[person]);
+    if (curG === 'A' || curG === 'B') return curG;
     var ptm = opts.prevTmMap || {};
-    var cur = opts.memberTeam || {};
-    var g = ptm[person] || (typeof cur === 'function' ? cur(person) : cur[person]) || null;
+    var g = ptm[person] || null;
     return g === 'A' || g === 'B' ? g : null;
   }
 
@@ -154,14 +157,19 @@
         out[t.name] = 'A';
       }
     });
-    /*  sticky 過多で目標超過した場合は強制移動（ルール優先） */
+    /* sticky 過多で目標超過時は、sticky が弱い／反対側の道具から移す */
     function moveOne(fromArr, toArr, toTeam) {
-      for (var i = fromArr.length - 1; i >= 0; i--) {
-        var t = fromArr[i];
-        fromArr.splice(i, 1);
-        toArr.push(t);
-        out[t.name] = toTeam;
-        return true;
+      var pass, i, t, pt;
+      for (pass = 0; pass < 2; pass++) {
+        for (i = fromArr.length - 1; i >= 0; i--) {
+          t = fromArr[i];
+          pt = prevTeamOf(t.name, opts);
+          if (pass === 0 && pt && pt !== toTeam) continue;
+          fromArr.splice(i, 1);
+          toArr.push(t);
+          out[t.name] = toTeam;
+          return true;
+        }
       }
       return false;
     }
@@ -169,7 +177,7 @@
     while (b.length > targetB && a.length < targetA) moveOne(b, a, 'A');
   }
 
-  /** グループごとに1点。①→A寄り・②→B寄り、衝突時は sticky を崩して分散 */
+  /** グループごとに1点。前回所持者のいまの班を優先し、両方同じ班なら片方だけ反対へ */
   function assignOneEach(tools, out, opts) {
     var list = tools.slice().sort(sortByCircled);
     if (!list.length) return;
@@ -177,29 +185,33 @@
       out[list[0].name] = prevTeamOf(list[0].name, opts) || 'A';
       return;
     }
-    /* 先頭2点を A/B に振る（3点以上は余りを sticky→交互） */
     var used = { A: 0, B: 0 };
-    list.forEach(function (t, idx) {
-      var prefer = idx === 0 ? 'A' : idx === 1 ? 'B' : null;
+    var deferred = [];
+    list.forEach(function (t) {
       var pt = prevTeamOf(t.name, opts);
-      var pick = null;
-      if (prefer && used[prefer] === 0) {
-        /* もう一方が sticky で同じ側を欲しがる場合でも、先頭2は prefer を優先 */
-        pick = prefer;
-      } else if (pt && used[pt] === 0 && idx >= 2) {
-        pick = pt;
-      } else if (pt && used[pt] === 0 && prefer === pt) {
-        pick = pt;
-      } else if (used.A === 0) pick = 'A';
+      if (pt && used[pt] === 0) {
+        out[t.name] = pt;
+        used[pt]++;
+      } else {
+        deferred.push(t);
+      }
+    });
+    deferred.forEach(function (t) {
+      var pick;
+      if (used.A === 0) pick = 'A';
       else if (used.B === 0) pick = 'B';
       else pick = used.A <= used.B ? 'A' : 'B';
       out[t.name] = pick;
       used[pick]++;
     });
-    /* 先頭2が同じ側に寄った場合の補正 */
     if (list.length >= 2 && out[list[0].name] === out[list[1].name]) {
-      out[list[0].name] = 'A';
-      out[list[1].name] = 'B';
+      var keep = out[list[0].name];
+      var other = keep === 'A' ? 'B' : 'A';
+      var s0 = prevTeamOf(list[0].name, opts);
+      var s1 = prevTeamOf(list[1].name, opts);
+      if (s0 === keep && s1 !== keep) out[list[1].name] = other;
+      else if (s1 === keep && s0 !== keep) out[list[0].name] = other;
+      else out[list[1].name] = other;
     }
   }
 
@@ -216,6 +228,18 @@
   }
 
   /**
+   * 片方試合でも、左グループ名が「試合組」系でないときは試合組固定ルールを使わない。
+   * 例: 練習試合組／練習組 → 両グループ sticky・半々（不要な班またぎ入れ替えを防ぐ）
+   */
+  function useKataMatchPracticeSides(opts) {
+    if ((opts.pat || 'kata') !== 'kata') return false;
+    var la = String(opts.labelA || '').trim();
+    if (!la || la === '試合組') return true;
+    if (/試合/.test(la) && !/練習/.test(la)) return true;
+    return false;
+  }
+
+  /**
    * @param {Array<{name:string}>} tools
    * @param {{
    *   pat: string,
@@ -224,7 +248,9 @@
    *   prevTmMap?: object,
    *   memberTeam?: function(string):string|null|object,
    *   matchTeam?: 'A'|'B',
-   *   practiceTeam?: 'A'|'B'
+   *   practiceTeam?: 'A'|'B',
+   *   labelA?: string,
+   *   labelB?: string
    * }} opts
    * @returns {Object<string,'A'|'B'>}
    */
@@ -245,8 +271,8 @@
       by[f].push(t);
     });
 
-    var twoGroupSame = pat === 'ryoho' || (pat === 'renshu' && split);
-    var kata = pat === 'kata';
+    /* 片方試合＋試合組ラベルのときだけ試合／練習の固定寄せ。それ以外の2班は sticky・半々 */
+    var kata = useKataMatchPracticeSides(opts);
 
     if (by.tarp) assignHalfSplit(by.tarp, out, opts);
     if (by.zatsukago) assignOneEach(by.zatsukago, out, opts);
@@ -311,16 +337,13 @@
     }
     if (by.catcher) assignCatcher(by.catcher, out, opts);
     if (by.stretchPole) {
-      /* 一時除外解除後：試合組（片方試合）。両方試合等は sticky → A */
       if (kata) assignFixedSide(by.stretchPole, out, matchT);
       else assignStickyOr(by.stretchPole, out, opts, matchT);
     }
     if (by.other) {
-      /* ルール未定義：前回保有グループ優先、なければ A */
       assignStickyOr(by.other, out, opts, 'A');
     }
 
-    /* 保険：未割当があれば A */
     (tools || []).forEach(function (t) {
       if (t && t.name && (out[t.name] !== 'A' && out[t.name] !== 'B')) out[t.name] = 'A';
     });

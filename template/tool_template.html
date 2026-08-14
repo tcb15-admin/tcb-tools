@@ -3614,7 +3614,9 @@ function computeRuleTeamMap(activeTools){
     prevTmMap:prevTm,
     memberTeam:function(n){return (tmMap&&tmMap[n])||null;},
     matchTeam:'A',
-    practiceTeam:'B'
+    practiceTeam:'B',
+    labelA:tnA||'',
+    labelB:tnB||''
   });
 }
 function buildTeamToolListsByRules(){
