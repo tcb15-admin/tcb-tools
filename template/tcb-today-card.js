@@ -90,6 +90,8 @@
       + '<button type="button" class="rbtn tcb-today-start" id="btn-tcb-today-start">&#9654; きょうの割振りを始める</button>'
       + '<p class="tcb-today-sub">'
       + '<button type="button" class="tcb-today-link" id="btn-tcb-today-hist">別の日の結果を基準にする</button>'
+      + '<span class="tcb-today-or">／ </span>'
+      + '<button type="button" class="tcb-today-link" id="btn-tcb-today-handoff">次回活動の入れ替え案</button>'
       + '<span class="tcb-today-or">／ 新規に割振る場合は、下の設定のまま「次へ」。活動パターンが前回と違う日は、開始後に「&#9664; 戻る」で変更できます。</span>'
       + '</p>'
       + '</div>';
@@ -103,6 +105,10 @@
     var btnHist = document.getElementById('btn-tcb-today-hist');
     if (btnHist) btnHist.addEventListener('click', function () {
       if (ctx.onPickOther) ctx.onPickOther();
+    });
+    var btnHandoff = document.getElementById('btn-tcb-today-handoff');
+    if (btnHandoff) btnHandoff.addEventListener('click', function () {
+      if (ctx.onHandoff) ctx.onHandoff();
     });
   }
 

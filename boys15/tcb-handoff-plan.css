@@ -1,0 +1,107 @@
+/* 次回活動の入れ替え案（STEP1専用・全体割振りはしない）
+ * セレクタは既存と重複しない tcb-handoff- プレフィックス
+ */
+
+#tcb-handoff-overlay{z-index:530;}
+
+.tcb-handoff-entry{
+  margin-bottom:14px;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid #ce93d8;
+  background:#faf5fc;
+}
+.tcb-handoff-entry-btn{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:none;
+  background:#6a1b9a;
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap,46px);
+  font-family:inherit;
+}
+.tcb-handoff-entry-btn:active{opacity:.92;}
+.tcb-handoff-entry-desc{
+  margin:8px 0 0;
+  font-size:12px;
+  color:var(--txt2,#71717a);
+  line-height:1.55;
+}
+
+.tcb-handoff-lead{
+  margin:0 0 10px;
+  font-size:13px;
+  line-height:1.6;
+  color:var(--txt,#141416);
+}
+.tcb-handoff-prev{
+  margin:0 0 14px;
+  padding:8px 10px;
+  border-radius:8px;
+  background:var(--surface-2,#ececee);
+  font-size:12px;
+  line-height:1.55;
+  color:var(--txt2,#71717a);
+}
+.tcb-handoff-prev strong{color:var(--ink-heading,#141416);}
+.tcb-handoff-sec-hd{
+  margin:14px 0 8px;
+  font-size:13px;
+  font-weight:900;
+  color:#4a148c;
+}
+.tcb-handoff-split-lbl{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:8px 0 0;
+  font-size:13px;
+  font-weight:700;
+}
+.tcb-handoff-calc{
+  width:100%;
+  margin-top:14px;
+}
+.tcb-handoff-note{
+  margin:8px 0 0;
+  font-size:11px;
+  line-height:1.55;
+  color:var(--txt2,#71717a);
+}
+.tcb-handoff-err{
+  margin-top:12px;
+  padding:10px 12px;
+  border-radius:8px;
+  background:var(--red-l,#fdecec);
+  border:1px solid var(--red,#b91c1c);
+  color:var(--red,#b91c1c);
+  font-size:13px;
+  line-height:1.55;
+  font-weight:700;
+}
+.tcb-handoff-oknote{
+  margin:14px 0 0;
+  padding:8px 10px;
+  border-radius:8px;
+  background:#f3e5f5;
+  color:#4a148c;
+  font-size:12px;
+  line-height:1.55;
+  font-weight:700;
+}
+.tcb-handoff-team-wrap{margin-top:4px;}
+
+@media (prefers-color-scheme:dark){
+  .tcb-handoff-entry{
+    background:rgba(106,27,154,.18);
+    border-color:#7b1fa2;
+  }
+  .tcb-handoff-prev{background:var(--surface-2,#27272a);}
+  .tcb-handoff-sec-hd,
+  .tcb-handoff-oknote{color:#e1bee7;}
+  .tcb-handoff-oknote{background:rgba(106,27,154,.22);}
+}

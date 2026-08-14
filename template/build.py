@@ -473,6 +473,7 @@ def build(target):
         'tcb-login.js',
         'tcb-gear-ui.css',
         'tcb-swap-list.js', 'tcb-swap-list.css',
+        'tcb-handoff-plan.js', 'tcb-handoff-plan.css',
         'tcb-team-rules.js',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',

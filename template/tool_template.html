@@ -1122,6 +1122,7 @@ html{color-scheme:light;}
 <link rel="stylesheet" href="tcb-login.css">
 <link rel="stylesheet" href="tcb-gear-ui.css">
 <link rel="stylesheet" href="tcb-swap-list.css">
+<link rel="stylesheet" href="tcb-handoff-plan.css">
 </head>
 <body>
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1225,6 +1226,43 @@ html{color-scheme:light;}
     <div class="tcb-actual-hold-btns">
       <button type="button" class="rbtn" id="btn-actual-hold-save">この内容で補正する</button>
       <button type="button" class="nb nbs" id="btn-actual-hold-cancel">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 次回活動の入れ替え案（全体割振りはしない・実施確定しない） -->
+<div class="overlay" id="tcb-handoff-overlay">
+  <div class="modal tcb-scroll-modal">
+    <button class="mclose" id="tcb-handoff-close" type="button">&#10005;</button>
+    <h2>次回活動の入れ替え案</h2>
+    <div class="tcb-scroll-modal-body">
+      <p class="tcb-handoff-lead">次回の<strong>活動パターン</strong>と<strong>グループ分け</strong>だけ登録し、前回の保有から必要な交換だけ出します。同じ班の中では前回の担当のままです。全体の割り振りは行いません。</p>
+      <div class="tcb-handoff-prev" id="tcb-handoff-prev"></div>
+      <div class="tcb-handoff-sec-hd">1. 次回の活動パターン</div>
+      <div class="tgg">
+        <button type="button" class="tb2" id="btn-handoff-renshu">両方練習</button>
+        <button type="button" class="tb2" id="btn-handoff-kata">片方試合</button>
+        <button type="button" class="tb2" id="btn-handoff-ryoho">両方試合</button>
+      </div>
+      <div id="handoff-renshu-split-wrap" style="display:none;">
+        <label class="tcb-handoff-split-lbl" for="chk-handoff-renshu-split"><input type="checkbox" id="chk-handoff-renshu-split" autocomplete="off">練習場所が分かれる</label>
+      </div>
+      <div class="tcb-handoff-team-wrap" id="handoff-team-wrap" style="display:none;">
+        <div class="tcb-handoff-sec-hd">2. 次回のグループ分け</div>
+        <div class="tnrow">
+          <div class="tng"><label class="tng-dot tng-dot-a" for="handoff-tnA">&#9679;</label><input class="tninp A" id="handoff-tnA" type="text" maxlength="12" value="試合組"></div>
+          <div class="tng"><label class="tng-dot tng-dot-b" for="handoff-tnB">&#9679;</label><input class="tninp B" id="handoff-tnB" type="text" maxlength="12" value="練習組"></div>
+        </div>
+        <div class="tcrow" style="margin-top:10px;">
+          <div class="tcb A" id="handoff-cntA">-</div>
+          <div class="tcb B" id="handoff-cntB">-</div>
+        </div>
+        <div class="ct" id="handoff-tcard-hd" style="margin-top:10px;">グループ振り分け</div>
+        <div class="mgrid" id="handoff-tgrid"></div>
+      </div>
+      <button type="button" class="rbtn tcb-handoff-calc" id="btn-handoff-calc">入れ替え案を算出</button>
+      <p class="tcb-handoff-note">欠席・お茶当番は見ません。ルール上動かす必要がある道具だけ入れ替え、それ以外は前回の担当のままです。結果の確定やSTEP3への反映はしません。</p>
+      <div id="tcb-handoff-result"></div>
     </div>
   </div>
 </div>
@@ -1379,6 +1417,10 @@ html{color-scheme:light;}
       <div class="p1-from-prev-block" id="p1-from-prev-block">
         <button type="button" class="p1-from-prev-btn" id="btn-p1-from-prev">&#128336; 前回の結果を元に割振る</button>
         <p class="p1-from-prev-desc">前回の担当を維持して調整する場合はこちら。不要なら下の設定のまま「次へ」へ進んでください。</p>
+      </div>
+      <div class="tcb-handoff-entry" id="tcb-handoff-entry">
+        <button type="button" class="tcb-handoff-entry-btn" id="btn-tcb-handoff-open">次回活動の入れ替え案</button>
+        <p class="tcb-handoff-entry-desc">急な試合決定や練習場所の分離で、次回活動前に保護者間で道具を引き継ぐとき。前回の保有から、必要な交換だけ出します（全体の割り振りはしません）。</p>
       </div>
       <div class="ct">活動パターンを選択 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="<strong>当日</strong>の活動日・班分け・マスタ設定で割り振ります。対戦の組み合わせや過去・未来の予定は<strong>自動参照しません</strong>。会場や並びが変わる日はグループを組み直してから実行してください。" aria-label="説明"></button></div>
       <div class="tgg">
@@ -1637,6 +1679,7 @@ html{color-scheme:light;}
 
 <script src="tcb-device.js"></script>
 <script src="tcb-swap-list.js"></script>
+<script src="tcb-handoff-plan.js"></script>
 <script src="tcb-team-rules.js"></script>
 <script>
 
@@ -4363,6 +4406,102 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
     :'「前回のまま維持」：前回の担当を最大限維持し、余った道具は少人数へまとめました。';
   return (ochNotes||[]).concat(swapNotes||[]).concat([methodNote]);
 }
+/* 次回活動の入れ替え案：前回保有を維持し、ルール上動かせない分だけ最小スワップ＋余剰は変更人数最小。公平分散はしない。R は触らない */
+function buildHandoffKeepMinMap(snap, ctx){
+  var prevMap=snap.map;
+  var built=buildPrevSeedBaseAndPool(snap, ctx, ctx.ex);
+  applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
+  var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
+  enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
+  var map=Object.assign({}, built.baseMap);
+  var seed=Date.now();
+  function fill(members, tools, team){
+    var poolTools=(tools||[]).filter(function(t){return built.poolSet[t.name];});
+    if(!poolTools.length||!members||!members.length)return;
+    var po={};
+    poolTools.forEach(function(t){po[t.name]=1;});
+    var st=buildStateExcludingPool(members, po, team||null, built.baseMap, tools);
+    assignPoolCarryAdjust(poolTools, st, prevMap, seed, null);
+    Object.assign(map, mkMap(st));
+  }
+  if(ctx.mode==='team'){
+    fill(ctx.mA, ctx.tA, 'A');
+    fill(ctx.mB, ctx.tB, 'B');
+  }else{
+    fill(ctx.members, ctx.tools, null);
+  }
+  return map;
+}
+function handoffPersonLabel(name){
+  if(!name)return '';
+  if(!needsTeamUI())return name;
+  var team=tmMap[name];
+  var lbl=team==='A'?(tnA||'試合組'):(team==='B'?(tnB||'練習組'):'');
+  return lbl?(name+'（'+lbl+'）'):name;
+}
+function computeHandoffPlan(){
+  var snap=loadStoredAllocationSnap();
+  if(!snap||typeof snap.map!=='object'){
+    return {error:'前回の割振り結果がありません。先に割振りを実施確定するか、履歴から基準を選んでください。'};
+  }
+  var savedAbs=absS, savedOch=ochS;
+  absS={}; ochS={};
+  var ctx=null, map=null, err=null;
+  try{
+    ctx=buildAssignmentContext({silent:true});
+    if(!ctx){
+      err=needsTeamUI()
+        ?'次回のグループ分けを登録してください（各グループ1名以上）。'
+        :'対象メンバーがいません。';
+    }else{
+      map=buildHandoffKeepMinMap(snap, ctx);
+    }
+  }finally{
+    absS=savedAbs; ochS=savedOch;
+  }
+  if(err)return {error:err};
+  var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
+  var report=buildCarryAdjustChangeReport(snap.map, map, allTools);
+  var labelPerson=handoffPersonLabel;
+  var fullText='';
+  if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.formatFullText==='function'){
+    fullText=TCB_SWAP_LIST.formatFullText(report,{labelPerson:labelPerson});
+  }else{
+    fullText=formatCarryAdjustChangeText(report);
+  }
+  var lineText;
+  if(!report.changed){
+    lineText='【次回活動までの道具入れ替え】変更なし（すべて前回と同じ担当・'+report.kept+'点）。';
+  }else{
+    lineText=formatCarryAdjustChangeSummary(report,5).replace('【前日の道具調整】','【次回活動までの道具入れ替え】');
+    lineText+='\n\n'+CARRY_ADJUST_DETAIL_NOTE;
+  }
+  var html='';
+  if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function'){
+    html=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:labelPerson});
+  }
+  var metaLine='基準：'+(fmtDayLabelJa(snap.date)||'前回')+' の保有 → 次回：'+patLabel(pat,renshuSplit);
+  if(needsTeamUI())metaLine+='（'+(tnA||'A')+'／'+(tnB||'B')+'）';
+  return {
+    report:report,
+    fullText:fullText,
+    lineText:lineText,
+    html:html,
+    meta:{line:metaLine}
+  };
+}
+function canAutoCalcHandoffPlan(){
+  var snap=loadStoredAllocationSnap();
+  if(!snap||typeof snap.map!=='object')return false;
+  if(!needsTeamUI())return true;
+  var nA=0, nB=0;
+  MB.forEach(function(m){
+    if(!m||memberMasterExcluded(m))return;
+    if(tmMap[m.name]==='A')nA++;
+    else if(tmMap[m.name]==='B')nB++;
+  });
+  return nA>0&&nB>0;
+}
 function prio(s, medianPast){
   var pastTerm=pastPenaltyTerm(s.past, medianPast||0)*WA;
   return pastTerm+s.score*WB+s.cnt*WC;
@@ -4667,15 +4806,23 @@ function ensureStateMembers(state, extraNames){
     state[nm]={v:m.v,past:Number(PAST[m.name])||0,tools:[],score:0,hv:0,sl:0,lc:0,cnt:0,exclusiveRecv:0};
   });
 }
-/* 再分配用：プール外の道具だけで state を再構築（teamFilter 'A'/'B'/null） */
-function buildStateExcludingPool(memberList, poolSet, teamFilter){
+/* 再分配用：プール外の道具だけで state を再構築（teamFilter 'A'/'B'/null）
+   mapOverride / toolsOverride があるときは R を見ない（入れ替え案の仮算出用） */
+function buildStateExcludingPool(memberList, poolSet, teamFilter, mapOverride, toolsOverride){
   var state=initSt(memberList);
-  ensureStateMembers(state, collectMapAssigneeNames(teamFilter));
-  var allT=(R.mode==='team')?R.allTools:R.tools;
+  var assignMap=mapOverride;
+  var allT=toolsOverride;
+  if(!assignMap||!allT){
+    if(!R||!R.map)return state;
+    if(!assignMap)assignMap=R.map;
+    if(!allT)allT=(R.mode==='team')?R.allTools:R.tools;
+    ensureStateMembers(state, collectMapAssigneeNames(teamFilter));
+  }
+  allT=allT||[];
   allT.forEach(function(t){
     if(poolSet[t.name])return;
     if(teamFilter!=null&&teamFilter!==''&&(t.team||'')!==teamFilter)return;
-    var assignee=R.map[t.name];
+    var assignee=assignMap[t.name];
     if(!assignee)return;
     var s=state[assignee];
     if(!s)return;
@@ -5275,12 +5422,14 @@ async function refreshTeaReflectBar(opts){
 }
 
 /* ========== グループ振り分け ========== */
-function buildTGrid(){
-  var g=document.getElementById('tgrid'); if(!g)return; g.innerHTML='';
-  var ex=exSet();
+function buildTGrid(opts){
+  opts=opts||{};
+  var g=document.getElementById(opts.gridId||'tgrid'); if(!g)return; g.innerHTML='';
+  var ignoreAbs=!!opts.ignoreAbs;
+  var ex=ignoreAbs?{}:exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
   var hint=pat==='kata'?'片方試合':(pat==='renshu'?(renshuSplit?'両方練習・場所分離':'グループ保有'):'両方試合');
-  var hd=document.getElementById('tcard-hd');
+  var hd=document.getElementById(opts.hdId||'tcard-hd');
   if(hd){
     var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>（青）と<strong>'+esc(lb)+'</strong>（赤）を切り替えます。最初は全員<strong>'+esc(lb)+'</strong>です。会場や試合の並びが変わる日は、<strong>当日の2分け</strong>に合わせて並べ替えてから進めてください。';
     hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
@@ -5306,6 +5455,11 @@ function buildTGrid(){
           cc.innerHTML=tcHtml(mm,nt,tnA||'試合組',tnB||'練習組');
           scheduleStep2GridFit();
           updTC();
+          var ov=document.getElementById('tcb-handoff-overlay');
+          if(ov&&ov.classList.contains('open')){
+            var box=document.getElementById('tcb-handoff-result');
+            if(box)box.innerHTML='';
+          }
         });
       })(m,c);
     }
@@ -5328,8 +5482,15 @@ function updTC(){
   var la=tnA||'試合組', lb=tnB||'練習組';
   var cA=act.filter(function(m){return tmMap[m.name]==='A';}).length;
   var cB=act.filter(function(m){return tmMap[m.name]==='B';}).length;
-  document.getElementById('cntA').textContent=la+'：'+cA+'名';
-  document.getElementById('cntB').textContent=lb+'：'+cB+'名';
+  var elA=document.getElementById('cntA'), elB=document.getElementById('cntB');
+  if(elA)elA.textContent=la+'：'+cA+'名';
+  if(elB)elB.textContent=lb+'：'+cB+'名';
+  var actH=MB.filter(function(m){return !memberMasterExcluded(m);});
+  var hA=actH.filter(function(m){return tmMap[m.name]==='A';}).length;
+  var hB=actH.filter(function(m){return tmMap[m.name]==='B';}).length;
+  var hoA=document.getElementById('handoff-cntA'), hoB=document.getElementById('handoff-cntB');
+  if(hoA)hoA.textContent=la+'：'+hA+'名';
+  if(hoB)hoB.textContent=lb+'：'+hB+'名';
 }
 
 /* ========== デフォルト振り分け ========== */
@@ -7769,7 +7930,63 @@ document.addEventListener('DOMContentLoaded',function(){
         return {on:true,la:(gl&&gl.la)||snap.la||'A',lb:(gl&&gl.lb)||snap.lb||'B'};
       },
       onStart:function(){beginTodayAllocation();},
-      onPickOther:function(){showHistory();}
+      onPickOther:function(){showHistory();},
+      onHandoff:function(){
+        if(window.TCB_HandoffPlan&&typeof TCB_HandoffPlan.open==='function')TCB_HandoffPlan.open();
+      }
+    });
+  }
+  if(typeof TCB_HandoffPlan!=='undefined'&&TCB_HandoffPlan&&typeof TCB_HandoffPlan.init==='function'){
+    TCB_HandoffPlan.init({
+      openModal:openModal,
+      closeModal:closeModal,
+      getPat:function(){return pat;},
+      getRenshuSplit:function(){return !!renshuSplit;},
+      needsTeamUI:needsTeamUI,
+      getTeamNames:function(){return {la:tnA||'試合組',lb:tnB||'練習組'};},
+      setPat:function(p){
+        if(p==='renshu'){
+          var chk=document.getElementById('chk-handoff-renshu-split');
+          if(!confirmPatChangeInSeedMode('renshu',!!(chk&&chk.checked)))return;
+          setPat('renshu');
+          applyRenshuSplit(!!(chk&&chk.checked));
+        }else{
+          if(!confirmPatChangeInSeedMode(p,false))return;
+          setPat(p);
+        }
+      },
+      setRenshuSplit:function(on){
+        if(!confirmPatChangeInSeedMode('renshu',!!on)){
+          var chk=document.getElementById('chk-handoff-renshu-split');
+          if(chk)chk.checked=!!renshuSplit;
+          return;
+        }
+        applyRenshuSplit(!!on);
+      },
+      setTeamName:function(side, val){
+        if(side==='A'){
+          tnA=val||'試合組';
+          var inp=document.getElementById('tnA');
+          if(inp)inp.value=tnA;
+        }else{
+          tnB=val||'練習組';
+          var inpB=document.getElementById('tnB');
+          if(inpB)inpB.value=tnB;
+        }
+        updDesc();
+        saveTeamNamesIfVenueContext();
+      },
+      buildGrid:function(){
+        buildTGrid({gridId:'handoff-tgrid',hdId:'handoff-tcard-hd',ignoreAbs:true});
+      },
+      getPrevSummary:function(){
+        var snap=loadStoredAllocationSnap();
+        if(!snap||typeof snap.map!=='object')return '';
+        return (fmtDayLabelJa(snap.date)||'前回')+'　'+patLabel(snap.pat,!!normFlag01(snap.renshuSplit));
+      },
+      compute:computeHandoffPlan,
+      canAutoCalc:canAutoCalcHandoffPlan,
+      copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');}
     });
   }
 
