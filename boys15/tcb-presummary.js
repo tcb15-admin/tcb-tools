@@ -47,11 +47,7 @@
 
     /* 割振り単位 */
     var unit;
-    if (d.ghOn) {
-      var la = d.ghLa || d.la, lb = d.ghLb || d.lb;
-      unit = '<strong>' + esc(la) + '</strong>／<strong>' + esc(lb) + '</strong> の保有グループ内のみ'
-        + '<span class="tcb-presum-pill hold">グループ間で道具は動きません</span>';
-    } else if (d.teamUI) {
+    if (d.teamUI) {
       unit = '<strong>' + esc(d.la) + '</strong>（' + d.cA + '名）／<strong>' + esc(d.lb) + '</strong>（' + d.cB + '名）の2グループ';
     } else {
       unit = '全員一括（グループ分けなし）';

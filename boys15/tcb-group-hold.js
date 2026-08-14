@@ -111,10 +111,10 @@
       if (enabled) {
         var c = countByTeam(holdMap);
         status.className = 'tcb-ghold-status tcb-ghold-on';
-        status.textContent = '使用中：いま道具を持っているグループ（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。次回の活動パターンに関係なく、そのグループ内だけで割振ります。';
+        status.textContent = '参考：いまの保有控え（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。割振りの班分けはルール優先です。入れ替えはSTEP3のリストで確認してください。';
       } else {
         status.className = 'tcb-ghold-status';
-        status.textContent = '未使用（割振りルールでグループ分け）。会場が分かれているときや、次回も保有グループのまま割振りたいときは「登録／確認」してください。';
+        status.textContent = '未使用。割振りの班分けはルール優先です。保有控えは任意の参考記録です。';
       }
     }
     if (btnClear) btnClear.style.display = enabled ? '' : 'none';
@@ -191,7 +191,7 @@
     updateStatusUI();
     notifyEnabledChange();
     if (ctx.closeModal) ctx.closeModal('tcb-ghold-modal');
-    if (global.TCB_Feedback) global.TCB_Feedback.toast('いま道具を持っているグループを登録しました。次回以降もこの端末で引き継がれます。', 'success');
+    if (global.TCB_Feedback) global.TCB_Feedback.toast('保有控えを保存しました（参考）。割振りの班分けはルール優先です。', 'success');
   }
 
   function clearHold() {

@@ -1468,7 +1468,7 @@ html{color-scheme:light;}
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
         <summary>
-          <div class="ct">いま道具を持っているグループ（任意）<button type="button" class="tcb-tip" data-tip="会場ごとに道具が分かれているとき、<strong>グループ間で道具を動かさず</strong>割振ります。<strong>未使用時は割振りルール</strong>でグループ分けします。必要なときだけ「登録／確認」してください。" aria-label="説明"></button></div>
+          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="いま誰の班が持っているかの<strong>控え</strong>です。割振りの班分けは<strong>ルール優先</strong>です。次回活動のグループが決まったら「前回の結果を元に調整」→実行し、STEP3の<strong>入れ替えリスト</strong>をLINE依頼に使ってください。" aria-label="説明"></button></div>
           <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
           <span class="tcb-fold-arrow">&#9660;</span>
         </summary>
@@ -1943,9 +1943,8 @@ function needsTeamUI(){
 function isGroupHoldEnabled(){
   return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
 }
-/* グループ保有が有効なときは、活動パターンに関係なく班分けUI・班内割振りを使う */
 function effectiveNeedsTeamUI(){
-  return needsTeamUI()||isGroupHoldEnabled();
+  return needsTeamUI();
 }
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
@@ -3608,6 +3607,13 @@ function computeRuleTeamMap(activeTools){
   var snap=prevSnapForTeamRules();
   var prevMap=(snap&&snap.map&&typeof snap.map==='object')?snap.map:{};
   var prevTm=(snap&&snap.tmMap&&typeof snap.tmMap==='object')?snap.tmMap:{};
+  var ex=exSet();
+  var cA=0, cB=0;
+  (MB||[]).forEach(function(m){
+    if(!m||!m.name||ex[m.name]||memberMasterExcluded(m))return;
+    if(tmMap[m.name]==='A')cA++;
+    else if(tmMap[m.name]==='B')cB++;
+  });
   return TCB_TEAM_RULES.assignTeams(activeTools||[],{
     pat:pat,
     renshuSplit:!!renshuSplit,
@@ -3617,7 +3623,9 @@ function computeRuleTeamMap(activeTools){
     matchTeam:'A',
     practiceTeam:'B',
     labelA:tnA||'',
-    labelB:tnB||''
+    labelB:tnB||'',
+    countA:cA,
+    countB:cB
   });
 }
 function buildTeamToolListsByRules(){
@@ -3632,37 +3640,12 @@ function buildTeamToolListsByRules(){
   });
   return {tA:tA,tB:tB};
 }
-function buildToolsListsFromGroupHold(){
-  var map=(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.getMap==='function')
-    ?TCB_GroupHold.getMap():{};
-  var active=TL.filter(function(t){return !skipS[t.name];});
-  var ruleMap=computeRuleTeamMap(active)||{};
-  var tA=[], tB=[];
-  active.forEach(function(t){
-    var g=map[t.name];
-    if(g!=='A'&&g!=='B')g=ruleMap[t.name];
-    if(g!=='A'&&g!=='B')g='A';
-    var copy=Object.assign({},t,{ls:lscore(t),team:g});
-    if(g==='A')tA.push(copy); else tB.push(copy);
-  });
-  return {tA:tA,tB:tB};
-}
 function buildAssignmentContext(opts){
   opts=opts||{};
   var silent=!!opts.silent;
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
-  /* グループ保有が有効：登録マップ優先。未登録は振分ルール */
-  if(isGroupHoldEnabled()){
-    var mAh=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
-    var mBh=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
-    if(!mAh.length){if(!silent)alert(la+'グループに1名以上タップしてください（グループ保有を使うときはメンバーの班分けが必要です）。');return null;}
-    if(!mBh.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
-    var listsH=buildToolsListsFromGroupHold();
-    var tAh=listsH.tA, tBh=listsH.tB;
-    var mgh=mergeTeamToolListsForFixed(tAh,tBh,mAh,mBh); tAh=mgh.tA; tBh=mgh.tB;
-    return {ex:ex,la:la,lb:lb,mode:'team',mA:mAh,mB:mBh,tA:tAh,tB:tBh,tools:null,members:null,allTools:tAh.concat(tBh)};
-  }
+  /* グループ保有は参考表示のみ。割振りの班分けは常にルール優先 */
   if(pat==='renshu'&&!renshuSplit){
     var members=MB.filter(function(m){return !ex[m.name];});
     if(!members.length){if(!silent)alert('対象メンバーが0名です。');return null;}

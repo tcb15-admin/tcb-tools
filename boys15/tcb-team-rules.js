@@ -215,10 +215,83 @@
     }
   }
 
+  function fallbackByHeadcount(opts) {
+    var nA = Math.max(0, parseInt(opts.countA, 10) || 0);
+    var nB = Math.max(0, parseInt(opts.countB, 10) || 0);
+    if (nB > nA) return 'B';
+    return 'A';
+  }
+
   function assignStickyOr(tools, out, opts, fallback) {
+    var fb = fallback || fallbackByHeadcount(opts);
     tools.forEach(function (t) {
-      out[t.name] = prevTeamOf(t.name, opts) || fallback;
+      out[t.name] = prevTeamOf(t.name, opts) || fb;
     });
+  }
+
+  /** ルール未定義：前回所持者のいまの班を優先し、残りはグループ人数比で偏りを抑える */
+  function assignBalancedByHeadcount(tools, out, opts) {
+    var list = tools.slice().sort(sortByCircled);
+    var n = list.length;
+    if (!n) return;
+    var nA = Math.max(0, parseInt(opts.countA, 10) || 0);
+    var nB = Math.max(0, parseInt(opts.countB, 10) || 0);
+    if (nA + nB <= 0) {
+      nA = 1;
+      nB = 1;
+    }
+    var targetA = Math.round(n * nA / (nA + nB));
+    if (nA === 0) targetA = 0;
+    else if (nB === 0) targetA = n;
+    if (n >= 2 && nA > 0 && nB > 0) {
+      if (targetA < 1) targetA = 1;
+      if (targetA > n - 1) targetA = n - 1;
+    }
+    var targetB = n - targetA;
+    var a = [];
+    var b = [];
+    var pending = [];
+    list.forEach(function (t) {
+      var pt = prevTeamOf(t.name, opts);
+      if (pt === 'A' && a.length < targetA) {
+        a.push(t);
+        out[t.name] = 'A';
+      } else if (pt === 'B' && b.length < targetB) {
+        b.push(t);
+        out[t.name] = 'B';
+      } else {
+        pending.push(t);
+      }
+    });
+    pending.forEach(function (t) {
+      if (a.length < targetA && (a.length * nB <= b.length * nA || b.length >= targetB)) {
+        a.push(t);
+        out[t.name] = 'A';
+      } else if (b.length < targetB) {
+        b.push(t);
+        out[t.name] = 'B';
+      } else {
+        a.push(t);
+        out[t.name] = 'A';
+      }
+    });
+    function moveOne(fromArr, toArr, toTeam) {
+      var i, t, pt, pass;
+      for (pass = 0; pass < 2; pass++) {
+        for (i = fromArr.length - 1; i >= 0; i--) {
+          t = fromArr[i];
+          pt = prevTeamOf(t.name, opts);
+          if (pass === 0 && pt && pt !== toTeam) continue;
+          fromArr.splice(i, 1);
+          toArr.push(t);
+          out[t.name] = toTeam;
+          return true;
+        }
+      }
+      return false;
+    }
+    while (a.length > targetA && b.length < targetB) moveOne(a, b, 'B');
+    while (b.length > targetB && a.length < targetA) moveOne(b, a, 'A');
   }
 
   function assignFixedSide(tools, out, side) {
@@ -246,7 +319,9 @@
    *   matchTeam?: 'A'|'B',
    *   practiceTeam?: 'A'|'B',
    *   labelA?: string,
-   *   labelB?: string
+   *   labelB?: string,
+   *   countA?: number,
+   *   countB?: number
    * }} opts
    * @returns {Object<string,'A'|'B'>}
    */
@@ -267,8 +342,8 @@
       by[f].push(t);
     });
 
-    /* 片方試合＋試合組ラベルのときだけ試合／練習の固定寄せ。それ以外の2班は sticky・半々 */
     var kata = useKataMatchPracticeSides(opts);
+    var fb = fallbackByHeadcount(opts);
 
     if (by.tarp) assignHalfSplit(by.tarp, out, opts);
     if (by.zatsukago) assignOneEach(by.zatsukago, out, opts);
@@ -300,32 +375,32 @@
             out[outTool.name] = 'B';
           }
         } else if (inTool) {
-          out[inTool.name] = inSide || 'A';
+          out[inTool.name] = inSide || fb;
         } else if (outTool) {
-          out[outTool.name] = outSide || 'B';
+          out[outTool.name] = outSide || fb;
         }
       }
     }
 
     if (by.batCase) {
       if (kata) assignFixedSide(by.batCase, out, matchT);
-      else assignStickyOr(by.batCase, out, opts, 'A');
+      else assignStickyOr(by.batCase, out, opts, fb);
     }
     if (by.longShortBat) {
       if (kata) assignFixedSide(by.longShortBat, out, matchT);
-      else assignStickyOr(by.longShortBat, out, opts, 'A');
+      else assignStickyOr(by.longShortBat, out, opts, fb);
     }
     if (by.base) {
       if (kata) assignFixedSide(by.base, out, pracT);
-      else assignStickyOr(by.base, out, opts, 'B');
+      else assignStickyOr(by.base, out, opts, fb);
     }
     if (by.training) {
       if (kata) assignFixedSide(by.training, out, pracT);
-      else assignStickyOr(by.training, out, opts, 'B');
+      else assignStickyOr(by.training, out, opts, fb);
     }
     if (by.jumpRope) {
       if (kata) assignFixedSide(by.jumpRope, out, pracT);
-      else assignStickyOr(by.jumpRope, out, opts, 'B');
+      else assignStickyOr(by.jumpRope, out, opts, fb);
     }
     if (by.practiceBall) {
       if (kata) assignFixedSide(by.practiceBall, out, pracT);
@@ -334,14 +409,12 @@
     if (by.catcher) assignCatcher(by.catcher, out, opts);
     if (by.stretchPole) {
       if (kata) assignFixedSide(by.stretchPole, out, matchT);
-      else assignStickyOr(by.stretchPole, out, opts, matchT);
+      else assignStickyOr(by.stretchPole, out, opts, fb);
     }
-    if (by.other) {
-      assignStickyOr(by.other, out, opts, 'A');
-    }
+    if (by.other) assignBalancedByHeadcount(by.other, out, opts);
 
     (tools || []).forEach(function (t) {
-      if (t && t.name && (out[t.name] !== 'A' && out[t.name] !== 'B')) out[t.name] = 'A';
+      if (t && t.name && (out[t.name] !== 'A' && out[t.name] !== 'B')) out[t.name] = fb;
     });
     return out;
   }
