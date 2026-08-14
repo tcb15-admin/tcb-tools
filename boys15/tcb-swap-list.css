@@ -185,3 +185,14 @@
     border-color:#7b1fa2;
   }
 }
+
+/* 一方向の受け渡しが【グループ名】宛てのときの補足 */
+.tcb-swap-list-grpnote{
+  margin:0 0 8px;
+  font-size:11px;
+  line-height:1.55;
+  color:#6a1b9a;
+}
+@media (prefers-color-scheme:dark){
+  .tcb-swap-list-grpnote{color:#ce93d8;}
+}

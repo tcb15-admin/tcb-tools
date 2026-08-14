@@ -13,6 +13,24 @@
     return name;
   }
 
+  /* 保有者が「人」ではなく【グループ名】の場合 true（一方向の受け渡しをグループ宛てにする用途） */
+  function isGroupHolder(opts, name) {
+    return !!(opts && typeof opts.isGroupHolder === 'function' && name && opts.isGroupHolder(name));
+  }
+
+  function filterPeople(report, opts) {
+    var list = report.peopleMustChange || [];
+    if (!opts || typeof opts.isGroupHolder !== 'function') return list;
+    return list.filter(function (p) { return !isGroupHolder(opts, p); });
+  }
+
+  function hasGroupAddressedOther(report, opts) {
+    if (!opts || typeof opts.isGroupHolder !== 'function') return false;
+    return (report.others || []).some(function (o) { return isGroupHolder(opts, o.curr); });
+  }
+
+  var GROUP_ADDR_NOTE = '【グループ名】宛ては、そのグループの誰かに渡ればOKです。受け取る人は次回の割振りで決めます。';
+
   /**
    * @param {object} report
    * @param {{labelPerson?: function(string): string}} [opts]
@@ -44,22 +62,27 @@
     }
     if (report.others && report.others.length) {
       lines.push('■ その他の受け渡し（一方向）');
+      if (hasGroupAddressedOther(report, opts)) {
+        lines.push('※' + GROUP_ADDR_NOTE);
+      }
       report.others.forEach(function (o) {
         var prev = o.prev ? withPersonLabel(o.prev, labelPerson) : '';
         var curr = o.curr ? withPersonLabel(o.curr, labelPerson) : '';
+        var grp = isGroupHolder(opts, o.curr);
         if (o.prev && o.curr) {
-          lines.push('・「' + o.tn + '」 ' + prev + ' → ' + curr);
+          lines.push('・「' + o.tn + '」 ' + prev + ' → ' + curr + (grp ? ' へ' : ''));
         } else if (o.prev && !o.curr) {
           lines.push('・「' + o.tn + '」 ' + prev + ' → 未割当');
         } else if (!o.prev && o.curr) {
-          lines.push('・「' + o.tn + '」 → ' + curr + '（新規担当）');
+          lines.push('・「' + o.tn + '」 → ' + curr + (grp ? ' へ（新規）' : '（新規担当）'));
         }
       });
       lines.push('');
     }
-    if (report.peopleMustChange && report.peopleMustChange.length) {
-      lines.push('■ 持ち帰り内容が変わる方（' + report.peopleMustChange.length + '名）');
-      report.peopleMustChange.forEach(function (p) {
+    var people = filterPeople(report, opts);
+    if (people.length) {
+      lines.push('■ 持ち帰り内容が変わる方（' + people.length + '名）');
+      people.forEach(function (p) {
         var before = report.prevBy[p] || [];
         var after = report.curBy[p] || [];
         var bStr = before.length ? before.join('、') : '（なし）';
@@ -128,28 +151,33 @@
     if (report.others && report.others.length) {
       html += '<div class="tcb-swap-list-sec">';
       html += '<div class="tcb-swap-list-sec-hd">その他の受け渡し（一方向）</div>';
+      if (hasGroupAddressedOther(report, opts)) {
+        html += '<p class="tcb-swap-list-grpnote">' + esc(GROUP_ADDR_NOTE) + '</p>';
+      }
       html += '<ul class="tcb-swap-list-others">';
       report.others.forEach(function (o) {
         var prev = o.prev ? withPersonLabel(o.prev, labelPerson) : '';
         var curr = o.curr ? withPersonLabel(o.curr, labelPerson) : '';
+        var grp = isGroupHolder(opts, o.curr);
         html += '<li>';
         if (o.prev && o.curr) {
-          html += '「<strong>' + esc(o.tn) + '</strong>」 ' + esc(prev) + ' → ' + esc(curr);
+          html += '「<strong>' + esc(o.tn) + '</strong>」 ' + esc(prev) + ' → ' + esc(curr) + (grp ? ' へ' : '');
         } else if (o.prev && !o.curr) {
           html += '「<strong>' + esc(o.tn) + '</strong>」 ' + esc(prev) + ' → 未割当';
         } else if (!o.prev && o.curr) {
-          html += '「<strong>' + esc(o.tn) + '</strong>」 → ' + esc(curr) + '（新規担当）';
+          html += '「<strong>' + esc(o.tn) + '</strong>」 → ' + esc(curr) + (grp ? ' へ（新規）' : '（新規担当）');
         }
         html += '</li>';
       });
       html += '</ul></div>';
     }
 
-    if (report.peopleMustChange && report.peopleMustChange.length) {
+    var people = filterPeople(report, opts);
+    if (people.length) {
       html += '<div class="tcb-swap-list-sec tcb-swap-list-sec-people">';
-      html += '<div class="tcb-swap-list-sec-hd">持ち帰りが変わる方（' + esc(String(report.peopleMustChange.length)) + '名）</div>';
+      html += '<div class="tcb-swap-list-sec-hd">持ち帰りが変わる方（' + esc(String(people.length)) + '名）</div>';
       html += '<ul class="tcb-swap-list-people">';
-      report.peopleMustChange.forEach(function (p) {
+      people.forEach(function (p) {
         var before = report.prevBy[p] || [];
         var after = report.curBy[p] || [];
         var bStr = before.length ? before.join('、') : '（なし）';

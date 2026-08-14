@@ -1,5 +1,5 @@
-/* 次回活動の入れ替え案（確認用・実施確定しない）
- * 依存: 本体が init(hooks) で算出・パターン変更・班グリッド更新を渡す
+/* 次回活動の入れ替え案（算出→LINE共有→入れ替え確定まで）
+ * 依存: 本体が init(hooks) で算出・確定・パターン変更・班グリッド更新を渡す
  */
 (function (global) {
   'use strict';
@@ -119,14 +119,21 @@
     lastFullText = prependMeta(payload.fullText || '', payload.meta);
     lastLineText = prependMeta(payload.lineText || '', payload.meta);
 
-    var html = '<div class="tcb-handoff-oknote">最適解のみ表示しています。入れ替え不要の道具は前回の担当のままです。この画面では実施確定しません。</div>';
+    var html = '<div class="tcb-handoff-oknote">最適解のみ表示しています。入れ替え不要の道具は前回の担当のままです。実際に受け渡しが決まったら「入れ替えを実施確定」で保有を記録できます。</div>';
     if (payload.html) html += payload.html;
+    if (payload.holdingsHtml) html += payload.holdingsHtml;
     html += '<div class="tcb-swap-list-actions">';
     html += '<button type="button" class="tcb-swap-list-copybtn" id="btn-handoff-copy-full">入れ替え案内（全文）をコピー</button>';
     if (payload.report && payload.report.changed) {
       html += '<button type="button" class="tcb-swap-list-copybtn tcb-swap-list-copybtn-sec" id="btn-handoff-copy-line">LINE用の要点をコピー</button>';
     }
     html += '</div>';
+    if (payload.canConfirm) {
+      html += '<div class="tcb-handoff-confirm-wrap">';
+      html += '<button type="button" class="tcb-handoff-confirmbtn" id="btn-handoff-confirm">入れ替えを実施確定（保有を更新）</button>';
+      html += '<p class="tcb-handoff-confirm-note">確定すると、この保有が次回割振りの基準になります。過去担当回数（PAST）は増えません。</p>';
+      html += '</div>';
+    }
     if (lastLineText) {
       html += '<div class="tcb-swap-list-line-wrap">';
       html += '<div class="tcb-swap-list-line-hd">LINE本文に使える文面</div>';
@@ -145,6 +152,20 @@
     if (lineBtn) {
       lineBtn.addEventListener('click', function () {
         if (ctx.copyText) ctx.copyText(lastLineText, 'LINE用の要点をコピーしました');
+      });
+    }
+    var confirmBtn = $('btn-handoff-confirm');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function () {
+        if (!ctx.confirmPlan) return;
+        var res = ctx.confirmPlan();
+        if (res && res.ok) {
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = '実施確定済み';
+          fillBaseSelect();
+        } else if (res && res.msg) {
+          alert(res.msg);
+        }
       });
     }
   }

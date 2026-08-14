@@ -159,11 +159,100 @@
   }
 }
 
+/* 入れ替え後の保有一覧 */
+.tcb-handoff-hold{
+  margin:14px 0 0;
+  border:1px solid var(--bdr,#d4d4d8);
+  border-radius:10px;
+  padding:12px 14px;
+  background:var(--card,#fff);
+}
+.tcb-handoff-hold-hd{
+  font-size:13px;
+  font-weight:800;
+  color:#6a1b9a;
+  margin:0 0 8px;
+}
+.tcb-handoff-hold-grp{margin:0 0 10px;}
+.tcb-handoff-hold-grp:last-child{margin-bottom:0;}
+.tcb-handoff-hold-grphd{
+  font-size:12px;
+  font-weight:800;
+  margin:0 0 6px;
+  padding:4px 8px;
+  border-radius:6px;
+  display:inline-block;
+}
+.tcb-handoff-hold-grp-a .tcb-handoff-hold-grphd{background:#ffebee;color:#b71c1c;}
+.tcb-handoff-hold-grp-b .tcb-handoff-hold-grphd{background:#e3f2fd;color:#0d47a1;}
+.tcb-handoff-hold-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+.tcb-handoff-hold-list > li{
+  display:flex;
+  gap:8px;
+  align-items:baseline;
+  padding:5px 0;
+  border-bottom:1px dashed var(--bdr,#e4e4e7);
+  font-size:12px;
+  line-height:1.5;
+}
+.tcb-handoff-hold-list > li:last-child{border-bottom:none;}
+.tcb-handoff-hold-name{
+  flex:0 0 auto;
+  min-width:7em;
+  font-weight:700;
+  color:var(--txt,#141416);
+}
+.tcb-handoff-hold-tbd{color:#b26a00;}
+.tcb-handoff-hold-tools{
+  flex:1;
+  color:var(--txt2,#52525b);
+  word-break:break-word;
+}
+
+/* 入れ替えの実施確定 */
+.tcb-handoff-confirm-wrap{margin:12px 0 0;}
+.tcb-handoff-confirmbtn{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:none;
+  background:var(--grn,#2e7d32);
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap,46px);
+  font-family:inherit;
+}
+.tcb-handoff-confirmbtn:active{opacity:.92;}
+.tcb-handoff-confirmbtn:disabled{
+  opacity:.55;
+  cursor:default;
+}
+.tcb-handoff-confirm-note{
+  margin:6px 0 0;
+  font-size:11px;
+  line-height:1.55;
+  color:var(--txt2,#71717a);
+}
+
 @media (prefers-color-scheme:dark){
   .tcb-handoff-entry{
     background:rgba(106,27,154,.18);
     border-color:#7b1fa2;
   }
+  .tcb-handoff-hold{
+    background:var(--tcb-surface,var(--card,#1a1a1c));
+    border-color:var(--bdr,#3f3f46);
+  }
+  .tcb-handoff-hold-hd{color:#e1bee7;}
+  .tcb-handoff-hold-grp-a .tcb-handoff-hold-grphd{background:rgba(183,28,28,.25);color:#ef9a9a;}
+  .tcb-handoff-hold-grp-b .tcb-handoff-hold-grphd{background:rgba(13,71,161,.3);color:#90caf9;}
+  .tcb-handoff-hold-tbd{color:#ffb74d;}
   .tcb-handoff-prev{background:var(--surface-2,#27272a);}
   .tcb-handoff-skip-note{background:var(--surface-2,#27272a);}
   .tcb-handoff-base-sel{
