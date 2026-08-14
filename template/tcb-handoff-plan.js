@@ -21,8 +21,8 @@
 
   function prependMeta(body, meta) {
     var text = String(body || '');
-    if (!meta || !meta.line) return text;
-    return text.replace(/^(【[^】]+】\n)/, '$1' + meta.line + '\n');
+    if (!text || !meta || !meta.line) return text;
+    return meta.line + '\n' + text;
   }
 
   function refreshForm() {
@@ -53,6 +53,18 @@
     if (prevEl && ctx.getPrevSummary) {
       var sum = ctx.getPrevSummary() || '';
       prevEl.innerHTML = sum ? ('<strong>基準（いまの保有）</strong>　' + esc(sum)) : '前回の割振り結果がありません。先に割振りを実施確定してください。';
+    }
+
+    var skipEl = $('tcb-handoff-skip-note');
+    if (skipEl) {
+      var skipped = (ctx.getSkippedTools && ctx.getSkippedTools()) || [];
+      if (skipped.length) {
+        skipEl.style.display = '';
+        skipEl.innerHTML = '一時除外中（案に含まれません）：' + esc(skipped.join('、'));
+      } else {
+        skipEl.style.display = 'none';
+        skipEl.innerHTML = '';
+      }
     }
   }
 
@@ -114,10 +126,10 @@
   }
 
   function open() {
+    if (ctx.onOpen) ctx.onOpen();
     refreshForm();
     clearResult();
     if (ctx.openModal) ctx.openModal('tcb-handoff-overlay');
-    if (ctx.canAutoCalc && ctx.canAutoCalc()) calc();
   }
 
   function close() {
@@ -154,20 +166,24 @@
         refreshForm();
       });
     }
+    /* グループ名は1文字ごとにグリッド全体を組み直さず、少し待ってから反映（ちらつき防止） */
+    var nameRefreshTimer = null;
+    function onTeamNameInput(side, value) {
+      if (ctx.setTeamName) ctx.setTeamName(side, value);
+      clearResult();
+      if (nameRefreshTimer) clearTimeout(nameRefreshTimer);
+      nameRefreshTimer = setTimeout(refreshForm, 300);
+    }
     var inpA = $('handoff-tnA');
     if (inpA) {
       inpA.addEventListener('input', function () {
-        if (ctx.setTeamName) ctx.setTeamName('A', inpA.value);
-        clearResult();
-        refreshForm();
+        onTeamNameInput('A', inpA.value);
       });
     }
     var inpB = $('handoff-tnB');
     if (inpB) {
       inpB.addEventListener('input', function () {
-        if (ctx.setTeamName) ctx.setTeamName('B', inpB.value);
-        clearResult();
-        refreshForm();
+        onTeamNameInput('B', inpB.value);
       });
     }
     var calcBtn = $('btn-handoff-calc');
