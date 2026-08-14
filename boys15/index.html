@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-today-card.css?v=1.19.2">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-today-card.css?v=1.19.3">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1118,10 +1118,10 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-login.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.19.2">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.19.2">
+<link rel="stylesheet" href="tcb-shell.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-login.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.19.3">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.19.3">
 </head>
 <body>
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1616,7 +1616,7 @@ html{color-scheme:light;}
         </h3>
         <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示順：まず<strong>丸数字（①…）より前の同じ名前</strong>ごとにまとめ、その中で<strong>①→②→③…</strong>の順です。丸数字が無い行は同じグループ内では後ろになります。グループ同士は辞書順、同順位は道具ID（id）です。</div>
         <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
-        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">グループへの振り分け（試合組／練習組・両方試合のA/Bなど）は<strong>道具名に基づく割振りルール</strong>で自動決定します。マスタでの試合チェック・A/B・室内／屋外の指定は不要です。</div>
+        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">グループへの振り分けは<strong>道具名に基づく割振りルール</strong>で自動決定します（マスタに試合／A・B／会場の指定はありません）。</div>
         <div id="m-tools"></div>
         <button class="madd" id="btn-add-tool">&#65291; 道具追加</button>
       </div>
@@ -1635,9 +1635,9 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.19.2"></script>
-<script src="tcb-swap-list.js?v=1.19.2"></script>
-<script src="tcb-team-rules.js?v=1.19.2"></script>
+<script src="tcb-device.js?v=1.19.3"></script>
+<script src="tcb-swap-list.js?v=1.19.3"></script>
+<script src="tcb-team-rules.js?v=1.19.3"></script>
 <script>
 
 
@@ -1693,7 +1693,7 @@ html{color-scheme:light;}
 
 /* ========== デフォルトマスタ ========== */
 var DEFAULT_MB=[{"name": "1：遠藤", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "2：伊郷", "v": "L", "fix": "キャッチャー道具③", "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "6：大脇", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "7：八重", "v": "M", "fix": null, "rest": 0, "coach": 1, "ac14": 0, "sibling": 0}, {"name": "8：本山", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "9：石川", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "10：伊藤（天）", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "11：植松", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "13：鮫島", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "14：増田", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "15：神野", "v": "LL", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "16：清水", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "17：柴田", "v": "S", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "18：秋田", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "19：松原", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "21：伊藤（櫂）", "v": "LL", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "22：林", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "23：半田", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "24：長坂", "v": "LL", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "25：岡村", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "26：松永", "v": "M", "fix": null, "rest": 1, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "27：高橋（龍）", "v": "M", "fix": "キャッチャー道具⑤", "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "29：藤川", "v": "M", "fix": null, "rest": 1, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "31：丸井", "v": "S", "fix": "キャッチャー道具④", "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "32：見並", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "33：伊藤（魁）", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "35：鵜飼", "v": "M", "fix": "キャッチャー道具①", "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "38：二村", "v": "M", "fix": null, "rest": 0, "coach": 1, "ac14": 0, "sibling": 0}, {"name": "43：三浦", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "44：ディグ", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "48：柴", "v": "M", "fix": null, "rest": 0, "coach": 1, "ac14": 0, "sibling": 0}, {"name": "51：西本", "v": "M", "fix": null, "rest": 0, "coach": 1, "ac14": 0, "sibling": 0}, {"name": "55：濱田", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "77：伊奈", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "78：榎本", "v": "L", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}, {"name": "86：池田", "v": "M", "fix": null, "rest": 0, "coach": 0, "ac14": 0, "sibling": 0}];
-var DEFAULT_TL=[{"id": 20, "name": "キャッチャー道具①", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "A", "note": "35：鵜飼", "fixed": 1}, {"id": 22, "name": "キャッチャー道具③", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "B", "note": null, "fixed": 0}, {"id": 23, "name": "キャッチャー道具④", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "B", "note": "31：丸井", "fixed": 1}, {"id": 24, "name": "キャッチャー道具⑤", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "A", "note": "27：高橋（龍）", "fixed": 1}, {"id": 35, "name": "ストレッチポール①", "sz": "LL", "wt": "Light", "kata": 1, "ryo": "A", "note": null, "fixed": 0, "broken": 0}, {"id": 8, "name": "タープ①", "sz": "LL", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null, "fixed": 0}, {"id": 9, "name": "タープ②", "sz": "LL", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null}, {"id": 10, "name": "タープ③", "sz": "LL", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null, "broken": 1}, {"id": 11, "name": "タープ④", "sz": "LL", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null}, {"id": 12, "name": "タープ⑤", "sz": "LL", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null}, {"id": 13, "name": "タープ⑥", "sz": "LL", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null}, {"id": 14, "name": "タープ⑦", "sz": "LL", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 15, "name": "タープ⑧", "sz": "LL", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 16, "name": "タープ⑨", "sz": "LL", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 17, "name": "タープ⑩", "sz": "LL", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 18, "name": "タープ⑪", "sz": "LL", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 19, "name": "タープ⑫", "sz": "LL", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 7, "name": "トレーニング道具", "sz": "M", "wt": "Light", "kata": 0, "ryo": "B", "note": null, "fixed": 0}, {"id": 27, "name": "ベース一式", "sz": "L", "wt": "Very heavy", "kata": 0, "ryo": "B", "note": "noMul"}, {"id": 33, "name": "外野用ノックボール", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "B", "note": null}, {"id": 29, "name": "雑カゴ①", "sz": "M", "wt": "Very light", "kata": 1, "ryo": "A", "note": null}, {"id": 30, "name": "雑カゴ②", "sz": "M", "wt": "Very light", "kata": 0, "ryo": "B", "note": null}, {"id": 34, "name": "試合用バットケース", "sz": "S", "wt": "Very light", "kata": 1, "ryo": "A", "note": null}, {"id": 25, "name": "審判道具①", "sz": "M", "wt": "Light", "kata": 1, "ryo": "A", "note": null}, {"id": 26, "name": "審判道具②", "sz": "M", "wt": "Light", "kata": 0, "ryo": "B", "note": null}, {"id": 28, "name": "長尺＆短尺バット", "sz": "L", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null}, {"id": 31, "name": "投手用ボール①", "sz": "M", "wt": "Light", "kata": 1, "ryo": "A", "note": null, "fixed": 0}, {"id": 37, "name": "投手用ボール②", "sz": "M", "wt": "Medium", "kata": 1, "ryo": "B", "note": null, "fixed": 0, "broken": 0}, {"id": 32, "name": "内野用ノックボール", "sz": "M", "wt": "Light", "kata": 1, "ryo": "A", "note": null}, {"id": 1, "name": "練習用ボール①", "sz": "M", "wt": "Heavy", "kata": 1, "ryo": "A", "note": null}, {"id": 2, "name": "練習用ボール②", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null}, {"id": 3, "name": "練習用ボール③", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "A", "note": null}, {"id": 4, "name": "練習用ボール④", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 5, "name": "練習用ボール⑤", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}, {"id": 6, "name": "練習用ボール⑥", "sz": "M", "wt": "Heavy", "kata": 0, "ryo": "B", "note": null}];
+var DEFAULT_TL=[{"id": 20, "name": "キャッチャー道具①", "sz": "M", "wt": "Medium", "note": "35：鵜飼", "fixed": 1}, {"id": 22, "name": "キャッチャー道具③", "sz": "M", "wt": "Medium", "note": null, "fixed": 0}, {"id": 23, "name": "キャッチャー道具④", "sz": "M", "wt": "Medium", "note": "31：丸井", "fixed": 1}, {"id": 24, "name": "キャッチャー道具⑤", "sz": "M", "wt": "Medium", "note": "27：高橋（龍）", "fixed": 1}, {"id": 35, "name": "ストレッチポール①", "sz": "LL", "wt": "Light", "note": null, "fixed": 0, "broken": 0}, {"id": 8, "name": "タープ①", "sz": "LL", "wt": "Heavy", "note": null, "fixed": 0}, {"id": 9, "name": "タープ②", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 10, "name": "タープ③", "sz": "LL", "wt": "Heavy", "note": null, "broken": 1}, {"id": 11, "name": "タープ④", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 12, "name": "タープ⑤", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 13, "name": "タープ⑥", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 14, "name": "タープ⑦", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 15, "name": "タープ⑧", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 16, "name": "タープ⑨", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 17, "name": "タープ⑩", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 18, "name": "タープ⑪", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 19, "name": "タープ⑫", "sz": "LL", "wt": "Heavy", "note": null}, {"id": 7, "name": "トレーニング道具", "sz": "M", "wt": "Light", "note": null, "fixed": 0}, {"id": 27, "name": "ベース一式", "sz": "L", "wt": "Very heavy", "note": "noMul"}, {"id": 33, "name": "外野用ノックボール", "sz": "M", "wt": "Medium", "note": null}, {"id": 29, "name": "雑カゴ①", "sz": "M", "wt": "Very light", "note": null}, {"id": 30, "name": "雑カゴ②", "sz": "M", "wt": "Very light", "note": null}, {"id": 34, "name": "試合用バットケース", "sz": "S", "wt": "Very light", "note": null}, {"id": 25, "name": "審判道具①", "sz": "M", "wt": "Light", "note": null}, {"id": 26, "name": "審判道具②", "sz": "M", "wt": "Light", "note": null}, {"id": 28, "name": "長尺＆短尺バット", "sz": "L", "wt": "Heavy", "note": null}, {"id": 31, "name": "投手用ボール①", "sz": "M", "wt": "Light", "note": null, "fixed": 0}, {"id": 37, "name": "投手用ボール②", "sz": "M", "wt": "Medium", "note": null, "fixed": 0, "broken": 0}, {"id": 32, "name": "内野用ノックボール", "sz": "M", "wt": "Light", "note": null}, {"id": 1, "name": "練習用ボール①", "sz": "M", "wt": "Heavy", "note": null}, {"id": 2, "name": "練習用ボール②", "sz": "M", "wt": "Heavy", "note": null}, {"id": 3, "name": "練習用ボール③", "sz": "M", "wt": "Heavy", "note": null}, {"id": 4, "name": "練習用ボール④", "sz": "M", "wt": "Heavy", "note": null}, {"id": 5, "name": "練習用ボール⑤", "sz": "M", "wt": "Heavy", "note": null}, {"id": 6, "name": "練習用ボール⑥", "sz": "M", "wt": "Heavy", "note": null}];
 var DEFAULT_DESCS={"練習用ボール①": {"text": "練習球コンテナ満杯", "img": ""}, "タープ②": {"text": "チーム所有タープ（緑）", "img": ""}, "タープ③": {"text": "チーム所有タープ（黒）", "img": ""}, "タープ④": {"text": "チーム所有タープ（紺）", "img": ""}, "タープ⑤": {"text": "チーム所有タープ（黒）", "img": ""}, "タープ⑥": {"text": "チーム所有タープCAPTAINSTAG（青）", "img": ""}, "タープ⑦": {"text": "チーム所有タープ", "img": ""}, "タープ⑧": {"text": "チーム所有タープ", "img": ""}, "キャッチャー道具①": {"text": "大和川大会出場記念（マスク・ヘルメット・プロテクター・レガース）", "img": ""}, "キャッチャー道具③": {"text": "黒メッシュバッグ（マスク・ヘルメット・プロテクター・レガース）", "img": ""}, "キャッチャー道具④": {"text": "新品（マスク・ヘルメット・プロテクター・レガース）", "img": ""}, "キャッチャー道具⑤": {"text": "ZETT PROSTATUS（マスク・ヘルメット・プロテクター・レガース）", "img": ""}, "ベース一式": {"text": "ホームベース×2、ベース×3、ブロック×6、ハンマー×3、ベース抜き×1、メジャー×1", "img": ""}, "審判道具①": {"text": "球審用グッズ（マスク・プロテクター・レガース・ボールバッグ）※球数カウンターあり", "img": ""}, "審判道具②": {"text": "球審用グッズ（マスク・プロテクター・レガース・ボールバッグ）※球数カウンターあり", "img": ""}, "雑カゴ①": {"text": "メッシュコンテナ×1つ、買い物カゴ×2つ", "img": ""}, "雑カゴ②": {"text": "メッシュコンテナ×1つ、買い物カゴ×3つ", "img": ""}, "試合用バットケース": {"text": "試合用折りたたみバットケース", "img": ""}, "練習用ボール②": {"text": "練習球コンテナ満杯", "img": ""}, "練習用ボール③": {"text": "練習球コンテナ満杯", "img": ""}, "練習用ボール④": {"text": "練習球コンテナ満杯", "img": ""}, "練習用ボール⑤": {"text": "練習球コンテナ満杯", "img": ""}, "練習用ボール⑥": {"text": "練習球コンテナ満杯", "img": ""}, "タープ⑨": {"text": "チーム所有タープ（黒）", "img": ""}, "タープ⑩": {"text": "チーム所有タープ（ベージュ）", "img": ""}, "タープ⑪": {"text": "チーム所有タープ（ベージュ）", "img": ""}, "タープ⑫": {"text": "チーム所有タープ（黒/ワインレッド）", "img": ""}, "長尺＆短尺バット": {"text": "長尺バット×8本、短尺バット×6本", "img": ""}, "内野用ノックボール": {"text": "ボール40球×1袋", "img": ""}, "外野用ノックボール": {"text": "ボール40球×1袋", "img": ""}, "ストレッチポール①": {"text": "アルミパイプ", "img": ""}, "投手用ボール①": {"text": "ボール12球、ロジン、ホームベース×1、メジャー×1", "img": ""}, "投手用ボール②": {"text": "ボール×12球、ロジン、ホームベース×1", "img": ""}, "タープ①": {"text": "チーム所有タープ（緑）", "img": ""}, "トレーニング道具": {"text": "脳を騙すバット×7本（長×4、短×3）、穴あきボール20個×6袋＋13個、テニスボール×40個、カラーボール50個×6袋＋26個、保護メガネ2つ×1袋", "img": ""}};
 
 var DEFAULT_PAST={};
@@ -2125,26 +2125,27 @@ function isSuperLongToolSize(sz){
   var u=String(sz||'').toUpperCase();
   return u==='LL'||u==='SL';
 }
-/* 両方練習・場所分離：practiceVenue が indoor/outdoor のとき A/B に割当。未設定は試合の ryo */
+/* 両方練習・場所分離の旧会場フィールド（廃止。残存データ掃除用） */
 function normalizePracticeVenue(v){
   if(v==='indoor'||v==='室内')return 'indoor';
   if(v==='outdoor'||v==='屋外')return 'outdoor';
   return null;
 }
 function applyPracticeVenueField(t){
-  var n=normalizePracticeVenue(t.practiceVenue);
-  /* 旧 rsRyo（A/B）を会場に移行 */
-  if(!n&&t.rsRyo==='A')n='indoor';
-  if(!n&&t.rsRyo==='B')n='outdoor';
-  delete t.rsRyo;
-  if(n)t.practiceVenue=n;
-  else delete t.practiceVenue;
+  stripLegacyToolTeamFields(t);
 }
 function effectivePracticeGroup(t){
-  var pv=t.practiceVenue;
-  if(pv==='indoor')return 'A';
-  if(pv==='outdoor')return 'B';
-  return t.ryo;
+  /* 割振りは TCB_TEAM_RULES。互換のため残置（常に未使用） */
+  return null;
+}
+/* 廃止済み：マスタの試合チェック・A/B・会場。読込時に除去する */
+function stripLegacyToolTeamFields(t){
+  if(!t||typeof t!=='object')return t;
+  delete t.kata;
+  delete t.ryo;
+  delete t.practiceVenue;
+  delete t.rsRyo;
+  return t;
 }
 function applyMasterObj(obj){
   if(!obj||typeof obj!=='object'||Array.isArray(obj))obj={};
@@ -2160,13 +2161,12 @@ function applyMasterObj(obj){
   PAST=normalizePastObj(obj.PAST);
   MB.forEach(function(m){normalizeMemberRow(m);});
   TL.forEach(function(t){
+    stripLegacyToolTeamFields(t);
     t.sz=normalizeToolLength(t.sz);
-    t.kata=normFlag01(t.kata);
     if('fixed' in t)t.fixed=normFlag01(t.fixed);
     if('broken' in t)t.broken=normFlag01(t.broken);
     if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
   });
-  TL.forEach(applyPracticeVenueField);
   /* デフォルト振り分け（キーがあるときのみ更新。null は削除） */
   if(Object.prototype.hasOwnProperty.call(obj,'DEF_TM')){
     try{
@@ -2572,6 +2572,7 @@ function saveMaster(){
   sortMasterMembers();
   sortMasterTools();
   pruneDescsOrphans();
+  TL.forEach(stripLegacyToolTeamFields);
   /* デフォルト振り分けも含める */
   var defTmRaw=_ls.get(LS_DEF_TM);
   var defTmData=defTmRaw?JSON.parse(defTmRaw):null;
@@ -2759,8 +2760,8 @@ function normalizeToolsForResultLoad(snap){
       var person=(snap.map||{})[merged.name];
       var tm=(snap.tmMap||{})[person];
       if(tm==='A'||tm==='B')merged.team=tm;
-      else if(merged.ryo==='A'||merged.ryo==='B')merged.team=merged.ryo;
     }
+    stripLegacyToolTeamFields(merged);
     tools.push(merged);
     seen[merged.name]=1;
   }
@@ -7399,7 +7400,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.19.2';
+  if(vEl)vEl.textContent='v1.19.3';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -7790,7 +7791,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('btn-add-tool').addEventListener('click',function(){
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id);},0);
     var newName='新道具';
-    TL.push({id:maxId+1,name:newName,sz:'M',wt:'Medium',kata:0,ryo:'A',note:null,fixed:0,broken:0});
+    TL.push({id:maxId+1,name:newName,sz:'M',wt:'Medium',note:null,fixed:0,broken:0});
     /* DESCSにも空エントリを追加 */
     if(!DESCS[newName])DESCS[newName]={text:'',img:''};;
     buildMasterTools(); buildMasterDescs();
@@ -7809,12 +7810,11 @@ document.addEventListener('DOMContentLoaded',function(){
     importJSON(function(data){
       if(!Array.isArray(data)){alert('道具データの形式が正しくありません。');return;}
       data.forEach(function(t){
+        stripLegacyToolTeamFields(t);
         t.sz=normalizeToolLength(t.sz);
-        t.kata=normFlag01(t.kata);
         if('fixed' in t)t.fixed=normFlag01(t.fixed);
         if('broken' in t)t.broken=normFlag01(t.broken);
         if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
-        applyPracticeVenueField(t);
       });
       TL=data; buildMasterTools(); buildMasterDescs();
       showMasterAlert('インポートしました。「保存」を押してください。','als');
@@ -7903,18 +7903,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.19.2"></script>
-<script src="html2canvas.min.js?v=1.19.2"></script>
-<script src="html2pdf.min.js?v=1.19.2"></script>
-<script src="tcb-print-pdf.js?v=1.19.2"></script>
-<script src="tcb-feedback.js?v=1.19.2"></script>
-<script src="tcb-sync-api.js?v=1.19.2"></script>
-<script src="tcb-swap-mgr.js?v=1.19.2"></script>
-<script src="tcb-push-mgr.js?v=1.19.2"></script>
-<script src="tcb-login.js?v=1.19.2"></script>
-<script src="tcb-pwa-install.js?v=1.19.2"></script>
-<script src="tcb-group-hold.js?v=1.19.2"></script>
-<script src="tcb-presummary.js?v=1.19.2"></script>
-<script src="tcb-today-card.js?v=1.19.2"></script>
+<script src="jspdf.umd.min.js?v=1.19.3"></script>
+<script src="html2canvas.min.js?v=1.19.3"></script>
+<script src="html2pdf.min.js?v=1.19.3"></script>
+<script src="tcb-print-pdf.js?v=1.19.3"></script>
+<script src="tcb-feedback.js?v=1.19.3"></script>
+<script src="tcb-sync-api.js?v=1.19.3"></script>
+<script src="tcb-swap-mgr.js?v=1.19.3"></script>
+<script src="tcb-push-mgr.js?v=1.19.3"></script>
+<script src="tcb-login.js?v=1.19.3"></script>
+<script src="tcb-pwa-install.js?v=1.19.3"></script>
+<script src="tcb-group-hold.js?v=1.19.3"></script>
+<script src="tcb-presummary.js?v=1.19.3"></script>
+<script src="tcb-today-card.js?v=1.19.3"></script>
 </body>
 </html>

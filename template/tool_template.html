@@ -1616,7 +1616,7 @@ html{color-scheme:light;}
         </h3>
         <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示順：まず<strong>丸数字（①…）より前の同じ名前</strong>ごとにまとめ、その中で<strong>①→②→③…</strong>の順です。丸数字が無い行は同じグループ内では後ろになります。グループ同士は辞書順、同順位は道具ID（id）です。</div>
         <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
-        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">グループへの振り分け（試合組／練習組・両方試合のA/Bなど）は<strong>道具名に基づく割振りルール</strong>で自動決定します。マスタでの試合チェック・A/B・室内／屋外の指定は不要です。</div>
+        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">グループへの振り分けは<strong>道具名に基づく割振りルール</strong>で自動決定します（マスタに試合／A・B／会場の指定はありません）。</div>
         <div id="m-tools"></div>
         <button class="madd" id="btn-add-tool">&#65291; 道具追加</button>
       </div>
@@ -2221,26 +2221,27 @@ function isSuperLongToolSize(sz){
   var u=String(sz||'').toUpperCase();
   return u==='LL'||u==='SL';
 }
-/* 両方練習・場所分離：practiceVenue が indoor/outdoor のとき A/B に割当。未設定は試合の ryo */
+/* 両方練習・場所分離の旧会場フィールド（廃止。残存データ掃除用） */
 function normalizePracticeVenue(v){
   if(v==='indoor'||v==='室内')return 'indoor';
   if(v==='outdoor'||v==='屋外')return 'outdoor';
   return null;
 }
 function applyPracticeVenueField(t){
-  var n=normalizePracticeVenue(t.practiceVenue);
-  /* 旧 rsRyo（A/B）を会場に移行 */
-  if(!n&&t.rsRyo==='A')n='indoor';
-  if(!n&&t.rsRyo==='B')n='outdoor';
-  delete t.rsRyo;
-  if(n)t.practiceVenue=n;
-  else delete t.practiceVenue;
+  stripLegacyToolTeamFields(t);
 }
 function effectivePracticeGroup(t){
-  var pv=t.practiceVenue;
-  if(pv==='indoor')return 'A';
-  if(pv==='outdoor')return 'B';
-  return t.ryo;
+  /* 割振りは TCB_TEAM_RULES。互換のため残置（常に未使用） */
+  return null;
+}
+/* 廃止済み：マスタの試合チェック・A/B・会場。読込時に除去する */
+function stripLegacyToolTeamFields(t){
+  if(!t||typeof t!=='object')return t;
+  delete t.kata;
+  delete t.ryo;
+  delete t.practiceVenue;
+  delete t.rsRyo;
+  return t;
 }
 function applyMasterObj(obj){
   if(!obj||typeof obj!=='object'||Array.isArray(obj))obj={};
@@ -2256,13 +2257,12 @@ function applyMasterObj(obj){
   PAST=normalizePastObj(obj.PAST);
   MB.forEach(function(m){normalizeMemberRow(m);});
   TL.forEach(function(t){
+    stripLegacyToolTeamFields(t);
     t.sz=normalizeToolLength(t.sz);
-    t.kata=normFlag01(t.kata);
     if('fixed' in t)t.fixed=normFlag01(t.fixed);
     if('broken' in t)t.broken=normFlag01(t.broken);
     if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
   });
-  TL.forEach(applyPracticeVenueField);
   /* デフォルト振り分け（キーがあるときのみ更新。null は削除） */
   if(Object.prototype.hasOwnProperty.call(obj,'DEF_TM')){
     try{
@@ -2668,6 +2668,7 @@ function saveMaster(){
   sortMasterMembers();
   sortMasterTools();
   pruneDescsOrphans();
+  TL.forEach(stripLegacyToolTeamFields);
   /* デフォルト振り分けも含める */
   var defTmRaw=_ls.get(LS_DEF_TM);
   var defTmData=defTmRaw?JSON.parse(defTmRaw):null;
@@ -2855,8 +2856,8 @@ function normalizeToolsForResultLoad(snap){
       var person=(snap.map||{})[merged.name];
       var tm=(snap.tmMap||{})[person];
       if(tm==='A'||tm==='B')merged.team=tm;
-      else if(merged.ryo==='A'||merged.ryo==='B')merged.team=merged.ryo;
     }
+    stripLegacyToolTeamFields(merged);
     tools.push(merged);
     seen[merged.name]=1;
   }
@@ -7886,7 +7887,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('btn-add-tool').addEventListener('click',function(){
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id);},0);
     var newName='新道具';
-    TL.push({id:maxId+1,name:newName,sz:'M',wt:'Medium',kata:0,ryo:'A',note:null,fixed:0,broken:0});
+    TL.push({id:maxId+1,name:newName,sz:'M',wt:'Medium',note:null,fixed:0,broken:0});
     /* DESCSにも空エントリを追加 */
     if(!DESCS[newName])DESCS[newName]={text:'',img:''};;
     buildMasterTools(); buildMasterDescs();
@@ -7905,12 +7906,11 @@ document.addEventListener('DOMContentLoaded',function(){
     importJSON(function(data){
       if(!Array.isArray(data)){alert('道具データの形式が正しくありません。');return;}
       data.forEach(function(t){
+        stripLegacyToolTeamFields(t);
         t.sz=normalizeToolLength(t.sz);
-        t.kata=normFlag01(t.kata);
         if('fixed' in t)t.fixed=normFlag01(t.fixed);
         if('broken' in t)t.broken=normFlag01(t.broken);
         if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
-        applyPracticeVenueField(t);
       });
       TL=data; buildMasterTools(); buildMasterDescs();
       showMasterAlert('インポートしました。「保存」を押してください。','als');
