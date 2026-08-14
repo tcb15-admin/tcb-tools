@@ -228,15 +228,11 @@
   }
 
   /**
-   * 片方試合でも、左グループ名が「試合組」系でないときは試合組固定ルールを使わない。
-   * 例: 練習試合組／練習組 → 両グループ sticky・半々（不要な班またぎ入れ替えを防ぐ）
+   * 片方試合はグループ名に関係なく試合組寄せする。
+   * 練習試合は試合（オープン戦）。「練習」のみが練習。
    */
   function useKataMatchPracticeSides(opts) {
-    if ((opts.pat || 'kata') !== 'kata') return false;
-    var la = String(opts.labelA || '').trim();
-    if (!la || la === '試合組') return true;
-    if (/試合/.test(la) && !/練習/.test(la)) return true;
-    return false;
+    return (opts.pat || 'kata') === 'kata';
   }
 
   /**
