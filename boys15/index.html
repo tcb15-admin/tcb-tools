@@ -4733,13 +4733,19 @@ function makeHandoffPdf(){
     return Promise.reject(new Error('PDFモジュールが読み込まれていません。ページを再読み込みしてください。'));
   }
   var baseName='道具入れ替えのお願い_'+localIsoDateFromDate()+'｜東海中央ボーイズ15期';
+  /* デスクトップ（Mac/Windows）は共有シートを使わずダウンロード保存（LINEへは手動添付） */
+  var avoidShare=!!(window.TCB_Device&&typeof TCB_Device.shouldAvoidPdfFileWebShare==='function'&&TCB_Device.shouldAvoidPdfFileWebShare());
   var html=buildHandoffPdfDocument();
   return TCB_generateAssignPdfBlob(html).then(function(blob){
     return deliverAssignPdfBlob(blob,{
       fileName:baseName+'.pdf',
       baseName:baseName,
-      useShareFirst:assignShareFilesSupported()
+      useShareFirst:!avoidShare&&assignShareFilesSupported()
     });
+  }).then(function(){
+    if(avoidShare){
+      tcbToast('PDFをダウンロードしました（ブラウザのダウンロード先／通常は「ダウンロード」フォルダ）。LINEへは手動で添付してください。','info');
+    }
   });
 }
 /* 入れ替え内容を「いまの保有」として確定（PASTは増やさない・履歴とクラウドに記録） */
