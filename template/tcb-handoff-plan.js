@@ -49,12 +49,6 @@
     if (wrap) wrap.style.display = needTeam ? '' : 'none';
     if (needTeam && ctx.buildGrid) ctx.buildGrid();
 
-    var prevEl = $('tcb-handoff-prev');
-    if (prevEl && ctx.getPrevSummary) {
-      var sum = ctx.getPrevSummary() || '';
-      prevEl.innerHTML = sum ? ('<strong>基準（いまの保有）</strong>　' + esc(sum)) : '前回の割振り結果がありません。先に割振りを実施確定してください。';
-    }
-
     var skipEl = $('tcb-handoff-skip-note');
     if (skipEl) {
       var skipped = (ctx.getSkippedTools && ctx.getSkippedTools()) || [];
@@ -64,6 +58,41 @@
       } else {
         skipEl.style.display = 'none';
         skipEl.innerHTML = '';
+      }
+    }
+  }
+
+  /* 基準セレクタ：候補（履歴）を流し込み、可能なら現在の選択を維持。なければ推奨を選ぶ */
+  function fillBaseSelect() {
+    var sel = $('handoff-base-sel');
+    if (!sel) return;
+    var cands = (ctx.getBaseCandidates && ctx.getBaseCandidates()) || [];
+    var cur = sel.value;
+    sel.innerHTML = '';
+    var keep = '';
+    var recommended = '';
+    cands.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c.key;
+      o.textContent = c.label + (c.recommended ? '【推奨】' : '');
+      sel.appendChild(o);
+      if (c.key === cur) keep = cur;
+      if (!recommended && c.recommended) recommended = c.key;
+    });
+    var chosen = keep || recommended || (cands.length ? cands[0].key : '');
+    if (chosen) {
+      sel.value = chosen;
+      if (ctx.setBaseKey) ctx.setBaseKey(chosen);
+    }
+    sel.disabled = !cands.length;
+    var prevEl = $('tcb-handoff-prev');
+    if (prevEl) {
+      if (!cands.length) {
+        prevEl.style.display = '';
+        prevEl.innerHTML = '基準にできる割振り結果がありません。先に割振りを実施確定してください。';
+      } else {
+        prevEl.style.display = 'none';
+        prevEl.innerHTML = '';
       }
     }
   }
@@ -125,11 +154,25 @@
     renderResult(ctx.compute());
   }
 
+  function isOpen() {
+    var ov = $('tcb-handoff-overlay');
+    return !!(ov && ov.classList.contains('open'));
+  }
+
   function open() {
     if (ctx.onOpen) ctx.onOpen();
+    fillBaseSelect();
     refreshForm();
     clearResult();
     if (ctx.openModal) ctx.openModal('tcb-handoff-overlay');
+    /* クラウド同期があれば履歴を取り直し、他端末の実施確定も候補に反映する */
+    if (ctx.refreshHistory) {
+      ctx.refreshHistory().then(function () {
+        if (!isOpen()) return;
+        if (ctx.rebuildBaseCandidates) ctx.rebuildBaseCandidates();
+        fillBaseSelect();
+      }).catch(function () {});
+    }
   }
 
   function close() {
@@ -184,6 +227,13 @@
     if (inpB) {
       inpB.addEventListener('input', function () {
         onTeamNameInput('B', inpB.value);
+      });
+    }
+    var baseSel = $('handoff-base-sel');
+    if (baseSel) {
+      baseSel.addEventListener('change', function () {
+        if (ctx.setBaseKey) ctx.setBaseKey(baseSel.value);
+        clearResult();
       });
     }
     var calcBtn = $('btn-handoff-calc');

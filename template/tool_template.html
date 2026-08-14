@@ -1236,10 +1236,13 @@ html{color-scheme:light;}
     <button class="mclose" id="tcb-handoff-close" type="button">&#10005;</button>
     <h2>次回活動の入れ替え案</h2>
     <div class="tcb-scroll-modal-body">
-      <p class="tcb-handoff-lead">次回の<strong>活動パターン</strong>と<strong>グループ分け</strong>だけ登録し、前回の保有から必要な交換だけ出します。同じ班の中では前回の担当のままです。全体の割り振りは行いません。ここでの変更は<strong>この画面だけの仮の入力</strong>で、閉じると STEP1 は元に戻ります。</p>
-      <div class="tcb-handoff-prev" id="tcb-handoff-prev"></div>
+      <p class="tcb-handoff-lead">次回の<strong>活動パターン</strong>と<strong>グループ分け</strong>だけ登録し、基準の保有から必要な交換だけ出します。同じ班の中では基準の担当のままです。全体の割り振りは行いません。ここでの変更は<strong>この画面だけの仮の入力</strong>で、閉じると STEP1 は元に戻ります。</p>
+      <div class="tcb-handoff-sec-hd">1. 基準にする割振り結果（いまの保有）</div>
+      <select id="handoff-base-sel" class="tcb-handoff-base-sel"></select>
+      <p class="tcb-handoff-base-note">通常は最新の<strong>（実施確定）</strong>を選んでください。「（試行）」は割振りを実行しただけで、確定していない結果です。</p>
+      <div class="tcb-handoff-prev" id="tcb-handoff-prev" style="display:none;"></div>
       <div class="tcb-handoff-skip-note" id="tcb-handoff-skip-note" style="display:none;"></div>
-      <div class="tcb-handoff-sec-hd">1. 次回の活動パターン</div>
+      <div class="tcb-handoff-sec-hd">2. 次回の活動パターン</div>
       <div class="tgg">
         <button type="button" class="tb2" id="btn-handoff-renshu">両方練習</button>
         <button type="button" class="tb2" id="btn-handoff-kata">片方試合</button>
@@ -1249,7 +1252,7 @@ html{color-scheme:light;}
         <label class="tcb-handoff-split-lbl" for="chk-handoff-renshu-split"><input type="checkbox" id="chk-handoff-renshu-split" autocomplete="off">練習場所が分かれる</label>
       </div>
       <div class="tcb-handoff-team-wrap" id="handoff-team-wrap" style="display:none;">
-        <div class="tcb-handoff-sec-hd">2. 次回のグループ分け</div>
+        <div class="tcb-handoff-sec-hd">3. 次回のグループ分け</div>
         <div class="tnrow">
           <div class="tng"><label class="tng-dot tng-dot-a" for="handoff-tnA">&#9679;</label><input class="tninp A" id="handoff-tnA" type="text" maxlength="12" value="試合組"></div>
           <div class="tng"><label class="tng-dot tng-dot-b" for="handoff-tnB">&#9679;</label><input class="tninp B" id="handoff-tnB" type="text" maxlength="12" value="練習組"></div>
@@ -3050,9 +3053,9 @@ function updateSeedModeBanners(){
   if(hint)hint.style.display=(R&&!on)?'block':'none';
   var prevBlock=document.getElementById('p1-from-prev-block');
   if(prevBlock)prevBlock.style.display=on?'none':'block';
-  /* 入れ替え案の入口：基準になる前回結果があるときだけ表示 */
+  /* 入れ替え案の入口：基準になる結果（履歴・調整中の基準など）があるときだけ表示 */
   var hoEntry=document.getElementById('tcb-handoff-entry');
-  if(hoEntry)hoEntry.style.display=handoffBaseSnap()?'block':'none';
+  if(hoEntry)hoEntry.style.display=handoffHasAnyBase()?'block':'none';
   if(window.TCB_PreSummary)TCB_PreSummary.update();
   /* きょうの割振りカード：表示できる場合は従来入口をカード内リンクへ統合する */
   if(window.TCB_TodayCard)TCB_TodayCard.update();
@@ -3644,6 +3647,8 @@ function applyGroupHoldIfEnabled(tA,tB){
 }
 /* グループ振分の基準になる前回 map / 班（実施確定・seed・端末保存） */
 function prevSnapForTeamRules(){
+  /* 入れ替え案の算出中は、選択した基準をルール班分けにも使う（基準の二重化を防ぐ） */
+  if(handoffComputeBaseSnap&&typeof handoffComputeBaseSnap.map==='object')return handoffComputeBaseSnap;
   if(seedBaseSnap&&typeof seedBaseSnap.map==='object')return seedBaseSnap;
   if(carryAdjustRefSnap&&typeof carryAdjustRefSnap.map==='object')return carryAdjustRefSnap;
   return loadStoredAllocationSnap();
@@ -4417,6 +4422,8 @@ function snapshotHandoffBaseState(){
   handoffStateSnap={pat:pat,renshuSplit:renshuSplit,tnA:tnA,tnB:tnB,tmMap:clonePlainObj(tmMap)};
 }
 function restoreHandoffBaseState(){
+  handoffBaseOverride=null;
+  handoffBaseCands=[];
   if(!handoffStateSnap)return;
   var s=handoffStateSnap;
   handoffStateSnap=null;
@@ -4445,11 +4452,80 @@ function restoreHandoffBaseState(){
   }
   if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
-/* 入れ替え案の基準：ルール班分けと同じソース（調整モード中は現地補正済みの seedBaseSnap を優先） */
+/* 入れ替え案の基準：モーダルで選択した履歴スナップ（デフォルトは最新の実施確定）。
+   端末保存の最新結果（LS_PREV）は試行のたびに上書きされるため、基準のデフォルトにしない */
+var handoffBaseOverride=null;
+var handoffComputeBaseSnap=null;
+var handoffBaseCands=[];
+function rebuildHandoffBaseCandidates(){
+  handoffBaseCands=[];
+  /* 調整モード中は現地補正込みの基準を候補の先頭に */
+  if(seedBaseSnap&&typeof seedBaseSnap.map==='object'){
+    handoffBaseCands.push({
+      key:'seed',
+      label:'調整中の基準（現地補正込み'+(seedBaseSnap.date?('・'+fmtDayLabelJa(seedBaseSnap.date)):'')+'）',
+      snap:seedBaseSnap
+    });
+  }
+  var hist=getHistoryCache().filter(function(h){
+    return h&&h.date&&h.map&&typeof h.map==='object';
+  }).slice();
+  hist.sort(function(a,b){
+    var d=String(b.date).localeCompare(String(a.date));
+    if(d)return d;
+    var ta=Date.parse(a.confirmedAt||a.savedAt||'')||0;
+    var tb=Date.parse(b.confirmedAt||b.savedAt||'')||0;
+    return tb-ta;
+  });
+  hist.slice(0,20).forEach(function(h,i){
+    handoffBaseCands.push({
+      key:'h:'+h.date+':'+(h.confirmedAt||h.savedAt||('i'+i)),
+      label:fmtDayLabelJa(h.date)+'　'+patLabel(h.pat,!!normFlag01(h.renshuSplit))+(h.confirmedAt?'（実施確定）':'（試行）'),
+      snap:h
+    });
+  });
+  if(!handoffBaseCands.length){
+    var prev=loadStoredAllocationSnap();
+    if(prev){
+      handoffBaseCands.push({
+        key:'prev',
+        label:(fmtDayLabelJa(prev.date)||'前回')+'　最新の結果（試行含む）',
+        snap:prev
+      });
+    }
+  }
+  /* 推奨：調整中の基準 > 最新の実施確定 > 先頭 */
+  var rec=null;
+  for(var i=0;i<handoffBaseCands.length;i++){
+    var c=handoffBaseCands[i];
+    if(c.key==='seed'){rec=c;break;}
+    if(!rec&&c.snap&&c.snap.confirmedAt)rec=c;
+  }
+  if(!rec&&handoffBaseCands.length)rec=handoffBaseCands[0];
+  if(rec)rec.recommended=true;
+}
+function handoffSetBaseByKey(key){
+  for(var i=0;i<handoffBaseCands.length;i++){
+    if(handoffBaseCands[i].key===key){
+      handoffBaseOverride=enrichStoredSnap(handoffBaseCands[i].snap)||handoffBaseCands[i].snap;
+      return true;
+    }
+  }
+  return false;
+}
 function handoffBaseSnap(){
-  var snap=prevSnapForTeamRules();
-  if(snap&&typeof snap.map==='object'&&snap.map!==null)return snap;
+  if(handoffBaseOverride&&typeof handoffBaseOverride.map==='object')return handoffBaseOverride;
   return null;
+}
+/* 入口ボタンの表示判定：基準になり得るデータが何かしらあるか */
+function handoffHasAnyBase(){
+  if(seedBaseSnap&&typeof seedBaseSnap.map==='object')return true;
+  var hist=getHistoryCache();
+  for(var i=0;i<hist.length;i++){
+    var h=hist[i];
+    if(h&&h.date&&h.map&&typeof h.map==='object')return true;
+  }
+  return !!loadStoredAllocationSnap();
 }
 /* 同条件なら同結果になるよう、基準スナップの日付から固定 seed を作る */
 function handoffSeedFromSnap(snap){
@@ -4496,10 +4572,11 @@ function handoffPersonLabel(name){
 function computeHandoffPlan(){
   var snap=handoffBaseSnap();
   if(!snap){
-    return {error:'前回の割振り結果がありません。先に割振りを実施確定するか、履歴から基準を選んでください。'};
+    return {error:'基準にする割振り結果がありません。先に割振りを実施確定するか、上の一覧から基準を選んでください。'};
   }
   var savedAbs=absS, savedOch=ochS;
   absS={}; ochS={};
+  handoffComputeBaseSnap=snap;
   var ctx=null, map=null, err=null;
   try{
     ctx=buildAssignmentContext({silent:true});
@@ -4512,6 +4589,7 @@ function computeHandoffPlan(){
     }
   }finally{
     absS=savedAbs; ochS=savedOch;
+    handoffComputeBaseSnap=null;
   }
   if(err)return {error:err};
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
@@ -4534,7 +4612,7 @@ function computeHandoffPlan(){
   if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function'){
     html=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:labelPerson});
   }
-  var metaLine='基準：'+(fmtDayLabelJa(snap.date)||'前回')+' の保有 → 次回：'+patLabel(pat,renshuSplit);
+  var metaLine='基準：'+(fmtDayLabelJa(snap.date)||'前回')+(snap.confirmedAt?'（実施確定）':'（試行）')+' の保有 → 次回：'+patLabel(pat,renshuSplit);
   if(needsTeamUI())metaLine+='（'+(tnA||'A')+'／'+(tnB||'B')+'）';
   return {
     report:report,
@@ -7985,7 +8063,22 @@ document.addEventListener('DOMContentLoaded',function(){
     TCB_HandoffPlan.init({
       openModal:openModal,
       closeModal:closeModal,
-      onOpen:snapshotHandoffBaseState,
+      onOpen:function(){
+        snapshotHandoffBaseState();
+        handoffBaseOverride=null;
+        rebuildHandoffBaseCandidates();
+      },
+      getBaseCandidates:function(){
+        return handoffBaseCands.map(function(c){
+          return {key:c.key,label:c.label,recommended:!!c.recommended};
+        });
+      },
+      setBaseKey:function(k){return handoffSetBaseByKey(k);},
+      rebuildBaseCandidates:rebuildHandoffBaseCandidates,
+      refreshHistory:function(){
+        if(typeof refreshHistoryFromServer!=='function')return Promise.resolve(null);
+        return refreshHistoryFromServer();
+      },
       getPat:function(){return pat;},
       getRenshuSplit:function(){return !!renshuSplit;},
       needsTeamUI:needsTeamUI,
@@ -8015,17 +8108,12 @@ document.addEventListener('DOMContentLoaded',function(){
       buildGrid:function(){
         buildTGrid({gridId:'handoff-tgrid',hdId:'handoff-tcard-hd',ignoreAbs:true});
       },
-      getPrevSummary:function(){
-        var snap=handoffBaseSnap();
-        if(!snap)return '';
-        return (fmtDayLabelJa(snap.date)||'前回')+'　'+patLabel(snap.pat,!!normFlag01(snap.renshuSplit));
-      },
       getSkippedTools:handoffSkippedToolNames,
       compute:computeHandoffPlan,
       copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');}
     });
     var hoEntryInit=document.getElementById('tcb-handoff-entry');
-    if(hoEntryInit)hoEntryInit.style.display=handoffBaseSnap()?'block':'none';
+    if(hoEntryInit)hoEntryInit.style.display=handoffHasAnyBase()?'block':'none';
   }
 
   /* ホーム画面に追加（PWA）ガイド */

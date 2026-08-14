@@ -38,6 +38,24 @@
   line-height:1.6;
   color:var(--txt,#141416);
 }
+.tcb-handoff-base-sel{
+  width:100%;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid var(--bdr,#d4d4d8);
+  background:var(--card,#fff);
+  color:var(--txt,#141416);
+  font-size:13px;
+  font-weight:700;
+  font-family:inherit;
+  min-height:var(--tap,46px);
+}
+.tcb-handoff-base-note{
+  margin:6px 0 14px;
+  font-size:11px;
+  line-height:1.55;
+  color:var(--txt2,#71717a);
+}
 .tcb-handoff-prev{
   margin:0 0 14px;
   padding:8px 10px;
@@ -112,6 +130,11 @@
   }
   .tcb-handoff-prev{background:var(--surface-2,#27272a);}
   .tcb-handoff-skip-note{background:var(--surface-2,#27272a);}
+  .tcb-handoff-base-sel{
+    background:var(--card,#1a1a1c);
+    border-color:var(--bdr,#3f3f46);
+    color:var(--txt,#e4e4e7);
+  }
   .tcb-handoff-sec-hd,
   .tcb-handoff-oknote{color:#e1bee7;}
   .tcb-handoff-oknote{background:rgba(106,27,154,.22);}
