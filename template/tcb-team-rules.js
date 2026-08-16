@@ -429,6 +429,12 @@
     (tools || []).forEach(function (t) {
       if (t && t.name && (out[t.name] !== 'A' && out[t.name] !== 'B')) out[t.name] = fb;
     });
+    /* 最後にもう一度強制（半々など後段ルールで上書きされないように） */
+    if (kata) {
+      (tools || []).forEach(function (t) {
+        if (isMatchTool(t) && t.name) out[t.name] = matchT;
+      });
+    }
     return out;
   }
 
