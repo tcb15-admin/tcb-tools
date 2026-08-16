@@ -300,6 +300,10 @@
     });
   }
 
+  function isMatchTool(t) {
+    return !!(t && (t.matchTool == 1 || t.matchTool === '1' || t.matchTool === true));
+  }
+
   /**
    * 片方試合はグループ名に関係なく試合組寄せする。
    * 練習試合は試合（オープン戦）。「練習」のみが練習。
@@ -334,16 +338,25 @@
     var out = {};
     if (pat === 'renshu' && !split) return out;
 
-    var by = {};
+    var kata = useKataMatchPracticeSides(opts);
+    var fb = fallbackByHeadcount(opts);
+    var rest = [];
     (tools || []).forEach(function (t) {
       if (!t || !t.name) return;
+      /* マスタ「試合道具」：片方試合では試合組へ（名前ルールより優先） */
+      if (kata && isMatchTool(t)) {
+        out[t.name] = matchT;
+        return;
+      }
+      rest.push(t);
+    });
+
+    var by = {};
+    rest.forEach(function (t) {
       var f = classify(t.name);
       if (!by[f]) by[f] = [];
       by[f].push(t);
     });
-
-    var kata = useKataMatchPracticeSides(opts);
-    var fb = fallbackByHeadcount(opts);
 
     if (by.tarp) assignHalfSplit(by.tarp, out, opts);
     if (by.zatsukago) assignOneEach(by.zatsukago, out, opts);
@@ -422,6 +435,7 @@
   global.TCB_TEAM_RULES = {
     classify: classify,
     assignTeams: assignTeams,
+    isMatchTool: isMatchTool,
     toolPrefixAndCircled: toolPrefixAndCircled
   };
 })(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : this));
