@@ -1665,7 +1665,7 @@ html{color-scheme:light;}
         </h3>
         <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示順：まず<strong>丸数字（①…）より前の同じ名前</strong>ごとにまとめ、その中で<strong>①→②→③…</strong>の順です。丸数字が無い行は同じグループ内では後ろになります。グループ同士は辞書順、同順位は道具ID（id）です。</div>
         <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
-        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">グループへの振り分けは<strong>道具名に基づく割振りルール</strong>が基本です。<strong>試合道具</strong>にチェックした道具は、片方試合のとき試合組へ割り当てます。</div>
+        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">片方試合では、<strong>試合道具</strong>にチェックした道具だけが試合組へ、チェックしない道具は練習組へ割り当てます。両方試合・練習場所分離では、従来どおり道具名の割振りルールです。</div>
         <div id="m-tools"></div>
         <button class="madd" id="btn-add-tool">&#65291; 道具追加</button>
       </div>
@@ -3708,10 +3708,12 @@ function buildTeamToolListsByRules(){
   var active=TL.filter(function(t){return !skipS[t.name];});
   var teamMap=computeRuleTeamMap(active)||{};
   var matchT=kataMatchTeamId();
-  /* ルールJSのキャッシュずれでも、マスタの試合道具は片方試合で試合組へ */
+  var pracT=kataPracticeTeamId();
+  /* 片方試合：試合道具のみ試合組。チェックなしは練習組（ルールJSのキャッシュずれでも本体で強制） */
   if(pat==='kata'){
     active.forEach(function(t){
-      if(toolIsMatchTool(t)&&t.name)teamMap[t.name]=matchT;
+      if(!t||!t.name)return;
+      teamMap[t.name]=toolIsMatchTool(t)?matchT:pracT;
     });
   }
   var tA=[], tB=[];
@@ -3824,7 +3826,7 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
     var baseMap={}, poolSet={};
     function placeTeamTool(t){
       var tm=t.team||'';
-      if(pat==='kata'&&toolIsMatchTool(t))tm=kataMatchTeamId();
+      if(pat==='kata')tm=toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
       var mem=(tm==='A')?nA:nB;
       if(!mem)return;
       var p=prevMap[t.name];
@@ -5585,7 +5587,7 @@ function updDesc(){
       el.textContent=la+'（A）／'+lb+'（B）。道具のグループ分けは割振りルール（半々・試合組／練習組など）に従います。';
     }else{
       var msgs={
-        'kata':   '道具のグループ分けは割振りルールに従います。マスタで試合道具にした道具は試合組へ、ほかは半々・練習組など',
+        'kata':   'マスタで試合道具にした道具は試合組、それ以外は練習組へ割り当てます',
         'ryoho':  '道具のグループ分けは割振りルールに従います（半々・1点ずつ・前回保有側の維持など）',
         'renshu': (pat==='renshu'&&isGroupHoldEnabled())
           ?'グループ保有が有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
@@ -6183,11 +6185,20 @@ function renderAll(){
       return p&&!matchNames[p];
     });
     if(matchTools.length){
+      var leak=(R.allTools||[]).filter(function(t){
+        var p=R.map[t.name];
+        return p&&!toolIsMatchTool(t)&&!t.fixed&&matchNames[p];
+      });
       var dMt=document.createElement('div');
-      dMt.className=miss.length?'al alw':'al als';
-      dMt.textContent=miss.length
-        ?('試合道具 '+matchTools.length+'点のうち '+miss.length+'点が試合組以外です：'+miss.map(function(t){return t.name;}).join('、'))
-        :('試合道具 '+matchTools.length+'点は'+(matchT==='A'?(R.la||'試合組'):(R.lb||'試合組'))+'へ割り当てています。');
+      dMt.className=(miss.length||leak.length)?'al alw':'al als';
+      if(miss.length||leak.length){
+        var bits=[];
+        if(miss.length)bits.push('試合道具なのに試合組以外：'+miss.map(function(t){return t.name;}).join('、'));
+        if(leak.length)bits.push('試合道具でないのに試合組：'+leak.map(function(t){return t.name;}).join('、'));
+        dMt.textContent=bits.join(' ／ ');
+      }else{
+        dMt.textContent='試合道具 '+matchTools.length+'点は'+(matchT==='A'?(R.la||'試合組'):(R.lb||'試合組'))+'、それ以外は練習組へ割り当てています。';
+      }
       aa.appendChild(dMt);
     }
   }

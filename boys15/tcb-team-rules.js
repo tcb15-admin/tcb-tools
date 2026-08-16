@@ -340,19 +340,19 @@
 
     var kata = useKataMatchPracticeSides(opts);
     var fb = fallbackByHeadcount(opts);
-    var rest = [];
-    (tools || []).forEach(function (t) {
-      if (!t || !t.name) return;
-      /* マスタ「試合道具」：片方試合では試合組へ（名前ルールより優先） */
-      if (kata && isMatchTool(t)) {
-        out[t.name] = matchT;
-        return;
-      }
-      rest.push(t);
-    });
+
+    /* 片方試合：試合組へ載せる道具はマスタ「試合道具」のみ。チェックなしは練習組 */
+    if (kata) {
+      (tools || []).forEach(function (t) {
+        if (!t || !t.name) return;
+        out[t.name] = isMatchTool(t) ? matchT : pracT;
+      });
+      return out;
+    }
 
     var by = {};
-    rest.forEach(function (t) {
+    (tools || []).forEach(function (t) {
+      if (!t || !t.name) return;
       var f = classify(t.name);
       if (!by[f]) by[f] = [];
       by[f].push(t);
@@ -364,77 +364,45 @@
     if (by.umpire) assignOneEach(by.umpire, out, opts);
 
     if (by.knockIn || by.knockOut) {
-      if (kata) {
-        if (by.knockIn) assignFixedSide(by.knockIn, out, matchT);
-        if (by.knockOut) assignFixedSide(by.knockOut, out, matchT);
-      } else {
-        /* それぞれ別グループ。内野の sticky を優先し、外野は反対側 */
-        var inTool = (by.knockIn || [])[0];
-        var outTool = (by.knockOut || [])[0];
-        var inSide = inTool ? prevTeamOf(inTool.name, opts) : null;
-        var outSide = outTool ? prevTeamOf(outTool.name, opts) : null;
-        if (inTool && outTool) {
-          if (inSide && outSide && inSide !== outSide) {
-            out[inTool.name] = inSide;
-            out[outTool.name] = outSide;
-          } else if (inSide) {
-            out[inTool.name] = inSide;
-            out[outTool.name] = inSide === 'A' ? 'B' : 'A';
-          } else if (outSide) {
-            out[outTool.name] = outSide;
-            out[inTool.name] = outSide === 'A' ? 'B' : 'A';
-          } else {
-            out[inTool.name] = 'A';
-            out[outTool.name] = 'B';
-          }
-        } else if (inTool) {
-          out[inTool.name] = inSide || fb;
-        } else if (outTool) {
-          out[outTool.name] = outSide || fb;
+      /* それぞれ別グループ。内野の sticky を優先し、外野は反対側 */
+      var inTool = (by.knockIn || [])[0];
+      var outTool = (by.knockOut || [])[0];
+      var inSide = inTool ? prevTeamOf(inTool.name, opts) : null;
+      var outSide = outTool ? prevTeamOf(outTool.name, opts) : null;
+      if (inTool && outTool) {
+        if (inSide && outSide && inSide !== outSide) {
+          out[inTool.name] = inSide;
+          out[outTool.name] = outSide;
+        } else if (inSide) {
+          out[inTool.name] = inSide;
+          out[outTool.name] = inSide === 'A' ? 'B' : 'A';
+        } else if (outSide) {
+          out[outTool.name] = outSide;
+          out[inTool.name] = outSide === 'A' ? 'B' : 'A';
+        } else {
+          out[inTool.name] = 'A';
+          out[outTool.name] = 'B';
         }
+      } else if (inTool) {
+        out[inTool.name] = inSide || fb;
+      } else if (outTool) {
+        out[outTool.name] = outSide || fb;
       }
     }
 
-    if (by.batCase) {
-      if (kata) assignFixedSide(by.batCase, out, matchT);
-      else assignStickyOr(by.batCase, out, opts, fb);
-    }
-    if (by.longShortBat) {
-      if (kata) assignFixedSide(by.longShortBat, out, matchT);
-      else assignStickyOr(by.longShortBat, out, opts, fb);
-    }
-    if (by.base) {
-      if (kata) assignFixedSide(by.base, out, pracT);
-      else assignStickyOr(by.base, out, opts, fb);
-    }
-    if (by.training) {
-      if (kata) assignFixedSide(by.training, out, pracT);
-      else assignStickyOr(by.training, out, opts, fb);
-    }
-    if (by.jumpRope) {
-      if (kata) assignFixedSide(by.jumpRope, out, pracT);
-      else assignStickyOr(by.jumpRope, out, opts, fb);
-    }
-    if (by.practiceBall) {
-      if (kata) assignFixedSide(by.practiceBall, out, pracT);
-      else assignHalfSplit(by.practiceBall, out, opts);
-    }
+    if (by.batCase) assignStickyOr(by.batCase, out, opts, fb);
+    if (by.longShortBat) assignStickyOr(by.longShortBat, out, opts, fb);
+    if (by.base) assignStickyOr(by.base, out, opts, fb);
+    if (by.training) assignStickyOr(by.training, out, opts, fb);
+    if (by.jumpRope) assignStickyOr(by.jumpRope, out, opts, fb);
+    if (by.practiceBall) assignHalfSplit(by.practiceBall, out, opts);
     if (by.catcher) assignCatcher(by.catcher, out, opts);
-    if (by.stretchPole) {
-      if (kata) assignFixedSide(by.stretchPole, out, matchT);
-      else assignStickyOr(by.stretchPole, out, opts, fb);
-    }
+    if (by.stretchPole) assignStickyOr(by.stretchPole, out, opts, fb);
     if (by.other) assignBalancedByHeadcount(by.other, out, opts);
 
     (tools || []).forEach(function (t) {
       if (t && t.name && (out[t.name] !== 'A' && out[t.name] !== 'B')) out[t.name] = fb;
     });
-    /* 最後にもう一度強制（半々など後段ルールで上書きされないように） */
-    if (kata) {
-      (tools || []).forEach(function (t) {
-        if (isMatchTool(t) && t.name) out[t.name] = matchT;
-      });
-    }
     return out;
   }
 
