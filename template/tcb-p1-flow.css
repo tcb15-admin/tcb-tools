@@ -1,0 +1,21 @@
+/* STEP1：きょうの割り振り方（新規／保有ベース） */
+.p1-flow-panel{margin:14px 0 4px;padding:12px 14px;border-radius:12px;border:1px solid var(--bdr);background:var(--surface-2);}
+.p1-flow-hd{margin-bottom:10px!important;}
+.p1-flow-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin:0 0 8px;border-radius:10px;border:1px solid var(--bdr);background:var(--card);cursor:pointer;}
+.p1-flow-opt:last-of-type{margin-bottom:0;}
+.p1-flow-opt input{flex-shrink:0;width:18px;height:18px;margin:2px 0 0;accent-color:var(--blue);}
+.p1-flow-opt-body{flex:1;min-width:0;}
+.p1-flow-opt-body strong{display:block;font-size:14px;color:var(--ink-heading);line-height:1.35;}
+.p1-flow-opt-desc{display:block;margin-top:3px;font-size:12px;color:var(--txt2);line-height:1.55;}
+.p1-flow-opt-rec{border-color:var(--ui-accent-bd);background:var(--ui-accent-bg);}
+.p1-flow-opt-rec strong::after{content:'おすすめ';display:inline-block;margin-left:6px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--blue);color:#fff;vertical-align:middle;}
+.p1-flow-opt-disabled{opacity:.55;cursor:not-allowed;}
+.p1-flow-foot{margin-top:10px;font-size:11.5px;color:var(--txt2);line-height:1.55;}
+.p1-flow-link{background:none;border:none;padding:0;font:inherit;font-size:inherit;color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline;}
+.p1-handoff-entry{margin-bottom:14px;padding:12px 14px;border-radius:10px;border:1px dashed var(--bdr);background:var(--surface-2);}
+.p1-handoff-entry .tcb-handoff-entry-btn{width:100%;}
+.p1-handoff-entry .tcb-handoff-entry-desc{margin-top:8px;}
+
+html.tcb-ui-simple .p1-flow-panel{background:var(--surface-2);border-color:var(--bdr);}
+html.tcb-ui-simple .p1-flow-opt{background:var(--card);border-color:var(--bdr);}
+html.tcb-ui-simple .p1-flow-opt-rec{background:rgba(159,180,232,.12);border-color:var(--ui-accent-bd);}

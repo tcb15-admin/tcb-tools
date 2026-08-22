@@ -467,7 +467,7 @@ def build(target):
         'tcb-feedback.js', 'tcb-feedback.css',
         'tcb-device.js',
         'tcb-presummary.js', 'tcb-presummary.css',
-        'tcb-today-card.js', 'tcb-today-card.css',
+        'tcb-p1-flow.js', 'tcb-p1-flow.css',
         'tcb-shell.css',
         'tcb-login.css',
         'tcb-login.js',
