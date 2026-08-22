@@ -9,8 +9,10 @@
  *   ios-combined  … 本文+PDF を共有シートへ（iPhone / iPad）
  *   android-share … ファイル付き Web Share を試し、だめならコピー+保存
  *   desktop-copy  … 本文コピー + PDFダウンロード（Mac / Windows / Linux）
- *                   ※デスクトップの Web Share に PDF を載せると
- *                     ローカルパス文字列が本文に混ざることがある
+ *                   ※デスクトップで PDF を共有シートに載せても、
+ *                     Mac版LINE は共有先に出ないことが多い。
+ *                     本文+ファイル同時共有はローカルパスが本文に
+ *                     混ざる既知問題もあるため使わない。
  * ============================================================ */
 (function (global) {
   'use strict';
@@ -112,28 +114,26 @@
     return 'desktop-copy';
   }
 
-  /** デスクトップでは PDF を「本文と同時の」Web Share に載せない
-   *（ファイル単体の共有シートは可。呼び出し側が canShareFiles() で判定） */
+  /** デスクトップでは PDF の Web Share（共有シート）を使わない。
+   * canShareFiles() が true でも、macOS 共有シートに Mac版LINE が
+   * 出ないことが多く「LINEへ展開」が破綻するため。 */
   function shouldAvoidPdfFileWebShare() {
     return lineShareStrategy() === 'desktop-copy';
   }
 
-  /** デスクトップでもファイル単体の共有シートが使えるか（Mac版LINE等が共有先に出る） */
+  /** @deprecated 互換用。デスクトップでは常に false（共有シートにLINEが出ない前提） */
   function desktopCanSharePdf() {
-    return isDesktop() && canShareFiles();
+    return false;
   }
 
   function sharePrimaryLabel() {
     if (lineShareStrategy() !== 'desktop-copy') return 'LINEへ展開';
-    return desktopCanSharePdf() ? 'LINEへ展開' : '本文をコピー';
+    return '本文をコピー';
   }
 
   function pdfOptionLabel() {
     var s = lineShareStrategy();
     if (s === 'desktop-copy') {
-      if (desktopCanSharePdf()) {
-        return 'PDF（共有シートでLINEを選ぶと直接渡せます。本文は貼り付け）';
-      }
       if (isMacDesktop()) {
         return 'PDF（この端末にダウンロード。Mac版LINEへは自動添付されないため、必要なら手動添付）';
       }
@@ -151,11 +151,8 @@
   function sharePanelHint() {
     var s = lineShareStrategy();
     if (s === 'desktop-copy') {
-      if (desktopCanSharePdf()) {
-        return '本文をコピーし、PDFは共有シートで渡します。共有シートでLINEを選んでPDFを送り、本文はトークに貼り付けてください（シートにLINEが出ない場合はダウンロードされます）。';
-      }
       if (isMacDesktop()) {
-        return 'MacではブラウザからLINEへ直接送れません。「本文をコピー」でメッセージだけをコピーします（PDFのローカルパスは貼り付けません）。PDFが必要なときはダウンロードしてLINEに手動添付してください。';
+        return 'MacではブラウザからLINEへ直接送れません。「本文をコピー」でメッセージをコピーし、LINEのトークに貼り付けてください。PDFはダウンロードしてLINEに手動添付してください（共有シートにLINEが出ないため使いません）。';
       }
       if (isWindowsDesktop()) {
         return 'WindowsではブラウザからLINEへ直接送れないことがあります。「本文をコピー」でメッセージをコピーし、LINEのトークに貼り付けてください。PDFはダウンロードして手動添付してください。';

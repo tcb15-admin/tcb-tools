@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-today-card.css?v=1.24.1">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-today-card.css?v=1.24.2">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1121,11 +1121,11 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-login.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.24.1">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.24.1">
+<link rel="stylesheet" href="tcb-shell.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-login.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.24.2">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.24.2">
 </head>
 <body>
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1684,10 +1684,10 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.24.1"></script>
-<script src="tcb-swap-list.js?v=1.24.1"></script>
-<script src="tcb-handoff-plan.js?v=1.24.1"></script>
-<script src="tcb-team-rules.js?v=1.24.1"></script>
+<script src="tcb-device.js?v=1.24.2"></script>
+<script src="tcb-swap-list.js?v=1.24.2"></script>
+<script src="tcb-handoff-plan.js?v=1.24.2"></script>
+<script src="tcb-team-rules.js?v=1.24.2"></script>
 <script>
 
 
@@ -4776,7 +4776,8 @@ function makeHandoffPdf(){
       return b;
     });
   return gen.then(function(blob){
-    if(assignShareFilesSupported()){
+    /* PCは共有シートにLINEが出ないためダウンロード。スマホのみ共有シート */
+    if(assignShareFilesSupported()&&!shouldAvoidPdfFileWebShare()){
       return deliverAssignPdfBlob(blob,{fileName:baseName+'.pdf',baseName:baseName,useShareFirst:true})
         .catch(function(err){
           /* キャンセル・再操作要求は呼び出し側で案内。それ以外はダウンロードに切り替え */
@@ -6865,9 +6866,9 @@ function deliverLineShareBundle(opts){
     });
   }
 
-  /* ---- Mac / Windows / Linux：本文はコピー。PDFは「ファイル単体」で共有シートへ
-         （本文+ファイルの同時共有はローカルパスが本文に混ざることがあるため使わない）。
-         共有シート非対応ならダウンロードにフォールバック ---- */
+  /* ---- Mac / Windows / Linux：本文コピー＋PDFダウンロード。
+         デスクトップの共有シートには Mac版LINE が出ないことが多く、
+         「共有シートでLINEを選ぶ」手順は使わない。 ---- */
   if(shouldAvoidPdfFileWebShare()){
     var deskChain=Promise.resolve();
     if(lineOn&&msg){
@@ -6875,16 +6876,6 @@ function deliverLineShareBundle(opts){
     }
     if(pdfOn&&blob){
       deskChain=deskChain.then(function(){
-        if(assignShareFilesSupported()){
-          return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:true})
-            .then(function(){return 'shared';})
-            .catch(function(err){
-              /* キャンセル・再操作要求は上位で案内。それ以外はダウンロードに切り替え */
-              if(err&&(err.name==='AbortError'||err.name==='NotAllowedError'))throw err;
-              return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false})
-                .then(function(){return 'downloaded';});
-            });
-        }
         return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false})
           .then(function(){return 'downloaded';});
       });
@@ -6892,11 +6883,7 @@ function deliverLineShareBundle(opts){
       return Promise.reject(new Error('empty pdf'));
     }
     return deskChain.then(function(pdfOutcome){
-      if(pdfOn&&blob&&pdfOutcome==='shared'){
-        setSharePanelStatus(lineOn&&msg
-          ?'本文をコピーしました。共有シートでLINEを選んでPDFを送り、本文はトークに貼り付けてください。'
-          :'共有シートでLINEを選ぶとPDFを送れます。');
-      }else if(pdfOn&&blob&&pdfOutcome==='downloaded'){
+      if(pdfOn&&blob&&pdfOutcome==='downloaded'){
         if(lineOn&&msg)setSharePanelStatus(shareLinePasteHint({pdfSaved:true}));
         else setSharePanelStatus('PDFをダウンロードしました。');
       }else if(lineOn&&msg&&pdfOn&&!blob){
@@ -8130,7 +8117,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.24.1';
+  if(vEl)vEl.textContent='v1.24.2';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -8696,18 +8683,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.24.1"></script>
-<script src="html2canvas.min.js?v=1.24.1"></script>
-<script src="html2pdf.min.js?v=1.24.1"></script>
-<script src="tcb-print-pdf.js?v=1.24.1"></script>
-<script src="tcb-feedback.js?v=1.24.1"></script>
-<script src="tcb-sync-api.js?v=1.24.1"></script>
-<script src="tcb-swap-mgr.js?v=1.24.1"></script>
-<script src="tcb-push-mgr.js?v=1.24.1"></script>
-<script src="tcb-login.js?v=1.24.1"></script>
-<script src="tcb-pwa-install.js?v=1.24.1"></script>
-<script src="tcb-group-hold.js?v=1.24.1"></script>
-<script src="tcb-presummary.js?v=1.24.1"></script>
-<script src="tcb-today-card.js?v=1.24.1"></script>
+<script src="jspdf.umd.min.js?v=1.24.2"></script>
+<script src="html2canvas.min.js?v=1.24.2"></script>
+<script src="html2pdf.min.js?v=1.24.2"></script>
+<script src="tcb-print-pdf.js?v=1.24.2"></script>
+<script src="tcb-feedback.js?v=1.24.2"></script>
+<script src="tcb-sync-api.js?v=1.24.2"></script>
+<script src="tcb-swap-mgr.js?v=1.24.2"></script>
+<script src="tcb-push-mgr.js?v=1.24.2"></script>
+<script src="tcb-login.js?v=1.24.2"></script>
+<script src="tcb-pwa-install.js?v=1.24.2"></script>
+<script src="tcb-group-hold.js?v=1.24.2"></script>
+<script src="tcb-presummary.js?v=1.24.2"></script>
+<script src="tcb-today-card.js?v=1.24.2"></script>
 </body>
 </html>

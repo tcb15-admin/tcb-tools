@@ -4872,7 +4872,8 @@ function makeHandoffPdf(){
       return b;
     });
   return gen.then(function(blob){
-    if(assignShareFilesSupported()){
+    /* PCは共有シートにLINEが出ないためダウンロード。スマホのみ共有シート */
+    if(assignShareFilesSupported()&&!shouldAvoidPdfFileWebShare()){
       return deliverAssignPdfBlob(blob,{fileName:baseName+'.pdf',baseName:baseName,useShareFirst:true})
         .catch(function(err){
           /* キャンセル・再操作要求は呼び出し側で案内。それ以外はダウンロードに切り替え */
@@ -6961,9 +6962,9 @@ function deliverLineShareBundle(opts){
     });
   }
 
-  /* ---- Mac / Windows / Linux：本文はコピー。PDFは「ファイル単体」で共有シートへ
-         （本文+ファイルの同時共有はローカルパスが本文に混ざることがあるため使わない）。
-         共有シート非対応ならダウンロードにフォールバック ---- */
+  /* ---- Mac / Windows / Linux：本文コピー＋PDFダウンロード。
+         デスクトップの共有シートには Mac版LINE が出ないことが多く、
+         「共有シートでLINEを選ぶ」手順は使わない。 ---- */
   if(shouldAvoidPdfFileWebShare()){
     var deskChain=Promise.resolve();
     if(lineOn&&msg){
@@ -6971,16 +6972,6 @@ function deliverLineShareBundle(opts){
     }
     if(pdfOn&&blob){
       deskChain=deskChain.then(function(){
-        if(assignShareFilesSupported()){
-          return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:true})
-            .then(function(){return 'shared';})
-            .catch(function(err){
-              /* キャンセル・再操作要求は上位で案内。それ以外はダウンロードに切り替え */
-              if(err&&(err.name==='AbortError'||err.name==='NotAllowedError'))throw err;
-              return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false})
-                .then(function(){return 'downloaded';});
-            });
-        }
         return deliverAssignPdfBlob(blob,{fileName:fileName,baseName:baseName,useShareFirst:false})
           .then(function(){return 'downloaded';});
       });
@@ -6988,11 +6979,7 @@ function deliverLineShareBundle(opts){
       return Promise.reject(new Error('empty pdf'));
     }
     return deskChain.then(function(pdfOutcome){
-      if(pdfOn&&blob&&pdfOutcome==='shared'){
-        setSharePanelStatus(lineOn&&msg
-          ?'本文をコピーしました。共有シートでLINEを選んでPDFを送り、本文はトークに貼り付けてください。'
-          :'共有シートでLINEを選ぶとPDFを送れます。');
-      }else if(pdfOn&&blob&&pdfOutcome==='downloaded'){
+      if(pdfOn&&blob&&pdfOutcome==='downloaded'){
         if(lineOn&&msg)setSharePanelStatus(shareLinePasteHint({pdfSaved:true}));
         else setSharePanelStatus('PDFをダウンロードしました。');
       }else if(lineOn&&msg&&pdfOn&&!blob){
