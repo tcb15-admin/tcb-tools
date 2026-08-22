@@ -471,6 +471,7 @@ def build(target):
         'tcb-shell.css',
         'tcb-login.css',
         'tcb-login.js',
+        'gear.css',
         'tcb-gear-ui.css',
         'tcb-swap-list.js', 'tcb-swap-list.css',
         'tcb-handoff-plan.js', 'tcb-handoff-plan.css',

@@ -1,0 +1,111 @@
+/* 道具割り振り — gear- 接頭辞（出欠／お茶／配車と同型の墨紙シェル）
+   ヘッダ・ログインの骨格は tcb-shell.css / tcb-login.css に委譲 */
+:root{
+  --gear-navy:var(--tcb-ink,#141416);
+  --gear-heading:var(--tcb-ink,#141416);
+  --gear-bg:var(--tcb-paper,#f3f3f5);
+  --gear-card:var(--tcb-surface,#fff);
+  --gear-bdr:var(--tcb-line,#d4d4d8);
+  --gear-txt:var(--tcb-ink,#141416);
+  --gear-txt2:var(--tcb-muted,#71717a);
+  --gear-tap:var(--tcb-tap,46px);
+  --gear-surface:#ececee;
+}
+
+body.gear-body{
+  font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",system-ui,sans-serif;
+  background:var(--gear-bg);
+  color:var(--gear-txt);
+  min-height:100vh;
+  font-size:16px;
+  -webkit-text-size-adjust:100%;
+}
+
+/* ---- ヘッダ（tcb-shell-hdr 併用） ---- */
+.gear-hdr.tcb-shell-hdr > h1{flex:1 1 140px;min-width:0;}
+.gear-hdr.tcb-shell-hdr > h1 span{
+  display:block;font-size:11px;font-weight:600;
+  color:var(--gear-txt2);margin-top:2px;line-height:1.4;
+}
+.gear-hdr-link.tcb-shell-link{flex-shrink:0;}
+
+/* ---- メインレイアウト ---- */
+.gear-body .wrap{
+  max-width:720px;
+  margin:0 auto;
+  padding:14px 14px calc(88px + env(safe-area-inset-bottom,0px));
+}
+
+/* ---- ステップナビ（att-flow-btn 同型） ---- */
+.gear-body .steps{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+  margin:0 0 8px;background:transparent;
+}
+.gear-body .si{
+  display:flex;align-items:center;gap:8px;
+  padding:10px;text-align:left;cursor:pointer;
+  border:1px solid var(--gear-bdr);border-radius:12px;
+  background:var(--gear-card);
+  font:inherit;color:inherit;appearance:none;-webkit-appearance:none;
+  min-height:var(--gear-tap);
+}
+.gear-body .si.on{
+  border-color:var(--gear-navy);
+  box-shadow:inset 0 0 0 1px var(--gear-navy);
+  background:var(--gear-card);
+}
+.gear-body .si.done{
+  border-color:var(--tcb-ok,#15803d);
+  background:#e7f5ea;
+}
+.gear-body .sn{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  background:var(--gear-surface);color:var(--gear-txt2);
+  font-size:12px;font-weight:800;
+  display:inline-flex;align-items:center;justify-content:center;margin:0;
+}
+.gear-body .si.on .sn{background:var(--gear-navy);color:#fff;}
+.gear-body .si.done .sn{background:var(--tcb-ok,#15803d);color:#fff;}
+.gear-body .sl{
+  font-size:12px;font-weight:800;color:var(--gear-heading);line-height:1.3;
+}
+.gear-body .tcb-flow-hint{
+  font-size:12px;color:var(--gear-txt2);line-height:1.45;margin:0 0 12px;
+}
+
+/* ---- カード ---- */
+.gear-body .card{
+  background:var(--gear-card);
+  border:1px solid var(--gear-bdr);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 2px rgba(18,32,80,.04);
+}
+.gear-body .ct{
+  font-weight:800;font-size:15px;letter-spacing:-.02em;
+  color:var(--gear-heading);margin-bottom:10px;
+}
+
+/* ---- 入力・トグル（他ツールに近い角丸） ---- */
+.gear-body .date-inp,.gear-body .tninp,.gear-body .asel{
+  border-radius:10px;
+}
+.gear-body .tgg{border-radius:12px;}
+.gear-body .desc-bar{border-radius:12px;}
+
+@media (min-width:900px){
+  .gear-body .wrap{max-width:760px;padding-left:20px;padding-right:20px;}
+}
+
+@media (max-width:520px){
+  .gear-body .card{padding:14px 12px;}
+  .gear-body .si .sl{word-break:keep-all;}
+}
+
+@media (prefers-color-scheme:dark){
+  .gear-body .si{background:var(--gear-card);}
+  .gear-body .si.on{background:var(--gear-card);}
+  .gear-body .si.done{background:rgba(21,128,61,.18);}
+  .gear-body .card{box-shadow:none;}
+}

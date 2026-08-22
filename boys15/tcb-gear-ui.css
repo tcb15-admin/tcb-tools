@@ -41,10 +41,8 @@ a.hbtn:focus-visible,
 /* ---- カード／主ボタン：赤影・白ベタを墨紙へ ---- */
 .card{
   border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
-  border-radius:var(--tcb-r,4px);
   box-shadow:none;
 }
-.wrap{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
 .nbp,.rbtn{box-shadow:none;}
 .nbs{
   background:var(--tcb-paper,var(--surface-2,#ececee));
@@ -99,17 +97,9 @@ a.hbtn:focus-visible,
   border-color:var(--tcb-line,var(--bdr,#d4d4d8));
 }
 
-/* ---- 幅広PC ---- */
-@media (min-width:900px){
-  .wrap{max-width:760px;padding-left:20px;padding-right:20px;}
-}
-
 /* ---- スマホ：入力16px（iOSズーム抑制）・セーフエリア ---- */
 @media (max-width:520px){
   .date-inp,.tninp,.asel,#pw-inp{font-size:16px;}
-  .tcb-flow-hint{margin-bottom:10px;}
-  .card{padding:16px 12px;}
-  .si .sl{word-break:keep-all;}
 }
 
 /* ---- ダークモード：白ベタ／紺文字の残りを紙面へ ---- */
