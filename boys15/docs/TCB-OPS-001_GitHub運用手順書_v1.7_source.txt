@@ -2,13 +2,13 @@
 
 東海中央ボーイズ 15期
 道具割振りツール
-GitHub Pages 運用手順書（版 1.11）
+GitHub Pages 運用手順書（版 1.12）
 
 文書番号	TCB-OPS-001
-版	1.11
+版	1.12
 作成日	2026年3月27日
 作成者	15期管理担当
-最終更新	2026年8月9日
+最終更新	2026年8月22日
 
 改訂履歴
 版	改訂日	改訂内容	改訂者
@@ -24,6 +24,7 @@ GitHub Pages 運用手順書（版 1.11）
 1.9	2026年7月5日	現行 TOOL_VERSION 1.7.4 に更新。html2pdf.bundle.min.js を同梱アセット化（build.py がコピー。CDN はフォールバックのみ）。SYNC_API_TOKEN 未注入ビルドは同期無効化＋build.py が警告。交代報告 Web Push 用アセット（tcb-push-mgr.js/css・sw.js・tcb-pwa-install.js/css）を追記	15期管理担当
 1.10	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更（bundle 版が html2canvas / jspdf をグローバル公開せず iPhone で PDF 生成に失敗するため）。未ロード時は tcb-print-pdf.js がローカル→CDN の順で動的ロードして復旧	15期管理担当
 1.11	2026年8月9日	現行 TOOL_VERSION 1.11.1。ビルドは boys15 のみ（python3 template/build.py boys15）。JS/CSS 参照へ ?v=TOOL_VERSION を自動付与（キャッシュバスティング。ブラウザキャッシュ起因の版ずれ対策）。追加アセット（tcb-group-hold・tcb-feedback・tcb-presummary・tcb-today-card の js/css）。スモークテスト手順（npm run smoke）を追加。マニュアルは版 1.14（PDF ファイル名 v1.5 のまま差し替え）	15期管理担当
+1.12	2026年8月22日	現行 TOOL_VERSION 1.25.1。tcb-p1-flow（きょうの割り振り方）・tcb-handoff-plan 導線刷新。旧 tcb-today-card 削除。マニュアル版 1.15・スクショ 02b 更新。スモーク／QA を p1-flow 対応	15期管理担当
 
 1. アカウント・リポジトリ情報
 項目	内容
@@ -34,7 +35,7 @@ GitHub Pages ベース URL	https://tcb15-admin.github.io/tcb-tools/（Settings �
 15期ツールURL（GitHub Pages）	https://tcb15-admin.github.io/tcb-tools/boys15/（ブックマーク推奨）
 GitHubリポジトリ	https://github.com/tcb15-admin/tcb-tools
 認証情報管理	Googleドライブ（TCB-ACC-001参照）
-現行 TOOL_VERSION（2026-08-09 時点）	1.11.1（15期）
+現行 TOOL_VERSION（2026-08-22 時点）	1.25.1（15期）
 
 2. リポジトリ構成
 パス	内容
@@ -44,7 +45,7 @@ template/build.py	ビルドスクリプト（Python 3）。template + config →
 template/tcb-print-pdf.js	印刷プレビューから PDF Blob を生成（html2pdf.js 利用）。ビルドで boys15/ にコピーされる
 template/jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js	PDF 生成ライブラリ本体（個別同梱。この順で読み込み。読込失敗時は tcb-print-pdf.js がローカル→CDN の順で動的ロード）。ビルドで boys15/ にコピーされる
 template/tcb-sync-api.js	Cloudflare 同期 API 呼び出し。ビルドで boys15/ にコピーされる
-template/tcb-swap-mgr.js ほか	機能別アセット（tcb-swap-mgr・tcb-push-mgr・tcb-pwa-install・tcb-group-hold・tcb-feedback・tcb-presummary・tcb-today-card の js/css・sw.js）。ビルドで boys15/ にコピーされる
+template/tcb-swap-mgr.js ほか	機能別アセット（tcb-swap-mgr・tcb-push-mgr・tcb-pwa-install・tcb-group-hold・tcb-feedback・tcb-presummary・tcb-p1-flow・tcb-handoff-plan の js/css・sw.js）。ビルドで boys15/ にコピーされる
 boys15/index.html	15期ツール本体（ビルドで自動生成。GitHub へはこのファイル名で配置）
 boys15/tcb-print-pdf.js	上記と同じくビルド成果物。index.html と必ず同じタイミングでデプロイすること
 boys15/tcb-sync-api.js	15期用（Cloudflare 同期クライアント。ビルドでコピー。index.html と同時デプロイ）

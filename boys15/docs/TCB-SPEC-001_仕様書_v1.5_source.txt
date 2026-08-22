@@ -5,10 +5,10 @@
 システム仕様書
 
 文書番号	TCB-SPEC-001
-版	1.14
+版	1.15
 作成日	2026年3月27日
 作成者	15期管理担当
-最終更新	2026年8月9日
+最終更新	2026年8月22日
 
 改訂履歴
 版	改訂日	改訂内容	改訂者
@@ -27,6 +27,7 @@
 1.12	2026年7月5日	PDF ライブラリ同梱を bundle 版から個別 3 ファイル（jspdf.umd.min.js・html2canvas.min.js・html2pdf.min.js）に変更。bundle 版は html2canvas / jspdf をグローバル公開しないため tcb-print-pdf.js の担当表（縦A4）生成が「PDFライブラリが読み込まれていません」で失敗していた（iPhone で顕在化）。未ロード時は ensurePdfLibs() がローカル同梱→CDN の順で動的ロードして復旧	15期管理担当
 1.13	2026年7月8日	メンバー対象外フラグ quit（退部）を追加。休部と同様に割振り対象・STEP1/2 候補から常時除外（バッジ quit-badge）。マスタ UI に「退部」チェックを追加	15期管理担当
 1.14	2026年8月9日	グループ保有（tcb-group-hold：現時点の保有グループ内のみで割振り・端末永続化）。割り振り方法の選択（公平に分散＝assignPoolFair 再プール／前回のまま維持＝assignPoolCarryAdjust。LS SeedAllocMethod）。UX改修 Phase1〜2：実行前サマリー（tcb-presummary）・詳細オプション折りたたみ・用語刷新（試合メンバー未発表／現地で受け渡した道具を直す／いま道具を持っているグループ）・きょうの割振りカード（tcb-today-card：前回結果基準で欠席当番のみクリアし1タップ開始 beginTodayAllocation）。フィードバック部品（tcb-feedback：トースト・同期状態表示）。グリッド名前折返し（最小11px）。SW を network-first に変更（tcb-shell-v2）。build.py で JS/CSS 参照へ ?v=TOOL_VERSION 付与（キャッシュバスティング）。Playwright スモークテスト（tests/smoke.mjs）。保護者ページ拡充（受け渡しナビ・担当できない報告・道具写真・オフライン表示）／ツール v1.11.1	15期管理担当
+1.15	2026年8月22日	STEP1「きょうの割り振り方」（tcb-p1-flow：いちから／いまの保有でグループごと／活動日前受け渡し案 tcb-handoff-plan）。デフォルトは新規割振り。2分け日は保有ベースをおすすめ表示。旧 tcb-today-card 削除。用語統一（この記録を基準に割振り開始／最小変更で再調整／基準を維持して調整）。入れ替え確定後に当日割振り案内。Mac LINE共有は本文コピー＋PDF DL。片方試合は matchTool のみで試合組決定（v1.24）。／ツール v1.25.1	15期管理担当
 
 1. システム概要
 項目	内容
@@ -36,7 +37,7 @@
 認証	パスワード認証（djb2 ベース簡易ハッシュ・初期 PW は世代ごと config）
 ホスティング	GitHub Pages（tcb15-admin / tcb-tools）
 チームカラー	濃紺（#122050）・赤（#C0000A）・白
-バージョン	v1.11.1 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み。JS/CSS 参照にも ?v= として付与）
+バージョン	v1.25.1 等（ヘッダ右上。config の TOOL_VERSION をビルドで埋め込み。JS/CSS 参照にも ?v= として付与）
 操作マニュアル	ヘッダ「マニュアル」→ config MANUAL_URL（15期は GitHub Pages 上の PDF）。未設定世代は非表示
 世代管理	boys15 のみ（テンプレート＋config ビルド方式）
 UI_SIMPLE	config で true の世代は html.tcb-ui-simple を付与し、.tcb-ui-advanced ブロックを非表示（公平再分配・履歴1年 PDF・デフォルト保存読込等）
@@ -108,7 +109,7 @@ pat が renshu かつ renshuSplit のとき、道具の practiceVenue（マス�
 活動パターン・欠席・お茶当番・グループに基づき道具を割当。欠席・お茶当番は exSet() により自動割振り候補から除外（手動プルダウンでは選択可）。
 
 3.6 持ち帰り調整モード（runAlgoCarryAdjust）【v1.5／v1.6.5 で「試合前・最小入れ替え調整」へ拡張】
-開始経路：STEP1「前回の結果を元に割振る」（btn-p1-from-prev）／履歴詳細の「前回の結果を元に割振り開始」（btn-hist-start-reedit）／STEP3「最小変更で再調整」（btn-reedit-from-prev／beginReeditFromSnap）。UI 上のモード名は v1.7.0 以降「前回の結果を元に調整」（旧称：試合前・最小入れ替え調整）。
+開始経路：STEP1「いま持っている道具で、グループごとに割り振る」（TCB_P1Flow holdings → beginHoldingsGroupAllocation）／履歴詳細「この記録を基準に割振り開始」（btn-hist-start-reedit）／STEP3「最小変更で再調整」（btn-reedit-from-prev／beginReeditFromSnap）。UI 上のモード名は v1.25 以降「最小変更で再調整」（実行前サマリー表記：基準を維持して調整）。STEP1/2 青バナー：「いまの保有でグループごとに割振る」。
 前回スナップショットの map を基準に、固定担当を維持したまま欠席・お茶当番の変化分をプール再配分。mergePoolSideState でお茶当番引き継ぎ後の side 状態を fullSt に反映。
 活動パターンが前回と不一致でも map ベースで調整可能（バナーで案内）。活動日は開始時に本日へ設定。
 前当番が基準メンバー集合にいない道具は引き継ぎ0件になりうる（STEP3 手動可）。
@@ -130,7 +131,7 @@ pat が renshu かつ renshuSplit のとき、道具の practiceVenue（マス�
 
 4. 主要機能一覧
 4.1 STEP1（活動設定）
-きょうの割振りカード（tcb-today-card：前回結果があるとき表示。beginTodayAllocation で欠席・お茶当番をクリアし調整モードで STEP2 へ直行）、活動パターン、活動日、グループ名、試合メンバー未発表、試合前・最小入れ替え調整の開始
+きょうの割り振り方（tcb-p1-flow：いちから／いま持っている道具でグループごとに割り振る。2分け日は保有ベースをおすすめ表示。別日基準は履歴リンク）、活動日前受け渡し案（tcb-handoff-plan：全体割振りは行わず入れ替え案のみ。入れ替え確定で保有更新）、活動パターン、活動日、グループ名、試合メンバー未発表
 
 4.2 STEP2（欠席・当番）
 対象外選択、お茶当番、道具一時除外（折りたたみ）、いま道具を持っているグループ（tcb-group-hold・折りたたみ・任意）、グループ振り分け（試合モード）、実行前サマリー（tcb-presummary）、割振り実行。調整モード時は STEP1/2 に青バナー＋割り振り方法選択（公平に分散／前回のまま維持）を表示（「現地で受け渡した道具を直す」ボタンから実保有補正モーダルを起動可）
