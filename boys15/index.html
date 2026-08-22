@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.0">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.1">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1121,11 +1121,11 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-login.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.0">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.0">
+<link rel="stylesheet" href="tcb-shell.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-login.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.1">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.1">
 </head>
 <body>
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1356,7 +1356,7 @@ html{color-scheme:light;}
   <div class="modal tcb-scroll-modal">
     <button class="mclose" id="hist-modal-close">&#10005;</button>
     <h2>&#128336; 割振り履歴</h2>
-    <div id="hist-modal-intro" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">基準にする活動日をタップして詳細を表示し、<strong>前回の結果を元に割振り開始</strong>を選んでください（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
+    <div id="hist-modal-intro" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">基準にする活動日をタップして詳細を表示し、<strong>この記録を基準に割振り開始</strong>を選んでください（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。</div>
     <div class="tcb-ui-advanced" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <button type="button" id="hist-month-btn" class="tcb-hist-mo-openbtn">&#128197; 直近1年（活動日）：一覧・PDF</button>
       <span style="font-size:11px;color:var(--txt2);line-height:1.45;">活動日が今日から<strong>過去1年以内</strong>のデータを、道具ごとの担当の並びで表示します（保護者向けPDF用）。</span>
@@ -1385,7 +1385,7 @@ html{color-scheme:light;}
     <button class="mclose" id="hist-detail-close">&#10005;</button>
     <h2 id="hist-detail-title"></h2>
     <div class="tcb-hist-detail-actions" id="hist-detail-actions">
-      <button type="button" class="rbtn" id="btn-hist-start-reedit">前回の結果を元に割振り開始</button>
+      <button type="button" class="rbtn" id="btn-hist-start-reedit">この記録を基準に割振り開始</button>
       <button type="button" class="nb nbs" id="btn-hist-detail-close2">閉じる</button>
     </div>
     <div class="tcb-hist-detail-cond" id="hist-detail-cond"></div>
@@ -1513,7 +1513,7 @@ html{color-scheme:light;}
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
         <summary>
-          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="いま誰の班が持っているかの<strong>控え</strong>です。割振りの班分けは<strong>ルール優先</strong>です。次回活動のグループが決まったら「前回の結果を元に調整」→実行し、STEP3の<strong>入れ替えリスト</strong>をLINE依頼に使ってください。" aria-label="説明"></button></div>
+          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="いま誰の班が持っているかの<strong>控え</strong>です。割振りの班分けは<strong>ルール優先</strong>です。次回活動のグループが決まったら STEP1「いま持っている道具で、グループごとに割り振る」または STEP3「最小変更で再調整」→実行し、STEP3の<strong>入れ替えリスト</strong>をLINE依頼に使ってください。" aria-label="説明"></button></div>
           <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
           <span class="tcb-fold-arrow">&#9660;</span>
         </summary>
@@ -1551,7 +1551,7 @@ html{color-scheme:light;}
       <div class="p3-carry-adjust-summary" id="p3-carry-adjust-summary" role="status"></div>
       <div class="p3-cross-handoff-notice" id="p3-cross-handoff-notice" role="status"></div>
       <div class="al ali tcb-p3-hint" id="p3-reedit-hint" style="display:none;">
-        欠席・当番が変わったときは<strong>「最小変更で再調整」</strong>で、いまの割振りを基準に STEP1 からやり直せます。<button type="button" class="tcb-tip" data-tip="表示中の割振り結果を<strong>基準</strong>に「前回の結果を元に調整」モードへ入ります。前回と同じ担当をできるだけ維持し、必要な人だけ入れ替えます。" aria-label="説明"></button>
+        欠席・当番が変わったときは<strong>「最小変更で再調整」</strong>で、いまの割振りを基準に STEP1 からやり直せます。<button type="button" class="tcb-tip" data-tip="表示中の割振り結果を<strong>基準</strong>に最小変更で再調整モードへ入ります。前回と同じ担当をできるだけ維持し、必要な人だけ入れ替えます。" aria-label="説明"></button>
       </div>
       <div class="p3-cross-team-wrap" id="p3-cross-team-wrap" style="display:none;">
         <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示<button type="button" class="tcb-tip" data-tip="<strong>手動割当のみ</strong>に適用（自動の「割振りを実行」は従来どおり班ごと）。持ち帰り調整モードでは自動でオンになります。" aria-label="説明"></button></label>
@@ -1680,10 +1680,10 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.25.0"></script>
-<script src="tcb-swap-list.js?v=1.25.0"></script>
-<script src="tcb-handoff-plan.js?v=1.25.0"></script>
-<script src="tcb-team-rules.js?v=1.25.0"></script>
+<script src="tcb-device.js?v=1.25.1"></script>
+<script src="tcb-swap-list.js?v=1.25.1"></script>
+<script src="tcb-handoff-plan.js?v=1.25.1"></script>
+<script src="tcb-team-rules.js?v=1.25.1"></script>
 <script>
 
 
@@ -3131,7 +3131,7 @@ function onActualHoldSelChange(e){
 function openActualHoldModal(){
   var base=seedBaseSnap;
   if(!base||typeof base.map!=='object'||base.map===null){
-    alert('補正の基準となる前回の割り当てがありません。\n先に「前回の結果を元に割振る」から調整を開始してください。');
+    alert('補正の基準となる割り当てがありません。\n先に STEP1「いま持っている道具で、グループごとに割り振る」または STEP3「最小変更で再調整」から開始してください。');
     return;
   }
   var listEl=document.getElementById('actual-hold-list');
@@ -4097,7 +4097,7 @@ function copyTextToClipboard(text, okMsg,failMsg){
 function copyCarryAdjustChangeText(){
   var text=getCarryAdjustLineBodyPlain();
   if(!text){
-    alert('前回からの調整データがありません。\n前回の結果を元に割振った結果画面でお試しください。');
+    alert('調整データがありません。\n最小変更で再調整した結果画面でお試しください。');
     return;
   }
   copyTextToClipboard(text,'入れ替え案内（要点）をコピーしました。LINE等に貼り付けてください。','以下をコピーしてLINE等に貼り付けてください');
@@ -4105,7 +4105,7 @@ function copyCarryAdjustChangeText(){
 function copyCarryAdjustFullText(){
   var text=getCarryAdjustChangeTextPlain();
   if(!text){
-    alert('前回からの調整データがありません。\n前回の結果を元に割振った結果画面でお試しください。');
+    alert('調整データがありません。\n最小変更で再調整した結果画面でお試しください。');
     return;
   }
   copyTextToClipboard(text,'入れ替えリスト（全文）をコピーしました。保護者への依頼に使えます。','以下をコピーして保護者へ共有してください');
@@ -4869,7 +4869,7 @@ function confirmHandoffPlan(){
   persistAllocationSnapshot(snap,{appendHistory:true});
   rebuildHandoffBaseCandidates();
   updateSeedModeBanners();
-  tcbToast('入れ替えを確定しました。次回の割振りはこの保有が基準になります。','success');
+  tcbToast('入れ替えを確定しました。活動当日は STEP1「いま持っている道具で、グループごとに割り振る」で担当表を作ってください。','success');
   return {ok:true};
 }
 function computeHandoffPlan(){
@@ -6009,7 +6009,7 @@ function runAlgo(){
   if(carryAdjustMode||seedFromPrev){
     var seedSnap=loadPrevSnapForSeed();
     if(!seedSnap||typeof seedSnap.map!=='object'||seedSnap.map===null){
-      alert('基準となる割振り結果がありません。\nSTEP1の「前回の結果を元に割振る」から基準を選ぶか、通常の割振りを行ってください。');
+      alert('基準となる割振り結果がありません。\nSTEP1「いま持っている道具で、グループごとに割り振る」を選ぶか、通常の割振りを行ってください。');
       return;
     }
     if(carryAdjustMode){
@@ -6092,7 +6092,7 @@ function renderAll(){
   if(carryAdjustRunNotes.length){
     var dCar=document.createElement('div');
     dCar.className='al als';
-    dCar.textContent='前回の結果を元に調整：'+carryAdjustRunNotes.join(' ');
+    dCar.textContent='最小変更で再調整：'+carryAdjustRunNotes.join(' ');
     aa.appendChild(dCar);
   }
   renderCarryAdjustDiffSummary();
@@ -8140,7 +8140,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.25.0';
+  if(vEl)vEl.textContent='v1.25.1';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -8697,18 +8697,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.25.0"></script>
-<script src="html2canvas.min.js?v=1.25.0"></script>
-<script src="html2pdf.min.js?v=1.25.0"></script>
-<script src="tcb-print-pdf.js?v=1.25.0"></script>
-<script src="tcb-feedback.js?v=1.25.0"></script>
-<script src="tcb-sync-api.js?v=1.25.0"></script>
-<script src="tcb-swap-mgr.js?v=1.25.0"></script>
-<script src="tcb-push-mgr.js?v=1.25.0"></script>
-<script src="tcb-login.js?v=1.25.0"></script>
-<script src="tcb-pwa-install.js?v=1.25.0"></script>
-<script src="tcb-group-hold.js?v=1.25.0"></script>
-<script src="tcb-presummary.js?v=1.25.0"></script>
-<script src="tcb-p1-flow.js?v=1.25.0"></script>
+<script src="jspdf.umd.min.js?v=1.25.1"></script>
+<script src="html2canvas.min.js?v=1.25.1"></script>
+<script src="html2pdf.min.js?v=1.25.1"></script>
+<script src="tcb-print-pdf.js?v=1.25.1"></script>
+<script src="tcb-feedback.js?v=1.25.1"></script>
+<script src="tcb-sync-api.js?v=1.25.1"></script>
+<script src="tcb-swap-mgr.js?v=1.25.1"></script>
+<script src="tcb-push-mgr.js?v=1.25.1"></script>
+<script src="tcb-login.js?v=1.25.1"></script>
+<script src="tcb-pwa-install.js?v=1.25.1"></script>
+<script src="tcb-group-hold.js?v=1.25.1"></script>
+<script src="tcb-presummary.js?v=1.25.1"></script>
+<script src="tcb-p1-flow.js?v=1.25.1"></script>
 </body>
 </html>

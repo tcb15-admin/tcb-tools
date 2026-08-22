@@ -139,14 +139,18 @@ async function section1_Functional(browser) {
     check('1', `正常系：${label} → STEP3`, ok);
   }
 
-  /* 1-3 きょうの割振り・実行前確認・戻る */
+  /* 1-3 きょうの割り振り方・実行前確認・戻る */
   await authBypass(page);
   await runAllocationToStep3(page, '#btn-renshu');
   await page.click('#st1');
-  await page.waitForSelector('#tcb-today-host', { timeout: 5000 });
-  check('1', 'きょうの割振りカード表示',
-    await page.evaluate(() => document.getElementById('tcb-today-host')?.style.display !== 'none'));
-  await page.click('#btn-tcb-today-start');
+  await page.waitForSelector('#p1-flow-host', { timeout: 5000 });
+  check('1', 'きょうの割り振り方が表示',
+    await page.evaluate(() => {
+      const h = document.getElementById('p1-flow-host');
+      return h && h.style.display !== 'none' && h.innerHTML !== '';
+    }));
+  await page.click('input[name="p1-flow"][value="holdings"]');
+  await page.click('#btn-s2');
   await page.waitForSelector('#p2.on');
   check('1', '実行前の確認カードに内容あり',
     await page.evaluate(() => (document.getElementById('tcb-presum-body')?.textContent || '').length > 20));
@@ -197,8 +201,9 @@ async function section1_Functional(browser) {
 
   /* 1-6 割り振り方法ラジオ（調整モード中の STEP2） */
   await page.click('#st1');
-  await page.waitForSelector('#btn-tcb-today-start', { timeout: 8000 });
-  await page.click('#btn-tcb-today-start');
+  await page.waitForSelector('input[name="p1-flow"][value="holdings"]:not([disabled])', { timeout: 8000 });
+  await page.click('input[name="p1-flow"][value="holdings"]');
+  await page.click('#btn-s2');
   await page.waitForSelector('#p2.on');
   const methodOk = await page.evaluate(() => {
     const fair = document.querySelector('input[name="p2-seedalloc"][value="fair"]');
@@ -312,8 +317,11 @@ async function section3_OfflineRotatePersist(browser) {
   await page.evaluate(() => sessionStorage.setItem('tcb15Auth', '1'));
   await page.reload();
   await page.waitForSelector('#p1.on');
-  check('3', '再接続後にきょうの割振りカードが復元できる',
-    await page.evaluate(() => document.getElementById('tcb-today-host')?.style.display !== 'none'));
+  check('3', '再接続後にきょうの割り振り方が復元できる',
+    await page.evaluate(() => {
+      const h = document.getElementById('p1-flow-host');
+      return h && h.style.display !== 'none' && h.innerHTML !== '';
+    }));
 
   /* 画面回転 */
   await page.setViewportSize({ width: 844, height: 390 });
@@ -363,7 +371,7 @@ async function section4_ParentAndAssets(browser) {
   /* 必須アセット存在（ビルド成果物） */
   const assets = [
     'tcb-sync-api.js', 'tcb-presummary.js', 'tcb-presummary.css',
-    'tcb-today-card.js', 'tcb-today-card.css', 'tcb-group-hold.js',
+    'tcb-p1-flow.js', 'tcb-p1-flow.css', 'tcb-group-hold.js',
     'tcb-feedback.js', 'sw.js', 'parent-swap.js', 'parent-swap.css',
   ];
   for (const a of assets) {

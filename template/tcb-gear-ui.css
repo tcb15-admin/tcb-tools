@@ -93,8 +93,8 @@ a.hbtn:focus-visible,
   color:var(--tcb-surface,#fff);
 }
 
-/* ---- きょうのカード／サマリーを墨紙半径に ---- */
-.tcb-today-card,.tcb-presum-card{
+/* ---- サマリーカードを墨紙半径に ---- */
+.tcb-presum-card{
   border-radius:var(--tcb-r,4px);
   border-color:var(--tcb-line,var(--bdr,#d4d4d8));
 }

@@ -117,7 +117,7 @@
     if (payload.canConfirm) {
       html += '<div class="tcb-handoff-confirm-wrap">';
       html += '<button type="button" class="tcb-handoff-confirmbtn" id="btn-handoff-confirm">入れ替えを実施確定（保有を更新）</button>';
-      html += '<p class="tcb-handoff-confirm-note">確定すると、この保有が次回割振りの基準になります。過去担当回数（PAST）は増えません。</p>';
+      html += '<p class="tcb-handoff-confirm-note">確定すると、この保有が次回割振りの基準になります（PASTは増えません）。活動当日は STEP1「いま持っている道具で、グループごとに割り振る」で担当表を作ってください。</p>';
       html += '</div>';
     }
     if (lastLineText) {

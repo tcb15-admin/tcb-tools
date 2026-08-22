@@ -97,11 +97,11 @@ async function main() {
   await page.click('#hist-modal-close');
   await delay(300);
 
-  // きょうの割振りカード（前回結果ができた状態で STEP1 に戻ると表示される・v1.11〜）
+  // STEP1 きょうの割り振り方（v1.25〜）
   await page.evaluate(() => document.getElementById('st1')?.click());
   await page.waitForSelector('#p1.on', { timeout: 10000 });
   await page.waitForFunction(() => {
-    const h = document.getElementById('tcb-today-host');
+    const h = document.getElementById('p1-flow-host');
     return h && h.style.display !== 'none' && h.innerHTML !== '';
   }, { timeout: 10000 });
   await page.evaluate(() => window.scrollTo(0, 0));

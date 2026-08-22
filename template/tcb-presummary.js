@@ -57,7 +57,7 @@
     /* 配り方 */
     var how;
     if (d.seedOn) {
-      how = '前回の結果を基準に調整（<strong>'
+      how = '基準を維持して調整（<strong>'
         + (d.method === 'min' ? '前回のまま維持' : '公平に分散') + '</strong>）';
     } else {
       how = '新規に割振り（負荷が公平になるよう自動）';

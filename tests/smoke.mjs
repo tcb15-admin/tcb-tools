@@ -95,8 +95,11 @@ async function main() {
     await page.evaluate(() => getComputedStyle(document.getElementById('pw-screen')).display === 'none'));
   check('STEP1 が表示されている',
     await page.evaluate(() => document.getElementById('p1').className.includes('on')));
-  check('前回結果なし→「きょうの割振り」カードは非表示',
-    await page.evaluate(() => document.getElementById('tcb-today-host').style.display === 'none'));
+  check('前回結果なし→保有ベース割振りは選択不可',
+    await page.evaluate(() => {
+      const h = document.querySelector('input[name="p1-flow"][value="holdings"]');
+      return h && h.disabled;
+    }));
 
   console.log('== 2. 通常割振り（両方練習・欠席1・お茶当番1） ==');
   await page.click('#btn-renshu');
@@ -132,13 +135,20 @@ async function main() {
     check('お茶当番に道具が割り当たっていない', !alloc.ochAssigned);
   }
 
-  console.log('== 3. きょうの割振りカード（Phase 2） ==');
+  console.log('== 3. きょうの割り振り方（保有ベース） ==');
   await page.evaluate(() => document.getElementById('st1').click());
-  check('前回結果あり→カード表示',
-    await page.evaluate(() => document.getElementById('tcb-today-host').style.display !== 'none'));
-  check('従来の「前回の結果を元に割振る」入口は非表示',
-    await page.evaluate(() => getComputedStyle(document.getElementById('p1-from-prev-block')).display === 'none'));
-  await page.click('#btn-tcb-today-start');
+  check('前回結果あり→きょうの割り振り方が表示',
+    await page.evaluate(() => {
+      const host = document.getElementById('p1-flow-host');
+      return host && host.style.display !== 'none' && host.innerHTML !== '';
+    }));
+  check('保有ベース割振りが選択可能',
+    await page.evaluate(() => {
+      const h = document.querySelector('input[name="p1-flow"][value="holdings"]');
+      return h && !h.disabled;
+    }));
+  await page.click('input[name="p1-flow"][value="holdings"]');
+  await page.click('#btn-s2');
   check('開始→STEP2 に遷移',
     await page.evaluate(() => document.getElementById('p2').className.includes('on')));
   check('欠席・お茶当番がクリアされている',
@@ -151,7 +161,7 @@ async function main() {
     await page.evaluate(() => document.getElementById('p2-seed-mode-banner').className.includes('on')));
   await page.evaluate(() => { document.querySelectorAll('#ogrid .mc')[2].click(); });
   await page.click('#btn-run');
-  check('きょうの割振り→STEP3 に遷移',
+  check('きょうの保有ベース割振り→STEP3 に遷移',
     await page.evaluate(() => document.getElementById('p3').className.includes('on')));
 
   await browser.close();
