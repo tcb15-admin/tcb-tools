@@ -77,7 +77,7 @@
       + '</label>'
       + '<p class="p1-flow-foot">'
       + '<button type="button" class="p1-flow-link" id="btn-p1-flow-hist">別の日の記録を基準にする</button>'
-      + '／活動日前に受け渡しだけ依頼する場合は、上の「受け渡し案」を使います。'
+      + '／活動日前にチーム道具の入れ替えを依頼する場合は、上のボタンを使います。'
       + '</p>'
       + '</div>';
 
