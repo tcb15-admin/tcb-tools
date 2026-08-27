@@ -304,6 +304,13 @@
     return !!(t && (t.matchTool == 1 || t.matchTool === '1' || t.matchTool === true));
   }
 
+  /** 入れ替え案：番号（試合道具フラグ）よりグループ間の受け渡し最小を優先する道具種 */
+  var HANDOFF_FLEX_FAMILIES = { tarp: 1, zatsukago: 1, pitcherBall: 1, umpire: 1 };
+
+  function isHandoffFlexFamily(name) {
+    return !!HANDOFF_FLEX_FAMILIES[classify(name)];
+  }
+
   /**
    * 片方試合はグループ名に関係なく試合組寄せする。
    * 練習試合は試合（オープン戦）。「練習」のみが練習。
@@ -325,7 +332,8 @@
    *   labelA?: string,
    *   labelB?: string,
    *   countA?: number,
-   *   countB?: number
+   *   countB?: number,
+   *   handoffFlexFamilies?: boolean
    * }} opts
    * @returns {Object<string,'A'|'B'>}
    */
@@ -341,10 +349,27 @@
     var kata = useKataMatchPracticeSides(opts);
     var fb = fallbackByHeadcount(opts);
 
-    /* 片方試合：試合組へ載せる道具はマスタ「試合道具」のみ。チェックなしは練習組 */
+    /* 片方試合：試合組へ載せる道具はマスタ「試合道具」のみ。チェックなしは練習組
+       入れ替え案（handoffFlexFamilies）：タープ／審判／投手用ボール／雑カゴは
+       双方でほぼ均等に割れるなら番号・試合道具フラグを無視し、保有側維持を優先 */
     if (kata) {
+      if (opts.handoffFlexFamilies) {
+        var byFlex = {};
+        (tools || []).forEach(function (t) {
+          if (!t || !t.name) return;
+          var f = classify(t.name);
+          if (!HANDOFF_FLEX_FAMILIES[f]) return;
+          if (!byFlex[f]) byFlex[f] = [];
+          byFlex[f].push(t);
+        });
+        if (byFlex.tarp) assignHalfSplit(byFlex.tarp, out, opts);
+        if (byFlex.zatsukago) assignOneEach(byFlex.zatsukago, out, opts);
+        if (byFlex.pitcherBall) assignOneEach(byFlex.pitcherBall, out, opts);
+        if (byFlex.umpire) assignOneEach(byFlex.umpire, out, opts);
+      }
       (tools || []).forEach(function (t) {
         if (!t || !t.name) return;
+        if (out[t.name] === 'A' || out[t.name] === 'B') return;
         out[t.name] = isMatchTool(t) ? matchT : pracT;
       });
       return out;
@@ -410,6 +435,7 @@
     classify: classify,
     assignTeams: assignTeams,
     isMatchTool: isMatchTool,
+    isHandoffFlexFamily: isHandoffFlexFamily,
     toolPrefixAndCircled: toolPrefixAndCircled
   };
 })(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : this));

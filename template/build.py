@@ -13,6 +13,7 @@
 """
 
 import json, os, sys, re, shutil
+from datetime import datetime, timezone, timedelta
 
 # ===== 設定 =====
 TEMPLATE_FILE = 'template/tool_template.html'
@@ -64,6 +65,31 @@ def html_body_class(config):
         parts.append('tcb-ui-simple')
     return ' '.join(parts)
 
+def warn_master_snapshot_stale(master_path, md, max_age_days=7):
+    """boys15/master.json が D1 スナップショットとして古い場合に WARN。"""
+    meta = md.get('_meta') if isinstance(md, dict) else None
+    if not isinstance(meta, dict):
+        print(f'[WARN] boys15: {master_path} に _meta がありません。'
+              'D1 と乖離している可能性があります。'
+              'SYNC_API_TOKEN=… node cloudflare-sync/scripts/pull-master.mjs を実行してください。')
+        return
+    synced_at = str(meta.get('syncedAt') or '').strip()
+    if not synced_at:
+        print(f'[WARN] boys15: master.json の _meta.syncedAt がありません。pull-master.mjs で再取得してください。')
+        return
+    try:
+        dt = datetime.fromisoformat(synced_at.replace('Z', '+00:00'))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        age = datetime.now(timezone.utc) - dt.astimezone(timezone.utc)
+        if age > timedelta(days=max_age_days):
+            days = int(age.total_seconds() // 86400)
+            print(f'[WARN] boys15: master.json のスナップショットが {days} 日古いです（syncedAt={synced_at}）。'
+                  'マスタ内容を根拠にする前に pull-master.mjs を実行してください。')
+    except ValueError:
+        print(f'[WARN] boys15: master.json の _meta.syncedAt が不正です: {synced_at!r}')
+
+
 def apply_default_master_block(html, target, config_path):
     """テンプレ内の DEFAULT_MB / TL / DESCS を世代別に差し替え（マーカーは boys15 では除去のみ）。"""
     s = html.find(MASTER_BLOCK_START)
@@ -86,9 +112,10 @@ def apply_default_master_block(html, target, config_path):
             return html
         with open(master_path, encoding='utf-8') as f:
             md = json.load(f)
-        for key in ('MB', 'TL', 'DESCS'):
-            if key not in md:
-                print(f'[ERROR] boys15: master.json に {key} がありません')
+        warn_master_snapshot_stale(master_path, md)
+        for embed_key in ('MB', 'TL', 'DESCS'):
+            if embed_key not in md:
+                print(f'[ERROR] boys15: master.json に {embed_key} がありません')
                 return html
         body = (
             'var DEFAULT_MB=' + json.dumps(md['MB'], ensure_ascii=False) + ';\n'

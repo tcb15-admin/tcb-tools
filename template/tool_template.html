@@ -1702,7 +1702,8 @@ html{color-scheme:light;}
 
 /* ========== デフォルトマスタ ========== */
 /*DEFAULT_MASTER_BLOCK*/
-/* 15期名簿の実体は boys15/master.json。ビルド時は boys15 が master から DEFAULT_* を注入 */
+/* DEFAULT_* は boys15/master.json から build.py が注入（D1 のスナップショット。正本は Cloudflare 同期）。
+   初回・オフライン fallback 用。同期 ON 時は loadMaster が D1 を優先上書きする。 */
 var DEFAULT_MB=[
   {name:"1：遠藤",v:"L",fix:null,rest:0,coach:0,ac14:0,sibling:0},
   {name:"2：伊郷",v:"L",fix:"キャッチャー道具③",rest:0,coach:0,ac14:0,sibling:0},
@@ -2004,6 +2005,16 @@ function isMemUnpublished(){
 function toolIsMatchTool(t){
   return !!(t&&(t.matchTool==1||t.matchTool==='1'||t.matchTool===true));
 }
+/* 入れ替え案：片方試合でも番号・試合道具フラグよりグループ間受け渡し最小を優先する道具種 */
+function toolHandoffFlexFamily(name){
+  if(typeof TCB_TEAM_RULES!=='undefined'&&TCB_TEAM_RULES&&typeof TCB_TEAM_RULES.isHandoffFlexFamily==='function'){
+    return TCB_TEAM_RULES.isHandoffFlexFamily(name);
+  }
+  return /^(タープ|雑カゴ|審判道具|投手用ボール)/.test(String(name||''));
+}
+function isHandoffTeamCompute(){
+  return !!(handoffComputeBaseSnap&&typeof handoffComputeBaseSnap.map==='object');
+}
 /* 片方試合の試合組側。グループ名に「試合」が片方だけ付いているときはそちらを優先 */
 function kataMatchTeamId(){
   var la=String(tnA||''), lb=String(tnB||'');
@@ -2264,6 +2275,19 @@ function stripLegacyToolTeamFields(t){
   delete t.rsRyo;
   return t;
 }
+/* MB.fix は TL.fixed/note から導出するレガシー表示用。割振りは TL のみ参照 */
+function syncMemberFixFromToolFixed(){
+  (MB||[]).forEach(function(m){ if(m&&typeof m==='object')m.fix=null; });
+  var byName={};
+  (MB||[]).forEach(function(m){ if(m&&m.name)byName[m.name]=m; });
+  (TL||[]).forEach(function(t){
+    if(!t||!t.name)return;
+    if(!(t.fixed==1||t.fixed==='1'||t.fixed===true))return;
+    var p=t.note!=null?String(t.note).trim():'';
+    if(!p)return;
+    if(byName[p])byName[p].fix=t.name;
+  });
+}
 function applyMasterObj(obj){
   if(!obj||typeof obj!=='object'||Array.isArray(obj))obj={};
   /* 空配列 [] は JS では truthy のため || だけだと初期マスタが潰れる（Cloudflare 新規 DB 等） */
@@ -2285,6 +2309,7 @@ function applyMasterObj(obj){
     t.matchTool=normFlag01(t.matchTool);
     if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
   });
+  syncMemberFixFromToolFixed();
   /* デフォルト振り分け（キーがあるときのみ更新。null は削除） */
   if(Object.prototype.hasOwnProperty.call(obj,'DEF_TM')){
     try{
@@ -2694,6 +2719,7 @@ function saveMaster(){
   sortMasterTools();
   pruneDescsOrphans();
   TL.forEach(stripLegacyToolTeamFields);
+  syncMemberFixFromToolFixed();
   /* デフォルト振り分けも含める */
   var defTmRaw=_ls.get(LS_DEF_TM);
   var defTmData=defTmRaw?JSON.parse(defTmRaw):null;
@@ -3685,7 +3711,8 @@ function computeRuleTeamMap(activeTools){
     labelA:tnA||'',
     labelB:tnB||'',
     countA:cA,
-    countB:cB
+    countB:cB,
+    handoffFlexFamilies:isHandoffTeamCompute()
   });
 }
 function buildTeamToolListsByRules(){
@@ -3693,10 +3720,12 @@ function buildTeamToolListsByRules(){
   var teamMap=computeRuleTeamMap(active)||{};
   var matchT=kataMatchTeamId();
   var pracT=kataPracticeTeamId();
-  /* 片方試合：試合道具のみ試合組。チェックなしは練習組（ルールJSのキャッシュずれでも本体で強制） */
+  /* 片方試合：試合道具のみ試合組。チェックなしは練習組（ルールJSのキャッシュずれでも本体で強制）
+     入れ替え案ではタープ等4種は teamMap の均等分割を維持（試合道具フラグで上書きしない） */
   if(pat==='kata'){
     active.forEach(function(t){
       if(!t||!t.name)return;
+      if(isHandoffTeamCompute()&&toolHandoffFlexFamily(t.name))return;
       teamMap[t.name]=toolIsMatchTool(t)?matchT:pracT;
     });
   }
@@ -3810,7 +3839,9 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
     var baseMap={}, poolSet={};
     function placeTeamTool(t){
       var tm=t.team||'';
-      if(pat==='kata')tm=toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
+      if(pat==='kata'&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t.name))){
+        tm=toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
+      }
       var mem=(tm==='A')?nA:nB;
       if(!mem)return;
       var p=prevMap[t.name];

@@ -12,7 +12,7 @@ alwaysApply: true
 ## 作業時の優先順位
 
 1. `template/` 改修後は `python3 template/build.py` で **boys15/index.html** を必ず確認。
-2. ドキュメント・スクショ・PDF・通知文は **`boys15/docs/`** を正とする。15期の **master.json／実画面** に基づくこと。
+2. ドキュメント・スクショ・PDF・通知文は **`boys15/docs/`** を正とする。15期の **マスタ実データ** は **Cloudflare D1（同期済み実画面）** が正。`boys15/master.json` はビルド用スナップショットで古いことがある（詳細は `tcb-master-source.mdc`）。
 
 ## ドキュメント
 

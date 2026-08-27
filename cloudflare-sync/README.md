@@ -100,6 +100,17 @@ curl -sS -H "Authorization: Bearer <トークン>" "http://127.0.0.1:8787/api/st
 
 `master` / `version` が JSON で返れば OK。
 
+### リポジトリの `boys15/master.json` を D1 に合わせる
+
+Git 上の `boys15/master.json` は **ビルド用スナップショット** で、D1 と自動同期されません。開発・エージェントがマスタ内容を参照する前に:
+
+```bash
+SYNC_API_TOKEN='（Bearer）' node cloudflare-sync/scripts/pull-master.mjs
+python3 template/build.py boys15
+```
+
+詳細: `boys15/master.README.md` / `.cursor/rules/tcb-master-source.mdc`
+
 ## 9. API 一覧
 
 認可: 下記のうち `Authorization: Bearer <token>` が必要なのは **`/api/public/` 以外のすべて**。`/api/public/` は shareId で個別に検証する **公開経路（トークン不要）**。

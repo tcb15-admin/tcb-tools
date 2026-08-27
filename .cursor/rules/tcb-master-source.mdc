@@ -1,0 +1,35 @@
+---
+description: 15期マスタデータの正本とエージェント向け確認手順（古い master.json 参照の防止）
+alwaysApply: true
+---
+
+# マスタデータの正本（15期・エージェント向け）
+
+## 優先順位（上が正）
+
+1. **Cloudflare D1**（`GET /api/state?cohort=15`）… 同期 ON 運用の **実マスタ**
+2. **ユーザー提示の実画面**（マスタ画面スクショ・「同期済み」表示）… D1 と一致
+3. **端末 localStorage** … 未保存の編集がある場合のみ一時的に優先
+4. **`boys15/master.json`** … **ビルド用スナップショット**。D1 と **自動同期されない**（古いことが多い）
+5. **`template/tool_template.html` の DEFAULT_* ブロック** … テンプレ fallback。boys15 ビルド後は `master.json` 由来
+
+## エージェントがマスタ内容（固定担当・試合道具等）を答える／実装判断するとき
+
+- **repo の `boys15/master.json` だけを根拠に断定しない**
+- 可能なら **クラウドから取得**してから答える:
+  ```bash
+  SYNC_API_TOKEN='…' node cloudflare-sync/scripts/pull-master.mjs
+  ```
+  （トークンは `boys15/index.html` ビルド注入値またはユーザー管理。チャットに貼らない）
+- 取得できない場合は **ユーザーにマスタ画面の確認を依頼**するか、スクショを根拠にする
+- `master.json` の `_meta.cloudVersion` / `_meta.syncedAt` が無い・古い場合は **要再取得** と明記
+
+## 割振りロジックが参照する固定担当
+
+- **道具マスタ `TL.fixed` + `TL.note` のみ**（`MB.fix` は表示用レガシー。保存時に TL から同期される）
+- 片方試合のグループ分けは **`TL.matchTool`（試合道具）** ＋ 固定担当補正（`mergeTeamToolListsForFixed`）
+
+## ビルド前
+
+- `python3 template/build.py` の前に `pull-master.mjs` を実行し、`boys15/master.json` を D1 に近づける
+- ビルド時に `_meta` が 7 日超古いと WARN が出る（意図的に古いままなら pull 後に再ビルド）
