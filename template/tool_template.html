@@ -195,7 +195,7 @@ html[data-cohort="15"] header{
 .rest-badge,.quit-badge,.coach-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
 .rest-badge{background:#90a4ae;}.quit-badge{background:#78909c;}.coach-badge{background:var(--coach);}
 .master-excl-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
-.ac14-badge{background:#5c6bc0;}.sibling-badge{background:#8d6e63;}.nomulti-badge{background:#7b1fa2;}
+.ac14-badge{background:#5c6bc0;}.sibling-badge{background:#8d6e63;}.nomulti-badge{background:#7b1fa2;}.remote-badge{background:#546e7a;}
 .mc.master-excl{border-color:#b0bec5;background:#eceff1;opacity:.6;cursor:default;}
 .tc2{display:flex;align-items:center;gap:5px;padding:9px 10px;border-radius:12px;cursor:pointer;border:1px solid var(--bdr);background:#fff;user-select:none;min-height:var(--tap);flex-wrap:wrap;}
 .tc2:active{opacity:.7;}
@@ -1231,7 +1231,7 @@ html{color-scheme:light;}
         <div class="mgrid" id="handoff-tgrid"></div>
       </div>
       <button type="button" class="rbtn tcb-handoff-calc" id="btn-handoff-calc">入れ替え案を算出</button>
-      <p class="tcb-handoff-note">欠席・お茶当番は見ません。ルール上動かす必要がある道具だけ入れ替え、それ以外は前回の担当のままです。2名交換は当人同士で直接、一方向の受け渡しは<strong>グループ宛て</strong>（そのグループの誰かに渡ればOK）になります。受け渡しが決まったら「入れ替えを実施確定」で、次回割振りの基準として記録できます。</p>
+      <p class="tcb-handoff-note">欠席・お茶当番は見ません。ルール上動かす必要がある道具だけ入れ替え、それ以外は前回の担当のままです。2名交換は当人同士で直接、一方向の受け渡しは<strong>グループ宛て</strong>（そのグループの誰かに渡ればOK）になります。<strong>タープ</strong>はマスタ「遠方」のメンバーを避け、非遠方で本数をほぼ均等に調整します（遠方などで難しい場合は算出後に任意調整も可）。受け渡しが決まったら「入れ替えを実施確定」で、次回割振りの基準として記録できます。</p>
       <div id="tcb-handoff-result"></div>
     </div>
   </div>
@@ -1608,7 +1608,7 @@ html{color-scheme:light;}
         </h3>
         <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示は背番号（名前の「番号：」の左側）の昇順です。番号がない行は末尾に並びます。</div>
         <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分（名前の右のプルダウン）：S＝軽自動車、M＝普通車、L＝ミニバン程度、LL＝大型ワゴン程度。</div>
-        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>退部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。</div>
+        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>退部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。<strong>遠方</strong>は割振り対象のまま、入れ替え案のタープでは直前の受け渡しを避けて非遠方で均等化します。</div>
         <div id="m-members"></div>
         <button class="madd" id="btn-add-mbr">&#65291; メンバー追加</button>
       </div>
@@ -2147,6 +2147,7 @@ function normalizeMemberRow(m){
   if(m.coach===undefined)m.coach=0;
   if(m.ac14===undefined)m.ac14=0;
   if(m.sibling===undefined)m.sibling=0;
+  if(m.remote===undefined)m.remote=0;
   if(m.quit===undefined)m.quit=0;
   if(m.noMulti===undefined)m.noMulti=0;
   m.rest=normFlag01(m.rest);
@@ -2154,6 +2155,7 @@ function normalizeMemberRow(m){
   m.coach=normFlag01(m.coach);
   m.ac14=normFlag01(m.ac14);
   m.sibling=normFlag01(m.sibling);
+  m.remote=normFlag01(m.remote);
   m.noMulti=normFlag01(m.noMulti);
   m.v=normalizeMemberVehicle(m.v);
 }
@@ -2163,6 +2165,22 @@ function memberMasterExcluded(m){
 function memberRowByName(name){
   for(var i=0;i<MB.length;i++){if(MB[i]&&MB[i].name===name)return MB[i];}
   return null;
+}
+function isMemberRemote(m){
+  return !!(m&&normFlag01(m.remote)===1);
+}
+function isMemberRemoteByName(name){
+  return isMemberRemote(memberRowByName(name));
+}
+function isHandoffTarpTool(name){
+  return /^タープ/.test(String(name||''));
+}
+function countMapTarpsForPerson(map, personName){
+  var n=0;
+  Object.keys(map||{}).forEach(function(tn){
+    if(map[tn]===personName&&isHandoffTarpTool(tn))n++;
+  });
+  return n;
 }
 function isMemberNoMulti(m){
   return !!(m&&normFlag01(m.noMulti)===1);
@@ -3913,6 +3931,7 @@ function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
   var notes=[], detail=[], swapCount=0;
   if(ctx.mode!=='team'||!prevMap)return notes;
   ex=ex||{};
+  var handoff=!!handoffComputeBaseSnap;
   var toolByName={};
   (ctx.allTools||[]).forEach(function(t){toolByName[t.name]=t;});
   var poolList=[];
@@ -3929,28 +3948,99 @@ function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
     if(!memberInTeamByTmMap(pp, otherTm))return;
     poolList.push({tn:tn, team:tm, prevP:pp});
   });
-  var used={};
-  for(var i=0;i<poolList.length;i++){
-    if(used[i])continue;
-    var x=poolList[i];
-    for(var j=i+1;j<poolList.length;j++){
-      if(used[j])continue;
-      var y=poolList[j];
-      if(x.team===y.team)continue;
-      if(!memberInTeamByTmMap(y.prevP, x.team))continue;
-      if(!memberInTeamByTmMap(x.prevP, y.team))continue;
-      baseMap[x.tn]=y.prevP;
-      baseMap[y.tn]=x.prevP;
-      delete poolSet[x.tn];
-      delete poolSet[y.tn];
-      used[i]=used[j]=1;
-      swapCount++;
-      detail.push(x.prevP+'さん⇔'+y.prevP+'さん（'+x.tn+'／'+y.tn+'）');
-      break;
+  function tryPair(avoidRemoteTarp){
+    for(var i=0;i<poolList.length;i++){
+      if(used[i])continue;
+      var x=poolList[i];
+      for(var j=i+1;j<poolList.length;j++){
+        if(used[j])continue;
+        var y=poolList[j];
+        if(x.team===y.team)continue;
+        if(!memberInTeamByTmMap(y.prevP, x.team))continue;
+        if(!memberInTeamByTmMap(x.prevP, y.team))continue;
+        if(avoidRemoteTarp&&handoff&&(isHandoffTarpTool(x.tn)||isHandoffTarpTool(y.tn))){
+          if(isMemberRemoteByName(x.prevP)||isMemberRemoteByName(y.prevP))continue;
+        }
+        baseMap[x.tn]=y.prevP;
+        baseMap[y.tn]=x.prevP;
+        delete poolSet[x.tn];
+        delete poolSet[y.tn];
+        used[i]=used[j]=1;
+        swapCount++;
+        detail.push(x.prevP+'さん⇔'+y.prevP+'さん（'+x.tn+'／'+y.tn+'）');
+        break;
+      }
     }
   }
+  var used={};
+  if(handoff)tryPair(true);
+  tryPair(false);
   if(swapCount)notes.push('班入替の最小スワップ：'+swapCount+'組を自動入れ替え（'+detail.join('、')+'）。');
   return notes;
+}
+/* 入れ替え案：遠方メンバー保有のタープを同班の非遠方へ移す（直前の受け渡し負担を減らす） */
+function applyHandoffRelocateTarpsFromRemote(baseMap, poolSet, prevMap, ctx, ex){
+  if(!handoffComputeBaseSnap||ctx.mode!=='team')return;
+  ex=ex||{};
+  var toolByName={};
+  (ctx.allTools||[]).forEach(function(t){if(t&&t.name)toolByName[t.name]=t;});
+  Object.keys(baseMap).slice().forEach(function(tn){
+    var holder=baseMap[tn];
+    if(!holder||ex[holder]||!isMemberRemoteByName(holder))return;
+    if(!isHandoffTarpTool(tn))return;
+    var t=toolByName[tn];
+    if(!t||t.fixed)return;
+    var team=t.team||tmMap[holder]||'';
+    if(team!=='A'&&team!=='B')return;
+    var candidates=(team==='A'?ctx.mA:ctx.mB).filter(function(m){
+      return m&&m.name&&!ex[m.name]&&!isMemberRemoteByName(m.name);
+    });
+    candidates.sort(function(a,b){
+      return countMapTarpsForPerson(baseMap,a.name)-countMapTarpsForPerson(baseMap,b.name);
+    });
+    for(var i=0;i<candidates.length;i++){
+      var nm=candidates[i].name;
+      if(isMemberNoMultiByName(nm)&&countAssignMapToolsForPerson(baseMap,nm,null)>=1)continue;
+      baseMap[tn]=nm;
+      return;
+    }
+  });
+}
+/* 入れ替え案：各班でタープ本数を非遠方メンバー間でほぼ均等に */
+function applyHandoffBalanceTarpsAmongNonRemote(map, ctx, allTools, ex){
+  if(!handoffComputeBaseSnap||ctx.mode!=='team')return;
+  ex=ex||{};
+  ['A','B'].forEach(function(team){
+    var members=(team==='A'?ctx.mA:ctx.mB).filter(function(m){
+      return m&&m.name&&!ex[m.name]&&!isMemberRemoteByName(m.name);
+    });
+    if(members.length<2)return;
+    var tarps=(allTools||[]).filter(function(t){
+      return t&&isHandoffTarpTool(t.name)&&(t.team||'')===team&&!t.fixed;
+    });
+    for(var guard=0;guard<64;guard++){
+      var counts={};
+      members.forEach(function(m){counts[m.name]=0;});
+      tarps.forEach(function(t){
+        var p=map[t.name];
+        if(p&&counts[p]!==undefined)counts[p]++;
+      });
+      var stats=members.map(function(m){return {name:m.name,c:counts[m.name]||0};});
+      stats.sort(function(a,b){return a.c-b.c;});
+      var lo=stats[0], hi=stats[stats.length-1];
+      if(hi.c-lo.c<=1)break;
+      var moved=false;
+      for(var ti=0;ti<tarps.length;ti++){
+        var tn=tarps[ti].name;
+        if(map[tn]!==hi.name)continue;
+        if(isMemberNoMultiByName(lo.name)&&countAssignMapToolsForPerson(map,lo.name,tn)>=1)continue;
+        map[tn]=lo.name;
+        moved=true;
+        break;
+      }
+      if(!moved)break;
+    }
+  });
 }
 function toolsByPersonFromMap(assignMap, toolNames){
   var byPerson={};
@@ -4593,10 +4683,179 @@ function handoffGroupMarker(team){
 }
 /* 直近の算出結果（実施確定用に保持。モーダルを閉じたら破棄） */
 var handoffLastPlan=null;
+function handoffMarkerTmFromMap(map, allTools){
+  var markerTm={}, toolTeam={};
+  (allTools||[]).forEach(function(t){if(t&&t.name)toolTeam[t.name]=t.team||'';});
+  Object.keys(map||{}).forEach(function(tn){
+    var h=map[tn];
+    if(!handoffIsGroupDest(h))return;
+    var team=toolTeam[tn];
+    if(team==='A'||team==='B')markerTm[h]=team;
+  });
+  return markerTm;
+}
+/* 一方向の変更は受け取りを【グループ名】に置換（2名交換に含まれる道具は個人名のまま） */
+function handoffApplyGroupMarkersToMap(map, snap, ctx, allTools){
+  if(!ctx||ctx.mode!=='team')return map;
+  var personReport=buildCarryAdjustChangeReport(snap.map, map, allTools);
+  var swapTools={};
+  (personReport.swapGroups||[]).forEach(function(g){
+    (g.tools||[]).forEach(function(t){swapTools[t.toolA]=1;swapTools[t.toolB]=1;});
+  });
+  var finalMap={}, toolTeamByName={};
+  (allTools||[]).forEach(function(t){toolTeamByName[t.name]=t.team||'';});
+  Object.keys(map||{}).forEach(function(tn){
+    var curr=map[tn], prev=snap.map[tn];
+    if(!curr){return;}
+    if(prev===curr||swapTools[tn]){finalMap[tn]=curr;return;}
+    var team=toolTeamByName[tn]||tmMap[curr]||'';
+    if(team!=='A'&&team!=='B'){finalMap[tn]=curr;return;}
+    finalMap[tn]=handoffGroupMarker(team);
+  });
+  return finalMap;
+}
+function handoffActiveMembers(ctx){
+  if(!ctx)return [];
+  if(ctx.mode==='team')return (ctx.mA||[]).concat(ctx.mB||[]);
+  return ctx.members||[];
+}
+function handoffEditHolderOptions(toolName, ctx, snap){
+  var prev=(snap&&snap.map&&snap.map[toolName])||'';
+  var opts=[{value:'__prev__',label:'前回どおり'+(prev?'（'+prev+'）':'（変更なし）')}];
+  var toolTeam='';
+  (ctx&&(ctx.allTools||ctx.tools)||[]).forEach(function(t){
+    if(t&&t.name===toolName)toolTeam=t.team||'';
+  });
+  var seen={};
+  function addPerson(name){
+    if(!name||seen[name])return;
+    seen[name]=1;
+    opts.push({value:name,label:name});
+  }
+  if(ctx&&ctx.mode==='team'){
+    var members=(toolTeam==='B')?(ctx.mB||[]):(ctx.mA||[]);
+    if(toolTeam!=='A'&&toolTeam!=='B'){
+      members=handoffActiveMembers(ctx);
+    }
+    members.forEach(function(m){addPerson(m&&m.name);});
+    if(toolTeam==='A'||toolTeam==='B'){
+      var mk=handoffGroupMarker(toolTeam);
+      opts.push({value:mk,label:mk+'（組内で調整・担当未定）'});
+    }
+  }else{
+    (ctx.members||[]).forEach(function(m){addPerson(m&&m.name);});
+  }
+  if(prev&&!seen[prev]&&!handoffIsGroupDest(prev))opts.push({value:prev,label:prev+'（前回担当・班外）'});
+  return opts;
+}
+function handoffPlanRenderPayload(plan){
+  if(!plan||!plan.baseSnap||!plan.ctx)return null;
+  var snap=plan.baseSnap, ctx=plan.ctx, allTools=plan.allTools;
+  var report=plan.report;
+  var markerSet={};
+  Object.keys(plan.markerTm||{}).forEach(function(mk){markerSet[mk]=1;});
+  function isGroupHolder(n){return !!markerSet[n];}
+  return {
+    report:report,
+    lineText:plan.lineText,
+    html:(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function')
+      ?TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:handoffPersonLabel,isGroupHolder:isGroupHolder}):'',
+    holdingsHtml:buildHandoffHoldingsHtml(plan.map, ctx, plan.markerTm),
+    editPanelHtml:buildHandoffEditPanelHtml(plan),
+    edited:!!plan.edited,
+    canConfirm:report.changed>0,
+    canPdf:report.changed>0
+  };
+}
+function rebuildHandoffPlanFromMap(finalMap, editedFlag){
+  var plan=handoffLastPlan;
+  if(!plan||!plan.baseSnap||!plan.ctx)return {error:'調整対象がありません。先に入れ替え案を算出してください。'};
+  var snap=plan.baseSnap, ctx=plan.ctx, allTools=plan.allTools;
+  var markerTm=handoffMarkerTmFromMap(finalMap, allTools);
+  var report=buildCarryAdjustChangeReport(snap.map, finalMap, allTools);
+  handoffLastPlan=Object.assign({}, plan, {
+    map:finalMap,
+    markerTm:markerTm,
+    report:report,
+    lineText:buildHandoffLineText(report, snap),
+    changed:report.changed,
+    edited:!!editedFlag
+  });
+  _handoffPdfBlobCache={html:'',blob:null};
+  return handoffPlanRenderPayload(handoffLastPlan);
+}
+function buildHandoffEditPanelHtml(plan){
+  if(!plan||!plan.report||!plan.report.changed){
+    return '<div class="tcb-handoff-edit"><p class="tcb-handoff-edit-note">変更がないため、任意調整は不要です。</p></div>';
+  }
+  var snap=plan.baseSnap, ctx=plan.ctx, report=plan.report;
+  var changedTn={};
+  (report.swapGroups||[]).forEach(function(g){
+    (g.tools||[]).forEach(function(t){changedTn[t.toolA]=1;changedTn[t.toolB]=1;});
+  });
+  (report.others||[]).forEach(function(o){changedTn[o.tn]=1;});
+  var rows=[];
+  Object.keys(changedTn).sort(function(a,b){return String(a).localeCompare(String(b),'ja');}).forEach(function(tn){
+    var cur=plan.map[tn]||'';
+    var prev=(snap.map&&snap.map[tn])||'';
+    var opts=handoffEditHolderOptions(tn, ctx, snap);
+    var sel='<select class="tcb-handoff-edit-sel" data-tool="'+esc(tn)+'" aria-label="'+esc(tn)+'の入れ替え先">';
+    var matched=false;
+    opts.forEach(function(o){
+      var selAttr=(o.value===cur)?' selected':'';
+      if(o.value===cur)matched=true;
+      sel+='<option value="'+esc(o.value)+'"'+selAttr+'>'+esc(o.label)+'</option>';
+    });
+    if(cur&&!matched){
+      sel+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'（現在）</option>';
+    }
+    sel+='</select>';
+    rows.push('<tr><td class="tcb-handoff-edit-tool">'+esc(tn)+'</td><td>'+esc(prev||'—')+'</td><td>'+sel+'</td></tr>');
+  });
+  var editedNote=plan.edited?'<p class="tcb-handoff-edit-warn">※ 算出結果から手動調整済みです。</p>':'';
+  return '<div class="tcb-handoff-edit">'
+    +'<div class="tcb-handoff-edit-hd">任意で調整（遠方メンバーなど）</div>'
+    +'<p class="tcb-handoff-edit-note">変更が必要な道具だけ、入れ替え先を選び直せます。「前回どおり」に戻すとその道具は受け渡し不要になります。反映後に PDF 出力・実施確定ができます。</p>'
+    +editedNote
+    +'<div class="tcb-handoff-edit-scroll"><table class="tcb-handoff-edit-tbl"><thead><tr><th>道具</th><th>前回</th><th>これから</th></tr></thead><tbody>'
+    +rows.join('')
+    +'</tbody></table></div>'
+    +'<div class="tcb-handoff-edit-actions">'
+    +'<button type="button" class="tcb-handoff-edit-apply" id="btn-handoff-edit-apply">調整を反映</button>'
+    +'<button type="button" class="tcb-handoff-edit-reset" id="btn-handoff-edit-reset">算出結果に戻す</button>'
+    +'</div></div>';
+}
+function applyHandoffEditFromDom(){
+  var plan=handoffLastPlan;
+  if(!plan||!plan.baseSnap)return {error:'先に入れ替え案を算出してください。'};
+  var snap=plan.baseSnap;
+  var nextMap=Object.assign({}, plan.map);
+  var sels=document.querySelectorAll('#tcb-handoff-result .tcb-handoff-edit-sel');
+  if(!sels.length)return {error:'調整対象がありません。'};
+  for(var i=0;i<sels.length;i++){
+    var sel=sels[i];
+    var tn=sel.getAttribute('data-tool');
+    if(!tn)continue;
+    var val=sel.value;
+    if(val==='__prev__'){
+      if(snap.map[tn])nextMap[tn]=snap.map[tn];
+      else delete nextMap[tn];
+    }else{
+      nextMap[tn]=val;
+    }
+  }
+  return rebuildHandoffPlanFromMap(nextMap, true);
+}
+function resetHandoffPlanToAuto(){
+  var plan=handoffLastPlan;
+  if(!plan||!plan.autoMap)return {error:'算出結果がありません。'};
+  return rebuildHandoffPlanFromMap(clonePlainObj(plan.autoMap), false);
+}
 /* 次回活動の入れ替え案：前回保有を維持し、ルール上動かせない分だけ最小スワップ＋余剰は変更人数最小。公平分散はしない。R は触らない */
 function buildHandoffKeepMinMap(snap, ctx, seed){
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ctx.ex);
+  applyHandoffRelocateTarpsFromRemote(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
   enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
@@ -4616,6 +4875,7 @@ function buildHandoffKeepMinMap(snap, ctx, seed){
   }else{
     fill(ctx.members, ctx.tools, null);
   }
+  applyHandoffBalanceTarpsAmongNonRemote(map, ctx, allTools, ctx.ex);
   return map;
 }
 function handoffPersonLabel(name){
@@ -4749,6 +5009,7 @@ function buildHandoffPdfDocument(){
   var baseMark=snap.confirmedAt?(normFlag01(snap.handoff)?'入れ替え確定':'実施確定'):'試行';
   var subTxt='基準：'+(fmtDayLabelJa(snap.date)||'前回')+'（'+baseMark+'）の保有 → 次回：'+patLabel(pat,renshuSplit)
     +(needsTeamUI()?'〔'+(tnA||'A')+'／'+(tnB||'B')+'〕':'')
+    +(plan.edited?'　※手動調整あり':'')
     +'　発行：'+fmtDayLabelJa(localIsoDateFromDate());
   function destCell(curr){
     if(handoffIsGroupDest(curr))return esc(curr.replace(/^【|】$/g,''))+'<span class="hp-tbd">（組内で調整・担当は次回決定）</span>';
@@ -4986,56 +5247,29 @@ function computeHandoffPlan(){
   }
   if(err)return {error:err};
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
-  /* 2名交換はそのまま。それ以外の変更（一方向）は受け取り側を【グループ名】に置き換える */
-  var markerTm={};
-  var finalMap=map;
-  if(ctx.mode==='team'){
-    var personReport=buildCarryAdjustChangeReport(snap.map, map, allTools);
-    var swapTools={};
-    (personReport.swapGroups||[]).forEach(function(g){
-      (g.tools||[]).forEach(function(t){swapTools[t.toolA]=1;swapTools[t.toolB]=1;});
-    });
-    finalMap={};
-    var toolTeamByName={};
-    allTools.forEach(function(t){toolTeamByName[t.name]=t.team||'';});
-    Object.keys(map).forEach(function(tn){
-      var curr=map[tn], prev=snap.map[tn];
-      if(!curr){return;}
-      if(prev===curr||swapTools[tn]){finalMap[tn]=curr;return;}
-      var team=toolTeamByName[tn]||tmMap[curr]||'';
-      if(team!=='A'&&team!=='B'){finalMap[tn]=curr;return;}
-      var mk=handoffGroupMarker(team);
-      finalMap[tn]=mk;
-      markerTm[mk]=team;
-    });
-  }
+  var personMap=map;
+  var finalMap=handoffApplyGroupMarkersToMap(personMap, snap, ctx, allTools);
   var report=buildCarryAdjustChangeReport(snap.map, finalMap, allTools);
+  var markerTm=handoffMarkerTmFromMap(finalMap, allTools);
   var markerSet={};
   Object.keys(markerTm).forEach(function(mk){markerSet[mk]=1;});
   function isGroupHolder(n){return !!markerSet[n];}
   var lineText=buildHandoffLineText(report, snap);
-  var html='';
-  if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function'){
-    html=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:handoffPersonLabel,isGroupHolder:isGroupHolder});
-  }
   handoffLastPlan={
     baseSnap:snap,
+    ctx:ctx,
     map:finalMap,
+    autoMap:clonePlainObj(finalMap),
+    personMap:clonePlainObj(personMap),
     mode:ctx.mode,
     allTools:allTools,
     markerTm:markerTm,
     report:report,
     lineText:lineText,
-    changed:report.changed
+    changed:report.changed,
+    edited:false
   };
-  return {
-    report:report,
-    lineText:lineText,
-    html:html,
-    holdingsHtml:buildHandoffHoldingsHtml(finalMap, ctx, markerTm),
-    canConfirm:report.changed>0,
-    canPdf:report.changed>0
-  };
+  return handoffPlanRenderPayload(handoffLastPlan);
 }
 function prio(s, medianPast){
   var pastTerm=pastPenaltyTerm(s.past, medianPast||0)*WA;
@@ -5100,6 +5334,8 @@ function assignMinChangersScore(name, st, state, prevMap, prevPerson, opts){
   if(personAlreadyChangedFromPrev(state,name,prevMap))score+=800;
   if(prevPerson&&prevPerson===name)score+=400;
   score+=(st.cnt|0)*10;
+  var toolName=opts&&opts.toolName?opts.toolName:'';
+  if(handoffComputeBaseSnap&&toolName&&isHandoffTarpTool(toolName)&&isMemberRemoteByName(name))score+=60000;
   if(prevMap&&!personAlreadyChangedFromPrev(state,name,prevMap)&&!(opts&&opts.zeroPriority&&opts.zeroPriority[name]))score-=20000;
   return score;
 }
@@ -5127,6 +5363,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   var minChangers=!!(opts&&opts.minChangers);
   var maxAdd=minChangers?(keys.length+1):(keys.length+8);
   var addStart=minChangers?(keys.length):0;
+  var scoreOpts=opts?Object.assign({},opts,{toolName:t.name}):{toolName:t.name};
   function notePoolAssign(name){
     if(minChangers&&opts&&opts.poolAssigned&&name)opts.poolAssigned[name]=(opts.poolAssigned[name]||0)+1;
   }
@@ -5140,8 +5377,8 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
           .map(function(k){return [k,state[k]];})
           .sort(function(a,b){
             if(minChangers){
-              var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,opts);
-              var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,opts);
+              var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,scoreOpts);
+              var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,scoreOpts);
               if(sa!==sb)return sb-sa;
             }else{
               var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
@@ -5179,8 +5416,8 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   if(!placed){
     var sorted=keys.map(function(n){return [n,state[n]];}).sort(function(a,b){
       if(minChangers){
-        var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,opts);
-        var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,opts);
+        var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,scoreOpts);
+        var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,scoreOpts);
         if(sa!==sb)return sb-sa;
       }
       var p=prio(a[1], medianPast)-prio(b[1], medianPast);
@@ -5190,8 +5427,8 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
     if(soloEx){
       var byCnt=sorted.slice().sort(function(a,b){
         if(minChangers){
-          var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,opts);
-          var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,opts);
+          var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,scoreOpts);
+          var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,scoreOpts);
           if(sa!==sb)return sb-sa;
         }else{
           var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
@@ -5781,8 +6018,10 @@ function tcbMasterConfirmDone(ok){
 
 /* ========== グリッド（STEP2） ========== */
 function memberGridExtraBadgeHtml(m){
-  if(isMemberNoMulti(m))return '<span class="master-excl-badge nomulti-badge">1道具まで</span>';
-  return '';
+  var h='';
+  if(isMemberRemote(m))h+='<span class="master-excl-badge remote-badge">遠方</span>';
+  if(isMemberNoMulti(m))h+='<span class="master-excl-badge nomulti-badge">1道具まで</span>';
+  return h;
 }
 function buildAGrid(){
   var g=document.getElementById('agrid'); if(!g)return; g.innerHTML='';
@@ -7513,6 +7752,10 @@ function buildMasterMembers(){
     sl.title='上下期に兄妹がおり当期の割振り対象外';
     var sc=document.createElement('input'); sc.type='checkbox'; sc.checked=!!m.sibling;
     sl.appendChild(sc); sl.appendChild(document.createTextNode('兄弟所属'));
+    var rml=document.createElement('label'); rml.className='master-mbr-flag-lbl';
+    rml.title='活動前の道具入れ替えが困難な距離に住む保護者。入れ替え案のタープは非遠方で均等化';
+    var rmc=document.createElement('input'); rmc.type='checkbox'; rmc.checked=!!m.remote;
+    rml.appendChild(rmc); rml.appendChild(document.createTextNode('遠方'));
     var nml=document.createElement('label'); nml.className='master-mbr-flag-lbl';
     nml.title='自動割振りでは1日1道具まで（固定担当を含む）。夏場など負担を抑えたい保護者向け';
     var nmc=document.createElement('input'); nmc.type='checkbox'; nmc.checked=!!m.noMulti;
@@ -7520,9 +7763,10 @@ function buildMasterMembers(){
     var flagsWrap=document.createElement('div'); flagsWrap.className='master-mbr-flags-wrap';
     flagsWrap.appendChild(rl); flagsWrap.appendChild(ql); flagsWrap.appendChild(cl);
     flagsWrap.appendChild(a14l); flagsWrap.appendChild(sl);
+    flagsWrap.appendChild(rml);
     flagsWrap.appendChild(nml);
     var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
-    (function(ii,n2,v2,r2,q2,c2,a2,s2,nm2){
+    (function(ii,n2,v2,r2,q2,c2,a2,s2,rm2,nm2){
       n2.addEventListener('change',function(){
         if(n2.value!==MB[ii].name)migrateMemberNameRefs(MB[ii].name,n2.value);
         MB[ii].name=n2.value;
@@ -7534,6 +7778,7 @@ function buildMasterMembers(){
       c2.addEventListener('change',function(){MB[ii].coach=c2.checked?1:0;});
       a2.addEventListener('change',function(){MB[ii].ac14=a2.checked?1:0;});
       s2.addEventListener('change',function(){MB[ii].sibling=s2.checked?1:0;});
+      rm2.addEventListener('change',function(){MB[ii].remote=rm2.checked?1:0;});
       nm2.addEventListener('change',function(){MB[ii].noMulti=nm2.checked?1:0;});
       db.addEventListener('click',function(){
         var nm=String((MB[ii]&&MB[ii].name)||n2.value||'').trim()||'このメンバー';
@@ -7545,7 +7790,7 @@ function buildMasterMembers(){
           MB.splice(ii,1);buildMasterMembers();
         });
       });
-    })(i,ni,vs,rc,qc,cc,a14c,sc,nmc);
+    })(i,ni,vs,rc,qc,cc,a14c,sc,rmc,nmc);
     row.appendChild(ni); row.appendChild(vs); row.appendChild(flagsWrap); row.appendChild(db);
     el.appendChild(row);
   });
@@ -8569,6 +8814,8 @@ document.addEventListener('DOMContentLoaded',function(){
       },
       getSkippedTools:handoffSkippedToolNames,
       compute:computeHandoffPlan,
+      applyEdit:applyHandoffEditFromDom,
+      resetEdit:resetHandoffPlanToAuto,
       confirmPlan:confirmHandoffPlan,
       makePdf:makeHandoffPdf,
       copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');}
@@ -8669,7 +8916,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnPastReset=document.getElementById('btn-past-reset');
   if(btnPastReset)btnPastReset.addEventListener('click',function(){resetPastToZero();});
   document.getElementById('btn-add-mbr').addEventListener('click',function(){
-    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,quit:0,coach:0,ac14:0,sibling:0,noMulti:0}); buildMasterMembers();
+    MB.push({name:'新メンバー',v:'M',fix:null,rest:0,quit:0,coach:0,ac14:0,sibling:0,remote:0,noMulti:0}); buildMasterMembers();
   });
   document.getElementById('btn-add-tool').addEventListener('click',function(){
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id);},0);

@@ -240,6 +240,90 @@
   color:var(--txt2,#71717a);
 }
 
+/* 任意調整（算出後） */
+.tcb-handoff-edit{
+  margin:14px 0 0;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid #b39ddb;
+  background:#f3e5f5;
+}
+.tcb-handoff-edit-hd{
+  font-size:13px;
+  font-weight:800;
+  color:#4a148c;
+  margin:0 0 6px;
+}
+.tcb-handoff-edit-note{
+  margin:0 0 8px;
+  font-size:11px;
+  line-height:1.55;
+  color:var(--txt2,#71717a);
+}
+.tcb-handoff-edit-warn{
+  margin:0 0 8px;
+  font-size:11px;
+  font-weight:700;
+  color:#e65100;
+}
+.tcb-handoff-edit-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tcb-handoff-edit-tbl{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+  background:var(--card,#fff);
+  border-radius:8px;
+  overflow:hidden;
+}
+.tcb-handoff-edit-tbl th,
+.tcb-handoff-edit-tbl td{
+  border:1px solid var(--bdr,#d4d4d8);
+  padding:8px 10px;
+  text-align:left;
+  vertical-align:middle;
+}
+.tcb-handoff-edit-tbl th{
+  background:#ede7f6;
+  color:#4a148c;
+  font-size:11px;
+  white-space:nowrap;
+}
+.tcb-handoff-edit-tool{font-weight:700;white-space:nowrap;}
+.tcb-handoff-edit-sel{
+  width:100%;
+  min-width:10em;
+  max-width:100%;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid var(--bdr,#d4d4d8);
+  background:var(--card,#fff);
+  font-size:12px;
+  font-family:inherit;
+  min-height:40px;
+}
+.tcb-handoff-edit-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.tcb-handoff-edit-apply,
+.tcb-handoff-edit-reset{
+  flex:1 1 140px;
+  padding:10px 12px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  min-height:var(--tap,44px);
+  font-family:inherit;
+  border:none;
+}
+.tcb-handoff-edit-apply{background:#6a1b9a;color:#fff;}
+.tcb-handoff-edit-reset{background:var(--card,#fff);color:#4a148c;border:1px solid #b39ddb;}
+.tcb-handoff-edit-apply:active,
+.tcb-handoff-edit-reset:active{opacity:.92;}
+
 @media (prefers-color-scheme:dark){
   .tcb-handoff-entry{
     background:rgba(106,27,154,.18);
@@ -263,4 +347,8 @@
   .tcb-handoff-sec-hd,
   .tcb-handoff-oknote{color:#e1bee7;}
   .tcb-handoff-oknote{background:rgba(106,27,154,.22);}
+  .tcb-handoff-edit{background:rgba(106,27,154,.18);border-color:#7b1fa2;}
+  .tcb-handoff-edit-tbl th{background:rgba(106,27,154,.28);}
+  .tcb-handoff-edit-sel{background:var(--card,#1a1a1c);border-color:var(--bdr,#3f3f46);color:var(--txt,#e4e4e7);}
+  .tcb-handoff-edit-reset{background:var(--card,#1a1a1c);border-color:#7b1fa2;color:#e1bee7;}
 }

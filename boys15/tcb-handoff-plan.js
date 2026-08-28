@@ -105,8 +105,9 @@
     }
     lastLineText = payload.lineText || '';
 
-    var html = '<div class="tcb-handoff-oknote">最適解のみ表示しています。入れ替え不要の道具は前回の担当のままです。実際に受け渡しが決まったら「入れ替えを実施確定」で保有を記録できます。</div>';
+    var html = '<div class="tcb-handoff-oknote">最適解を表示しています。タープはマスタ「遠方」以外で本数をほぼ均等に調整しています。必要なら下の「任意で調整」から変更できます。反映後に PDF 出力・実施確定ができます。入れ替え不要の道具は前回の担当のままです。</div>';
     if (payload.html) html += payload.html;
+    if (payload.editPanelHtml) html += payload.editPanelHtml;
     if (payload.holdingsHtml) html += payload.holdingsHtml;
     html += '<div class="tcb-swap-list-actions">';
     html += '<button type="button" class="tcb-swap-list-copybtn" id="btn-handoff-copy-line">LINE本文をコピー</button>';
@@ -169,6 +170,21 @@
         } else if (res && res.msg) {
           alert(res.msg);
         }
+      });
+    }
+    var applyEditBtn = $('btn-handoff-edit-apply');
+    if (applyEditBtn) {
+      applyEditBtn.addEventListener('click', function () {
+        if (!ctx.applyEdit) return;
+        renderResult(ctx.applyEdit());
+      });
+    }
+    var resetEditBtn = $('btn-handoff-edit-reset');
+    if (resetEditBtn) {
+      resetEditBtn.addEventListener('click', function () {
+        if (!ctx.resetEdit) return;
+        if (!confirm('算出結果（自動）に戻します。手動調整は破棄されます。よろしいですか？')) return;
+        renderResult(ctx.resetEdit());
       });
     }
   }
