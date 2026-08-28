@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.9">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.10">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1083,12 +1083,12 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-login.css?v=1.25.9">
-<link rel="stylesheet" href="gear.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.9">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.9">
+<link rel="stylesheet" href="tcb-shell.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-login.css?v=1.25.10">
+<link rel="stylesheet" href="gear.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.10">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.10">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1643,10 +1643,10 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.25.9"></script>
-<script src="tcb-swap-list.js?v=1.25.9"></script>
-<script src="tcb-handoff-plan.js?v=1.25.9"></script>
-<script src="tcb-team-rules.js?v=1.25.9"></script>
+<script src="tcb-device.js?v=1.25.10"></script>
+<script src="tcb-swap-list.js?v=1.25.10"></script>
+<script src="tcb-handoff-plan.js?v=1.25.10"></script>
+<script src="tcb-team-rules.js?v=1.25.10"></script>
 <script>
 
 
@@ -4660,7 +4660,7 @@ function handoffPlanRenderPayload(plan){
   function isGroupHolder(n){return !!markerSet[n];}
   return {
     report:report,
-    lineText:plan.lineText,
+    lineText:buildHandoffLineText(report, snap),
     html:(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function')
       ?TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:handoffPersonLabel,isGroupHolder:isGroupHolder}):'',
     holdingsHtml:buildHandoffHoldingsHtml(plan.map, ctx, plan.markerTm),
@@ -4670,19 +4670,43 @@ function handoffPlanRenderPayload(plan){
     canPdf:report.changed>0
   };
 }
-function rebuildHandoffPlanFromMap(finalMap, editedFlag){
+function handoffMapAfterManualEdit(rawMap, snap, ctx, allTools, manualTn){
+  rawMap=rawMap||{};
+  manualTn=manualTn||{};
+  if(!snap||!ctx||!ctx.mode||ctx.mode!=='team')return rawMap;
+  var personReport=buildCarryAdjustChangeReport(snap.map, rawMap, allTools);
+  var swapTools={};
+  (personReport.swapGroups||[]).forEach(function(g){
+    (g.tools||[]).forEach(function(t){swapTools[t.toolA]=1;swapTools[t.toolB]=1;});
+  });
+  var out={}, toolTeamByName={};
+  (allTools||[]).forEach(function(t){toolTeamByName[t.name]=t.team||'';});
+  Object.keys(rawMap).forEach(function(tn){
+    var curr=rawMap[tn], prev=snap.map[tn];
+    if(!curr){return;}
+    if(manualTn[tn]||prev===curr||swapTools[tn]){out[tn]=curr;return;}
+    var team=toolTeamByName[tn]||tmMap[curr]||'';
+    if(team!=='A'&&team!=='B'){out[tn]=curr;return;}
+    out[tn]=handoffGroupMarker(team);
+  });
+  return out;
+}
+function rebuildHandoffPlanFromMap(finalMap, editedFlag, manualTn){
   var plan=handoffLastPlan;
   if(!plan||!plan.baseSnap||!plan.ctx)return {error:'調整対象がありません。先に入れ替え案を算出してください。'};
   var snap=plan.baseSnap, ctx=plan.ctx, allTools=plan.allTools;
-  var markerTm=handoffMarkerTmFromMap(finalMap, allTools);
-  var report=buildCarryAdjustChangeReport(snap.map, finalMap, allTools);
+  var resolvedMap=editedFlag?handoffMapAfterManualEdit(finalMap, snap, ctx, allTools, manualTn):finalMap;
+  var markerTm=handoffMarkerTmFromMap(resolvedMap, allTools);
+  var report=buildCarryAdjustChangeReport(snap.map, resolvedMap, allTools);
+  var lineText=buildHandoffLineText(report, snap);
   handoffLastPlan=Object.assign({}, plan, {
-    map:finalMap,
+    map:resolvedMap,
     markerTm:markerTm,
     report:report,
-    lineText:buildHandoffLineText(report, snap),
+    lineText:lineText,
     changed:report.changed,
-    edited:!!editedFlag
+    edited:!!editedFlag,
+    manualTn:manualTn||null
   });
   _handoffPdfBlobCache={html:'',blob:null};
   return handoffPlanRenderPayload(handoffLastPlan);
@@ -4728,18 +4752,30 @@ function buildHandoffEditPanelHtml(plan){
     +'<button type="button" class="tcb-handoff-edit-reset" id="btn-handoff-edit-reset">算出結果に戻す</button>'
     +'</div></div>';
 }
+function handoffReadEditSelectValue(sel){
+  if(!sel)return '';
+  /* iOS 等で反映ボタン押下直後に sel.value が古いままのことがあるため selectedIndex を優先 */
+  if(sel.selectedIndex>=0&&sel.options&&sel.options[sel.selectedIndex]){
+    return sel.options[sel.selectedIndex].value;
+  }
+  return sel.value||'';
+}
 function applyHandoffEditFromDom(){
   var plan=handoffLastPlan;
   if(!plan||!plan.baseSnap)return {error:'先に入れ替え案を算出してください。'};
   var snap=plan.baseSnap;
   var nextMap=Object.assign({}, plan.map);
+  var ae=document.activeElement;
+  if(ae&&typeof ae.blur==='function')ae.blur();
   var sels=document.querySelectorAll('#tcb-handoff-result .tcb-handoff-edit-sel');
   if(!sels.length)return {error:'調整対象がありません。'};
+  var manualTn={};
   for(var i=0;i<sels.length;i++){
     var sel=sels[i];
     var tn=sel.getAttribute('data-tool');
     if(!tn)continue;
-    var val=sel.value;
+    var val=handoffReadEditSelectValue(sel);
+    manualTn[tn]=1;
     if(val==='__prev__'){
       if(snap.map[tn])nextMap[tn]=snap.map[tn];
       else delete nextMap[tn];
@@ -4747,7 +4783,7 @@ function applyHandoffEditFromDom(){
       nextMap[tn]=val;
     }
   }
-  return rebuildHandoffPlanFromMap(nextMap, true);
+  return rebuildHandoffPlanFromMap(nextMap, true, manualTn);
 }
 function resetHandoffPlanToAuto(){
   var plan=handoffLastPlan;
@@ -5330,8 +5366,8 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
     if(soloEx){
       var byCnt=sorted.slice().sort(function(a,b){
         if(minChangers){
-          var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,opts);
-          var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,opts);
+          var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,scoreOpts);
+          var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,scoreOpts);
           if(sa!==sb)return sb-sa;
         }else{
           var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
@@ -8378,7 +8414,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.25.9';
+  if(vEl)vEl.textContent='v1.25.10';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -8721,7 +8757,8 @@ document.addEventListener('DOMContentLoaded',function(){
       resetEdit:resetHandoffPlanToAuto,
       confirmPlan:confirmHandoffPlan,
       makePdf:makeHandoffPdf,
-      copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');}
+      copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');},
+      toast:function(msg, kind){if(typeof tcbToast==='function')tcbToast(msg, kind||'info');}
     });
     var hoEntryInit=document.getElementById('tcb-handoff-entry');
     if(hoEntryInit)hoEntryInit.style.display=handoffHasAnyBase()?'block':'none';
@@ -8937,18 +8974,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.25.9"></script>
-<script src="html2canvas.min.js?v=1.25.9"></script>
-<script src="html2pdf.min.js?v=1.25.9"></script>
-<script src="tcb-print-pdf.js?v=1.25.9"></script>
-<script src="tcb-feedback.js?v=1.25.9"></script>
-<script src="tcb-sync-api.js?v=1.25.9"></script>
-<script src="tcb-swap-mgr.js?v=1.25.9"></script>
-<script src="tcb-push-mgr.js?v=1.25.9"></script>
-<script src="tcb-login.js?v=1.25.9"></script>
-<script src="tcb-pwa-install.js?v=1.25.9"></script>
-<script src="tcb-group-hold.js?v=1.25.9"></script>
-<script src="tcb-presummary.js?v=1.25.9"></script>
-<script src="tcb-p1-flow.js?v=1.25.9"></script>
+<script src="jspdf.umd.min.js?v=1.25.10"></script>
+<script src="html2canvas.min.js?v=1.25.10"></script>
+<script src="html2pdf.min.js?v=1.25.10"></script>
+<script src="tcb-print-pdf.js?v=1.25.10"></script>
+<script src="tcb-feedback.js?v=1.25.10"></script>
+<script src="tcb-sync-api.js?v=1.25.10"></script>
+<script src="tcb-swap-mgr.js?v=1.25.10"></script>
+<script src="tcb-push-mgr.js?v=1.25.10"></script>
+<script src="tcb-login.js?v=1.25.10"></script>
+<script src="tcb-pwa-install.js?v=1.25.10"></script>
+<script src="tcb-group-hold.js?v=1.25.10"></script>
+<script src="tcb-presummary.js?v=1.25.10"></script>
+<script src="tcb-p1-flow.js?v=1.25.10"></script>
 </body>
 </html>

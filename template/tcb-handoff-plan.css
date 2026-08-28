@@ -323,6 +323,8 @@
 .tcb-handoff-edit-reset{background:var(--card,#fff);color:#4a148c;border:1px solid #b39ddb;}
 .tcb-handoff-edit-apply:active,
 .tcb-handoff-edit-reset:active{opacity:.92;}
+.tcb-handoff-line-live{margin-top:12px;}
+.tcb-handoff-edit-dirty{border-color:#ff9800;box-shadow:0 0 0 1px rgba(255,152,0,.35);}
 
 @media (prefers-color-scheme:dark){
   .tcb-handoff-entry{

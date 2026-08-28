@@ -4757,7 +4757,7 @@ function handoffPlanRenderPayload(plan){
   function isGroupHolder(n){return !!markerSet[n];}
   return {
     report:report,
-    lineText:plan.lineText,
+    lineText:buildHandoffLineText(report, snap),
     html:(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function')
       ?TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:handoffPersonLabel,isGroupHolder:isGroupHolder}):'',
     holdingsHtml:buildHandoffHoldingsHtml(plan.map, ctx, plan.markerTm),
@@ -4767,19 +4767,43 @@ function handoffPlanRenderPayload(plan){
     canPdf:report.changed>0
   };
 }
-function rebuildHandoffPlanFromMap(finalMap, editedFlag){
+function handoffMapAfterManualEdit(rawMap, snap, ctx, allTools, manualTn){
+  rawMap=rawMap||{};
+  manualTn=manualTn||{};
+  if(!snap||!ctx||!ctx.mode||ctx.mode!=='team')return rawMap;
+  var personReport=buildCarryAdjustChangeReport(snap.map, rawMap, allTools);
+  var swapTools={};
+  (personReport.swapGroups||[]).forEach(function(g){
+    (g.tools||[]).forEach(function(t){swapTools[t.toolA]=1;swapTools[t.toolB]=1;});
+  });
+  var out={}, toolTeamByName={};
+  (allTools||[]).forEach(function(t){toolTeamByName[t.name]=t.team||'';});
+  Object.keys(rawMap).forEach(function(tn){
+    var curr=rawMap[tn], prev=snap.map[tn];
+    if(!curr){return;}
+    if(manualTn[tn]||prev===curr||swapTools[tn]){out[tn]=curr;return;}
+    var team=toolTeamByName[tn]||tmMap[curr]||'';
+    if(team!=='A'&&team!=='B'){out[tn]=curr;return;}
+    out[tn]=handoffGroupMarker(team);
+  });
+  return out;
+}
+function rebuildHandoffPlanFromMap(finalMap, editedFlag, manualTn){
   var plan=handoffLastPlan;
   if(!plan||!plan.baseSnap||!plan.ctx)return {error:'調整対象がありません。先に入れ替え案を算出してください。'};
   var snap=plan.baseSnap, ctx=plan.ctx, allTools=plan.allTools;
-  var markerTm=handoffMarkerTmFromMap(finalMap, allTools);
-  var report=buildCarryAdjustChangeReport(snap.map, finalMap, allTools);
+  var resolvedMap=editedFlag?handoffMapAfterManualEdit(finalMap, snap, ctx, allTools, manualTn):finalMap;
+  var markerTm=handoffMarkerTmFromMap(resolvedMap, allTools);
+  var report=buildCarryAdjustChangeReport(snap.map, resolvedMap, allTools);
+  var lineText=buildHandoffLineText(report, snap);
   handoffLastPlan=Object.assign({}, plan, {
-    map:finalMap,
+    map:resolvedMap,
     markerTm:markerTm,
     report:report,
-    lineText:buildHandoffLineText(report, snap),
+    lineText:lineText,
     changed:report.changed,
-    edited:!!editedFlag
+    edited:!!editedFlag,
+    manualTn:manualTn||null
   });
   _handoffPdfBlobCache={html:'',blob:null};
   return handoffPlanRenderPayload(handoffLastPlan);
@@ -4825,18 +4849,30 @@ function buildHandoffEditPanelHtml(plan){
     +'<button type="button" class="tcb-handoff-edit-reset" id="btn-handoff-edit-reset">算出結果に戻す</button>'
     +'</div></div>';
 }
+function handoffReadEditSelectValue(sel){
+  if(!sel)return '';
+  /* iOS 等で反映ボタン押下直後に sel.value が古いままのことがあるため selectedIndex を優先 */
+  if(sel.selectedIndex>=0&&sel.options&&sel.options[sel.selectedIndex]){
+    return sel.options[sel.selectedIndex].value;
+  }
+  return sel.value||'';
+}
 function applyHandoffEditFromDom(){
   var plan=handoffLastPlan;
   if(!plan||!plan.baseSnap)return {error:'先に入れ替え案を算出してください。'};
   var snap=plan.baseSnap;
   var nextMap=Object.assign({}, plan.map);
+  var ae=document.activeElement;
+  if(ae&&typeof ae.blur==='function')ae.blur();
   var sels=document.querySelectorAll('#tcb-handoff-result .tcb-handoff-edit-sel');
   if(!sels.length)return {error:'調整対象がありません。'};
+  var manualTn={};
   for(var i=0;i<sels.length;i++){
     var sel=sels[i];
     var tn=sel.getAttribute('data-tool');
     if(!tn)continue;
-    var val=sel.value;
+    var val=handoffReadEditSelectValue(sel);
+    manualTn[tn]=1;
     if(val==='__prev__'){
       if(snap.map[tn])nextMap[tn]=snap.map[tn];
       else delete nextMap[tn];
@@ -4844,7 +4880,7 @@ function applyHandoffEditFromDom(){
       nextMap[tn]=val;
     }
   }
-  return rebuildHandoffPlanFromMap(nextMap, true);
+  return rebuildHandoffPlanFromMap(nextMap, true, manualTn);
 }
 function resetHandoffPlanToAuto(){
   var plan=handoffLastPlan;
@@ -8818,7 +8854,8 @@ document.addEventListener('DOMContentLoaded',function(){
       resetEdit:resetHandoffPlanToAuto,
       confirmPlan:confirmHandoffPlan,
       makePdf:makeHandoffPdf,
-      copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');}
+      copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');},
+      toast:function(msg, kind){if(typeof tcbToast==='function')tcbToast(msg, kind||'info');}
     });
     var hoEntryInit=document.getElementById('tcb-handoff-entry');
     if(hoEntryInit)hoEntryInit.style.display=handoffHasAnyBase()?'block':'none';

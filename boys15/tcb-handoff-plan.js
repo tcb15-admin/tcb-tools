@@ -105,8 +105,16 @@
     }
     lastLineText = payload.lineText || '';
 
-    var html = '<div class="tcb-handoff-oknote">最適解を表示しています。タープはマスタ「遠方」以外で本数をほぼ均等に調整しています。必要なら下の「任意で調整」から変更できます。反映後に PDF 出力・実施確定ができます。入れ替え不要の道具は前回の担当のままです。</div>';
+    var html = payload.edited
+      ? '<div class="tcb-handoff-oknote">手動調整を反映しました。下の <strong>LINE本文</strong> が更新されています。PDF 出力・実施確定はこの内容が使われます。</div>'
+      : '<div class="tcb-handoff-oknote">最適解を表示しています。タープはマスタ「遠方」以外で本数をほぼ均等に調整しています。必要なら下の「任意で調整」から変更できます。反映後に PDF 出力・実施確定ができます。入れ替え不要の道具は前回の担当のままです。</div>';
     if (payload.html) html += payload.html;
+    if (lastLineText) {
+      html += '<div class="tcb-swap-list-line-wrap tcb-handoff-line-live">';
+      html += '<div class="tcb-swap-list-line-hd">LINE本文（このままコピーされます）</div>';
+      html += '<pre class="tcb-swap-list-line-pre" id="tcb-handoff-line-pre">' + esc(lastLineText) + '</pre>';
+      html += '</div>';
+    }
     if (payload.editPanelHtml) html += payload.editPanelHtml;
     if (payload.holdingsHtml) html += payload.holdingsHtml;
     html += '<div class="tcb-swap-list-actions">';
@@ -121,13 +129,14 @@
       html += '<p class="tcb-handoff-confirm-note">確定すると、この保有が次回割振りの基準になります（PASTは増えません）。活動当日は STEP1「いま持っている道具で、グループごとに割り振る」で担当表を作ってください。</p>';
       html += '</div>';
     }
-    if (lastLineText) {
-      html += '<div class="tcb-swap-list-line-wrap">';
-      html += '<div class="tcb-swap-list-line-hd">LINE本文（このままコピーされます）</div>';
-      html += '<pre class="tcb-swap-list-line-pre" id="tcb-handoff-line-pre">' + esc(lastLineText) + '</pre>';
-      html += '</div>';
-    }
     box.innerHTML = html;
+
+    box.querySelectorAll('.tcb-handoff-edit-sel').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        var wrap = sel.closest('.tcb-handoff-edit');
+        if (wrap) wrap.classList.add('tcb-handoff-edit-dirty');
+      });
+    });
 
     var lineBtn = $('btn-handoff-copy-line');
     if (lineBtn) {
@@ -176,7 +185,11 @@
     if (applyEditBtn) {
       applyEditBtn.addEventListener('click', function () {
         if (!ctx.applyEdit) return;
-        renderResult(ctx.applyEdit());
+        var payload = ctx.applyEdit();
+        renderResult(payload);
+        if (payload && !payload.error && ctx.toast) {
+          ctx.toast('調整を反映しました（LINE本文を更新しました）', 'success');
+        }
       });
     }
     var resetEditBtn = $('btn-handoff-edit-reset');
