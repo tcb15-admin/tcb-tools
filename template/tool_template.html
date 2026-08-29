@@ -2032,9 +2032,12 @@ function currentPatFlag(){
 function isGroupHoldEnabled(){
   return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
 }
-/* STEP2の班分けUI・割振りが2グループになるか（活動の2分け or グループ保有） */
+/* STEP2の班分けUI・割振りが2グループになるか
+   （活動の2分け / グループ保有 / 保有基準が2分け） */
 function effectiveNeedsTeamUI(){
-  return needsTeamUI()||isGroupHoldEnabled();
+  if(needsTeamUI()||isGroupHoldEnabled())return true;
+  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap))return true;
+  return false;
 }
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
@@ -4000,9 +4003,10 @@ function buildTeamToolListsByRules(){
   });
   return {tA:tA,tB:tB};
 }
-/* 保有ベース：前回2分けでその道具を持っていたグループへ寄せる。
-   優先：固定担当（きょう出席）→【組名】→ snap.tools.team（前回の道具班）
-        → 前回保有者の前回班(snap.tmMap) → 前回保有者のきょうの班(tmMap) */
+/* 保有ベース：前回2分けで「どのグループの道具か」へ寄せる。
+   優先：固定担当（きょう出席）→【組名】→ snap.tools.team（グループ保有の正）
+        → 保有者の前回班(snap.tmMap) → 保有者のきょうの班(tmMap)
+   ※入れ替え確定では人が他班の道具を一時所持しうるため、tools.team を人より優先する */
 function resolveHoldingsTeamForTool(t, snap, prevMap){
   var ex=exSet();
   if(t&&t.fixed&&t.note&&!ex[t.note]){
@@ -4019,15 +4023,15 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
       if(p===handoffGroupMarker('B'))return 'B';
     }
   }
-  /* 前回保有者の「前回の班」を最優先（履歴の tools.team が古い誤記でも保有実態を優先） */
-  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
-  /* 前回記録上の道具班 */
+  /* 前回記録上の道具班（グループ保有） */
   if(snap&&Array.isArray(snap.tools)){
     for(var i=0;i<snap.tools.length;i++){
       var st=snap.tools[i];
       if(st&&st.name===t.name&&(st.team==='A'||st.team==='B'))return st.team;
     }
   }
+  /* 道具班が無いときだけ保有者の班で推定 */
+  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
   if(p&&(tmMap[p]==='A'||tmMap[p]==='B'))return tmMap[p];
   return null;
 }
@@ -4066,14 +4070,17 @@ function buildAssignmentContext(opts){
   var silent=!!opts.silent;
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
-  /* 両方練習かつ場所分離なし：通常は全員1グループ。グループ保有ONなら班内割振り */
-  if(pat==='renshu'&&!renshuSplit&&!isGroupHoldEnabled()){
+  var holdingsMode=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object');
+  /* 保有基準が2分けなら、きょうが両方練習（場所同一）でもグループ内割振りを強制 */
+  var forceTeamFromHoldings=holdingsMode&&snapIsTwoSplit(seedBaseSnap);
+  /* 両方練習かつ場所分離なし：通常は全員1グループ。グループ保有ONまたは保有2分け基準なら班内 */
+  if(pat==='renshu'&&!renshuSplit&&!isGroupHoldEnabled()&&!forceTeamFromHoldings){
     var members=MB.filter(function(m){return !ex[m.name];});
     if(!members.length){if(!silent)alert('対象メンバーが0名です。');return null;}
     var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
     return {ex:ex,la:la,lb:lb,mode:'single',mA:null,mB:null,tA:null,tB:null,tools:tools,members:members,allTools:null};
   }
-  /* 片方試合／両方試合／両方練習・場所分離／グループ保有 */
+  /* 片方試合／両方試合／両方練習・場所分離／グループ保有／保有2分け基準 */
   applyGroupHoldLabelsIfHidden();
   la=tnA||la; lb=tnB||lb;
   var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
@@ -4081,7 +4088,6 @@ function buildAssignmentContext(opts){
   if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
   if(!mB.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
   var lists;
-  var holdingsMode=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object');
   /* 保有ベース（合意仕様）：前回2分けグループの保有道具 → そのグループのメンバー内で割当 */
   if(holdingsMode){
     lists=buildHoldingsBasedToolLists(seedBaseSnap);
@@ -8879,10 +8885,32 @@ function formatHistAssigneeCell(displayName){
   }
   return s;
 }
-function buildHistDetailByPersonRows(tools,snap,trClass){
+function histDetailPersonTeam(snap, displayName){
+  if(!displayName||displayName==='未割当')return '';
+  if(typeof handoffIsGroupDest==='function'&&handoffIsGroupDest(displayName)){
+    if(snap&&snap.la&&displayName==='【'+snap.la+'】')return 'A';
+    if(snap&&snap.lb&&displayName==='【'+snap.lb+'】')return 'B';
+    if(typeof handoffGroupMarker==='function'){
+      if(displayName===handoffGroupMarker('A'))return 'A';
+      if(displayName===handoffGroupMarker('B'))return 'B';
+    }
+  }
+  var tm=(snap&&snap.tmMap&&snap.tmMap[displayName])||'';
+  return (tm==='A'||tm==='B')?tm:'';
+}
+function buildHistDetailByPersonRows(tools,snap,trClass,forTeam){
   var byPerson={};
   tools.forEach(function(t){
     var p=snap.map[t.name]||'未割当';
+    if(forTeam==='A'||forTeam==='B'){
+      var pt=histDetailPersonTeam(snap,p);
+      /* 担当者の班で分ける。班不明の道具は tools.team 側の表に残す */
+      if(pt==='A'||pt==='B'){
+        if(pt!==forTeam)return;
+      }else if((t.team||'')!==forTeam){
+        return;
+      }
+    }
     if(!byPerson[p])byPerson[p]=[];
     byPerson[p].push(t.name);
   });
@@ -8924,7 +8952,7 @@ function showHistDetail(snap){
   var html='';
   if(snap.confirmedAt){
     if(normFlag01(snap.handoff)){
-      html+='<p class="tcb-hist-dtl-confirmed" style="font-size:12px;color:var(--grn);margin:0 0 10px 0;line-height:1.45">入れ替え確定済み（'+esc(new Date(snap.confirmedAt).toLocaleString('ja-JP'))+'）。活動間の道具受け渡しの記録で、PASTには反映されていません。【グループ名】は担当未定（次回割振りで決定）です。</p>';
+      html+='<p class="tcb-hist-dtl-confirmed" style="font-size:12px;color:var(--grn);margin:0 0 10px 0;line-height:1.45">入れ替え確定済み（'+esc(new Date(snap.confirmedAt).toLocaleString('ja-JP'))+'）。活動間の道具受け渡しの記録で、PASTには反映されていません。【グループ名】は担当未定（次回割振りで決定）です。下表は<strong>担当者の班</strong>で分けています（道具の班印と人が一時的に食い違うことがあります）。</p>';
     }else{
       html+='<p class="tcb-hist-dtl-confirmed" style="font-size:12px;color:var(--grn);margin:0 0 10px 0;line-height:1.45">実施確定済み（'+esc(new Date(snap.confirmedAt).toLocaleString('ja-JP'))+'）</p>';
     }
@@ -8932,15 +8960,15 @@ function showHistDetail(snap){
   if(snap.mode==='team'&&!snapMemUnpublished(snap)){
     html+='<div class="shd2 A" style="margin-top:0;">'+esc(la)+'グループ</div>';
     html+='<table class="hist-dtl-table"><thead><tr><th>担当者</th><th>道具</th></tr></thead><tbody>';
-    html+=buildHistDetailByPersonRows(snap.tools.filter(function(t){return t.team==='A';}),snap,'rA');
+    html+=buildHistDetailByPersonRows(snap.tools||[],snap,'rA','A');
     html+='</tbody></table>';
     html+='<div class="shd2 B">'+esc(lb)+'グループ</div>';
     html+='<table class="hist-dtl-table"><thead><tr><th>担当者</th><th>道具</th></tr></thead><tbody>';
-    html+=buildHistDetailByPersonRows(snap.tools.filter(function(t){return t.team==='B';}),snap,'rB');
+    html+=buildHistDetailByPersonRows(snap.tools||[],snap,'rB','B');
     html+='</tbody></table>';
   }else{
     html+='<table class="hist-dtl-table"><thead><tr><th>担当者</th><th>道具</th></tr></thead><tbody>';
-    html+=buildHistDetailByPersonRows(snap.tools,snap,'');
+    html+=buildHistDetailByPersonRows(snap.tools||[],snap,'','');
     html+='</tbody></table>';
   }
   body.innerHTML=html;

@@ -288,19 +288,25 @@
     return { groupHoldEnabled: 1, groupHoldMap: cloneMap(holdMap) };
   }
 
-  /* 履歴・スナップからの復元はその日の文脈に合わせた一時的な状態変更なので、
-     端末保存（永続化）は上書きしない。永続化は明示操作（登録／解除）のみ。 */
+  /* 履歴・スナップからの復元：スナップにグループ保有があるときだけ上書き。
+     無いスナップで現在のグループ保有を消さない（両方練習＋保有基準で全員割振りになる事故防止） */
   function restoreFromSnap(snap) {
     if (!snap || typeof snap !== 'object') {
-      enabled = false;
-      holdMap = {};
       updateStatusUI();
-      notifyEnabledChange();
       return;
     }
     var on = snap.groupHoldEnabled == 1 || snap.groupHoldEnabled === '1' || snap.groupHoldEnabled === true;
-    holdMap = cloneMap(snap.groupHoldMap);
-    enabled = !!(on && Object.keys(holdMap).length);
+    var map = cloneMap(snap.groupHoldMap);
+    if (on && Object.keys(map).length) {
+      holdMap = map;
+      enabled = true;
+      if (snap.la || snap.lb) {
+        heldLabels = {
+          la: String(snap.la || heldLabels.la || ''),
+          lb: String(snap.lb || heldLabels.lb || '')
+        };
+      }
+    }
     updateStatusUI();
     notifyEnabledChange();
   }
