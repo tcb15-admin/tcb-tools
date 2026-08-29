@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.11">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.12">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1083,12 +1083,13 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-login.css?v=1.25.11">
-<link rel="stylesheet" href="gear.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.11">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.11">
+<link rel="stylesheet" href="tcb-shell.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-login.css?v=1.25.12">
+<link rel="stylesheet" href="gear.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.12">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.25.12">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1502,7 +1503,7 @@ html{color-scheme:light;}
   <div class="pnl" id="p3">
     <div class="card">
       <div class="rh">
-        <div><div class="rt">&#128203; 割振り結果<button type="button" class="tcb-tip" data-tip="担当列のプルダウンで<strong>手動変更</strong>できます（お茶当番・欠席の方も選択可）。STEP1でパターンを変えたら STEP2 で「割振りを実行」し直してください。" aria-label="説明"></button></div><div class="rm" id="rmeta"></div></div>
+        <div><div class="rt">&#128203; 割振り結果<button type="button" class="tcb-tip" data-tip="<strong>手直し</strong>タブのボード、または道具別の担当プルダウンで手動変更できます（お茶当番・欠席の方も選択可）。展開後の指摘修正も同じ手直しボードから再展開できます。STEP1でパターンを変えたら STEP2 で「割振りを実行」し直してください。" aria-label="説明"></button></div><div class="rm" id="rmeta"></div></div>
         <div class="p3-rh-actions">
           <button type="button" class="nb nbs" id="btn-assign-undo" disabled style="font-size:13px;">&#8630; 元に戻す</button>
           <button type="button" class="nb nbs" id="btn-assign-redo" disabled style="font-size:13px;">&#8631; 先に進む</button>
@@ -1541,7 +1542,8 @@ html{color-scheme:light;}
     </div>
     <div class="tabrow">
       <button class="tabbtn on" id="tab-tbl">&#128202; 道具別</button>
-      <button class="tabbtn"    id="tab-mem">&#128100; メンバー別</button>
+      <button class="tabbtn" id="tab-board">&#9998; 手直し</button>
+      <button class="tabbtn" id="tab-mem">&#128100; メンバー別</button>
     </div>
     <div id="ttbl">
       <div class="tbl-wrap">
@@ -1551,6 +1553,12 @@ html{color-scheme:light;}
           <th id="thteam" class="p3-col-team" style="display:none;">班</th>
           <th class="p3-col-asgn">担当者</th>
         </tr></thead><tbody id="tbody"></tbody></table>
+      </div>
+    </div>
+    <div id="tboard" style="display:none;">
+      <div class="card" style="margin-top:0;">
+        <div class="ct">手直しボード<button type="button" class="tcb-tip" data-tip="道具タイルをタップ→移動先の人をタップで<strong>移動</strong>。別の道具をタップで<strong>入れ替え</strong>。未割当枠へ戻せます。展開後の修正・再展開にも使えます。" aria-label="説明"></button></div>
+        <div id="tcb-assign-board-root"></div>
       </div>
     </div>
     <div id="tmem" style="display:none;"><div id="marea"></div></div>
@@ -1643,10 +1651,11 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.25.11"></script>
-<script src="tcb-swap-list.js?v=1.25.11"></script>
-<script src="tcb-handoff-plan.js?v=1.25.11"></script>
-<script src="tcb-team-rules.js?v=1.25.11"></script>
+<script src="tcb-device.js?v=1.25.12"></script>
+<script src="tcb-swap-list.js?v=1.25.12"></script>
+<script src="tcb-assign-board.js?v=1.25.12"></script>
+<script src="tcb-handoff-plan.js?v=1.25.12"></script>
+<script src="tcb-team-rules.js?v=1.25.12"></script>
 <script>
 
 
@@ -4730,45 +4739,130 @@ function rebuildHandoffPlanFromMap(finalMap, editedFlag, manualTn){
   return handoffPlanRenderPayload(handoffLastPlan);
 }
 function buildHandoffEditPanelHtml(plan){
-  if(!plan||!plan.report||!plan.report.changed){
-    return '<div class="tcb-handoff-edit"><p class="tcb-handoff-edit-note">変更がないため、任意調整は不要です。</p></div>';
-  }
-  var snap=plan.baseSnap, ctx=plan.ctx, report=plan.report;
-  var changedTn={};
-  (report.swapGroups||[]).forEach(function(g){
-    (g.tools||[]).forEach(function(t){changedTn[t.toolA]=1;changedTn[t.toolB]=1;});
-  });
-  (report.others||[]).forEach(function(o){changedTn[o.tn]=1;});
-  var rows=[];
-  Object.keys(changedTn).sort(function(a,b){return String(a).localeCompare(String(b),'ja');}).forEach(function(tn){
-    var cur=plan.map[tn]||'';
-    var prev=(snap.map&&snap.map[tn])||'';
-    var opts=handoffEditHolderOptions(tn, ctx, snap);
-    var sel='<select class="tcb-handoff-edit-sel" data-tool="'+esc(tn)+'" aria-label="'+esc(tn)+'の入れ替え先">';
-    var matched=false;
-    opts.forEach(function(o){
-      var selAttr=(o.value===cur)?' selected':'';
-      if(o.value===cur)matched=true;
-      sel+='<option value="'+esc(o.value)+'"'+selAttr+'>'+esc(o.label)+'</option>';
-    });
-    if(cur&&!matched){
-      sel+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'（現在）</option>';
-    }
-    sel+='</select>';
-    rows.push('<tr><td class="tcb-handoff-edit-tool">'+esc(tn)+'</td><td>'+esc(prev||'—')+'</td><td>'+sel+'</td></tr>');
-  });
-  var editedNote=plan.edited?'<p class="tcb-handoff-edit-warn">※ 算出結果から手動調整済みです。</p>':'';
+  if(!plan||!plan.baseSnap||!plan.ctx)return '';
+  var editedNote=plan.edited?'<p class="tcb-handoff-edit-warn">※ 算出結果から手動調整済みです。LINE本文・PDFはこの内容です。</p>':'';
   return '<div class="tcb-handoff-edit">'
-    +'<div class="tcb-handoff-edit-hd">任意で調整（遠方メンバーなど）</div>'
-    +'<p class="tcb-handoff-edit-note">変更が必要な道具だけ、入れ替え先を選び直せます。「前回どおり」に戻すとその道具は受け渡し不要になります。反映後に PDF 出力・実施確定ができます。</p>'
+    +'<div class="tcb-handoff-edit-hd">手直しボード（任意調整）</div>'
+    +'<p class="tcb-handoff-edit-note">道具タイルをタップ→移動先をタップで変更。別の道具で入れ替え。組名の枠へ落とすと「グループ宛て」になります。変更はすぐ反映され、LINE本文も更新されます。</p>'
     +editedNote
-    +'<div class="tcb-handoff-edit-scroll"><table class="tcb-handoff-edit-tbl"><thead><tr><th>道具</th><th>前回</th><th>これから</th></tr></thead><tbody>'
-    +rows.join('')
-    +'</tbody></table></div>'
+    +'<div id="tcb-handoff-board-root"></div>'
     +'<div class="tcb-handoff-edit-actions">'
-    +'<button type="button" class="tcb-handoff-edit-apply" id="btn-handoff-edit-apply">調整を反映</button>'
     +'<button type="button" class="tcb-handoff-edit-reset" id="btn-handoff-edit-reset">算出結果に戻す</button>'
     +'</div></div>';
+}
+function handoffMergeManualTn(extra){
+  var plan=handoffLastPlan;
+  var out=Object.assign({}, (plan&&plan.manualTn)||{});
+  if(extra)Object.keys(extra).forEach(function(k){out[k]=1;});
+  return out;
+}
+function applyHandoffBoardMove(toolName, toPerson){
+  var plan=handoffLastPlan;
+  if(!plan||!plan.baseSnap)return {error:'先に入れ替え案を算出してください。'};
+  var nextMap=Object.assign({}, plan.map);
+  if(toPerson)nextMap[toolName]=toPerson;
+  else delete nextMap[toolName];
+  var mt={}; mt[toolName]=1;
+  return rebuildHandoffPlanFromMap(nextMap, true, handoffMergeManualTn(mt));
+}
+function applyHandoffBoardSwap(toolA, toolB){
+  var plan=handoffLastPlan;
+  if(!plan||!plan.baseSnap)return {error:'先に入れ替え案を算出してください。'};
+  var nextMap=Object.assign({}, plan.map);
+  var a=nextMap[toolA]||'';
+  var b=nextMap[toolB]||'';
+  if(b)nextMap[toolA]=b; else delete nextMap[toolA];
+  if(a)nextMap[toolB]=a; else delete nextMap[toolB];
+  var mt={}; mt[toolA]=1; mt[toolB]=1;
+  return rebuildHandoffPlanFromMap(nextMap, true, handoffMergeManualTn(mt));
+}
+function buildHandoffAssignBoardOpts(){
+  var plan=handoffLastPlan;
+  if(!plan||!plan.ctx||!window.TCB_AssignBoard)return null;
+  var ctx=plan.ctx, snap=plan.baseSnap, map=plan.map||{}, allTools=plan.allTools||[];
+  var toolsMeta=allTools.map(function(t){return {name:t.name,fixed:!!t.fixed,team:t.team||''};});
+  var toolsByPerson={}, unassigned=[];
+  allTools.forEach(function(t){
+    var holder=map[t.name];
+    var meta={name:t.name,fixed:!!t.fixed};
+    if(holder){
+      if(!toolsByPerson[holder])toolsByPerson[holder]=[];
+      toolsByPerson[holder].push(meta);
+    }else unassigned.push(meta);
+  });
+  function personInfo(m, team){
+    return {name:m.name,label:m.name,team:team||'',remote:isMemberRemote(m)};
+  }
+  var groups=[], members=null;
+  if(ctx.mode==='team'){
+    var gA={id:'A',label:(tnA||'試合組'),members:(ctx.mA||[]).map(function(m){return personInfo(m,'A');})};
+    var gB={id:'B',label:(tnB||'練習組'),members:(ctx.mB||[]).map(function(m){return personInfo(m,'B');})};
+    var mkA=handoffGroupMarker('A'), mkB=handoffGroupMarker('B');
+    gA.members.push({name:mkA,label:mkA+'（組内調整）',team:'A',isGroup:true});
+    gB.members.push({name:mkB,label:mkB+'（組内調整）',team:'B',isGroup:true});
+    groups=[gA,gB];
+    var inSet={}; gA.members.forEach(function(m){inSet[m.name]=1;}); gB.members.forEach(function(m){inSet[m.name]=1;});
+    var extras=[];
+    Object.keys(toolsByPerson).forEach(function(n){
+      if(!inSet[n]){
+        var row=memberRowByName(n);
+        extras.push({name:n,label:n+(handoffIsGroupDest(n)?'':'（班外）'),team:'',isGroup:handoffIsGroupDest(n),remote:isMemberRemote(row)});
+      }
+    });
+    if(extras.length)groups.push({id:'X',label:'その他',members:extras});
+  }else{
+    members=(ctx.members||[]).map(function(m){return personInfo(m,'');});
+  }
+  function toolTeamOf(tn){
+    for(var i=0;i<allTools.length;i++){if(allTools[i].name===tn)return allTools[i].team||'';}
+    return '';
+  }
+  function allowedHolders(toolName){
+    var opts=handoffEditHolderOptions(toolName, ctx, snap);
+    return opts.filter(function(o){return o.value&&o.value!=='__prev__';}).map(function(o){return o.value;});
+  }
+  return {
+    esc:esc,
+    lead:'入れ替え先をボードで変更できます。組名枠＝グループ宛て（誰が受け取ってもOK）。未割当に戻すとその道具は受け渡し対象外（担当なし）になります。',
+    map:map,
+    tools:toolsMeta,
+    toolsByPerson:toolsByPerson,
+    unassigned:unassigned,
+    groups:groups,
+    members:members,
+    canDropOnPerson:function(toolName, person){
+      var ok=allowedHolders(toolName).indexOf(person)>=0;
+      if(ok)return {ok:true};
+      /* 前回担当へ戻すのは常に許可 */
+      if(snap.map&&snap.map[toolName]===person)return {ok:true};
+      return {ok:false,reason:'この宛先には割り当てできません。'};
+    },
+    canSwap:function(toolA, toolB){
+      var ha=map[toolA]||'', hb=map[toolB]||'';
+      if(!ha||!hb)return {ok:false,reason:''};
+      var okA=allowedHolders(toolA).indexOf(hb)>=0||(snap.map&&snap.map[toolA]===hb);
+      var okB=allowedHolders(toolB).indexOf(ha)>=0||(snap.map&&snap.map[toolB]===ha);
+      return (okA&&okB)?{ok:true}:{ok:false,reason:'班の制約で入れ替えできません。'};
+    },
+    onMove:null,
+    onSwap:null,
+    onReject:function(msg){if(msg&&typeof tcbToast==='function')tcbToast(msg,'warn');}
+  };
+}
+function mountHandoffAssignBoard(root, hooks){
+  if(!root||typeof TCB_AssignBoard==='undefined'||!TCB_AssignBoard)return;
+  var opts=buildHandoffAssignBoardOpts();
+  if(!opts){root.innerHTML='';return;}
+  hooks=hooks||{};
+  opts.onMove=function(toolName, toPerson){
+    var payload=applyHandoffBoardMove(toolName, toPerson||'');
+    if(hooks.onApplied)hooks.onApplied(payload);
+  };
+  opts.onSwap=function(toolA, toolB){
+    var payload=applyHandoffBoardSwap(toolA, toolB);
+    if(hooks.onApplied)hooks.onApplied(payload);
+  };
+  TCB_AssignBoard.mount(root, opts);
 }
 function handoffReadEditSelectValue(sel){
   if(!sel)return '';
@@ -5894,12 +5988,13 @@ function goMaster(){
 
 /* ========== タブ ========== */
 function swTab(tab){
-  ['tbl','mem'].forEach(function(id){
+  ['tbl','board','mem'].forEach(function(id){
     var b=document.getElementById('tab-'+id), p=document.getElementById('t'+id);
     if(b)b.className=(id===tab)?'tabbtn on':'tabbtn';
     if(p)p.style.display=(id===tab)?'':'none';
   });
   if(R&&tab==='mem')buildMem();
+  if(R&&tab==='board')buildAssignBoard();
 }
 
 /* ========== モーダル ========== */
@@ -6547,6 +6642,8 @@ function buildTbl(){
   updateAssignUndoUi();
   renderCarryAdjustDiffSummary();
   schedulePersistCurrentAllocation();
+  var boardPane=document.getElementById('tboard');
+  if(boardPane&&boardPane.style.display!=='none')buildAssignBoard();
 }
 
 function chAssign(toolName,newName){
@@ -6570,6 +6667,143 @@ function chAssign(toolName,newName){
       aa.insertBefore(dNm,aa.firstChild);
     }
   }
+}
+function chSwapAssign(toolA, toolB){
+  if(!R||!toolA||!toolB||toolA===toolB)return;
+  var a=R.map[toolA]||'';
+  var b=R.map[toolB]||'';
+  pushAssignHistory();
+  if(b)R.map[toolA]=b; else delete R.map[toolA];
+  if(a)R.map[toolB]=a; else delete R.map[toolB];
+  var warn='';
+  if(a&&isMemberNoMultiByName(a)&&countAssignMapToolsForPerson(R.map,a,null)>=2){
+    warn='（注意：'+a+' は「1道具まで」ですが、入れ替え後に複数担当になっています）';
+  }else if(b&&isMemberNoMultiByName(b)&&countAssignMapToolsForPerson(R.map,b,null)>=2){
+    warn='（注意：'+b+' は「1道具まで」ですが、入れ替え後に複数担当になっています）';
+  }
+  buildTbl();
+  if(warn){
+    var aa=document.getElementById('aalert');
+    if(aa){
+      var d=document.createElement('div');
+      d.className='al alw';
+      d.textContent=warn;
+      aa.insertBefore(d,aa.firstChild);
+    }
+  }
+}
+/* STEP3 手直しボード用データ組み立て */
+function buildStep3AssignBoardOpts(){
+  if(!R||!window.TCB_AssignBoard)return null;
+  var allT=(R.mode==='team')?R.allTools:R.tools;
+  var map=R.map||{};
+  var toolsMeta=(allT||[]).map(function(t){
+    return {name:t.name,fixed:!!t.fixed,team:t.team||''};
+  });
+  var toolsByPerson={};
+  var unassigned=[];
+  (allT||[]).forEach(function(t){
+    var holder=map[t.name];
+    var meta={name:t.name,fixed:!!t.fixed};
+    if(holder){
+      if(!toolsByPerson[holder])toolsByPerson[holder]=[];
+      toolsByPerson[holder].push(meta);
+    }else{
+      unassigned.push(meta);
+    }
+  });
+  function memberInfo(m, team){
+    return {
+      name:m.name,
+      label:m.name,
+      team:team||'',
+      remote:isMemberRemote(m),
+      excluded:!!(absS[m.name]||ochS[m.name])
+    };
+  }
+  var groups=null, members=null;
+  if(R.mode==='team'&&!shareHidesTeamSplit()){
+    groups=[
+      {id:'A',label:(R.la||'試合組'),members:(R.mA||[]).map(function(m){return memberInfo(m,'A');})},
+      {id:'B',label:(R.lb||'練習組'),members:(R.mB||[]).map(function(m){return memberInfo(m,'B');})}
+    ];
+    /* 班外だが map 上にいる担当者（欠席等）も表示 */
+    var inSet={};
+    (R.mA||[]).forEach(function(m){inSet[m.name]=1;});
+    (R.mB||[]).forEach(function(m){inSet[m.name]=1;});
+    var extras=[];
+    Object.keys(toolsByPerson).forEach(function(n){
+      if(!inSet[n]){
+        var row=memberRowByName(n);
+        extras.push({name:n,label:n+'（班外）',team:'',excluded:true,remote:isMemberRemote(row)});
+      }
+    });
+    if(extras.length)groups.push({id:'X',label:'その他（欠席・お茶等）',members:extras});
+  }else{
+    members=sortedTeamMembersFlat().map(function(m){return memberInfo(m,'');});
+    var flatSet={};
+    members.forEach(function(m){flatSet[m.name]=1;});
+    Object.keys(toolsByPerson).forEach(function(n){
+      if(!flatSet[n]){
+        var row=memberRowByName(n);
+        members.push({name:n,label:n,team:'',excluded:true,remote:isMemberRemote(row)});
+      }
+    });
+  }
+  function toolTeamOf(tn){
+    for(var i=0;i<(allT||[]).length;i++){
+      if(allT[i].name===tn)return allT[i].team||'';
+    }
+    return '';
+  }
+  return {
+    esc:esc,
+    lead:'道具タイルをタップ→移動先の人をタップで移動。別の道具タイルで入れ替え。未割当枠へも戻せます。展開後の修正・再展開にも使えます。',
+    map:map,
+    tools:toolsMeta,
+    toolsByPerson:toolsByPerson,
+    unassigned:unassigned,
+    groups:groups,
+    members:members,
+    canDropOnPerson:function(toolName, person){
+      var tm=toolTeamOf(toolName);
+      var ok=candsManual(tm, toolName).indexOf(person)>=0;
+      return ok?{ok:true}:{ok:false,reason:'この人には割り当てできません（班または候補外）。「班を問わず全員を担当候補に表示」をオンにすると候補が広がります。'};
+    },
+    canSwap:function(toolA, toolB){
+      var ha=map[toolA]||'';
+      var hb=map[toolB]||'';
+      if(!ha&&!hb)return {ok:false,reason:''};
+      if(ha&&hb){
+        var okA=candsManual(toolTeamOf(toolA), toolA).indexOf(hb)>=0;
+        var okB=candsManual(toolTeamOf(toolB), toolB).indexOf(ha)>=0;
+        if(okA&&okB)return {ok:true};
+        return {ok:false,reason:'班の制約で入れ替えできません。'};
+      }
+      /* 片方未割当：移動として扱う側に任せる（スワップ不可） */
+      return {ok:false,reason:''};
+    },
+    onMove:function(toolName, toPerson){
+      chAssign(toolName, toPerson||'');
+    },
+    onSwap:function(toolA, toolB){
+      chSwapAssign(toolA, toolB);
+    },
+    onReject:function(msg){
+      if(msg)tcbToast(msg,'warn');
+    }
+  };
+}
+function buildAssignBoard(){
+  var root=document.getElementById('tcb-assign-board-root');
+  if(!root||!R)return;
+  if(typeof TCB_AssignBoard==='undefined'||!TCB_AssignBoard||typeof TCB_AssignBoard.mount!=='function'){
+    root.innerHTML='<p class="al alw">手直しボードを読み込めませんでした。ページを再読み込みしてください。</p>';
+    return;
+  }
+  var opts=buildStep3AssignBoardOpts();
+  if(!opts)return;
+  TCB_AssignBoard.mount(root, opts);
 }
 
 /* ========== メンバー別 ========== */
@@ -8432,7 +8666,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.25.11';
+  if(vEl)vEl.textContent='v1.25.12';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -8519,6 +8753,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnReb=document.getElementById('btn-rebalance-fair');
   if(btnReb)btnReb.addEventListener('click',function(){runRebalanceFair();});
   document.getElementById('tab-tbl').addEventListener('click',function(){swTab('tbl');});
+  document.getElementById('tab-board').addEventListener('click',function(){swTab('board');});
   document.getElementById('tab-mem').addEventListener('click',function(){swTab('mem');});
   var btnOpenShare=document.getElementById('btn-open-share');
   if(btnOpenShare)btnOpenShare.addEventListener('click',function(){openPrint();});
@@ -8776,7 +9011,10 @@ document.addEventListener('DOMContentLoaded',function(){
       confirmPlan:confirmHandoffPlan,
       makePdf:makeHandoffPdf,
       copyText:function(text, okMsg){copyTextToClipboard(text, okMsg||'コピーしました');},
-      toast:function(msg, kind){if(typeof tcbToast==='function')tcbToast(msg, kind||'info');}
+      toast:function(msg, kind){if(typeof tcbToast==='function')tcbToast(msg, kind||'info');},
+      renderBoard:function(root, onApplied){
+        mountHandoffAssignBoard(root, {onApplied:onApplied});
+      }
     });
     var hoEntryInit=document.getElementById('tcb-handoff-entry');
     if(hoEntryInit)hoEntryInit.style.display=handoffHasAnyBase()?'block':'none';
@@ -8992,18 +9230,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.25.11"></script>
-<script src="html2canvas.min.js?v=1.25.11"></script>
-<script src="html2pdf.min.js?v=1.25.11"></script>
-<script src="tcb-print-pdf.js?v=1.25.11"></script>
-<script src="tcb-feedback.js?v=1.25.11"></script>
-<script src="tcb-sync-api.js?v=1.25.11"></script>
-<script src="tcb-swap-mgr.js?v=1.25.11"></script>
-<script src="tcb-push-mgr.js?v=1.25.11"></script>
-<script src="tcb-login.js?v=1.25.11"></script>
-<script src="tcb-pwa-install.js?v=1.25.11"></script>
-<script src="tcb-group-hold.js?v=1.25.11"></script>
-<script src="tcb-presummary.js?v=1.25.11"></script>
-<script src="tcb-p1-flow.js?v=1.25.11"></script>
+<script src="jspdf.umd.min.js?v=1.25.12"></script>
+<script src="html2canvas.min.js?v=1.25.12"></script>
+<script src="html2pdf.min.js?v=1.25.12"></script>
+<script src="tcb-print-pdf.js?v=1.25.12"></script>
+<script src="tcb-feedback.js?v=1.25.12"></script>
+<script src="tcb-sync-api.js?v=1.25.12"></script>
+<script src="tcb-swap-mgr.js?v=1.25.12"></script>
+<script src="tcb-push-mgr.js?v=1.25.12"></script>
+<script src="tcb-login.js?v=1.25.12"></script>
+<script src="tcb-pwa-install.js?v=1.25.12"></script>
+<script src="tcb-group-hold.js?v=1.25.12"></script>
+<script src="tcb-presummary.js?v=1.25.12"></script>
+<script src="tcb-p1-flow.js?v=1.25.12"></script>
 </body>
 </html>

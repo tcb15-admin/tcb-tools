@@ -107,7 +107,7 @@
 
     var html = payload.edited
       ? '<div class="tcb-handoff-oknote">手動調整を反映しました。下の <strong>LINE本文</strong> が更新されています。PDF 出力・実施確定はこの内容が使われます。</div>'
-      : '<div class="tcb-handoff-oknote">最適解を表示しています。タープはマスタ「遠方」以外で本数をほぼ均等に調整しています。必要なら下の「任意で調整」から変更できます。反映後に PDF 出力・実施確定ができます。入れ替え不要の道具は前回の担当のままです。</div>';
+      : '<div class="tcb-handoff-oknote">最適解を表示しています。必要なら下の<strong>手直しボード</strong>で移動・入れ替えできます（変更はすぐ反映）。タープはマスタ「遠方」以外で本数をほぼ均等に調整しています。</div>';
     if (payload.html) html += payload.html;
     if (lastLineText) {
       html += '<div class="tcb-swap-list-line-wrap tcb-handoff-line-live">';
@@ -130,6 +130,18 @@
       html += '</div>';
     }
     box.innerHTML = html;
+
+    if (ctx.renderBoard) {
+      var boardRoot = box.querySelector('#tcb-handoff-board-root');
+      if (boardRoot) {
+        ctx.renderBoard(boardRoot, function (payload) {
+          renderResult(payload);
+          if (payload && !payload.error && ctx.toast) {
+            ctx.toast('手直しを反映しました（LINE本文を更新）', 'success');
+          }
+        });
+      }
+    }
 
     box.querySelectorAll('.tcb-handoff-edit-sel').forEach(function (sel) {
       sel.addEventListener('change', function () {
