@@ -109,6 +109,42 @@
       unpublishDay:function(){
         return req('/api/unpublish-day','POST',{cohort:cohort});
       },
+      /** 道具写真を R2 へアップロード（FormData・自動圧縮済み Blob 想定） */
+      uploadToolImage:function(toolName, blob, contentType){
+        var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+        var timer=ctrl?setTimeout(function(){ctrl.abort();},REQ_TIMEOUT_MS):null;
+        var fd=new FormData();
+        fd.append('cohort',cohort);
+        fd.append('toolName',String(toolName||''));
+        fd.append('file',blob,String(toolName||'tool').replace(/[^\w\u3040-\u30ff\u4e00-\u9fff-]+/g,'_').slice(0,40)+'.jpg');
+        notifySync('start');
+        return fetch(base+'/api/tool-image',{
+          method:'POST',
+          headers:{Authorization:'Bearer '+token},
+          body:fd,
+          signal:ctrl?ctrl.signal:undefined
+        }).then(function(res){
+          return safeJson(res).then(function(payload){
+            if(!res.ok){
+              var msg=(payload&&payload.error)?payload.error:('HTTP '+res.status);
+              throw new Error(msg);
+            }
+            notifySync('ok');
+            return payload;
+          });
+        }).catch(function(err){
+          notifySync('error');
+          if(err&&err.name==='AbortError'){
+            throw new Error('通信がタイムアウトしました（30秒）。電波状況を確認して再度お試しください。');
+          }
+          throw err;
+        }).finally(function(){
+          if(timer)clearTimeout(timer);
+        });
+      },
+      deleteToolImage:function(toolName){
+        return req('/api/tool-image','DELETE',{cohort:cohort,toolName:toolName});
+      },
       fetchSwapReports:function(){
         return req('/api/swap-reports?cohort='+encodeURIComponent(cohort),'GET');
       },

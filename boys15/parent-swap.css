@@ -68,6 +68,18 @@
 .pvsw-tool-line{display:flex;align-items:center;gap:8px;}
 .pvsw-tool-img{width:44px;height:33px;border-radius:6px;object-fit:cover;border:1px solid var(--bdr);cursor:zoom-in;flex-shrink:0;}
 
+/* 道具カタログ（マスタ全道具） */
+.pvsw-catalog-title{font-weight:750;font-size:15px;color:var(--navy);margin-bottom:6px;}
+.pvsw-catalog-desc{font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:12px;}
+.pvsw-catalog-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+.pvsw-catalog-item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--bdr);border-radius:12px;background:var(--surface-2);}
+.pvsw-catalog-img{width:72px;height:54px;border-radius:8px;}
+.pvsw-catalog-ph{width:72px;height:54px;border-radius:8px;background:var(--card);border:1px dashed var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;opacity:.55;}
+.pvsw-catalog-body{flex:1;min-width:0;}
+.pvsw-catalog-name{font-weight:700;font-size:13.5px;color:var(--txt);margin-bottom:4px;line-height:1.35;}
+.pvsw-catalog-text{font-size:12px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;}
+.pvsw-catalog-muted{opacity:.75;}
+
 /* 申請種別（交代先あり／担当できない） */
 .pvsw-kind-field{display:flex;flex-direction:column;gap:6px;}
 .pvsw-kind-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt);min-height:32px;cursor:pointer;}

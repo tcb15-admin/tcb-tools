@@ -48,6 +48,24 @@ npx wrangler d1 execute tcb-tools-sync --remote --file=./schema.sql
 
 （ローカル検証用の D1 にだけ流す場合は `--local` に読み替え。）
 
+## 4b. 道具写真用 R2 バケット
+
+マスタの道具写真は R2 に期ディレクトリ（`{cohort}/tools/…`）で集約する。
+
+```bash
+cd cloudflare-sync
+npx wrangler r2 bucket create tcb-tools-images
+```
+
+`wrangler.toml` / `wrangler.toml.example` に `TOOL_IMAGES` バインディング済み。作成後に `npx wrangler deploy`。
+
+API 概要:
+
+- `POST /api/tool-image`（Bearer）… 写真アップロード（multipart: cohort, toolName, file）
+- `DELETE /api/tool-image`（Bearer）… 紐付け画像の削除
+- `GET /api/media/tool/{cohort}/tools/{hash}.jpg` … 画像配信（トークン不要）
+- `GET /api/public/tool-descs?sid=` … 保護者向け・マスタ全道具の説明・写真
+
 ## 5. 共有トークン（シークレット）
 
 Worker は `Authorization: Bearer <token>` と `env.SYNC_API_TOKEN` の一致だけで認可する。**トークンは `wrangler.toml` に書かない。**

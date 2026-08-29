@@ -1127,6 +1127,7 @@ html{color-scheme:light;}
 <link rel="stylesheet" href="tcb-swap-list.css">
 <link rel="stylesheet" href="tcb-handoff-plan.css">
 <link rel="stylesheet" href="tcb-assign-board.css">
+<link rel="stylesheet" href="tcb-tool-images.css">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1677,7 +1678,7 @@ html{color-scheme:light;}
     <div class="card">
       <div class="master-section">
         <h3>&#128221; 道具の説明・写真</h3>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真URLを登録。割振り結果の「&#128247; 写真」ボタンで表示。</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真を登録。写真はクラウドの画像フォルダに保管し道具名へ紐付けます。割振り結果・保護者確認URLから参照できます。</div>
         <div id="m-descs"></div>
       </div>
     </div>
@@ -1693,6 +1694,7 @@ html{color-scheme:light;}
 <script src="tcb-assign-board.js"></script>
 <script src="tcb-handoff-plan.js"></script>
 <script src="tcb-team-rules.js"></script>
+<script src="tcb-tool-images.js"></script>
 <script>
 
 
@@ -2651,10 +2653,9 @@ function syncMasterEditsFromDom(){
       if(ci>=cards.length)return;
       var card=cards[ci++];
       var tw=card.querySelector('.master-desc-text');
-      var tu=card.querySelector('.master-desc-url-inp');
       if(!DESCS[t.name])DESCS[t.name]={text:'',img:''};
       if(tw)DESCS[t.name].text=tw.value;
-      if(tu)DESCS[t.name].img=String(tu.value||'').trim();
+      /* img は写真アップロード側が DESCS を直接更新（URL手入力は廃止） */
     });
   }
 }
@@ -8239,64 +8240,33 @@ function buildMasterTools(){
 function buildMasterDescs(){
   var el=document.getElementById('m-descs'); el.innerHTML='';
   el.className='master-desc-list';
-  /* 画像URL説明（軽量URLでスマホ閲覧が滑らかに） */
   var hint=document.createElement('div');
-  hint.className='al ali';
-  hint.style.marginBottom='10px';
-  hint.innerHTML='<strong>写真の登録方法：</strong>画像を <strong>Web 上に置いた URL</strong> を貼ります（GitHub の <code>images/</code> の raw URL や、別のホストでも可）。<br>'
-    +'<strong>スマホ向けのコツ：</strong>元ファイルを <strong>横800〜1200px・JPEG/WebP・1枚200〜400KB程度</strong> に圧縮してからアップロードすると読み込みが速くなります。<code>data:image/...</code> の長文貼り付けは重くなるため避けてください。<br>'
-    +'例：<code style="font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">'
-    +'https://raw.githubusercontent.com/【ユーザー名】/【リポジトリ名】/main/{{GITHUB_FOLDER_NAME}}/images/tarp1.jpg</code>';
+  hint.className='tcb-tool-img-hint';
+  hint.innerHTML='<strong>写真の登録：</strong>各道具の「写真を選ぶ」から、PCのフォルダ／スマホ・タブレットのアルバム（または撮影）の画像を指定します。<br>'
+    +'選んだ画像はクラウドの<strong>画像フォルダ</strong>（期ごとのディレクトリ）に保管され、道具名に自動で紐付きます。保護者確認URLからも全道具の写真を参照できます。<br>'
+    +'登録時に自動で軽量化します（目安：横800〜1200px・JPEG）。';
   el.appendChild(hint);
 
   TL.forEach(function(t){
     var d=DESCS[t.name]||{text:'',img:''};
     var row=document.createElement('div');
     row.className='master-desc-card';
-    /* 道具名 */
     var head=document.createElement('div');
     head.className='master-desc-card-head';
     head.textContent=t.name; row.appendChild(head);
-    /* 説明文 */
     var txtInp=document.createElement('textarea');
     txtInp.className='master-desc-text';
     txtInp.value=d.text||''; txtInp.placeholder='説明文（保護者向け）';
     txtInp.rows=2;
     txtInp.setAttribute('autocomplete','off');
     row.appendChild(txtInp);
-    /* 画像URL入力 */
     var urlRow=document.createElement('div');
     urlRow.className='master-desc-url-row';
-    var urlInp=document.createElement('input'); urlInp.className='minp master-desc-url-inp';
-    urlInp.value=d.img||''; urlInp.placeholder='画像URL（https… を貼り付け。プレビューで確認）';
-    urlInp.style.fontSize='12px';
-    urlInp.setAttribute('inputmode','url');
-    urlInp.setAttribute('autocomplete','off');
-    /* プレビュー */
-    var preview=document.createElement('div');
-    preview.className='master-desc-preview';
-    function fillDescPreview(pvEl,urlStr){
-      pvEl.innerHTML='';
-      var u=(urlStr||'').trim();
-      if(!u){pvEl.textContent='\ud83d\udcf7';return;}
-      if(!isSafeDescImgUrl(u)){pvEl.textContent='\u26a0\ufe0f';return;}
-      var ni=document.createElement('img');
-      ni.src=u;
-      ni.alt='';
-      ni.loading='lazy';
-      ni.decoding='async';
-      ni.width=48;
-      ni.height=36;
-      ni.style.cssText='width:100%;height:100%;object-fit:cover;';
-      ni.onerror=function(){pvEl.innerHTML=''; pvEl.textContent='\u26a0\ufe0f';};
-      pvEl.appendChild(ni);
-    }
-    fillDescPreview(preview,d.img||'');
-    urlRow.appendChild(urlInp); urlRow.appendChild(preview);
     row.appendChild(urlRow); el.appendChild(row);
-    /* イベント */
-    (function(tn,tw,tu,pv){
-      var urlTimer=null;
+    if(window.TCB_ToolImages&&typeof window.TCB_ToolImages.enhanceDescCard==='function'){
+      window.TCB_ToolImages.enhanceDescCard(row,t.name,d.img||'');
+    }
+    (function(tn,tw){
       tw.addEventListener('change',function(){
         if(!DESCS[tn])DESCS[tn]={text:'',img:''};
         DESCS[tn].text=tw.value;
@@ -8305,20 +8275,7 @@ function buildMasterDescs(){
         if(!DESCS[tn])DESCS[tn]={text:'',img:''};
         DESCS[tn].text=tw.value;
       });
-      function syncPreviewFromInput(){
-        fillDescPreview(pv,tu.value.trim());
-      }
-      tu.addEventListener('change',function(){
-        clearTimeout(urlTimer);
-        if(!DESCS[tn])DESCS[tn]={text:'',img:''};
-        DESCS[tn].img=tu.value.trim();
-        fillDescPreview(pv,tu.value.trim());
-      });
-      tu.addEventListener('input',function(){
-        clearTimeout(urlTimer);
-        urlTimer=setTimeout(syncPreviewFromInput,400);
-      });
-    })(t.name,txtInp,urlInp,preview);
+    })(t.name,txtInp);
   });
 }
 

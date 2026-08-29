@@ -504,6 +504,7 @@ def build(target):
         'tcb-handoff-plan.js', 'tcb-handoff-plan.css',
         'tcb-assign-board.js', 'tcb-assign-board.css',
         'tcb-team-rules.js',
+        'tcb-tool-images.js', 'tcb-tool-images.css',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )

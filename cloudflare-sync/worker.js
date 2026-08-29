@@ -5,6 +5,14 @@ export default {
     if (request.method === "OPTIONS") return cors(new Response(null, { status: 204 }));
 
     const url = new URL(request.url);
+    // 道具写真の配信（R2）はトークン不要（URLに不透明キーを含む）
+    if (url.pathname.startsWith("/api/media/tool/") && request.method === "GET") {
+      try {
+        return await serveToolImage(env, url);
+      } catch (e) {
+        return json({ error: e.message || "server_error" }, 400);
+      }
+    }
     // 保護者向け公開経路（shareId で個別検証）だけは Bearer 認証を課さない
     const isPublic = url.pathname.startsWith("/api/public/");
     if (!isPublic && !authorize(request, env)) return json({ error: "unauthorized" }, 401);
@@ -14,6 +22,10 @@ export default {
       if (url.pathname === "/api/public/day" && request.method === "GET") {
         const sid = (url.searchParams.get("sid") || "").trim();
         return json(await getPublicDay(env, sid));
+      }
+      if (url.pathname === "/api/public/tool-descs" && request.method === "GET") {
+        const sid = (url.searchParams.get("sid") || "").trim();
+        return json(await getPublicToolDescs(env, sid));
       }
       if (url.pathname === "/api/public/swap-report" && request.method === "POST") {
         const body = await request.json();
@@ -199,6 +211,14 @@ export default {
         const cohort = (url.searchParams.get("cohort") || "").trim();
         return json(await getPortalSummary(env, cohort));
       }
+      // ===== 道具写真（R2・Bearer） =====
+      if (url.pathname === "/api/tool-image" && request.method === "POST") {
+        return json(await uploadToolImage(env, request, url));
+      }
+      if (url.pathname === "/api/tool-image" && request.method === "DELETE") {
+        const body = await request.json();
+        return json(await deleteToolImage(env, body, url));
+      }
       return json({ error: "not_found" }, 404);
     } catch (e) {
       return json({ error: e.message || "server_error" }, 400);
@@ -216,7 +236,7 @@ function cors(res) {
   const headers = new Headers(res.headers);
   headers.set("Access-Control-Allow-Origin", "*");
   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  headers.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  headers.set("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
   return new Response(res.body, { status: res.status, headers });
 }
 function json(obj, status = 200) {
@@ -438,6 +458,171 @@ function sanitizeImgUrl(v) {
   } catch {
     return "";
   }
+}
+
+const TOOL_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+const TOOL_IMAGE_ALLOWED_TYPES = {
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+function mustToolImages(env) {
+  if (!env.TOOL_IMAGES) throw new Error("r2_not_configured");
+  return env.TOOL_IMAGES;
+}
+
+/** 期ディレクトリ配下に道具名ハッシュで集約（上書き差し替え） */
+async function toolImageObjectKey(cohort, toolName, ext) {
+  const enc = new TextEncoder().encode(String(toolName || ""));
+  const digest = await crypto.subtle.digest("SHA-256", enc);
+  const hex = [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 24);
+  const e = String(ext || "jpg").replace(/[^a-z0-9]/gi, "") || "jpg";
+  return `${mustCohort(cohort)}/tools/${hex}.${e}`;
+}
+
+function toolImagePublicUrl(requestUrl, key) {
+  const base = new URL(requestUrl);
+  return `${base.origin}/api/media/tool/${key.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function parseToolMediaPath(pathname) {
+  // /api/media/tool/{cohort}/tools/{hash}.{ext}
+  const prefix = "/api/media/tool/";
+  if (!pathname.startsWith(prefix)) return null;
+  const rest = pathname.slice(prefix.length);
+  const parts = rest.split("/").map((p) => {
+    try {
+      return decodeURIComponent(p);
+    } catch {
+      return p;
+    }
+  });
+  if (parts.length !== 3) return null;
+  const [cohort, toolsDir, file] = parts;
+  if (!cohort || toolsDir !== "tools" || !file) return null;
+  if (!/^[0-9a-zA-Z._-]{1,64}$/.test(cohort)) return null;
+  if (!/^[0-9a-f]{16,64}\.(jpg|jpeg|png|webp)$/i.test(file)) return null;
+  return `${cohort}/tools/${file.replace(/\.jpeg$/i, ".jpg")}`;
+}
+
+async function serveToolImage(env, url) {
+  const key = parseToolMediaPath(url.pathname);
+  if (!key) throw new Error("invalid_media_key");
+  const bucket = mustToolImages(env);
+  const obj = await bucket.get(key);
+  if (!obj) return json({ error: "not_found" }, 404);
+  const headers = new Headers();
+  obj.writeHttpMetadata(headers);
+  headers.set("etag", obj.httpEtag);
+  headers.set("Cache-Control", "public, max-age=86400, immutable");
+  headers.set("Access-Control-Allow-Origin", "*");
+  if (!headers.has("Content-Type")) {
+    const lower = key.toLowerCase();
+    headers.set(
+      "Content-Type",
+      lower.endsWith(".png") ? "image/png" : lower.endsWith(".webp") ? "image/webp" : "image/jpeg"
+    );
+  }
+  return new Response(obj.body, { status: 200, headers });
+}
+
+async function uploadToolImage(env, request, url) {
+  const bucket = mustToolImages(env);
+  const ct = String(request.headers.get("content-type") || "");
+  let cohort = "";
+  let toolName = "";
+  let bytes = null;
+  let mime = "";
+
+  if (ct.includes("multipart/form-data")) {
+    const form = await request.formData();
+    cohort = String(form.get("cohort") || "").trim();
+    toolName = String(form.get("toolName") || "").trim();
+    const file = form.get("file");
+    if (!file || typeof file.arrayBuffer !== "function") throw new Error("file_required");
+    mime = String(file.type || "").toLowerCase();
+    bytes = new Uint8Array(await file.arrayBuffer());
+  } else {
+    const body = await request.json();
+    cohort = String((body && body.cohort) || "").trim();
+    toolName = String((body && body.toolName) || "").trim();
+    const b64 = String((body && body.dataBase64) || "").replace(/^data:image\/[a-z0-9+.-]+;base64,/i, "");
+    mime = String((body && body.contentType) || "image/jpeg").toLowerCase();
+    if (!b64) throw new Error("file_required");
+    const bin = atob(b64);
+    if (bin.length > TOOL_IMAGE_MAX_BYTES) throw new Error("file_too_large");
+    bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  }
+
+  mustCohort(cohort);
+  toolName = sliceStr(toolName, 80);
+  if (!toolName) throw new Error("tool_name_required");
+  if (!bytes || !bytes.length) throw new Error("file_required");
+  if (bytes.length > TOOL_IMAGE_MAX_BYTES) throw new Error("file_too_large");
+  const ext = TOOL_IMAGE_ALLOWED_TYPES[mime];
+  if (!ext) throw new Error("unsupported_image_type");
+
+  const key = await toolImageObjectKey(cohort, toolName, ext);
+  await bucket.put(key, bytes, {
+    httpMetadata: { contentType: mime === "image/jpg" ? "image/jpeg" : mime },
+    customMetadata: { toolName: toolName.slice(0, 80), cohort },
+  });
+  const publicUrl = toolImagePublicUrl(url.href, key);
+  return { ok: true, key, url: publicUrl, toolName, bytes: bytes.length };
+}
+
+async function deleteToolImage(env, body, url) {
+  const bucket = mustToolImages(env);
+  const cohort = mustCohort(body && body.cohort);
+  const toolName = sliceStr(body && body.toolName, 80);
+  if (!toolName) throw new Error("tool_name_required");
+  // 拡張子違いの残骸も消す
+  const keys = await Promise.all(
+    ["jpg", "png", "webp"].map((ext) => toolImageObjectKey(cohort, toolName, ext))
+  );
+  await Promise.all(keys.map((k) => bucket.delete(k)));
+  return { ok: true, toolName, urls: keys.map((k) => toolImagePublicUrl(url.href, k)) };
+}
+
+/** 保護者向け：有効な shareId からマスタ全道具の説明・写真を返す */
+async function getPublicToolDescs(env, sidRaw) {
+  const { cohort } = await getActivePublishedByShare(env, sidRaw);
+  const row = await ensureState(env, cohort);
+  let master = {};
+  try {
+    master = JSON.parse(row.master_json || "{}");
+  } catch {
+    master = {};
+  }
+  const TL = Array.isArray(master.TL) ? master.TL : [];
+  const DESCS = master.DESCS && typeof master.DESCS === "object" ? master.DESCS : {};
+  const tools = TL.map((t) => {
+    const name = String((t && t.name) || "").trim().slice(0, 80);
+    if (!name) return null;
+    const d = DESCS[name];
+    const text =
+      d && typeof d === "object" ? String(d.text || "") : d != null ? String(d) : "";
+    const img =
+      d && typeof d === "object" ? sanitizeImgUrl(d.img) : "";
+    const team = t && (t.team === "A" || t.team === "B") ? t.team : "";
+    return {
+      name,
+      desc: text.slice(0, 500),
+      img,
+      team,
+    };
+  }).filter(Boolean);
+  return {
+    cohort,
+    tools,
+    updatedAt: null,
+  };
 }
 
 /** 保護者に見せてよい最小情報だけを取り出して整形する（PAST等の内部指標は出さない） */

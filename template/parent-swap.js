@@ -42,7 +42,8 @@
     mode: 'self', // 'self' | 'all'
     offline: false,      // 前回取得分を表示中
     staleReason: '',     // 'offline'（圏外） | 'error'（通信・サーバ障害）
-    cachedAt: ''
+    cachedAt: '',
+    toolCatalog: null    // マスタ全道具（説明・写真）
   };
 
   /* ========== 汎用ユーティリティ ========== */
@@ -356,6 +357,36 @@
       + '</div>';
   }
 
+  function renderToolCatalog() {
+    var tools = Array.isArray(state.toolCatalog) ? state.toolCatalog : [];
+    if (!tools.length) {
+      return '<div class="pv-card pvsw-catalog">'
+        + '<div class="pvsw-catalog-title">&#128247; 道具カタログ（全道具）</div>'
+        + '<div class="pv-empty">道具一覧を取得できませんでした。最新に更新してください。</div>'
+        + '</div>';
+    }
+    var html = '<div class="pv-card pvsw-catalog">'
+      + '<div class="pvsw-catalog-title">&#128247; 道具カタログ（全道具）</div>'
+      + '<div class="pvsw-catalog-desc">割振りの有無に関係なく、マスタに登録された道具の写真・説明を確認できます。</div>'
+      + '<ul class="pvsw-catalog-list">';
+    tools.forEach(function (t) {
+      var img = safeImgUrl(t.img);
+      var tc = teamClass(t.team);
+      html += '<li class="pvsw-catalog-item">'
+        + (img
+          ? '<img class="pvsw-tool-img pvsw-catalog-img" src="' + esc(img) + '" alt="' + esc(t.name) + 'の写真" loading="lazy" data-imgurl="' + esc(img) + '">'
+          : '<div class="pvsw-catalog-ph" aria-hidden="true">&#128247;</div>')
+        + '<div class="pvsw-catalog-body">'
+        + '<div class="pvsw-catalog-name">' + esc(t.name || '')
+        + (tc ? ' <span class="pv-team-tag ' + tc + '">' + esc(tc) + '組</span>' : '')
+        + '</div>'
+        + (t.desc ? '<div class="pvsw-catalog-text">' + esc(t.desc) + '</div>' : '<div class="pvsw-catalog-text pvsw-catalog-muted">説明未登録</div>')
+        + '</div></li>';
+    });
+    html += '</ul></div>';
+    return html;
+  }
+
   function renderPicker(data) {
     var names = allPersonNames(data);
     var btns = names.map(function (n) {
@@ -392,6 +423,7 @@
 
     var html = renderOfflineBanner() + renderToolbar() + renderHandoffNav() + renderStatusSection();
     days.forEach(function (d, i) { html += renderDay(d, i); });
+    html += renderToolCatalog();
     if (data.updatedAt) html += '<div class="pv-updated">最終更新: ' + esc(fmtUpdated(data.updatedAt)) + '</div>';
     document.getElementById('pv-content').innerHTML = html;
     loadStatus();
@@ -700,9 +732,14 @@
   }
 
   /* ========== オフラインキャッシュ ========== */
-  function saveCache(sid, data) {
+  function saveCache(sid, data, catalog) {
     try {
-      lsSet(CACHE_KEY, JSON.stringify({ sid: sid, data: data, fetchedAt: new Date().toISOString() }));
+      lsSet(CACHE_KEY, JSON.stringify({
+        sid: sid,
+        data: data,
+        toolCatalog: catalog || null,
+        fetchedAt: new Date().toISOString()
+      }));
     } catch (e) {}
   }
   function loadCache(sid) {
@@ -714,12 +751,30 @@
   }
 
   /* ========== 読み込み ========== */
-  function applyLoadedData(data) {
+  function applyLoadedData(data, catalog) {
     state.data = data;
+    if (catalog && Array.isArray(catalog.tools)) {
+      state.toolCatalog = catalog.tools;
+    } else if (Array.isArray(catalog)) {
+      state.toolCatalog = catalog;
+    } else if (data && Array.isArray(data.toolCatalog)) {
+      state.toolCatalog = data.toolCatalog;
+    }
     var remembered = lsGet(NAME_KEY);
     var names = allPersonNames(data);
     state.selectedName = (remembered && names.indexOf(remembered) >= 0) ? remembered : '';
     render();
+  }
+
+  function fetchJson(path) {
+    return fetch(API_BASE + path, { method: 'GET' }).then(function (res) {
+      return res.text().then(function (t) {
+        var payload = {};
+        try { payload = t ? JSON.parse(t) : {}; } catch (e) { payload = {}; }
+        if (!res.ok || payload.error) throw new Error(payload.error || ('HTTP ' + res.status));
+        return payload;
+      });
+    });
   }
 
   function load() {
@@ -730,21 +785,19 @@
     var btn = document.getElementById('pv-reload');
     if (btn) btn.disabled = true;
     showState('&#8987;', '読み込み中です…');
-    fetch(API_BASE + '/api/public/day?sid=' + encodeURIComponent(sid), { method: 'GET' })
-      .then(function (res) {
-        return res.text().then(function (t) {
-          var payload = {};
-          try { payload = t ? JSON.parse(t) : {}; } catch (e) { payload = {}; }
-          if (!res.ok || payload.error) throw new Error(payload.error || ('HTTP ' + res.status));
-          return payload;
-        });
-      })
-      .then(function (data) {
+    var dayP = fetchJson('/api/public/day?sid=' + encodeURIComponent(sid));
+    var catP = fetchJson('/api/public/tool-descs?sid=' + encodeURIComponent(sid)).catch(function () {
+      return { tools: [] };
+    });
+    Promise.all([dayP, catP])
+      .then(function (pair) {
+        var data = pair[0];
+        var catalog = pair[1];
         state.offline = false;
         state.staleReason = '';
         state.cachedAt = '';
-        saveCache(sid, data);
-        applyLoadedData(data);
+        saveCache(sid, data, catalog);
+        applyLoadedData(data, catalog);
       })
       .catch(function (err) {
         var msg = String(err && err.message || '');
@@ -752,13 +805,12 @@
           showState('&#128273;', 'この確認用リンクは<strong>無効または期限切れ</strong>です。<br>最新のリンクをチームにご確認ください。');
           return;
         }
-        /* 取得失敗：前回取得分があれば表示するが、圏外と障害でバナー文言を分けて誤解を防ぐ */
         var cached = loadCache(sid);
         if (cached) {
           state.offline = true;
           state.staleReason = (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'offline' : 'error';
           state.cachedAt = cached.fetchedAt || '';
-          applyLoadedData(cached.data);
+          applyLoadedData(cached.data, cached.toolCatalog || null);
           return;
         }
         showState('&#9888;&#65039;', '読み込みに失敗しました。<br>通信環境をご確認のうえ、時間をおいて再度お試しください。');
