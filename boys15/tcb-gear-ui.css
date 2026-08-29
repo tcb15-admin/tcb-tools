@@ -54,7 +54,7 @@ a.hbtn:focus-visible,
   box-shadow:none;
   border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
 }
-.date-inp,.tninp,.asel,.dfbtn,.tcb-actual-hold-sel,.tcb-ghold-sel{
+.date-inp,.tninp,.asel,.dfbtn,.tcb-ghold-sel{
   background:var(--tcb-surface,var(--card,#fff));
   color:var(--tcb-ink,var(--txt,#141416));
   font-size:16px;

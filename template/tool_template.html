@@ -365,14 +365,11 @@ tr.p3-multi-row{background:#fff8e1;}
 .tcb-seedalloc-opt{display:flex;align-items:flex-start;gap:6px;font-size:12px;line-height:1.5;cursor:pointer;padding:3px 0;}
 .tcb-seedalloc-opt input{margin-top:2px;flex-shrink:0;}
 .tcb-actual-hold-desc{font-size:12px;line-height:1.6;color:var(--txt2);margin-bottom:10px;}
-.tcb-actual-hold-note{font-size:11px;line-height:1.55;color:#6a1b9a;margin-bottom:10px;}
 .tcb-actual-hold-board-wrap{margin:0 0 4px;}
 .tcb-actual-hold-modal.tcb-scroll-modal{max-width:min(720px,96vw);width:96vw;}
 .tcb-actual-hold-modal .tcb-scroll-modal-body{max-height:min(62vh,560px);}
 .tcb-actual-hold-btns{display:flex;gap:8px;margin-top:10px;flex-shrink:0;}
 .tcb-actual-hold-btns button{flex:1;}
-.tcb-actual-hold-under-tgrid{width:100%;margin-top:12px;display:none;}
-.tcb-actual-hold-under-tgrid.on{display:block;}
 .p3-carry-adjust-summary{display:none;margin-top:8px;padding:10px 12px;background:#f3e5f5;border-left:4px solid #7b1fa2;border-radius:8px;font-size:12px;line-height:1.55;color:var(--txt2);}
 .p3-carry-adjust-summary.on{display:block;}
 .p3-carry-adjust-summary strong{color:#4a148c;}
@@ -994,9 +991,9 @@ html{color-scheme:light;}
   .hbtn:hover,.hbtn:focus,a.hbtn:hover,a.hbtn:focus{background:var(--ink-heading);color:var(--card);}
   .card{border:1px solid var(--bdr);box-shadow:none;}
   .tb2.on{background:#5a5a5e;color:#fff;box-shadow:none;}
-  .date-inp,.tninp,.mc,.tc2,.dfbtn,.tcb-actual-hold-sel,.tcb-hist-detail-cond{background:var(--surface-2);}
+  .date-inp,.tninp,.mc,.tc2,.dfbtn,.tcb-hist-detail-cond{background:var(--surface-2);}
   /* 濃紺をテキストに使う見出し系（--ink-heading 未適用の残り） */
-  .ct,.rt,.modal h2,.asel,.tcb-actual-hold-tool,.p1-mem-unpublished-lbl,.scn,.cntb,
+  .ct,.rt,.modal h2,.asel,.p1-mem-unpublished-lbl,.scn,.cntb,
   .tcb-hist-detail-cond strong,.tcb-seed-mode-banner strong{color:var(--ink-heading);}
   .cntb{background:rgba(159,180,232,.16);color:var(--ink-accent-text);}
   .desc-bar{background:var(--surface-2);color:var(--txt2);}
@@ -1021,15 +1018,12 @@ html{color-scheme:light;}
   .sc.ht{background:var(--surface-2);border-color:var(--blue2);}
   .mc.rest,.mc.quit,.mc.coach,.mc.master-excl{background:var(--surface-2);border-color:var(--bdr);}
   .p3-carry-adjust-text{background:var(--surface-2);border-color:#7c53b0;color:var(--txt);}
-  .tcb-actual-hold-list,.tcb-actual-hold-row{border-color:var(--bdr);}
   /* ログイン画面（インラインstyleのため !important で上書き） */
   .tcb-pw-login-card{background:var(--card)!important;box-shadow:0 8px 32px rgba(0,0,0,.6)!important;}
   .tcb-pw-title{color:var(--ink-heading)!important;}
   .tcb-pw-team{color:var(--txt2)!important;}
   #pw-inp{background:var(--surface-2)!important;border-color:var(--bdr)!important;color:var(--txt)!important;}
   /* 紫系ハードコードの注記・差分サマリをダークで読める色に */
-  .tcb-actual-hold-note{color:#ce93d8;}
-  .tcb-actual-hold-row.tcb-actual-hold-changed{background:rgba(230,81,0,.16);}
   .p3-carry-adjust-summary{background:var(--surface-2);border-left-color:#ab47bc;}
   .p3-carry-adjust-summary strong{color:#ce93d8;}
   .p3-carry-adjust-people{color:#ce93d8;}
@@ -1038,7 +1032,7 @@ html{color-scheme:light;}
   /* ===== 追加：ダークで濃紺文字/白面白文字を解消（全画面共通） ===== */
   /* 濃紺(--ta/--navy)をテキストに使う箇所を明るいブルーへ */
   .tcb.A,.tninp.A,.shd2.A,.tgA,.hist-date,.master-section-h3-title,
-  .master-desc-card-head,.tcb-actual-hold-sel{color:#cdd8f5;}
+  .master-desc-card-head{color:#cdd8f5;}
   .ac14-badge,.sibling-badge,.nomulti-badge,.quit-badge,.rest-badge{color:#fff;}
   /* 赤(--tb)をテキストに使う箇所を明るいレッドへ */
   .tcb.B,.tninp.B,.shd2.B,.tgB{color:#ff9ea2;}
@@ -1100,7 +1094,6 @@ html{color-scheme:light;}
   tr.p3-carry-keep-row{background:rgba(48,209,88,.14)!important;}
   tr.p3-carry-changed-row{background:rgba(255,159,10,.16)!important;}
   tr.p3-multi-row{background:rgba(255,193,7,.12);}
-  .tcb-actual-hold-row.tcb-actual-hold-changed{background:rgba(255,159,10,.16);}
 
   /* 展開パネル：白カード内は常にライト配色（チェックボックス文字が消えない） */
   .tcb-share-section{color:#1c1c22;color-scheme:light;}
@@ -1225,8 +1218,7 @@ html{color-scheme:light;}
     <button class="mclose" id="actual-hold-close">&#10005;</button>
     <h2>&#128230; 保有を確認・直す</h2>
     <div class="tcb-scroll-modal-body">
-      <p class="tcb-actual-hold-desc">確定保有（前回の割り当て）を、組ごとに確認できます。現地で受け渡しがあった道具は、<strong>実際にいま持っている人</strong>へ手直しと同じ操作で直してください。</p>
-      <p class="tcb-actual-hold-note">道具タイル→移動先の人（班またぎ可）。保存すると保有基準と<strong>道具の組</strong>（持っている人の班）が更新され、このあとグループ内割振りの正になります。</p>
+      <p class="tcb-actual-hold-desc">いま各グループが持っている道具の一覧です。実際と違うところがあれば、<strong>実際に持っている人</strong>へ直してください（班またぎ可）。保存した内容が割振りの基準になります。</p>
       <div id="tcb-actual-hold-board-root" class="tcb-actual-hold-board-wrap"></div>
     </div>
     <div class="tcb-actual-hold-btns">
@@ -1428,7 +1420,7 @@ html{color-scheme:light;}
     <div class="card">
       <div class="p1-handoff-entry tcb-handoff-entry" id="tcb-handoff-entry" style="display:none;">
         <button type="button" class="tcb-handoff-entry-btn" id="btn-tcb-handoff-open">活動日前：チーム道具の入れ替えを依頼する</button>
-        <p class="tcb-handoff-entry-desc">次回の予定が確定／変更し、2分けになったときにチーム道具の調整を行います。依頼内容が決まったら「入れ替えを実施確定」で保有を更新してください。</p>
+        <p class="tcb-handoff-entry-desc">次回が2分けのとき、活動前に個人間で受け渡す道具の依頼案を作ります（当日の割振りとは別の機能です）。</p>
       </div>
       <div class="ct">活動パターンを選択 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="ここで選ぶのは<strong>割り振り対象の活動日</strong>（次回／当日の活動）のパターンです。作業している端末の「いま」ではありません。片方試合・両方試合・練習場所分離を選んだ活動日は<strong>2グループ</strong>です。対戦表の自動参照はありません。" aria-label="説明"></button></div>
       <div class="tgg">
@@ -1448,9 +1440,8 @@ html{color-scheme:light;}
       <input type="date" id="adate" class="date-inp">
       <div id="p1-flow-host" style="display:none;"></div>
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong id="p1-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p1-seed-mode-banner-body">：持ち帰り道具をきょうのグループの中で配ります。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>保有記録</strong>（実施確定・入れ替え確定・現地補正後）を基準に、いま持っている人のグループ内で配ります。配り方（<strong>公平に分散／前回のまま維持</strong>）は STEP2 で選べます。班またぎの自動入れ替えはしません（必要なら手直し）。活動日は本日に設定。" aria-label="説明"></button>
+        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>：各グループが持っている道具を、そのグループの中で配ります。保有の確認・修正と配り方は STEP2 で行えます。
         <div class="tcb-seed-mode-banner-btns">
-          <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 保有を確認・直す</button>
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">新規の割り振りに切り替える</button>
         </div>
       </div>
@@ -1496,11 +1487,11 @@ html{color-scheme:light;}
       </details>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：前回の各グループが持っていた道具を、いまそのグループにいるメンバー内で配ります。</span><button type="button" class="tcb-tip" data-tip="確定保有（実施確定・入れ替え確定）が基準です。<strong>前回どちらのグループが持っていたか</strong>で道具の班を決め、きょうのそのグループのメンバー内だけで担当を付けます。試合道具フラグで班を動かしたり、班またぎ自動はしません。<strong>固定担当</strong>は欠席・お茶でなければそのまま。<strong>公平に分散</strong>は同グループ内で持ち回り。<strong>前回のまま維持</strong>は欠席・お茶分だけ変更。" aria-label="説明"></button>
+      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループが持っている道具を、そのグループの中で配ります。<button type="button" class="tcb-tip" data-tip="固定担当は欠席・お茶でなければそのまま。班をまたぐ自動入れ替えはしません（必要なら STEP3 の手直し）。" aria-label="説明"></button>
       <div class="tcb-seedalloc-box">
-        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>（通常）：固定以外をグループ内で持ち回り。同じ道具は前回と同じ人を避け、重い道具の偏りも抑えます。<strong>前回のまま維持</strong>：前回保有を残し、欠席・お茶当番分だけ変更します。" aria-label="説明"></button></div>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（持ち回り。同じ道具は前回と同じ人になりにくくします）</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>（欠席・お茶当番分だけ変更）</span></label>
+        <div class="tcb-seedalloc-title">配り方</div>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り（同じ人に同じ道具が続きにくい）</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・お茶当番の分だけ変更</span></label>
       </div>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 保有を確認・直す</button>
@@ -1518,12 +1509,11 @@ html{color-scheme:light;}
         <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
       </div>
       <div class="mgrid" id="tgrid"></div>
-      <button type="button" class="rbtn tcb-actual-hold-under-tgrid" id="btn-actual-hold-p2b">&#128230; 保有を確認・直す（組ごとの道具）</button>
     </div>
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
         <summary>
-          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="<strong>確定保有があるとき</strong>は上の「保有を確認・直す」が正です。ここは確定保有が無いときや、両方練習で組の箱だけ先に決めたいときの<strong>任意控え</strong>です。" aria-label="説明"></button></div>
+          <div class="ct">いま道具を持っているグループ（控え）<button type="button" class="tcb-tip" data-tip="確定保有の記録がまだないとき用の<strong>任意の控え</strong>です。登録すると、活動パターンに関係なく各グループの中で割り振ります。" aria-label="説明"></button></div>
           <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
           <span class="tcb-fold-arrow">&#9660;</span>
         </summary>
@@ -3284,12 +3274,15 @@ function confirmPatChangeInSeedMode(newPat,newSplit,newSameVenue){
 }
 function updateSeedModeBanners(){
   var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
+  var baseTxt=on?holdingsBaseLabel(seedBaseSnap):'';
   ['p1-seed-mode-banner','p2-seed-mode-banner'].forEach(function(id){
     var el=document.getElementById(id);
     if(el)el.className='tcb-seed-mode-banner'+(on?' on':'');
   });
-  var under=document.getElementById('btn-actual-hold-p2b');
-  if(under)under.className='rbtn tcb-actual-hold-under-tgrid'+(on?' on':'');
+  ['p1-seed-mode-banner-base','p2-seed-mode-banner-base'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.textContent=baseTxt?('（基準：'+baseTxt+'）'):'';
+  });
   if(on)syncSeedAllocRadioUI();
   var hint=document.getElementById('p3-reedit-hint');
   if(hint)hint.style.display=(R&&!on)?'block':'none';
@@ -3564,8 +3557,8 @@ function buildActualHoldBoardOpts(){
   }
   return {
     esc:esc,
-    lead:'道具タイルをタップ→移動先の人で移動。別の道具で入れ替え。未割当枠へも戻せます。班をまたいでも実態どおり直せます。',
-    foot:'「この内容で補正する」で保有基準に反映します（まだ割振り結果の手直しではありません）。',
+    lead:'道具タイルをタップ→持っている人をタップで移動。別の道具タイルをタップすると入れ替えます。',
+    foot:'',
     map:map,
     tools:toolsMeta,
     toolsByPerson:toolsByPerson,
@@ -9476,10 +9469,8 @@ document.addEventListener('DOMContentLoaded',function(){
   /* 前回モーダル */
   var btnReedit=document.getElementById('btn-reedit-from-prev');
   if(btnReedit)btnReedit.addEventListener('click',function(){beginReeditFromCurrentResult();});
-  ['btn-actual-hold-p1','btn-actual-hold-p2','btn-actual-hold-p2b'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el)el.addEventListener('click',function(){openActualHoldModal();});
-  });
+  var btnActualHold=document.getElementById('btn-actual-hold-p2');
+  if(btnActualHold)btnActualHold.addEventListener('click',function(){openActualHoldModal();});
   var btnActualHoldSave=document.getElementById('btn-actual-hold-save');
   if(btnActualHoldSave)btnActualHoldSave.addEventListener('click',function(){saveActualHoldAdjust();});
   ['btn-actual-hold-cancel','actual-hold-close'].forEach(function(id){
