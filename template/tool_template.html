@@ -1269,7 +1269,7 @@ html{color-scheme:light;}
         <div class="mgrid" id="handoff-tgrid"></div>
       </div>
       <button type="button" class="rbtn tcb-handoff-calc" id="btn-handoff-calc">入れ替え案を算出</button>
-      <p class="tcb-handoff-note">欠席・お茶当番は見ません。ルール上動かす必要がある道具だけ入れ替え、それ以外は前回の担当のままです。2名交換は当人同士で直接、一方向の受け渡しは<strong>グループ宛て</strong>（そのグループの誰かに渡ればOK）になります。<strong>タープ</strong>はマスタ「遠方」のメンバーを避け、非遠方で本数をほぼ均等に調整します（遠方などで難しい場合は算出後に任意調整も可）。受け渡しが決まったら「入れ替えを実施確定」で、次回割振りの基準として記録できます。</p>
+      <p class="tcb-handoff-note">欠席・お茶当番は見ません。ルール上動かす必要がある道具だけ入れ替え、それ以外は前回の担当のままです。2名交換は当人同士で直接、一方向の受け渡しは<strong>グループ宛て</strong>（そのグループの誰かに渡ればOK）になります。マスタ「遠方」のメンバーは<strong>受け渡し（交換・受取）の対象外</strong>とし、非遠方へ回します（難しい場合は算出後に手直しボードで調整可）。受け渡しが決まったら「入れ替えを実施確定」で、次回割振りの基準として記録できます。</p>
       <div id="tcb-handoff-result"></div>
     </div>
   </div>
@@ -1653,7 +1653,7 @@ html{color-scheme:light;}
         </h3>
         <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示は背番号（名前の「番号：」の左側）の昇順です。番号がない行は末尾に並びます。</div>
         <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分（名前の右のプルダウン）：S＝軽自動車、M＝普通車、L＝ミニバン程度、LL＝大型ワゴン程度。</div>
-        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>退部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。<strong>遠方</strong>は割振り対象のまま、入れ替え案のタープでは直前の受け渡しを避けて非遠方で均等化します。</div>
+        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>退部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。<strong>遠方</strong>は当日の割振り対象のままですが、活動前の<strong>入れ替え案</strong>では受け渡し（交換・受取）を避け、非遠方へ回します。</div>
         <div id="m-members"></div>
         <button class="madd" id="btn-add-mbr">&#65291; メンバー追加</button>
       </div>
@@ -4012,7 +4012,7 @@ function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
     if(!memberInTeamByTmMap(pp, otherTm))return;
     poolList.push({tn:tn, team:tm, prevP:pp});
   });
-  function tryPair(avoidRemoteTarp){
+  function tryPair(avoidRemote){
     for(var i=0;i<poolList.length;i++){
       if(used[i])continue;
       var x=poolList[i];
@@ -4022,9 +4022,8 @@ function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
         if(x.team===y.team)continue;
         if(!memberInTeamByTmMap(y.prevP, x.team))continue;
         if(!memberInTeamByTmMap(x.prevP, y.team))continue;
-        if(avoidRemoteTarp&&handoff&&(isHandoffTarpTool(x.tn)||isHandoffTarpTool(y.tn))){
-          if(isMemberRemoteByName(x.prevP)||isMemberRemoteByName(y.prevP))continue;
-        }
+        /* 入れ替え案：遠方は2名交換（受け渡し）に出さない */
+        if(avoidRemote&&handoff&&(isMemberRemoteByName(x.prevP)||isMemberRemoteByName(y.prevP)))continue;
         baseMap[x.tn]=y.prevP;
         baseMap[y.tn]=x.prevP;
         delete poolSet[x.tn];
@@ -4037,13 +4036,17 @@ function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
     }
   }
   var used={};
-  if(handoff)tryPair(true);
-  tryPair(false);
+  if(handoff){
+    /* 遠方を含む交換は作らない（非遠方どうしで組めない分はプールへ残し、後段で非遠方へ割当） */
+    tryPair(true);
+  }else{
+    tryPair(false);
+  }
   if(swapCount)notes.push('班入替の最小スワップ：'+swapCount+'組を自動入れ替え（'+detail.join('、')+'）。');
   return notes;
 }
-/* 入れ替え案：遠方メンバー保有のタープを同班の非遠方へ移す（直前の受け渡し負担を減らす） */
-function applyHandoffRelocateTarpsFromRemote(baseMap, poolSet, prevMap, ctx, ex){
+/* 入れ替え案：遠方メンバーが保有したままの道具を、同班の非遠方へ移す（直前の受け渡し負担を減らす） */
+function applyHandoffRelocateFromRemote(baseMap, poolSet, prevMap, ctx, ex){
   if(!handoffComputeBaseSnap||ctx.mode!=='team')return;
   ex=ex||{};
   var toolByName={};
@@ -4051,7 +4054,6 @@ function applyHandoffRelocateTarpsFromRemote(baseMap, poolSet, prevMap, ctx, ex)
   Object.keys(baseMap).slice().forEach(function(tn){
     var holder=baseMap[tn];
     if(!holder||ex[holder]||!isMemberRemoteByName(holder))return;
-    if(!isHandoffTarpTool(tn))return;
     var t=toolByName[tn];
     if(!t||t.fixed)return;
     var team=t.team||tmMap[holder]||'';
@@ -4060,13 +4062,16 @@ function applyHandoffRelocateTarpsFromRemote(baseMap, poolSet, prevMap, ctx, ex)
       return m&&m.name&&!ex[m.name]&&!isMemberRemoteByName(m.name);
     });
     candidates.sort(function(a,b){
+      var ca=countAssignMapToolsForPerson(baseMap,a.name,null);
+      var cb=countAssignMapToolsForPerson(baseMap,b.name,null);
+      if(ca!==cb)return ca-cb;
       return countMapTarpsForPerson(baseMap,a.name)-countMapTarpsForPerson(baseMap,b.name);
     });
     for(var i=0;i<candidates.length;i++){
       var nm=candidates[i].name;
       if(isMemberNoMultiByName(nm)&&countAssignMapToolsForPerson(baseMap,nm,null)>=1)continue;
       baseMap[tn]=nm;
-      return;
+      break;
     }
   });
 }
@@ -5040,7 +5045,7 @@ function resetHandoffPlanToAuto(){
 function buildHandoffKeepMinMap(snap, ctx, seed){
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ctx.ex);
-  applyHandoffRelocateTarpsFromRemote(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
+  applyHandoffRelocateFromRemote(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
   enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
@@ -5520,7 +5525,7 @@ function assignMinChangersScore(name, st, state, prevMap, prevPerson, opts){
   if(prevPerson&&prevPerson===name)score+=400;
   score+=(st.cnt|0)*10;
   var toolName=opts&&opts.toolName?opts.toolName:'';
-  if(handoffComputeBaseSnap&&toolName&&isHandoffTarpTool(toolName)&&isMemberRemoteByName(name))score+=60000;
+  if(handoffComputeBaseSnap&&isMemberRemoteByName(name))score+=60000;
   if(prevMap&&!personAlreadyChangedFromPrev(state,name,prevMap)&&!(opts&&opts.zeroPriority&&opts.zeroPriority[name]))score-=20000;
   return score;
 }
@@ -5533,6 +5538,11 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   opts=opts||null;
   var ex=exSet();
   var keys=Object.keys(state).filter(function(k){return !ex[k];});
+  /* 入れ替え案：遠方には新規割当しない（非遠方が一人もいないときだけ例外） */
+  if(handoffComputeBaseSnap){
+    var nonRemote=keys.filter(function(k){return !isMemberRemoteByName(k);});
+    if(nonRemote.length)keys=nonRemote;
+  }
   if(!keys.length)return false;
   var seed=(runSeed|0)||0;
   var medianPast=medianPastAmongKeys(state, keys);
@@ -8078,7 +8088,7 @@ function buildMasterMembers(){
     var sc=document.createElement('input'); sc.type='checkbox'; sc.setAttribute('data-flag','sibling'); sc.checked=!!m.sibling;
     sl.appendChild(sc); sl.appendChild(document.createTextNode('兄弟所属'));
     var rml=document.createElement('label'); rml.className='master-mbr-flag-lbl';
-    rml.title='活動前の道具入れ替えが困難な距離に住む保護者。入れ替え案のタープは非遠方で均等化';
+    rml.title='活動前の道具入れ替えが困難な距離に住む保護者。入れ替え案では受け渡し（交換・受取）の対象外';
     var rmc=document.createElement('input'); rmc.type='checkbox'; rmc.setAttribute('data-flag','remote'); rmc.checked=!!m.remote;
     rml.appendChild(rmc); rml.appendChild(document.createTextNode('遠方'));
     var nml=document.createElement('label'); nml.className='master-mbr-flag-lbl';
