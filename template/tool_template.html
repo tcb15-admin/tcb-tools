@@ -521,29 +521,30 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
 .master-section-h3-title{font-weight:900;color:var(--ink-heading);}
 .mrow{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
 .master-mbr-row{
-  align-items:center;
+  align-items:flex-start;
   flex-wrap:nowrap;
   gap:6px 8px;
 }
 .master-mbr-row .minp{
   flex:0 1 auto;
-  width:7.2em;
-  max-width:7.2em;
-  min-width:5.5em;
+  width:8em;
+  max-width:8em;
+  min-width:6em;
   font-size:14px;
   padding:6px 8px;
   line-height:1.35;
 }
 .master-mbr-row .msel{flex-shrink:0;padding:6px 4px;}
 .master-mbr-row .mdel{flex-shrink:0;}
+/* 7個のフラグを4列×2行に収める（名前欄を短くして横スペースを確保） */
 .master-mbr-flags-wrap{
-  display:flex;
-  flex-wrap:wrap;
-  flex:1 1 auto;
+  display:grid;
+  grid-template-columns:repeat(4,max-content);
+  column-gap:12px;
+  row-gap:4px;
+  flex:0 1 auto;
   min-width:0;
-  gap:4px 10px;
-  align-items:center;
-  align-content:center;
+  align-content:start;
 }
 .master-mbr-flag-lbl{
   font-size:12px;
@@ -589,9 +590,13 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
   .master-desc-text{font-size:14px;min-height:56px;padding:10px 12px;}
 }
 @media (max-width:479px){
-  .master-mbr-row{flex-wrap:wrap;align-items:flex-start;}
-  .master-mbr-row .minp{width:6.5em;max-width:6.5em;font-size:13px;}
-  .master-mbr-flags-wrap{flex:1 1 calc(100% - 8.5em);gap:3px 8px;}
+  .master-mbr-row{flex-wrap:wrap;}
+  .master-mbr-row .minp{width:7em;max-width:7em;font-size:13px;}
+  .master-mbr-flags-wrap{
+    grid-template-columns:repeat(3,max-content);
+    column-gap:8px;
+    row-gap:3px;
+  }
   .master-mbr-flag-lbl{font-size:11px;}
   .master-mbr-row .mdel{margin-left:auto;}
   .master-desc-card{padding:8px 10px;}
@@ -599,9 +604,8 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
   .master-desc-url-row .master-desc-url-inp{flex:1 1 calc(100% - 54px);min-width:0;}
 }
 @media (min-width:640px){
-  .master-mbr-row .minp{width:8em;max-width:8em;}
-  .master-mbr-flags-wrap{flex-wrap:nowrap;gap:4px 12px;}
-  .master-mbr-flag-lbl{font-size:12px;}
+  .master-mbr-row .minp{width:8.5em;max-width:8.5em;}
+  .master-mbr-flags-wrap{column-gap:14px;}
 }
 .minp{padding:6px 10px;border:2px solid var(--bdr);border-radius:7px;font-size:16px;flex:1;min-width:80px;min-height:var(--tap);line-height:1.35;}
 .minp:focus{outline:none;border-color:var(--blue2);}
