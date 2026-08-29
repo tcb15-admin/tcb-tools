@@ -1,4 +1,4 @@
-/* STEP1：割り振り方の案内（2分けは保有ベースが通常・選択肢なし）
+/* STEP1：割り振り方の案内（2分け／グループ保有はグループ内・選択肢なし）
  * 本体から init(hooks) で状態取得・描画更新を受け取る。
  */
 (function (global) {
@@ -14,7 +14,16 @@
 
   function needsTeam() {
     try {
+      if (ctx.effectiveNeedsTeamUI) return !!ctx.effectiveNeedsTeamUI();
       return !!(ctx.needsTeamUI && ctx.needsTeamUI());
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function groupHoldOn() {
+    try {
+      return !!(ctx.isGroupHoldEnabled && ctx.isGroupHoldEnabled());
     } catch (e) {
       return false;
     }
@@ -55,6 +64,7 @@
     }
 
     var twoSplit = needsTeam();
+    var gHold = groupHoldOn();
     var hasBase = holdingsAvailable();
     var baseTxt = baseLabel();
     var html = '';
@@ -65,7 +75,9 @@
           + '<div class="p1-flow-panel" role="status">'
           + '<div class="ct p1-flow-hd">割り振り方</div>'
           + '<p class="p1-flow-auto">'
-          + 'いま持っている道具を、<strong>各グループのメンバー内</strong>で割り振ります。'
+          + (gHold
+            ? 'グループ保有が有効です。各グループの保有道具を、<strong>そのグループのメンバー内</strong>で割り振ります。'
+            : 'いま持っている道具を、<strong>各グループのメンバー内</strong>で割り振ります。')
           + (baseTxt ? '（保有基準：' + esc(baseTxt) + '）' : '')
           + '</p>'
           + '<p class="p1-flow-foot">'
@@ -76,8 +88,11 @@
         html = ''
           + '<div class="p1-flow-panel p1-flow-panel-warn" role="status">'
           + '<div class="ct p1-flow-hd">割り振り方</div>'
-          + '<p class="p1-flow-auto">確定保有がまだないため、いちから割り振ります。'
-          + '通常は実施確定または入れ替え確定のあとでご利用ください。</p>'
+          + '<p class="p1-flow-auto">'
+          + (gHold
+            ? 'グループ保有が有効です。確定保有がまだないため、保有控えと班分けに沿って割り振ります。'
+            : '確定保有がまだないため、いちから割り振ります。通常は実施確定または入れ替え確定のあとでご利用ください。')
+          + '</p>'
           + '</div>';
       }
     } else {
@@ -103,6 +118,7 @@
   function getSelectedMode() {
     if (isSeedMode()) return 'holdings';
     if (needsTeam() && holdingsAvailable()) return 'holdings';
+    if (needsTeam() && groupHoldOn()) return 'holdings';
     return 'fresh';
   }
 

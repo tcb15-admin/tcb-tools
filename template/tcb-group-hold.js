@@ -111,10 +111,10 @@
       if (enabled) {
         var c = countByTeam(holdMap);
         status.className = 'tcb-ghold-status tcb-ghold-on';
-        status.textContent = '参考：いまの保有控え（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。割振りの班分けはルール優先です。活動前の個人間入れ替えは STEP1 の入れ替え依頼から行います。';
+        status.textContent = '有効：保有控え（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）に沿い、各グループ内で割り振ります。活動前の個人間入れ替えは STEP1 の入れ替え依頼から行います。';
       } else {
         status.className = 'tcb-ghold-status';
-        status.textContent = '未使用。割振りの班分けはルール優先です。保有控えは任意の参考記録です。';
+        status.textContent = '未使用。割振りの班分けは活動パターンとルールに従います。必要なときだけ保有控えを登録してください。';
       }
     }
     if (btnClear) btnClear.style.display = enabled ? '' : 'none';
@@ -228,12 +228,12 @@
     updateStatusUI();
     notifyEnabledChange();
     if (ctx.closeModal) ctx.closeModal('tcb-ghold-modal');
-    if (global.TCB_Feedback) global.TCB_Feedback.toast('保有控えを保存しました（参考）。割振りの班分けはルール優先です。', 'success');
+    if (global.TCB_Feedback) global.TCB_Feedback.toast('グループ保有を保存しました。各グループの保有道具をメンバー内で割り振ります。', 'success');
   }
 
   function clearHold() {
     if (!enabled) return;
-    if (!confirm('「いま道具を持っているグループ」の登録をやめます。次の割振りは割振りルールに従います。よろしいですか？')) return;
+    if (!confirm('「いま道具を持っているグループ」の登録をやめます。次の割振りは活動パターンのルールに従います。よろしいですか？')) return;
     enabled = false;
     holdMap = {};
     draftMap = {};

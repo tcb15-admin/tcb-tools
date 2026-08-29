@@ -2032,8 +2032,9 @@ function currentPatFlag(){
 function isGroupHoldEnabled(){
   return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
 }
+/* STEP2の班分けUI・割振りが2グループになるか（活動の2分け or グループ保有） */
 function effectiveNeedsTeamUI(){
-  return needsTeamUI();
+  return needsTeamUI()||isGroupHoldEnabled();
 }
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
@@ -2068,6 +2069,7 @@ function refreshTeamUiForGroupHold(){
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
   }
+  if(window.TCB_P1Flow)TCB_P1Flow.update();
   if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 function showsMemUnpublishedOption(){
@@ -3387,8 +3389,8 @@ function beginHoldingsGroupAllocation(){
 }
 function proceedP1ToStep2(){
   if((seedFromPrev||carryAdjustMode)&&seedBaseSnap)return true;
-  /* 2分け＝常に保有ベースのグループ内割振り（選択肢なし） */
-  if(needsTeamUI())return beginHoldingsGroupAllocation();
+  /* 2分け or グループ保有＝グループ内割振り */
+  if(effectiveNeedsTeamUI())return beginHoldingsGroupAllocation();
   clearReeditMode();
   return true;
 }
@@ -4038,14 +4040,16 @@ function buildAssignmentContext(opts){
   var silent=!!opts.silent;
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
-  /* 2分け＋保有基準時は保有者の班へ道具を寄せる。それ以外は振分ルール */
-  if(pat==='renshu'&&!renshuSplit){
+  /* 両方練習かつ場所分離なし：通常は全員1グループ。グループ保有ONなら班内割振り */
+  if(pat==='renshu'&&!renshuSplit&&!isGroupHoldEnabled()){
     var members=MB.filter(function(m){return !ex[m.name];});
     if(!members.length){if(!silent)alert('対象メンバーが0名です。');return null;}
     var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
     return {ex:ex,la:la,lb:lb,mode:'single',mA:null,mB:null,tA:null,tB:null,tools:tools,members:members,allTools:null};
   }
-  /* 片方試合／両方試合／両方練習・場所分離：振分ルールで A/B */
+  /* 片方試合／両方試合／両方練習・場所分離／グループ保有 */
+  applyGroupHoldLabelsIfHidden();
+  la=tnA||la; lb=tnB||lb;
   var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
   var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
   if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
@@ -4057,6 +4061,8 @@ function buildAssignmentContext(opts){
   }else{
     lists=buildTeamToolListsByRules();
   }
+  /* グループ保有ON：道具の所属班を保有控えで上書き */
+  lists=applyGroupHoldIfEnabled(lists.tA, lists.tB);
   var tA=lists.tA, tB=lists.tB;
   var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
   return normalizeAssignmentCtxTeams({ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)});
@@ -6393,6 +6399,8 @@ function updDesc(){
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
   }
+  if(window.TCB_P1Flow)TCB_P1Flow.update();
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 function applyRenshuSplit(on){
   renshuSplit=!!on;
@@ -9482,6 +9490,8 @@ document.addEventListener('DOMContentLoaded',function(){
       getHoldingsSnap:getHoldingsBaseSnap,
       getHoldingsLabel:function(){return holdingsBaseLabel();},
       needsTeamUI:needsTeamUI,
+      effectiveNeedsTeamUI:effectiveNeedsTeamUI,
+      isGroupHoldEnabled:isGroupHoldEnabled,
       isSeedModeOn:function(){return !!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);},
       onPickOther:function(){
         window._histPreferConfirmedOnly=true;

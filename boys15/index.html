@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.4">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.5">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.4">
-<link rel="stylesheet" href="gear.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.4">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.4">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.5">
+<link rel="stylesheet" href="gear.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.5">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1695,12 +1695,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.4"></script>
-<script src="tcb-swap-list.js?v=1.27.4"></script>
-<script src="tcb-assign-board.js?v=1.27.4"></script>
-<script src="tcb-handoff-plan.js?v=1.27.4"></script>
-<script src="tcb-team-rules.js?v=1.27.4"></script>
-<script src="tcb-tool-images.js?v=1.27.4"></script>
+<script src="tcb-device.js?v=1.27.5"></script>
+<script src="tcb-swap-list.js?v=1.27.5"></script>
+<script src="tcb-assign-board.js?v=1.27.5"></script>
+<script src="tcb-handoff-plan.js?v=1.27.5"></script>
+<script src="tcb-team-rules.js?v=1.27.5"></script>
+<script src="tcb-tool-images.js?v=1.27.5"></script>
 <script>
 
 
@@ -1935,8 +1935,9 @@ function currentPatFlag(){
 function isGroupHoldEnabled(){
   return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
 }
+/* STEP2の班分けUI・割振りが2グループになるか（活動の2分け or グループ保有） */
 function effectiveNeedsTeamUI(){
-  return needsTeamUI();
+  return needsTeamUI()||isGroupHoldEnabled();
 }
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
@@ -1971,6 +1972,7 @@ function refreshTeamUiForGroupHold(){
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
   }
+  if(window.TCB_P1Flow)TCB_P1Flow.update();
   if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 function showsMemUnpublishedOption(){
@@ -3290,8 +3292,8 @@ function beginHoldingsGroupAllocation(){
 }
 function proceedP1ToStep2(){
   if((seedFromPrev||carryAdjustMode)&&seedBaseSnap)return true;
-  /* 2分け＝常に保有ベースのグループ内割振り（選択肢なし） */
-  if(needsTeamUI())return beginHoldingsGroupAllocation();
+  /* 2分け or グループ保有＝グループ内割振り */
+  if(effectiveNeedsTeamUI())return beginHoldingsGroupAllocation();
   clearReeditMode();
   return true;
 }
@@ -3941,14 +3943,16 @@ function buildAssignmentContext(opts){
   var silent=!!opts.silent;
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
-  /* 2分け＋保有基準時は保有者の班へ道具を寄せる。それ以外は振分ルール */
-  if(pat==='renshu'&&!renshuSplit){
+  /* 両方練習かつ場所分離なし：通常は全員1グループ。グループ保有ONなら班内割振り */
+  if(pat==='renshu'&&!renshuSplit&&!isGroupHoldEnabled()){
     var members=MB.filter(function(m){return !ex[m.name];});
     if(!members.length){if(!silent)alert('対象メンバーが0名です。');return null;}
     var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
     return {ex:ex,la:la,lb:lb,mode:'single',mA:null,mB:null,tA:null,tB:null,tools:tools,members:members,allTools:null};
   }
-  /* 片方試合／両方試合／両方練習・場所分離：振分ルールで A/B */
+  /* 片方試合／両方試合／両方練習・場所分離／グループ保有 */
+  applyGroupHoldLabelsIfHidden();
+  la=tnA||la; lb=tnB||lb;
   var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
   var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
   if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
@@ -3960,6 +3964,8 @@ function buildAssignmentContext(opts){
   }else{
     lists=buildTeamToolListsByRules();
   }
+  /* グループ保有ON：道具の所属班を保有控えで上書き */
+  lists=applyGroupHoldIfEnabled(lists.tA, lists.tB);
   var tA=lists.tA, tB=lists.tB;
   var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
   return normalizeAssignmentCtxTeams({ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)});
@@ -6296,6 +6302,8 @@ function updDesc(){
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
   }
+  if(window.TCB_P1Flow)TCB_P1Flow.update();
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 function applyRenshuSplit(on){
   renshuSplit=!!on;
@@ -9084,7 +9092,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.4';
+  if(vEl)vEl.textContent='v1.27.5';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9385,6 +9393,8 @@ document.addEventListener('DOMContentLoaded',function(){
       getHoldingsSnap:getHoldingsBaseSnap,
       getHoldingsLabel:function(){return holdingsBaseLabel();},
       needsTeamUI:needsTeamUI,
+      effectiveNeedsTeamUI:effectiveNeedsTeamUI,
+      isGroupHoldEnabled:isGroupHoldEnabled,
       isSeedModeOn:function(){return !!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);},
       onPickOther:function(){
         window._histPreferConfirmedOnly=true;
@@ -9677,18 +9687,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.4"></script>
-<script src="html2canvas.min.js?v=1.27.4"></script>
-<script src="html2pdf.min.js?v=1.27.4"></script>
-<script src="tcb-print-pdf.js?v=1.27.4"></script>
-<script src="tcb-feedback.js?v=1.27.4"></script>
-<script src="tcb-sync-api.js?v=1.27.4"></script>
-<script src="tcb-swap-mgr.js?v=1.27.4"></script>
-<script src="tcb-push-mgr.js?v=1.27.4"></script>
-<script src="tcb-login.js?v=1.27.4"></script>
-<script src="tcb-pwa-install.js?v=1.27.4"></script>
-<script src="tcb-group-hold.js?v=1.27.4"></script>
-<script src="tcb-presummary.js?v=1.27.4"></script>
-<script src="tcb-p1-flow.js?v=1.27.4"></script>
+<script src="jspdf.umd.min.js?v=1.27.5"></script>
+<script src="html2canvas.min.js?v=1.27.5"></script>
+<script src="html2pdf.min.js?v=1.27.5"></script>
+<script src="tcb-print-pdf.js?v=1.27.5"></script>
+<script src="tcb-feedback.js?v=1.27.5"></script>
+<script src="tcb-sync-api.js?v=1.27.5"></script>
+<script src="tcb-swap-mgr.js?v=1.27.5"></script>
+<script src="tcb-push-mgr.js?v=1.27.5"></script>
+<script src="tcb-login.js?v=1.27.5"></script>
+<script src="tcb-pwa-install.js?v=1.27.5"></script>
+<script src="tcb-group-hold.js?v=1.27.5"></script>
+<script src="tcb-presummary.js?v=1.27.5"></script>
+<script src="tcb-p1-flow.js?v=1.27.5"></script>
 </body>
 </html>
