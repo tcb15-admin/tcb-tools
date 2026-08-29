@@ -2929,14 +2929,49 @@ function persistAllocationSnapshot(snap,opts){
   }
 }
 function inferTmMapFromSnap(snap){
+  return buildTmMapFromSnap(snap);
+}
+/* 班分けの復元：snap.tmMap → 道具.team からの推定 → 端末のデフォルト班 → 残りは B */
+function loadDefTmMapObj(){
+  try{
+    var d=_ls.get(LS_DEF_TM);
+    if(!d)return null;
+    var o=JSON.parse(d);
+    return (o&&typeof o==='object'&&!Array.isArray(o))?o:null;
+  }catch(e){return null;}
+}
+function buildTmMapFromSnap(snap){
   var out={};
-  MB.forEach(function(m){out[m.name]='B';});
-  if(!snap||!snap.map||!snap.tools||!snap.tools.length)return out;
-  var byName={};
-  snap.tools.forEach(function(t){if(t&&t.name)byName[t.name]=t;});
-  Object.keys(snap.map).forEach(function(tn){
-    var p=snap.map[tn], t=byName[tn];
-    if(p&&t&&(t.team==='A'||t.team==='B'))out[p]=t.team;
+  (MB||[]).forEach(function(m){
+    if(!m||!m.name||memberMasterExcluded(m))return;
+    out[m.name]=null;
+  });
+  var s=snap||{};
+  if(s.tmMap&&typeof s.tmMap==='object'){
+    Object.keys(s.tmMap).forEach(function(n){
+      if(out[n]===undefined)return;
+      if(s.tmMap[n]==='A'||s.tmMap[n]==='B')out[n]=s.tmMap[n];
+    });
+  }
+  if(s.map&&typeof s.map==='object'&&Array.isArray(s.tools)){
+    var byName={};
+    s.tools.forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+    Object.keys(s.map).forEach(function(tn){
+      var p=s.map[tn];
+      if(!p||out[p]===undefined||out[p]==='A'||out[p]==='B')return;
+      var t=byName[tn];
+      if(t&&(t.team==='A'||t.team==='B'))out[p]=t.team;
+    });
+  }
+  var def=loadDefTmMapObj();
+  if(def){
+    Object.keys(out).forEach(function(n){
+      if(out[n]==='A'||out[n]==='B')return;
+      if(def[n]==='A'||def[n]==='B')out[n]=def[n];
+    });
+  }
+  Object.keys(out).forEach(function(n){
+    if(out[n]!=='A'&&out[n]!=='B')out[n]='B';
   });
   return out;
 }
@@ -2972,9 +3007,8 @@ function enrichStoredSnap(snap){
   if(!out.absS||typeof out.absS!=='object')out.absS={};
   if(!out.ochS||typeof out.ochS!=='object')out.ochS={};
   if(!out.skipS||typeof out.skipS!=='object')out.skipS={};
-  if(!out.tmMap||typeof out.tmMap!=='object'||!Object.keys(out.tmMap).length){
-    out.tmMap=inferTmMapFromSnap(out);
-  }
+  /* 欠落メンバーを埋めつつ、保存済み A/B は優先して復元 */
+  out.tmMap=buildTmMapFromSnap(out);
   return out;
 }
 function loadStoredAllocationSnap(){
@@ -3262,6 +3296,11 @@ function applySnapToActivityUI(snap, opts){
     if(inpB&&snap.lb!=null){inpB.value=snap.lb;tnB=snap.lb;}
     var chkMu=document.getElementById('chk-mem-unpublished');
     if(chkMu)chkMu.checked=snapMemUnpublished(snap);
+  }else if(opts.restoreTeamLabels){
+    /* パターンはきょうのまま、グループ名だけ前回（保有基準）を引き継ぐ */
+    var inpA2=document.getElementById('tnA'), inpB2=document.getElementById('tnB');
+    if(inpA2&&snap.la!=null&&String(snap.la).trim()){inpA2.value=snap.la;tnA=snap.la;}
+    if(inpB2&&snap.lb!=null&&String(snap.lb).trim()){inpB2.value=snap.lb;tnB=snap.lb;}
   }
   updDesc();
   updateMemUnpublishedWrap();
@@ -3273,13 +3312,7 @@ function restoreExclusionStateFromSnap(snap){
   skipS=clonePlainObj(s.skipS||{});
   skipDefaultOptOut={};
   syncSkipDefaultOptOutFromSkipS();
-  tmMap={};
-  MB.forEach(function(m){
-    if(memberMasterExcluded(m))return;
-    if(s.tmMap&&s.tmMap[m.name]==='A')tmMap[m.name]='A';
-    else if(s.tmMap&&s.tmMap[m.name]==='B')tmMap[m.name]='B';
-    else tmMap[m.name]='B';
-  });
+  tmMap=buildTmMapFromSnap(s);
   buildAGrid(); buildOGrid(); buildSkipGrid();
   if(effectiveNeedsTeamUI())buildTGrid();
 }
@@ -3297,7 +3330,11 @@ function beginReeditFromSnap(snap, opts){
   carryAdjustMode=true;
   carryAdjustRunNotes=[];
   pdfFileNameUseTodayDate=true;
-  applySnapToActivityUI(enriched, {useTodayDate:true, preservePat:true});
+  applySnapToActivityUI(enriched, {
+    useTodayDate:true,
+    preservePat:true,
+    restoreTeamLabels:!!opts.restoreTeamLabels
+  });
   restoreExclusionStateFromSnap(enriched);
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.restoreFromSnap==='function'){
     TCB_GroupHold.restoreFromSnap(enriched);
@@ -3332,10 +3369,20 @@ function beginHoldingsGroupAllocation(){
     clearReeditMode();
     return true;
   }
-  if(!beginReeditFromSnap(snap,{goStep2:true}))return false;
+  if(!beginReeditFromSnap(snap,{goStep2:true, restoreTeamLabels:true}))return false;
+  /* きょうの欠席・お茶は選び直す。班分け（tmMap）とグループ名は基準日を維持 */
   absS={};ochS={};
+  buildAGrid(); buildOGrid();
+  if(effectiveNeedsTeamUI())buildTGrid();
   var baseTxt=holdingsBaseLabel(snap);
-  tcbToast('保有基準「'+baseTxt+'」で開始しました。欠席・お茶当番を選んで「割振りを実行」してください。','info');
+  var nA=0, nB=0;
+  Object.keys(tmMap||{}).forEach(function(n){
+    if(tmMap[n]==='A')nA++;
+    else if(tmMap[n]==='B')nB++;
+  });
+  var teamNote=(nA&&nB)?('前回の班分けを引き継ぎました（'+(tnA||'A')+nA+'／'+(tnB||'B')+nB+'）。')
+    :'前回の班分けが不完全なため、STEP2でグループを確認してください。';
+  tcbToast('保有基準「'+baseTxt+'」で開始。'+teamNote+'欠席・お茶当番を選んで「割振りを実行」してください。','info');
   return true;
 }
 function proceedP1ToStep2(){
@@ -6309,7 +6356,11 @@ function setPat(p){
   }
   applyGroupHoldLabelsIfHidden();
   if((p==='kata'||p==='ryoho')&&needsTeamUI()){
-    MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
+    if((seedFromPrev||carryAdjustMode)&&seedBaseSnap){
+      tmMap=buildTmMapFromSnap(seedBaseSnap);
+    }else{
+      MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
+    }
   }
   updDesc();
   updateMemUnpublishedWrap();
@@ -6357,7 +6408,11 @@ function applyRenshuSplit(on){
       inpB.value=svNames?svNames.lb:'B';
       tnA=inpA.value; tnB=inpB.value;
     }
-    MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
+    if((seedFromPrev||carryAdjustMode)&&seedBaseSnap){
+      tmMap=buildTmMapFromSnap(seedBaseSnap);
+    }else{
+      MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
+    }
   }
   applyGroupHoldLabelsIfHidden();
   updDesc();
@@ -6382,7 +6437,11 @@ function applyRyohoSameVenue(on){
       inpB.value=svNames?svNames.lb:'B';
       tnA=inpA.value; tnB=inpB.value;
     }
-    MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
+    if((seedFromPrev||carryAdjustMode)&&seedBaseSnap){
+      tmMap=buildTmMapFromSnap(seedBaseSnap);
+    }else{
+      MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
+    }
   }
   applyGroupHoldLabelsIfHidden();
   updDesc();
