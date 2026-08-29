@@ -369,12 +369,18 @@ tr.p3-multi-row{background:#fff8e1;}
 .tcb-seedalloc-title{font-weight:800;font-size:12px;margin-bottom:6px;}
 .tcb-seedalloc-opt{display:flex;align-items:flex-start;gap:6px;font-size:12px;line-height:1.5;cursor:pointer;padding:3px 0;}
 .tcb-seedalloc-opt input{margin-top:2px;flex-shrink:0;}
-.tcb-actual-hold-desc{font-size:12px;line-height:1.6;color:var(--txt2);margin-bottom:10px;}
-.tcb-actual-hold-board-wrap{margin:0 0 4px;}
-.tcb-actual-hold-modal.tcb-scroll-modal{max-width:min(720px,96vw);width:96vw;}
-.tcb-actual-hold-modal .tcb-scroll-modal-body{max-height:min(62vh,560px);}
-.tcb-actual-hold-btns{display:flex;gap:8px;margin-top:10px;flex-shrink:0;}
-.tcb-actual-hold-btns button{flex:1;}
+.tcb-seed-hold-hint{margin:8px 0 0;font-size:12px;line-height:1.55;color:var(--txt2);}
+/* 班分けグリッド内の保有チップ（tcb-tgh- プレフィックス） */
+.tcb-tgh-bar{grid-column:1/-1;font-size:12px;line-height:1.5;color:var(--txt2);padding:8px 10px;border-radius:8px;background:var(--surface-2);}
+.tcb-tgh-bar.on{background:rgba(6,199,133,.12);color:var(--ink-heading);font-weight:700;}
+.tcb-tgh-cancel{margin-left:8px;padding:4px 10px;border-radius:8px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:11px;cursor:pointer;font-family:inherit;}
+#tgrid .tc2.tcb-tgh-cell{flex-wrap:wrap;gap:4px 6px;}
+.tcb-tgh-hold{order:9;flex:0 0 100%;display:flex;flex-wrap:wrap;gap:4px;}
+.tcb-tgh-chip{padding:3px 8px;border-radius:999px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:11px;line-height:1.3;cursor:pointer;font-family:inherit;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tcb-tgh-chip.on{background:var(--ink-heading);border-color:var(--ink-heading);color:#fff;font-weight:700;}
+.tcb-tgh-rest{grid-column:1/-1;font-size:12px;line-height:1.6;color:var(--txt2);padding:8px 10px;border-radius:8px;background:var(--surface-2);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;}
+.tcb-tgh-rest-hd{font-weight:700;color:var(--ink-heading);}
+.tcb-tgh-rest-row{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .p3-carry-adjust-summary{display:none;margin-top:8px;padding:10px 12px;background:#f3e5f5;border-left:4px solid #7b1fa2;border-radius:8px;font-size:12px;line-height:1.55;color:var(--txt2);}
 .p3-carry-adjust-summary.on{display:block;}
 .p3-carry-adjust-summary strong{color:#4a148c;}
@@ -1062,6 +1068,9 @@ html{color-scheme:light;}
   .si.si0{border-color:#7b1fa2;}
   .si.si0 .sn{background:rgba(106,27,154,.3);color:#e1bee7;}
   .si.si0 .sl{color:#e1bee7;}
+  .tcb-tgh-chip{background:var(--surface-2);border-color:var(--bdr);color:var(--txt);}
+  .tcb-tgh-chip.on{background:#3f5bd0;border-color:#3f5bd0;color:#fff;}
+  .tcb-tgh-bar.on{background:rgba(6,199,133,.16);}
   .si.on{background:var(--card);border-color:var(--ink-heading);box-shadow:inset 0 0 0 1px var(--ink-heading);}
   .si.done{background:rgba(48,209,88,.14);border-color:var(--grn);}
   .sn{background:var(--surface-2);color:var(--txt2);}
@@ -1220,21 +1229,6 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<!-- 保有の確認・補正（手直しボードと同操作） -->
-<div class="overlay" id="actual-hold-modal">
-  <div class="modal tcb-scroll-modal tcb-actual-hold-modal">
-    <button class="mclose" id="actual-hold-close">&#10005;</button>
-    <h2>&#128230; 保有を確認・直す</h2>
-    <div class="tcb-scroll-modal-body">
-      <p class="tcb-actual-hold-desc">いま各グループが持っている道具の一覧です。実際と違うところがあれば、<strong>実際に持っている人</strong>へ直してください（班またぎ可）。保存した内容が割振りの基準になります。</p>
-      <div id="tcb-actual-hold-board-root" class="tcb-actual-hold-board-wrap"></div>
-    </div>
-    <div class="tcb-actual-hold-btns">
-      <button type="button" class="rbtn" id="btn-actual-hold-save">この内容で補正する</button>
-      <button type="button" class="nb nbs" id="btn-actual-hold-cancel">閉じる</button>
-    </div>
-  </div>
-</div>
 
 <!-- 次回活動の入れ替え案（全体割振りはしない・「入れ替えを実施確定」で保有だけ更新できる） -->
 <div class="overlay" id="tcb-handoff-overlay">
@@ -1242,7 +1236,7 @@ html{color-scheme:light;}
     <button class="mclose" id="tcb-handoff-close" type="button">&#10005;</button>
     <h2>次回活動の入れ替え案</h2>
     <div class="tcb-scroll-modal-body">
-      <p class="tcb-handoff-lead">次回の<strong>活動パターン</strong>と<strong>グループ分け</strong>だけ登録し、基準の保有から必要な交換だけ出します。同じ班の中では基準の担当のままです。全体の割り振りは行いません。ここでの変更は<strong>この画面だけの仮の入力</strong>で、閉じると STEP1 は元に戻ります。</p>
+      <p class="tcb-handoff-lead">急に2分けが決まったときや、2分けは決まっていても<strong>メンバーの確定が活動日の直前</strong>になったときに使います。次回の<strong>活動パターン</strong>と<strong>グループ分け</strong>を登録すると、いまの保有から<strong>必要な交換だけ</strong>を依頼案にします（全体の割り振りはしません）。ここでの変更は<strong>この画面だけの仮の入力</strong>で、閉じると STEP1 は元に戻ります。</p>
       <div class="tcb-handoff-sec-hd">1. 基準にする割振り結果（いまの保有）</div>
       <select id="handoff-base-sel" class="tcb-handoff-base-sel"></select>
       <p class="tcb-handoff-base-note">通常は最新の<strong>（実施確定）</strong>を選んでください。「（試行）」は割振りを実行しただけで、確定していない結果です。</p>
@@ -1418,7 +1412,7 @@ html{color-scheme:light;}
 
 <div class="wrap">
   <nav class="steps" aria-label="作業の流れ">
-    <button type="button" class="si si0" id="st0" style="display:none;" title="活動日前：チーム道具の入れ替えを依頼する（必要なときだけ）"><span class="sn">0</span><span class="sl">入れ替え<br>依頼</span></button>
+    <button type="button" class="si si0" id="st0" style="display:none;" title="急な2分けや、メンバー確定が直前になったときに、活動日前の道具入れ替えを依頼します"><span class="sn">0</span><span class="sl">入れ替え<br>依頼</span></button>
     <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・班分け</span></button>
     <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">欠席・当番</span></button>
     <button type="button" class="si" id="st3"><span class="sn">3</span><span class="sl">割振り・展開</span></button>
@@ -1427,7 +1421,9 @@ html{color-scheme:light;}
   <!-- STEP1 -->
   <div class="pnl on" id="p1">
     <div class="card">
-      <div class="ct">活動パターンを選択 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="ここで選ぶのは<strong>割り振り対象の活動日</strong>（次回／当日の活動）のパターンです。作業している端末の「いま」ではありません。片方試合・両方試合・練習場所分離を選んだ活動日は<strong>2グループ</strong>です。対戦表の自動参照はありません。" aria-label="説明"></button></div>
+      <div class="ct" style="margin-bottom:6px;">&#128197; 活動日 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="割り振る活動の日付です。履歴・実施確定・LINE／PDF の日付になります。通常は本日のままで構いません。" aria-label="説明"></button></div>
+      <input type="date" id="adate" class="date-inp" style="margin-bottom:14px;">
+      <div class="ct">活動パターンを選択<button type="button" class="tcb-tip" data-tip="上の<strong>活動日</strong>のパターンです。片方試合・両方試合・練習場所分離の日は<strong>2グループ</strong>になります。" aria-label="説明"></button></div>
       <div class="tgg">
         <button class="tb2"    id="btn-renshu">両方練習</button>
         <button class="tb2 on" id="btn-kata">片方試合</button>
@@ -1441,8 +1437,6 @@ html{color-scheme:light;}
       <div id="ryoho-same-venue-wrap" class="p1-renshu-split-wrap" style="display:none;">
         <label class="p1-renshu-split-lbl" for="chk-ryoho-same-venue"><input type="checkbox" id="chk-ryoho-same-venue" autocomplete="off">同一会場で試合する<button type="button" class="tcb-tip" data-tip="通常の両方試合は<strong>会場が分かれる</strong>（2グループ）前提です。両試合が同じ会場のときだけチェックすると、グループ分けなし（全員で分担）になります。" aria-label="説明"></button></label>
       </div>
-      <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
-      <input type="date" id="adate" class="date-inp">
       <div id="p1-flow-host" style="display:none;"></div>
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
         <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>：各グループが持っている道具を、そのグループの中で配ります。保有の確認・修正と配り方は STEP2 で行えます。
@@ -1498,8 +1492,8 @@ html{color-scheme:light;}
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り（同じ人に同じ道具が続きにくい）</span></label>
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・お茶当番の分だけ変更</span></label>
       </div>
+      <p class="tcb-seed-hold-hint">保有の確認・修正は、下の<strong>グループ振り分け</strong>で行えます（名前の下＝いま持っている道具）。</p>
       <div class="tcb-seed-mode-banner-btns">
-        <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 保有を確認・直す</button>
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
       </div>
     </div>
@@ -3450,212 +3444,6 @@ function beginReeditFromCurrentResult(){
   if(!snap)return false;
   persistAllocationSnapshot(snap);
   return beginReeditFromSnap(snap);
-}
-/* ===== 保有の確認・補正：手直しボードと同UIで確定保有を直す ===== */
-var _actualHoldDraft=null;
-function closeActualHoldModal(){
-  if(typeof TCB_AssignBoard!=='undefined'&&TCB_AssignBoard&&typeof TCB_AssignBoard.unmount==='function'){
-    TCB_AssignBoard.unmount();
-  }
-  _actualHoldDraft=null;
-  closeModal('actual-hold-modal');
-}
-function actualHoldToolNames(base){
-  var map=(base&&base.map)||{};
-  var names=[], seen={};
-  (TL||[]).forEach(function(t){
-    if(!t||!t.name)return;
-    if(map[t.name]&&!seen[t.name]){names.push(t.name);seen[t.name]=1;}
-  });
-  Object.keys(map).forEach(function(tn){
-    if(map[tn]&&!seen[tn]){names.push(tn);seen[tn]=1;}
-  });
-  return names;
-}
-function actualHoldMemberInfo(name, team){
-  var row=memberRowByName(name);
-  var isGroup=typeof handoffIsGroupDest==='function'&&handoffIsGroupDest(name);
-  return {
-    name:name,
-    label:name,
-    team:team||'',
-    remote:!isGroup&&isMemberRemote(row),
-    excluded:!isGroup&&!!(absS[name]||ochS[name]),
-    isGroup:!!isGroup
-  };
-}
-function refreshActualHoldBoard(){
-  if(!_actualHoldDraft)return;
-  var root=document.getElementById('tcb-actual-hold-board-root');
-  if(!root||typeof TCB_AssignBoard==='undefined'||!TCB_AssignBoard)return;
-  var opts=buildActualHoldBoardOpts();
-  if(!opts)return;
-  TCB_AssignBoard.mount(root, opts);
-}
-function buildActualHoldBoardOpts(){
-  if(!_actualHoldDraft||!seedBaseSnap)return null;
-  var map=_actualHoldDraft.map||{};
-  var names=actualHoldToolNames({map:map});
-  if(!names.length)names=actualHoldToolNames(seedBaseSnap);
-  var toolsMeta=names.map(function(tn){
-    var master=null;
-    for(var i=0;i<(TL||[]).length;i++){if(TL[i].name===tn){master=TL[i];break;}}
-    return {name:tn,fixed:!!(master&&master.fixed)};
-  });
-  var toolsByPerson={};
-  var unassigned=[];
-  names.forEach(function(tn){
-    var holder=map[tn]||'';
-    var meta={name:tn,fixed:false};
-    for(var j=0;j<toolsMeta.length;j++){if(toolsMeta[j].name===tn){meta=toolsMeta[j];break;}}
-    if(holder){
-      if(!toolsByPerson[holder])toolsByPerson[holder]=[];
-      toolsByPerson[holder].push(meta);
-    }else{
-      unassigned.push(meta);
-    }
-  });
-  var la=tnA||seedBaseSnap.la||'試合組';
-  var lb=tnB||seedBaseSnap.lb||'練習組';
-  var useTeams=effectiveNeedsTeamUI()||snapIsTwoSplit(seedBaseSnap);
-  var groups=null, members=null;
-  if(useTeams){
-    var mA=[], mB=[], mX=[];
-    var inSet={};
-    (MB||[]).forEach(function(m){
-      if(!m||!m.name||memberMasterExcluded(m))return;
-      var tm=tmMap[m.name];
-      if(tm!=='A'&&tm!=='B')tm=(seedBaseSnap.tmMap||{})[m.name];
-      if(tm==='A'){mA.push(actualHoldMemberInfo(m.name,'A'));inSet[m.name]=1;}
-      else if(tm==='B'){mB.push(actualHoldMemberInfo(m.name,'B'));inSet[m.name]=1;}
-      else {mX.push(actualHoldMemberInfo(m.name,''));inSet[m.name]=1;}
-    });
-    Object.keys(toolsByPerson).forEach(function(n){
-      if(inSet[n])return;
-      var tm=tmMap[n]||(seedBaseSnap.tmMap||{})[n]||'';
-      var info=actualHoldMemberInfo(n, tm==='A'||tm==='B'?tm:'');
-      if(tm==='A')mA.push(info);
-      else if(tm==='B')mB.push(info);
-      else mX.push(info);
-      inSet[n]=1;
-    });
-    groups=[
-      {id:'A',label:la,members:mA},
-      {id:'B',label:lb,members:mB}
-    ];
-    if(mX.length)groups.push({id:'X',label:'その他・組未定',members:mX});
-  }else{
-    members=[];
-    var flatSet={};
-    (MB||[]).forEach(function(m){
-      if(!m||!m.name||memberMasterExcluded(m))return;
-      members.push(actualHoldMemberInfo(m.name,''));
-      flatSet[m.name]=1;
-    });
-    Object.keys(toolsByPerson).forEach(function(n){
-      if(flatSet[n])return;
-      members.push(actualHoldMemberInfo(n,''));
-    });
-  }
-  function applyDraftChange(){
-    refreshActualHoldBoard();
-  }
-  return {
-    esc:esc,
-    lead:'道具タイルをタップ→持っている人をタップで移動。別の道具タイルをタップすると入れ替えます。',
-    foot:'',
-    map:map,
-    tools:toolsMeta,
-    toolsByPerson:toolsByPerson,
-    unassigned:unassigned,
-    groups:groups,
-    members:members,
-    canDropOnPerson:function(){return {ok:true};},
-    canSwap:function(toolA, toolB){
-      var ha=map[toolA]||'';
-      var hb=map[toolB]||'';
-      if(!ha&&!hb)return {ok:false,reason:''};
-      if(ha&&hb)return {ok:true};
-      return {ok:false,reason:''};
-    },
-    onMove:function(toolName, toPerson){
-      if(!_actualHoldDraft)return;
-      if(toPerson)_actualHoldDraft.map[toolName]=toPerson;
-      else delete _actualHoldDraft.map[toolName];
-      applyDraftChange();
-    },
-    onSwap:function(toolA, toolB){
-      if(!_actualHoldDraft)return;
-      var ha=_actualHoldDraft.map[toolA]||'';
-      var hb=_actualHoldDraft.map[toolB]||'';
-      if(hb)_actualHoldDraft.map[toolA]=hb; else delete _actualHoldDraft.map[toolA];
-      if(ha)_actualHoldDraft.map[toolB]=ha; else delete _actualHoldDraft.map[toolB];
-      applyDraftChange();
-    },
-    onReject:function(msg){
-      if(msg)tcbToast(msg,'warn');
-    }
-  };
-}
-function openActualHoldModal(){
-  var base=seedBaseSnap;
-  if(!base||typeof base.map!=='object'||base.map===null){
-    alert('補正の基準となる割り当てがありません。\n先に STEP1「いまの保有でグループごとに割振る」または履歴から保有基準を選んでください。');
-    return;
-  }
-  var root=document.getElementById('tcb-actual-hold-board-root');
-  if(!root)return;
-  if(typeof TCB_AssignBoard==='undefined'||!TCB_AssignBoard||typeof TCB_AssignBoard.mount!=='function'){
-    alert('手直しボードを読み込めませんでした。ページを再読み込みしてください。');
-    return;
-  }
-  _actualHoldDraft={
-    map:clonePlainObj(base.map),
-    origMap:clonePlainObj(base.map)
-  };
-  var opts=buildActualHoldBoardOpts();
-  if(!opts)return;
-  TCB_AssignBoard.mount(root, opts);
-  openModal('actual-hold-modal');
-}
-function saveActualHoldAdjust(){
-  var base=seedBaseSnap;
-  if(!base||typeof base.map!=='object'||base.map===null||!_actualHoldDraft){
-    closeActualHoldModal();
-    return;
-  }
-  var next=clonePlainObj(_actualHoldDraft.map);
-  var orig=_actualHoldDraft.origMap||{};
-  var changed=0;
-  var allKeys={};
-  Object.keys(orig).forEach(function(k){allKeys[k]=1;});
-  Object.keys(next).forEach(function(k){allKeys[k]=1;});
-  Object.keys(allKeys).forEach(function(tn){
-    if((orig[tn]||'')!==(next[tn]||''))changed++;
-  });
-  base.map=next;
-  /* 持っている人の班（きょうの班分け優先）に道具.team を合わせる */
-  var teamByPerson=Object.assign({}, seedBaseSnap.tmMap||{}, tmMap||{});
-  if(Array.isArray(base.tools)){
-    base.tools=reconcileToolsTeamWithHolders(base.tools, next, teamByPerson);
-  }
-  if(carryAdjustRefSnap&&typeof carryAdjustRefSnap.map==='object'&&carryAdjustRefSnap.map!==null){
-    carryAdjustRefSnap.map=clonePlainObj(next);
-    if(Array.isArray(carryAdjustRefSnap.tools)){
-      carryAdjustRefSnap.tools=reconcileToolsTeamWithHolders(carryAdjustRefSnap.tools, next, teamByPerson);
-    }
-  }
-  closeActualHoldModal();
-  if(changed){
-    if(R){
-      if(typeof buildTbl==='function')buildTbl();
-      if(typeof renderCarryAdjustDiffSummary==='function')renderCarryAdjustDiffSummary();
-    }
-    if(window.TCB_PreSummary)TCB_PreSummary.update();
-    alert(changed+'点の実保有を補正しました。\n道具の組も持っている人の班に合わせました。この内容がグループ内割振りの基準になります。');
-  }else{
-    tcbToast('変更はありませんでした。','info');
-  }
 }
 function savePrevResult(){
   if(!R)return;
@@ -6537,9 +6325,11 @@ function updDesc(){
       var msgs={
         'kata':   'マスタで試合道具にした道具は試合組、それ以外は練習組へ割り当てます',
         'ryoho':  '会場が分かれる前提。道具のグループ分けは割振りルールに従います（半々・1点ずつ・前回保有側の維持など）',
-        'renshu': (pat==='renshu'&&isGroupHoldEnabled())
-          ?'グループ保有が有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
-          :'全道具を全メンバーで分担'
+        'renshu': ((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap))
+          ?'確定保有を基準に、'+la+'／'+lb+'の保有道具をそれぞれのグループ内で分担'
+          :(pat==='renshu'&&isGroupHoldEnabled())
+            ?'グループ保有の控えが有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
+            :'全道具を全メンバーで分担'
       };
       el.textContent=msgs[pat];
     }
@@ -6935,18 +6725,76 @@ async function refreshTeaReflectBar(opts){
 }
 
 /* ========== グループ振り分け ========== */
+/* 班分けグリッドに出す保有チップ：保有基準（確定保有）があるときだけ */
+var _tgridHoldSel=null;
+function tgridHoldingsMap(){
+  if(!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object'))return null;
+  return seedBaseSnap.map;
+}
+/* 保有チップの移動：保有基準（と調整基準）を実態に合わせて更新 */
+function tgridMoveHolding(toolName, person){
+  if(!seedBaseSnap||typeof seedBaseSnap.map!=='object')return;
+  seedBaseSnap.map[toolName]=person;
+  var teamByPerson=Object.assign({}, seedBaseSnap.tmMap||{}, tmMap||{});
+  if(Array.isArray(seedBaseSnap.tools)){
+    seedBaseSnap.tools=reconcileToolsTeamWithHolders(seedBaseSnap.tools, seedBaseSnap.map, teamByPerson);
+  }
+  if(carryAdjustRefSnap&&typeof carryAdjustRefSnap.map==='object'&&carryAdjustRefSnap.map!==null){
+    carryAdjustRefSnap.map=clonePlainObj(seedBaseSnap.map);
+    if(Array.isArray(carryAdjustRefSnap.tools)){
+      carryAdjustRefSnap.tools=reconcileToolsTeamWithHolders(carryAdjustRefSnap.tools, carryAdjustRefSnap.map, teamByPerson);
+    }
+  }
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
+}
+function tgridHoldChipsHtml(toolNames){
+  if(!toolNames||!toolNames.length)return '';
+  var h='<span class="tcb-tgh-hold">';
+  toolNames.slice().sort(function(a,b){return String(a).localeCompare(String(b),'ja');}).forEach(function(tn){
+    h+='<button type="button" class="tcb-tgh-chip'+(_tgridHoldSel===tn?' on':'')+'" data-tgh-tool="'+esc(tn)+'">'+esc(tn)+'</button>';
+  });
+  return h+'</span>';
+}
 function buildTGrid(opts){
   opts=opts||{};
-  var g=document.getElementById(opts.gridId||'tgrid'); if(!g)return; g.innerHTML='';
+  var gridId=opts.gridId||'tgrid';
+  var g=document.getElementById(gridId); if(!g)return; g.innerHTML='';
   var ignoreAbs=!!opts.ignoreAbs;
   var ex=ignoreAbs?{}:exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
+  var holdMap=(gridId==='tgrid')?tgridHoldingsMap():null;
+  if(!holdMap)_tgridHoldSel=null;
+  var holdByPerson={};
+  if(holdMap){
+    Object.keys(holdMap).forEach(function(tn){
+      var p=holdMap[tn];
+      if(!p)return;
+      (holdByPerson[p]=holdByPerson[p]||[]).push(tn);
+    });
+  }
   var hint=pat==='kata'?'片方試合':(pat==='renshu'?(renshuSplit?'両方練習・場所分離':'グループ保有'):'両方試合');
   var hd=document.getElementById(opts.hdId||'tcard-hd');
   if(hd){
-    var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>（青）と<strong>'+esc(lb)+'</strong>（赤）を切り替えます。最初は全員<strong>'+esc(lb)+'</strong>です。会場や試合の並びが変わる日は、<strong>当日の2分け</strong>に合わせて並べ替えてから進めてください。';
+    var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>（青）と<strong>'+esc(lb)+'</strong>（赤）を切り替えます。'
+      +(holdMap
+        ?'名前の下は<strong>いま持っている道具</strong>です。実際と違うときは、道具をタップ→実際に持っている人をタップで直せます（直した内容が割振りの基準になります）。'
+        :'最初は全員<strong>'+esc(lb)+'</strong>です。当日の2分けに合わせて並べ替えてから進めてください。');
     hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
       +'<button type="button" class="tcb-tip" data-tip="'+tipText.replace(/"/g,'&quot;')+'" aria-label="説明"></button>';
+  }
+  if(holdMap){
+    var bar=document.createElement('div');
+    bar.className='tcb-tgh-bar'+(_tgridHoldSel?' on':'');
+    bar.innerHTML=_tgridHoldSel
+      ?('「'+esc(_tgridHoldSel)+'」を選択中 → 実際に持っている人をタップ <button type="button" class="tcb-tgh-cancel" data-tgh-cancel="1">取消</button>')
+      :'名前の下＝いま持っている道具。実際と違うときは道具をタップ→持っている人をタップ。';
+    bar.addEventListener('click',function(ev){
+      if(ev.target&&ev.target.closest&&ev.target.closest('[data-tgh-cancel]')){
+        _tgridHoldSel=null;
+        buildTGrid(opts);
+      }
+    });
+    g.appendChild(bar);
   }
   MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){
     var isEx=!!ex[m.name];
@@ -6957,27 +6805,70 @@ function buildTGrid(opts){
     }
     var tm=isEx?null:tmMap[m.name];
     var c=document.createElement('div');
-    c.className='tc2'+(isEx?' ex':(tm?' t'+tm:''));
-    c.innerHTML=tcHtml(m,tm,la,lb);
-    if(!isEx){
-      (function(mm,cc){
-        cc.addEventListener('click',function(ev){
-          tmMap[mm.name]=(tmMap[mm.name]==='B')?'A':'B';
-          var nt=tmMap[mm.name];
-          cc.className='tc2 t'+nt;
-          cc.innerHTML=tcHtml(mm,nt,tnA||'試合組',tnB||'練習組');
-          scheduleStep2GridFit();
-          updTC();
-          var ov=document.getElementById('tcb-handoff-overlay');
-          if(ov&&ov.classList.contains('open')){
-            var box=document.getElementById('tcb-handoff-result');
-            if(box)box.innerHTML='';
+    c.className='tc2'+(isEx?' ex':(tm?' t'+tm:''))+(holdMap?' tcb-tgh-cell':'');
+    c.innerHTML=tcHtml(m,tm,la,lb)+(holdMap?tgridHoldChipsHtml(holdByPerson[m.name]):'');
+    (function(mm,cc,mmEx){
+      cc.addEventListener('click',function(ev){
+        if(holdMap){
+          var chip=ev.target&&ev.target.closest?ev.target.closest('[data-tgh-tool]'):null;
+          if(chip){
+            var tn=chip.getAttribute('data-tgh-tool');
+            _tgridHoldSel=(_tgridHoldSel===tn)?null:tn;
+            buildTGrid(opts);
+            return;
           }
-        });
-      })(m,c);
-    }
+          if(_tgridHoldSel){
+            if(mmEx){
+              tcbToast('欠席・お茶当番の方には渡せません。','warn');
+              return;
+            }
+            var moved=_tgridHoldSel;
+            _tgridHoldSel=null;
+            tgridMoveHolding(moved, mm.name);
+            buildTGrid(opts);
+            tcbToast('「'+moved+'」の保有を '+mm.name+' に直しました。','success');
+            return;
+          }
+        }
+        if(mmEx)return;
+        tmMap[mm.name]=(tmMap[mm.name]==='B')?'A':'B';
+        var nt=tmMap[mm.name];
+        cc.className='tc2 t'+nt+(holdMap?' tcb-tgh-cell':'');
+        cc.innerHTML=tcHtml(mm,nt,tnA||'試合組',tnB||'練習組')+(holdMap?tgridHoldChipsHtml(holdByPerson[mm.name]):'');
+        scheduleStep2GridFit();
+        updTC();
+        var ov=document.getElementById('tcb-handoff-overlay');
+        if(ov&&ov.classList.contains('open')){
+          var box=document.getElementById('tcb-handoff-result');
+          if(box)box.innerHTML='';
+        }
+      });
+    })(m,c,isEx);
     g.appendChild(c);
   });
+  /* グリッドに出ない保有者（【組名】宛て・名簿対象外など）の道具もチップで出す */
+  if(holdMap){
+    var shown={};
+    MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){shown[m.name]=1;});
+    var rest=Object.keys(holdByPerson).filter(function(p){return !shown[p];});
+    if(rest.length){
+      var rd=document.createElement('div');
+      rd.className='tcb-tgh-rest';
+      var rh='<span class="tcb-tgh-rest-hd">組宛て・名簿外の保有：</span>';
+      rest.sort(function(a,b){return String(a).localeCompare(String(b),'ja');}).forEach(function(p){
+        rh+='<span class="tcb-tgh-rest-row"><strong>'+esc(p)+'</strong>'+tgridHoldChipsHtml(holdByPerson[p])+'</span>';
+      });
+      rd.innerHTML=rh;
+      rd.addEventListener('click',function(ev){
+        var chip=ev.target&&ev.target.closest?ev.target.closest('[data-tgh-tool]'):null;
+        if(!chip)return;
+        var tn=chip.getAttribute('data-tgh-tool');
+        _tgridHoldSel=(_tgridHoldSel===tn)?null:tn;
+        buildTGrid(opts);
+      });
+      g.appendChild(rd);
+    }
+  }
   updTC();
   scheduleStep2GridFit();
 }
@@ -9478,18 +9369,6 @@ document.addEventListener('DOMContentLoaded',function(){
   /* 前回モーダル */
   var btnReedit=document.getElementById('btn-reedit-from-prev');
   if(btnReedit)btnReedit.addEventListener('click',function(){beginReeditFromCurrentResult();});
-  var btnActualHold=document.getElementById('btn-actual-hold-p2');
-  if(btnActualHold)btnActualHold.addEventListener('click',function(){openActualHoldModal();});
-  var btnActualHoldSave=document.getElementById('btn-actual-hold-save');
-  if(btnActualHoldSave)btnActualHoldSave.addEventListener('click',function(){saveActualHoldAdjust();});
-  ['btn-actual-hold-cancel','actual-hold-close'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el)el.addEventListener('click',function(){closeActualHoldModal();});
-  });
-  var actualHoldModal=document.getElementById('actual-hold-modal');
-  if(actualHoldModal)actualHoldModal.addEventListener('click',function(e){
-    if(e.target===actualHoldModal)closeActualHoldModal();
-  });
   ['btn-seed-mode-cancel-p1','btn-seed-mode-cancel-p2'].forEach(function(id){
     var el=document.getElementById(id);
     if(el)el.addEventListener('click',function(){
