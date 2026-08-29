@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.26.3">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.26.4">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-login.css?v=1.26.3">
-<link rel="stylesheet" href="gear.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.26.3">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.26.3">
+<link rel="stylesheet" href="tcb-shell.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-login.css?v=1.26.4">
+<link rel="stylesheet" href="gear.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.26.4">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.26.4">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1255,6 +1255,9 @@ html{color-scheme:light;}
       </div>
       <div id="handoff-renshu-split-wrap" style="display:none;">
         <label class="tcb-handoff-split-lbl" for="chk-handoff-renshu-split"><input type="checkbox" id="chk-handoff-renshu-split" autocomplete="off">練習場所が分かれる</label>
+      </div>
+      <div id="handoff-ryoho-same-venue-wrap" style="display:none;">
+        <label class="tcb-handoff-split-lbl" for="chk-handoff-ryoho-same-venue"><input type="checkbox" id="chk-handoff-ryoho-same-venue" autocomplete="off">同一会場で試合する</label>
       </div>
       <div class="tcb-handoff-team-wrap" id="handoff-team-wrap" style="display:none;">
         <div class="tcb-handoff-sec-hd">3. 次回のグループ分け</div>
@@ -1426,7 +1429,7 @@ html{color-scheme:light;}
         <button type="button" class="tcb-handoff-entry-btn" id="btn-tcb-handoff-open">活動日前：チーム道具の入れ替えを依頼する</button>
         <p class="tcb-handoff-entry-desc">次回の予定が確定／変更し、2分けになったときにチーム道具の調整を行います。依頼内容が決まったら「入れ替えを実施確定」で保有を更新してください。</p>
       </div>
-      <div class="ct">活動パターンを選択 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="<strong>当日</strong>の活動日・班分け・マスタ設定で割り振ります。対戦の組み合わせや過去・未来の予定は<strong>自動参照しません</strong>。会場や並びが変わる日はグループを組み直してから実行してください。" aria-label="説明"></button></div>
+      <div class="ct">活動パターンを選択 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="ここで選ぶのは<strong>割り振り対象の活動日</strong>（次回／当日の活動）のパターンです。作業している端末の「いま」ではありません。片方試合・両方試合・練習場所分離を選んだ活動日は<strong>2グループ</strong>です。対戦表の自動参照はありません。" aria-label="説明"></button></div>
       <div class="tgg">
         <button class="tb2"    id="btn-renshu">両方練習</button>
         <button class="tb2 on" id="btn-kata">片方試合</button>
@@ -1436,6 +1439,9 @@ html{color-scheme:light;}
       <div id="tcb-sameday-hint-p1" class="al ali tcb-sameday-hint-p1" style="display:none;" role="note"></div>
       <div id="renshu-split-wrap" class="p1-renshu-split-wrap" style="display:none;">
         <label class="p1-renshu-split-lbl" for="chk-renshu-split"><input type="checkbox" id="chk-renshu-split" autocomplete="off">練習場所が分かれる<button type="button" class="tcb-tip" data-tip="2グループに分けて割り振ります。各道具のグループは<strong>割振りルール</strong>（半々・試合組／練習組など）と、可能な範囲で前回保有側の維持で決まります。" aria-label="説明"></button></label>
+      </div>
+      <div id="ryoho-same-venue-wrap" class="p1-renshu-split-wrap" style="display:none;">
+        <label class="p1-renshu-split-lbl" for="chk-ryoho-same-venue"><input type="checkbox" id="chk-ryoho-same-venue" autocomplete="off">同一会場で試合する<button type="button" class="tcb-tip" data-tip="通常の両方試合は<strong>会場が分かれる</strong>（2グループ）前提です。両試合が同じ会場のときだけチェックすると、グループ分けなし（全員で分担）になります。" aria-label="説明"></button></label>
       </div>
       <div class="ct" style="margin-bottom:6px;">&#128197; 活動日</div>
       <input type="date" id="adate" class="date-inp">
@@ -1689,12 +1695,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.26.3"></script>
-<script src="tcb-swap-list.js?v=1.26.3"></script>
-<script src="tcb-assign-board.js?v=1.26.3"></script>
-<script src="tcb-handoff-plan.js?v=1.26.3"></script>
-<script src="tcb-team-rules.js?v=1.26.3"></script>
-<script src="tcb-tool-images.js?v=1.26.3"></script>
+<script src="tcb-device.js?v=1.26.4"></script>
+<script src="tcb-swap-list.js?v=1.26.4"></script>
+<script src="tcb-assign-board.js?v=1.26.4"></script>
+<script src="tcb-handoff-plan.js?v=1.26.4"></script>
+<script src="tcb-team-rules.js?v=1.26.4"></script>
+<script src="tcb-tool-images.js?v=1.26.4"></script>
 <script>
 
 
@@ -1898,8 +1904,33 @@ function redoAssign(){
 }
 var tnA='試合組', tnB='練習組';
 var renshuSplit=false;
+/* 両方試合：通常は会場分離（2グループ）。同一会場のときだけ true */
+var ryohoSameVenue=false;
 function needsTeamUI(){
-  return pat==='kata'||pat==='ryoho'||(pat==='renshu'&&renshuSplit);
+  return pat==='kata'||(pat==='ryoho'&&!ryohoSameVenue)||(pat==='renshu'&&renshuSplit);
+}
+function snapIsTwoSplit(snap){
+  if(!snap)return false;
+  if(snap.mode==='team'){
+    if(snap.pat==='ryoho'&&normFlag01(snap.ryohoSameVenue))return false;
+    return true;
+  }
+  var p=snap.pat||'';
+  if(p==='kata')return true;
+  if(p==='ryoho')return !normFlag01(snap.ryohoSameVenue);
+  if(p==='renshu')return !!normFlag01(snap.renshuSplit);
+  return false;
+}
+function patFlagFromSnap(snap){
+  if(!snap)return false;
+  if(snap.pat==='renshu')return !!normFlag01(snap.renshuSplit);
+  if(snap.pat==='ryoho')return !!normFlag01(snap.ryohoSameVenue);
+  return false;
+}
+function currentPatFlag(){
+  if(pat==='renshu')return !!renshuSplit;
+  if(pat==='ryoho')return !!ryohoSameVenue;
+  return false;
 }
 function isGroupHoldEnabled(){
   return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
@@ -2027,8 +2058,9 @@ function sortedTeamMembersFlat(){
     return memberSortKey(a.name)-memberSortKey(b.name);
   });
 }
-function patLabel(patVal,split){
-  if(patVal==='renshu'&&split)return '両方練習（場所分離）';
+function patLabel(patVal,flag){
+  if(patVal==='renshu'&&flag)return '両方練習（場所分離）';
+  if(patVal==='ryoho'&&flag)return '両方試合（同一会場）';
   return {kata:'片方試合',ryoho:'両方試合',renshu:'両方練習'}[patVal]||patVal;
 }
 
@@ -2759,6 +2791,7 @@ function buildAllocationSnapshot(){
     savedAt:new Date().toISOString(),
     pat:pat, la:R.la||tnA, lb:R.lb||tnB,
     renshuSplit:(pat==='renshu'&&renshuSplit)?1:0,
+    ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
     memUnpublished:isMemUnpublished()?1:0,
     mode:R.mode,
     map:cloneAssignMap(R.map),
@@ -2854,14 +2887,48 @@ function loadStoredAllocationSnap(){
     return enrichStoredSnap(JSON.parse(raw));
   }catch(e){return null;}
 }
-/** いま持っている道具の基準（決定1-B：端末の最新保有。調整中は補正済み seed を優先） */
+/** いま持っている道具の基準：実施確定／入れ替え確定のみ（試行は使わない） */
+var holdingsBaseOverride=null;
+function findLatestConfirmedHoldingsSnap(){
+  var hist=getHistoryCache().filter(function(h){
+    return h&&h.confirmedAt&&h.map&&typeof h.map==='object';
+  }).slice();
+  hist.sort(function(a,b){
+    var d=String(b.date||'').localeCompare(String(a.date||''));
+    if(d)return d;
+    var ta=Date.parse(a.confirmedAt||'')||0;
+    var tb=Date.parse(b.confirmedAt||'')||0;
+    return tb-ta;
+  });
+  if(hist.length)return enrichStoredSnap(hist[0]);
+  var prev=loadStoredAllocationSnap();
+  if(prev&&prev.confirmedAt&&prev.map&&typeof prev.map==='object')return prev;
+  return null;
+}
 function getHoldingsBaseSnap(){
   if(seedBaseSnap&&typeof seedBaseSnap.map==='object'&&(seedFromPrev||carryAdjustMode)){
     return enrichStoredSnap(seedBaseSnap);
   }
-  var snap=loadStoredAllocationSnap();
-  if(!snap||typeof snap.map!=='object')return null;
-  return snap;
+  if(holdingsBaseOverride&&typeof holdingsBaseOverride.map==='object'){
+    return enrichStoredSnap(holdingsBaseOverride);
+  }
+  return findLatestConfirmedHoldingsSnap();
+}
+/** 別の日の確定記録を保有基準にする（試行は拒否） */
+function setHoldingsBaseFromSnap(snap){
+  var enriched=enrichStoredSnap(snap);
+  if(!enriched||typeof enriched.map!=='object'){
+    tcbToast('この記録は保有の基準にできません。','warn');
+    return false;
+  }
+  if(!enriched.confirmedAt){
+    tcbToast('試行結果は基準にできません。実施確定または入れ替え確定の記録を選んでください。','warn');
+    return false;
+  }
+  holdingsBaseOverride=clonePlainObj(enriched);
+  if(window.TCB_P1Flow)TCB_P1Flow.update();
+  tcbToast('保有の基準を「'+holdingsBaseLabel(holdingsBaseOverride)+'」にしました。','success');
+  return true;
 }
 function holdingsBaseLabel(snap){
   snap=snap||getHoldingsBaseSnap();
@@ -2869,6 +2936,9 @@ function holdingsBaseLabel(snap){
   var d=fmtDayLabelJa(snap.date)||'';
   var mark=snap.confirmedAt?(normFlag01(snap.handoff)?'入れ替え確定':'実施確定'):'試行';
   return (d?d+'・':'')+mark;
+}
+function holdingsBaseIsTwoSplit(){
+  return snapIsTwoSplit(getHoldingsBaseSnap());
 }
 /** 交代報告の dayLabel（例: 7/11(土)）に一致する履歴スナップを返す（実施確定優先） */
 function findHistSnapByDayLabel(dayLabel){
@@ -2996,7 +3066,9 @@ function formatSnapConditionsHtml(snap){
   html+='お茶当番：'+(och.length?esc(och.join('、')):'なし')+'<br>';
   html+='道具の一時除外：'+(skip.length?esc(skip.join('、')):'なし')+'<br>';
   if(!snapMemUnpublished(snap)){
-    if(snap.pat==='kata'||snap.pat==='ryoho'){
+    if(snap.pat==='ryoho'&&normFlag01(snap.ryohoSameVenue)){
+      html+='両方試合（同一会場）：グループ分けなし（全員で分担）';
+    }else if(snap.pat==='kata'||snap.pat==='ryoho'){
       html+=esc(la)+'：'+(aList.length?esc(aList.join('、')):'なし')+'<br>';
       html+=esc(lb)+'：'+(bList.length?esc(bList.join('、')):'なし');
     }else if(snap.pat==='renshu'&&snap.renshuSplit){
@@ -3038,12 +3110,15 @@ function clearSeedFromPrevMode(){
 }
 /* 前回基準モード中の活動パターン変更：持ち帰り調整（map基準）で引き継げるためモードは維持する。
    seedFromPrev のみ（互換なし）の経路があっても carryAdjustMode に昇格させる。 */
-function confirmPatChangeInSeedMode(newPat,newSplit){
+function confirmPatChangeInSeedMode(newPat,newSplit,newSameVenue){
   var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
   if(!on)return true;
   var basePat=seedBaseSnap.pat||'kata';
   var baseSplit=!!normFlag01(seedBaseSnap.renshuSplit);
-  var same=(newPat===basePat)&&(newPat!=='renshu'||(!!newSplit)===baseSplit);
+  var baseSame=!!normFlag01(seedBaseSnap.ryohoSameVenue);
+  var same=(newPat===basePat)
+    &&(newPat!=='renshu'||(!!newSplit)===baseSplit)
+    &&(newPat!=='ryoho'||(!!newSameVenue)===baseSame);
   if(same)return true;
   if(!carryAdjustMode)carryAdjustMode=true;
   seedFromPrev=true;
@@ -3081,6 +3156,9 @@ function applySnapToActivityUI(snap, opts){
       applyRenshuSplit(rs);
       var chkx=document.getElementById('chk-renshu-split');
       if(chkx)chkx.checked=rs;
+    }
+    if(snap.pat==='ryoho'){
+      applyRyohoSameVenue(!!normFlag01(snap.ryohoSameVenue));
     }
     var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
     if(inpA&&snap.la!=null){inpA.value=snap.la;tnA=snap.la;}
@@ -3148,12 +3226,16 @@ function beginReeditFromStoredPrev(){
 function beginHoldingsGroupAllocation(){
   var snap=getHoldingsBaseSnap();
   if(!snap||typeof snap.map!=='object'){
-    tcbToast('いま持っている道具の記録がありません。いちから割り振るか、先に実施確定・入れ替え確定を行ってください。','warn');
+    tcbToast('確定済みの保有記録がありません。実施確定または入れ替え確定のあとでお試しください（試行は基準にしません）。','warn');
+    return false;
+  }
+  if(!snap.confirmedAt&&!(seedFromPrev||carryAdjustMode)){
+    tcbToast('試行結果は基準にできません。実施確定または入れ替え確定の記録を使ってください。','warn');
     return false;
   }
   if(!beginReeditFromSnap(snap,{goStep2:true}))return false;
   absS={};ochS={};
-  tcbToast('いまの保有を基準に開始しました。きょうの欠席とお茶当番を選んで「割振りを実行」してください。','info');
+  tcbToast('確定保有を基準に開始しました。きょうの欠席とお茶当番を選んで「割振りを実行」してください。','info');
   return true;
 }
 function proceedP1ToStep2(){
@@ -3171,6 +3253,17 @@ function beginTodayAllocation(){
   return beginHoldingsGroupAllocation();
 }
 function beginReeditFromHistDetail(){
+  if(window._histPreferConfirmedOnly){
+    if(!setHoldingsBaseFromSnap(_histDetailSnap))return false;
+    window._histPreferConfirmedOnly=false;
+    closeModal('hist-detail-modal');
+    closeModal('hist-modal');
+    return true;
+  }
+  if(_histDetailSnap&&!_histDetailSnap.confirmedAt){
+    tcbToast('試行は保有の基準にできません。実施確定または入れ替え確定の記録を選んでください。','warn');
+    return false;
+  }
   return beginReeditFromSnap(_histDetailSnap);
 }
 function beginReeditFromCurrentResult(){
@@ -3305,6 +3398,7 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
     snap.la=R.la||tnA;
     snap.lb=R.lb||tnB;
     snap.renshuSplit=(pat==='renshu'&&renshuSplit)?1:0;
+    snap.ryohoSameVenue=(pat==='ryoho'&&ryohoSameVenue)?1:0;
     snap.absS=clonePlainObj(absS);
     snap.ochS=clonePlainObj(ochS);
     snap.skipS=clonePlainObj(skipS);
@@ -3317,6 +3411,7 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
       confirmedAt:nowIso,
       pat:pat, la:R.la||tnA, lb:R.lb||tnB,
       renshuSplit:(pat==='renshu'&&renshuSplit)?1:0,
+      ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
       memUnpublished:isMemUnpublished()?1:0,
       mode:R.mode, map:mapCopy,
       tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools)),
@@ -3780,6 +3875,9 @@ function isPrevSnapCompatibleWithCtx(snap, ctx){
   var rsNow=(pat==='renshu'&&renshuSplit)?1:0;
   var rsSn=normFlag01(snap.renshuSplit);
   if(rsSn!==rsNow)return false;
+  var svNow=(pat==='ryoho'&&ryohoSameVenue)?1:0;
+  var svSn=normFlag01(snap.ryohoSameVenue);
+  if(svSn!==svNow)return false;
   return true;
 }
 function flaggedNames(flagObj){
@@ -3792,8 +3890,8 @@ function snapCtxDiffWarnings(snap, ctx){
   var w=[];
   if(!snap)return w;
   if(snap.pat!==pat){
-    var was=patLabel(snap.pat,!!normFlag01(snap.renshuSplit));
-    var now=patLabel(pat,renshuSplit);
+    var was=patLabel(snap.pat,patFlagFromSnap(snap));
+    var now=patLabel(pat,currentPatFlag());
     w.push('活動パターンが基準と異なります（'+was+'→'+now+'）。');
   }
   if(ctx&&(snap.mode||'')!==ctx.mode){
@@ -3802,6 +3900,9 @@ function snapCtxDiffWarnings(snap, ctx){
   var rsNow=(pat==='renshu'&&renshuSplit)?1:0;
   var rsSn=normFlag01(snap.renshuSplit);
   if(rsSn!==rsNow)w.push('練習の場所分離設定が基準と異なります。');
+  var svNow=(pat==='ryoho'&&ryohoSameVenue)?1:0;
+  var svSn=normFlag01(snap.ryohoSameVenue);
+  if(svSn!==svNow)w.push('両方試合の同一会場設定が基準と異なります。');
   return w;
 }
 function memberInTeamByTmMap(name, team){
@@ -4510,7 +4611,7 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
 /* 次回活動の入れ替え案：モーダル操作前の STEP1 状態（パターン・班分け・グループ名）を控えて、閉じたら戻す */
 var handoffStateSnap=null;
 function snapshotHandoffBaseState(){
-  handoffStateSnap={pat:pat,renshuSplit:renshuSplit,tnA:tnA,tnB:tnB,tmMap:clonePlainObj(tmMap)};
+  handoffStateSnap={pat:pat,renshuSplit:renshuSplit,ryohoSameVenue:ryohoSameVenue,tnA:tnA,tnB:tnB,tmMap:clonePlainObj(tmMap)};
 }
 function restoreHandoffBaseState(){
   handoffBaseOverride=null;
@@ -4521,6 +4622,7 @@ function restoreHandoffBaseState(){
   handoffStateSnap=null;
   pat=s.pat;
   renshuSplit=!!s.renshuSplit;
+  ryohoSameVenue=!!s.ryohoSameVenue;
   tnA=s.tnA; tnB=s.tnB;
   tmMap=s.tmMap;
   ['kata','ryoho','renshu'].forEach(function(id){
@@ -4531,6 +4633,10 @@ function restoreHandoffBaseState(){
   if(chk)chk.checked=renshuSplit;
   var rsw=document.getElementById('renshu-split-wrap');
   if(rsw)rsw.style.display=(pat==='renshu')?'block':'none';
+  var chky=document.getElementById('chk-ryoho-same-venue');
+  if(chky)chky.checked=ryohoSameVenue;
+  var rsv=document.getElementById('ryoho-same-venue-wrap');
+  if(rsv)rsv.style.display=(pat==='ryoho')?'block':'none';
   var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
   if(inpA)inpA.value=tnA;
   if(inpB)inpB.value=tnB;
@@ -4572,7 +4678,7 @@ function rebuildHandoffBaseCandidates(){
   hist.slice(0,20).forEach(function(h,i){
     handoffBaseCands.push({
       key:'h:'+h.date+':'+(h.confirmedAt||h.savedAt||('i'+i)),
-      label:fmtDayLabelJa(h.date)+'　'+patLabel(h.pat,!!normFlag01(h.renshuSplit))+(h.confirmedAt?(normFlag01(h.handoff)?'（入れ替え確定）':'（実施確定）'):'（試行）'),
+      label:fmtDayLabelJa(h.date)+'　'+patLabel(h.pat,patFlagFromSnap(h))+(h.confirmedAt?(normFlag01(h.handoff)?'（入れ替え確定）':'（実施確定）'):'（試行）'),
       snap:h
     });
   });
@@ -5030,7 +5136,7 @@ function handoffIsGroupDest(name){
 function buildHandoffLineText(report, snap){
   var baseMark=snap.confirmedAt?(normFlag01(snap.handoff)?'入れ替え確定':'実施確定'):'試行';
   var head='【道具の入れ替えお願い】次回活動の前までに';
-  var sub='（基準：'+(fmtDayLabelJa(snap.date)||'前回')+' '+baseMark+'の保有 → 次回：'+patLabel(pat,renshuSplit)+(needsTeamUI()?'〔'+(tnA||'A')+'／'+(tnB||'B')+'〕':'')+'）';
+  var sub='（基準：'+(fmtDayLabelJa(snap.date)||'前回')+' '+baseMark+'の保有 → 次回：'+patLabel(pat,currentPatFlag())+(needsTeamUI()?'〔'+(tnA||'A')+'／'+(tnB||'B')+'〕':'')+'）';
   if(!report.changed){
     return head+'\n'+sub+'\n\n変更はありません。皆さんいまお持ちの道具のままで大丈夫です。';
   }
@@ -5092,7 +5198,7 @@ function buildHandoffPdfDocument(){
   var report=plan.report, snap=plan.baseSnap;
   var teamShort='東海中央ボーイズ15期';
   var baseMark=snap.confirmedAt?(normFlag01(snap.handoff)?'入れ替え確定':'実施確定'):'試行';
-  var subTxt='基準：'+(fmtDayLabelJa(snap.date)||'前回')+'（'+baseMark+'）の保有 → 次回：'+patLabel(pat,renshuSplit)
+  var subTxt='基準：'+(fmtDayLabelJa(snap.date)||'前回')+'（'+baseMark+'）の保有 → 次回：'+patLabel(pat,currentPatFlag())
     +(needsTeamUI()?'〔'+(tnA||'A')+'／'+(tnB||'B')+'〕':'')
     +(plan.edited?'　※手動調整あり':'')
     +'　発行：'+fmtDayLabelJa(localIsoDateFromDate());
@@ -5293,6 +5399,7 @@ function confirmHandoffPlan(){
     la:tnA||'試合組',
     lb:tnB||'練習組',
     renshuSplit:(pat==='renshu'&&renshuSplit)?1:0,
+    ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
     memUnpublished:0,
     mode:plan.mode,
     map:map,
@@ -5894,29 +6001,34 @@ function setPat(p){
     var chkx=document.getElementById('chk-renshu-split');
     if(chkx)chkx.checked=false;
   }
+  if(p!=='ryoho'){
+    ryohoSameVenue=false;
+    var chky=document.getElementById('chk-ryoho-same-venue');
+    if(chky)chky.checked=false;
+  }
   ['kata','ryoho','renshu'].forEach(function(id){
     var el=document.getElementById('btn-'+id);
     if(el)el.className=(p===id)?'tb2 on':'tb2';
   });
   var rsw=document.getElementById('renshu-split-wrap');
   if(rsw)rsw.style.display=(p==='renshu')?'block':'none';
+  var rsv=document.getElementById('ryoho-same-venue-wrap');
+  if(rsv)rsv.style.display=(p==='ryoho')?'block':'none';
   var tnarea=document.getElementById('tnarea');
   if(tnarea)tnarea.style.display=needsTeamUI()?'':'none';
   /* グループ名デフォルト */
   var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
   if(inpA&&inpB){
     if(p==='kata'){ inpA.value='試合組'; inpB.value='練習組'; }
-    else if(p==='ryoho'){
+    else if(p==='ryoho'&&!ryohoSameVenue){
       var svNames=loadSavedTeamNames();
       inpA.value=svNames?svNames.la:'A';
       inpB.value=svNames?svNames.lb:'B';
     }
     tnA=inpA.value; tnB=inpB.value;
   }
-  /* 次回にグループ名欄が出ないケース（同一場所練習×グループ保有）は保有登録時の名前を使う */
   applyGroupHoldLabelsIfHidden();
-  /* 全員Bに初期化 */
-  if(p==='kata'||p==='ryoho'){
+  if((p==='kata'||p==='ryoho')&&needsTeamUI()){
     MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
   }
   updDesc();
@@ -5929,10 +6041,12 @@ function updDesc(){
   if(el){
     if(pat==='renshu'&&renshuSplit){
       el.textContent=la+'（A）／'+lb+'（B）。道具のグループ分けは割振りルール（半々・試合組／練習組など）に従います。';
+    }else if(pat==='ryoho'&&ryohoSameVenue){
+      el.textContent='同一会場の両方試合：全道具を全メンバーで分担';
     }else{
       var msgs={
         'kata':   'マスタで試合道具にした道具は試合組、それ以外は練習組へ割り当てます',
-        'ryoho':  '道具のグループ分けは割振りルールに従います（半々・1点ずつ・前回保有側の維持など）',
+        'ryoho':  '会場が分かれる前提。道具のグループ分けは割振りルールに従います（半々・1点ずつ・前回保有側の維持など）',
         'renshu': (pat==='renshu'&&isGroupHoldEnabled())
           ?'グループ保有が有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
           :'全道具を全メンバーで分担'
@@ -5969,12 +6083,36 @@ function applyRenshuSplit(on){
   updDesc();
   updateMemUnpublishedWrap();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
   if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
     buildTGrid();
   }
 }
-
-/* ========== ナビ ========== */
+function applyRyohoSameVenue(on){
+  ryohoSameVenue=!!on;
+  var chk=document.getElementById('chk-ryoho-same-venue');
+  if(chk)chk.checked=ryohoSameVenue;
+  var tnarea=document.getElementById('tnarea');
+  if(tnarea)tnarea.style.display=needsTeamUI()?'':'none';
+  if(!ryohoSameVenue&&pat==='ryoho'){
+    var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
+    if(inpA&&inpB){
+      var svNames=loadSavedTeamNames();
+      inpA.value=svNames?svNames.la:'A';
+      inpB.value=svNames?svNames.lb:'B';
+      tnA=inpA.value; tnB=inpB.value;
+    }
+    MB.forEach(function(m){if(!memberMasterExcluded(m))tmMap[m.name]='B';});
+  }
+  applyGroupHoldLabelsIfHidden();
+  updDesc();
+  updateMemUnpublishedWrap();
+  if(window.TCB_P1Flow)TCB_P1Flow.update();
+  if(window.TCB_PreSummary)TCB_PreSummary.update();
+  if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
+    buildTGrid();
+  }
+}
 function goStep(n){
   if(n===3&&!R){
     tcbToast('先に STEP2 で「割振りを実行」してください。','warn');
@@ -6076,6 +6214,12 @@ function closeModal(id){
   }
   /* 入れ替え案モーダル：Esc・背景タップ等どの経路で閉じても STEP1 の状態を元に戻す */
   if(id==='tcb-handoff-overlay')restoreHandoffBaseState();
+  if(id==='hist-modal'&&!document.getElementById('hist-detail-modal').classList.contains('open')){
+    window._histPreferConfirmedOnly=false;
+  }
+  if(id==='hist-detail-modal'&&!document.getElementById('hist-modal').classList.contains('open')){
+    window._histPreferConfirmedOnly=false;
+  }
   var topOpen=document.querySelector('.overlay.open');
   if(topOpen){
     document.querySelectorAll('.overlay.open').forEach(function(o){
@@ -6490,7 +6634,7 @@ function renderAll(){
   if(!R)return;
   var dv=document.getElementById('adate').value;
   var ds=dv?new Date(dv).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}):'未設定';
-  var pl=patLabel(pat,renshuSplit);
+  var pl=patLabel(pat,currentPatFlag());
   var tc=(R.mode==='team')?R.allTools.length:R.tools.length;
   var mc=(R.mode==='team')?R.mA.length+R.mB.length:R.members.length;
   var metaTxt=shareHidesTeamSplit()?(ds+'｜'+tc+'点｜'+mc+'名'):(ds+'｜'+pl+'｜'+tc+'点｜'+mc+'名');
@@ -6895,7 +7039,7 @@ function buildPrintHTML(opts){
   var dd=dv?new Date(dv).toLocaleDateString('ja-JP',{month:'long',day:'numeric'}):'';
   /* yyyy/m/d形式 */
   var ddFmt=dv?(function(){var dt=new Date(dv);return dt.getFullYear()+'/'+(dt.getMonth()+1)+'/'+dt.getDate();})():'';
-  var pl=patLabel(pat,renshuSplit)||'';
+  var pl=patLabel(pat,currentPatFlag())||'';
   var la=(R&&R.la)||tnA, lb=(R&&R.lb)||tnB;
   var hideTeam=shareHidesTeamSplit();
   var maxToolsPerPerson=0;
@@ -8255,18 +8399,31 @@ function initPw(){
 
 /* ===== 履歴リスト構築（選択削除対応） ===== */
 function buildHistList(){
-  var hist=getHistoryCache();
+  var preferConfirmed=!!window._histPreferConfirmedOnly;
+  var hist=getHistoryCache().filter(function(h){
+    if(!h||!h.map||typeof h.map!=='object')return false;
+    if(preferConfirmed&&!h.confirmedAt)return false;
+    return true;
+  });
   var list=document.getElementById('hist-list');
   var selDelBtn=document.getElementById('hist-sel-del-btn');
+  var intro=document.getElementById('hist-modal-intro');
+  if(intro){
+    intro.innerHTML=preferConfirmed
+      ?'実施確定／入れ替え確定の記録だけ表示しています。基準にする日をタップし、<strong>この記録を保有の基準にする</strong>を選んでください。'
+      :'基準にする活動日をタップして詳細を表示し、<strong>この記録を基準に割振り開始</strong>を選んでください（クラウド同期済みなら別端末の履歴も利用可能）。チェックで選択削除できます。';
+  }
   if(!hist.length){
-    list.innerHTML='<div class="al alw">履歴がまだありません。「割振りを実行」で試行が保存され、「実施確定」でその活動日の確定担当が記録されます。</div>';
+    list.innerHTML=preferConfirmed
+      ?'<div class="al alw">確定済みの記録がありません。先に実施確定または入れ替え確定をしてください（試行は表示しません）。</div>'
+      :'<div class="al alw">履歴がまだありません。「割振りを実行」で試行が保存され、「実施確定」でその活動日の確定担当が記録されます。</div>';
     if(selDelBtn)selDelBtn.style.display='none';
     return;
   }
   list.innerHTML='';
   hist.forEach(function(h,idx){
     var dd=h.date?new Date(h.date).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}):'日付不明';
-    var pl=patLabel(h.pat,!!h.renshuSplit)||h.pat||'';
+    var pl=patLabel(h.pat,patFlagFromSnap(h))||h.pat||'';
     var saved=h.savedAt?new Date(h.savedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
     var confirmed=h.confirmedAt?new Date(h.confirmedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
     var isHandoff=!!normFlag01(h.handoff);
@@ -8358,8 +8515,14 @@ function buildHistDetailByPersonRows(tools,snap,trClass){
 function showHistDetail(snap){
   _histDetailSnap=snap;
   var dd=snap.date?new Date(snap.date).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}):'';
-  var pl=patLabel(snap.pat,!!snap.renshuSplit)||snap.pat||'';
+  var pl=patLabel(snap.pat,patFlagFromSnap(snap))||snap.pat||'';
   document.getElementById('hist-detail-title').textContent=dd+'（'+pl+'）';
+  var startBtn=document.getElementById('btn-hist-start-reedit');
+  if(startBtn){
+    startBtn.textContent=window._histPreferConfirmedOnly
+      ?'この記録を保有の基準にする'
+      :'この記録を基準に割振り開始';
+  }
   var condEl=document.getElementById('hist-detail-cond');
   if(condEl){
     condEl.innerHTML=formatSnapConditionsHtml(snap);
@@ -8455,7 +8618,7 @@ function histColHeaderHtml(snap){
       line1=String(parseInt(p[1],10))+'/'+String(parseInt(p[2],10));
     }else line1=s;
   }
-  line2=(patLabel(snap.pat,!!snap.renshuSplit)||snap.pat||'').slice(0,10);
+  line2=(patLabel(snap.pat,patFlagFromSnap(snap))||snap.pat||'').slice(0,10);
   return '<span class="tcb-hist-mo-col-date">'+esc(line1)+'<br><span class="tcb-hist-mo-pt">'+esc(line2)+'</span></span>';
 }
 function histAssigneeShortForPdf(displayName){
@@ -8662,7 +8825,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.26.3';
+  if(vEl)vEl.textContent='v1.26.4';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -8682,17 +8845,26 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('st3').addEventListener('click',function(){goStep(3);});
 
   /* STEP1 */
-  document.getElementById('btn-kata').addEventListener('click',function(){if(!confirmPatChangeInSeedMode('kata',false))return;setPat('kata');});
-  document.getElementById('btn-ryoho').addEventListener('click',function(){if(!confirmPatChangeInSeedMode('ryoho',false))return;setPat('ryoho');});
+  document.getElementById('btn-kata').addEventListener('click',function(){if(!confirmPatChangeInSeedMode('kata',false,false))return;setPat('kata');});
+  document.getElementById('btn-ryoho').addEventListener('click',function(){
+    var chk=document.getElementById('chk-ryoho-same-venue');
+    if(!confirmPatChangeInSeedMode('ryoho',false,!!(chk&&chk.checked)))return;
+    setPat('ryoho');
+  });
   document.getElementById('btn-renshu').addEventListener('click',function(){
     var chk=document.getElementById('chk-renshu-split');
-    if(!confirmPatChangeInSeedMode('renshu',!!(chk&&chk.checked)))return;
+    if(!confirmPatChangeInSeedMode('renshu',!!(chk&&chk.checked),false))return;
     setPat('renshu');
   });
   var chkRs=document.getElementById('chk-renshu-split');
   if(chkRs)chkRs.addEventListener('change',function(){
-    if(!confirmPatChangeInSeedMode('renshu',this.checked)){this.checked=!this.checked;return;}
+    if(!confirmPatChangeInSeedMode('renshu',this.checked,false)){this.checked=!this.checked;return;}
     applyRenshuSplit(this.checked);
+  });
+  var chkRv=document.getElementById('chk-ryoho-same-venue');
+  if(chkRv)chkRv.addEventListener('change',function(){
+    if(!confirmPatChangeInSeedMode('ryoho',false,this.checked)){this.checked=!this.checked;return;}
+    applyRyohoSameVenue(this.checked);
   });
   var chkMu=document.getElementById('chk-mem-unpublished');
   if(chkMu)chkMu.addEventListener('change',function(){
@@ -8953,9 +9125,12 @@ document.addEventListener('DOMContentLoaded',function(){
     TCB_P1Flow.init({
       getHoldingsSnap:getHoldingsBaseSnap,
       getHoldingsLabel:function(){return holdingsBaseLabel();},
-      isTwoSplitPat:needsTeamUI,
+      isHoldingsBaseTwoSplit:holdingsBaseIsTwoSplit,
       isSeedModeOn:function(){return !!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);},
-      onPickOther:function(){showHistory();}
+      onPickOther:function(){
+        window._histPreferConfirmedOnly=true;
+        showHistory();
+      }
     });
   }
   if(typeof TCB_HandoffPlan!=='undefined'&&TCB_HandoffPlan&&typeof TCB_HandoffPlan.init==='function'){
@@ -8981,6 +9156,7 @@ document.addEventListener('DOMContentLoaded',function(){
       },
       getPat:function(){return pat;},
       getRenshuSplit:function(){return !!renshuSplit;},
+      getRyohoSameVenue:function(){return !!ryohoSameVenue;},
       needsTeamUI:needsTeamUI,
       getTeamNames:function(){return {la:tnA||'試合組',lb:tnB||'練習組'};},
       setPat:function(p){
@@ -8988,11 +9164,16 @@ document.addEventListener('DOMContentLoaded',function(){
           var chk=document.getElementById('chk-handoff-renshu-split');
           setPat('renshu');
           applyRenshuSplit(!!(chk&&chk.checked));
+        }else if(p==='ryoho'){
+          var chky=document.getElementById('chk-handoff-ryoho-same-venue');
+          setPat('ryoho');
+          applyRyohoSameVenue(!!(chky&&chky.checked));
         }else{
           setPat(p);
         }
       },
       setRenshuSplit:function(on){applyRenshuSplit(!!on);},
+      setRyohoSameVenue:function(on){applyRyohoSameVenue(!!on);},
       setTeamName:function(side, val){
         if(side==='A'){
           tnA=val||'試合組';
@@ -9037,7 +9218,10 @@ document.addEventListener('DOMContentLoaded',function(){
   if(tcbMdcCancel)tcbMdcCancel.addEventListener('click',function(){tcbMasterConfirmDone(false);});
   if(tcbMdcOk)tcbMdcOk.addEventListener('click',function(){tcbMasterConfirmDone(true);});
   if(tcbMdcClose)tcbMdcClose.addEventListener('click',function(){tcbMasterConfirmDone(false);});
-  document.getElementById('btn-history').addEventListener('click',function(){showHistory();});
+  document.getElementById('btn-history').addEventListener('click',function(){
+    window._histPreferConfirmedOnly=false;
+    showHistory();
+  });
   document.getElementById('hist-month-btn').addEventListener('click',function(e){e.stopPropagation();openHistMonthView();});
   /* 履歴モーダル */
   document.getElementById('hist-modal-close').addEventListener('click',function(){closeModal('hist-modal');});
@@ -9234,18 +9418,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.26.3"></script>
-<script src="html2canvas.min.js?v=1.26.3"></script>
-<script src="html2pdf.min.js?v=1.26.3"></script>
-<script src="tcb-print-pdf.js?v=1.26.3"></script>
-<script src="tcb-feedback.js?v=1.26.3"></script>
-<script src="tcb-sync-api.js?v=1.26.3"></script>
-<script src="tcb-swap-mgr.js?v=1.26.3"></script>
-<script src="tcb-push-mgr.js?v=1.26.3"></script>
-<script src="tcb-login.js?v=1.26.3"></script>
-<script src="tcb-pwa-install.js?v=1.26.3"></script>
-<script src="tcb-group-hold.js?v=1.26.3"></script>
-<script src="tcb-presummary.js?v=1.26.3"></script>
-<script src="tcb-p1-flow.js?v=1.26.3"></script>
+<script src="jspdf.umd.min.js?v=1.26.4"></script>
+<script src="html2canvas.min.js?v=1.26.4"></script>
+<script src="html2pdf.min.js?v=1.26.4"></script>
+<script src="tcb-print-pdf.js?v=1.26.4"></script>
+<script src="tcb-feedback.js?v=1.26.4"></script>
+<script src="tcb-sync-api.js?v=1.26.4"></script>
+<script src="tcb-swap-mgr.js?v=1.26.4"></script>
+<script src="tcb-push-mgr.js?v=1.26.4"></script>
+<script src="tcb-login.js?v=1.26.4"></script>
+<script src="tcb-pwa-install.js?v=1.26.4"></script>
+<script src="tcb-group-hold.js?v=1.26.4"></script>
+<script src="tcb-presummary.js?v=1.26.4"></script>
+<script src="tcb-p1-flow.js?v=1.26.4"></script>
 </body>
 </html>

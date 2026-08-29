@@ -21,6 +21,7 @@
     if (!ctx) return;
     var pat = ctx.getPat ? ctx.getPat() : 'kata';
     var split = !!(ctx.getRenshuSplit && ctx.getRenshuSplit());
+    var sameVenue = !!(ctx.getRyohoSameVenue && ctx.getRyohoSameVenue());
     ['kata', 'ryoho', 'renshu'].forEach(function (id) {
       var el = $('btn-handoff-' + id);
       if (el) el.className = (pat === id) ? 'tb2 on' : 'tb2';
@@ -29,6 +30,10 @@
     if (rsw) rsw.style.display = (pat === 'renshu') ? 'block' : 'none';
     var chk = $('chk-handoff-renshu-split');
     if (chk) chk.checked = split;
+    var rsv = $('handoff-ryoho-same-venue-wrap');
+    if (rsv) rsv.style.display = (pat === 'ryoho') ? 'block' : 'none';
+    var chky = $('chk-handoff-ryoho-same-venue');
+    if (chky) chky.checked = sameVenue;
 
     var names = ctx.getTeamNames ? ctx.getTeamNames() : { la: '試合組', lb: '練習組' };
     var inpA = $('handoff-tnA');
@@ -272,6 +277,14 @@
     if (chk) {
       chk.addEventListener('change', function () {
         if (ctx.setRenshuSplit) ctx.setRenshuSplit(!!chk.checked);
+        clearResult();
+        refreshForm();
+      });
+    }
+    var chkSame = $('chk-handoff-ryoho-same-venue');
+    if (chkSame) {
+      chkSame.addEventListener('change', function () {
+        if (ctx.setRyohoSameVenue) ctx.setRyohoSameVenue(!!chkSame.checked);
         clearResult();
         refreshForm();
       });
