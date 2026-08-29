@@ -107,7 +107,7 @@
 
     var html = payload.edited
       ? '<div class="tcb-handoff-oknote">手動調整を反映しました。下の <strong>LINE本文</strong> が更新されています。PDF 出力・実施確定はこの内容が使われます。</div>'
-      : '<div class="tcb-handoff-oknote">最適解を表示しています。必要なら下の<strong>手直しボード</strong>で移動・入れ替えできます（変更はすぐ反映）。マスタ「遠方」のメンバーは受け渡し対象外としています。</div>';
+      : '<div class="tcb-handoff-oknote">最適解を表示しています。必要なら下の<strong>手直しボード</strong>で移動・入れ替えできます（変更はすぐ反映）。マスタ「遠方」は事前受け渡し不可の前提で保有維持／交換・受取対象外です（試合道具の引き継ぎが必要なときだけ手直し）。</div>';
     if (payload.html) html += payload.html;
     if (lastLineText) {
       html += '<div class="tcb-swap-list-line-wrap tcb-handoff-line-live">';
