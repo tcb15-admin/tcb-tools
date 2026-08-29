@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.10">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.11">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -71,16 +71,21 @@ html[data-cohort="15"] header{
 }
 .wrap{max-width:680px;margin:0 auto;padding:14px 12px 64px;}
 .steps{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+  display:flex;gap:8px;
   margin:0 0 8px;
 }
 .si{
+  flex:1;min-width:0;
   display:flex;align-items:center;gap:8px;
   padding:10px;text-align:left;cursor:pointer;
   border:1px solid var(--bdr);background:var(--card);
   font:inherit;color:inherit;appearance:none;-webkit-appearance:none;
   min-height:var(--tap);
 }
+/* ⓪入れ替え依頼：発生時対応のサブ導線（点線・小さめ） */
+.si.si0{flex:0 0 auto;border-style:dashed;border-color:#9c6bb5;}
+.si.si0 .sn{background:rgba(106,27,154,.14);color:#7b3f9e;}
+.si.si0 .sl{font-size:10px;line-height:1.25;color:#7b3f9e;}
 .si.on{border-color:var(--ink-heading);background:var(--card);}
 .si.done{border-color:var(--grn);background:var(--grn-l);}
 .sn{
@@ -1054,6 +1059,9 @@ html{color-scheme:light;}
   .tabbtn.on{background:#3f5bd0;color:#fff;}
   .tb2.on{background:#4a5fb0;color:#fff;box-shadow:none;}
   .si{background:var(--card);border-color:var(--bdr);}
+  .si.si0{border-color:#7b1fa2;}
+  .si.si0 .sn{background:rgba(106,27,154,.3);color:#e1bee7;}
+  .si.si0 .sl{color:#e1bee7;}
   .si.on{background:var(--card);border-color:var(--ink-heading);box-shadow:inset 0 0 0 1px var(--ink-heading);}
   .si.done{background:rgba(48,209,88,.14);border-color:var(--grn);}
   .sn{background:var(--surface-2);color:var(--txt2);}
@@ -1112,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.10">
-<link rel="stylesheet" href="gear.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.10">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.10">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.11">
+<link rel="stylesheet" href="gear.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.11">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.11">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1410,6 +1418,7 @@ html{color-scheme:light;}
 
 <div class="wrap">
   <nav class="steps" aria-label="作業の流れ">
+    <button type="button" class="si si0" id="st0" style="display:none;" title="活動日前：チーム道具の入れ替えを依頼する（必要なときだけ）"><span class="sn">0</span><span class="sl">入れ替え<br>依頼</span></button>
     <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・班分け</span></button>
     <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">欠席・当番</span></button>
     <button type="button" class="si" id="st3"><span class="sn">3</span><span class="sl">割振り・展開</span></button>
@@ -1418,10 +1427,6 @@ html{color-scheme:light;}
   <!-- STEP1 -->
   <div class="pnl on" id="p1">
     <div class="card">
-      <div class="p1-handoff-entry tcb-handoff-entry" id="tcb-handoff-entry" style="display:none;">
-        <button type="button" class="tcb-handoff-entry-btn" id="btn-tcb-handoff-open">活動日前：チーム道具の入れ替えを依頼する</button>
-        <p class="tcb-handoff-entry-desc">次回が2分けのとき、活動前に個人間で受け渡す道具の依頼案を作ります（当日の割振りとは別の機能です）。</p>
-      </div>
       <div class="ct">活動パターンを選択 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="ここで選ぶのは<strong>割り振り対象の活動日</strong>（次回／当日の活動）のパターンです。作業している端末の「いま」ではありません。片方試合・両方試合・練習場所分離を選んだ活動日は<strong>2グループ</strong>です。対戦表の自動参照はありません。" aria-label="説明"></button></div>
       <div class="tgg">
         <button class="tb2"    id="btn-renshu">両方練習</button>
@@ -1687,12 +1692,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.10"></script>
-<script src="tcb-swap-list.js?v=1.27.10"></script>
-<script src="tcb-assign-board.js?v=1.27.10"></script>
-<script src="tcb-handoff-plan.js?v=1.27.10"></script>
-<script src="tcb-team-rules.js?v=1.27.10"></script>
-<script src="tcb-tool-images.js?v=1.27.10"></script>
+<script src="tcb-device.js?v=1.27.11"></script>
+<script src="tcb-swap-list.js?v=1.27.11"></script>
+<script src="tcb-assign-board.js?v=1.27.11"></script>
+<script src="tcb-handoff-plan.js?v=1.27.11"></script>
+<script src="tcb-team-rules.js?v=1.27.11"></script>
+<script src="tcb-tool-images.js?v=1.27.11"></script>
 <script>
 
 
@@ -3189,9 +3194,9 @@ function updateSeedModeBanners(){
   if(on)syncSeedAllocRadioUI();
   var hint=document.getElementById('p3-reedit-hint');
   if(hint)hint.style.display=(R&&!on)?'block':'none';
-  /* 入れ替え案の入口：基準になる結果（履歴・調整中の基準など）があるときだけ表示 */
-  var hoEntry=document.getElementById('tcb-handoff-entry');
-  if(hoEntry)hoEntry.style.display=handoffHasAnyBase()?'block':'none';
+  /* ⓪入れ替え依頼タブ：基準になる結果（履歴・調整中の基準など）があるときだけ表示 */
+  var st0=document.getElementById('st0');
+  if(st0)st0.style.display=handoffHasAnyBase()?'':'none';
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
   }
@@ -9262,7 +9267,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.10';
+  if(vEl)vEl.textContent='v1.27.11';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9277,6 +9282,10 @@ document.addEventListener('DOMContentLoaded',function(){
   updateMemUnpublishedWrap();
 
   /* ステップ */
+  var st0Btn=document.getElementById('st0');
+  if(st0Btn)st0Btn.addEventListener('click',function(){
+    if(typeof TCB_HandoffPlan!=='undefined'&&TCB_HandoffPlan&&typeof TCB_HandoffPlan.open==='function')TCB_HandoffPlan.open();
+  });
   document.getElementById('st1').addEventListener('click',function(){goStep(1);});
   document.getElementById('st2').addEventListener('click',function(){goStep(2);});
   document.getElementById('st3').addEventListener('click',function(){goStep(3);});
@@ -9641,8 +9650,8 @@ document.addEventListener('DOMContentLoaded',function(){
         mountHandoffAssignBoard(root, {onApplied:onApplied});
       }
     });
-    var hoEntryInit=document.getElementById('tcb-handoff-entry');
-    if(hoEntryInit)hoEntryInit.style.display=handoffHasAnyBase()?'block':'none';
+    var st0Init=document.getElementById('st0');
+    if(st0Init)st0Init.style.display=handoffHasAnyBase()?'':'none';
   }
 
   /* ホーム画面に追加（PWA）ガイド */
@@ -9858,18 +9867,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.10"></script>
-<script src="html2canvas.min.js?v=1.27.10"></script>
-<script src="html2pdf.min.js?v=1.27.10"></script>
-<script src="tcb-print-pdf.js?v=1.27.10"></script>
-<script src="tcb-feedback.js?v=1.27.10"></script>
-<script src="tcb-sync-api.js?v=1.27.10"></script>
-<script src="tcb-swap-mgr.js?v=1.27.10"></script>
-<script src="tcb-push-mgr.js?v=1.27.10"></script>
-<script src="tcb-login.js?v=1.27.10"></script>
-<script src="tcb-pwa-install.js?v=1.27.10"></script>
-<script src="tcb-group-hold.js?v=1.27.10"></script>
-<script src="tcb-presummary.js?v=1.27.10"></script>
-<script src="tcb-p1-flow.js?v=1.27.10"></script>
+<script src="jspdf.umd.min.js?v=1.27.11"></script>
+<script src="html2canvas.min.js?v=1.27.11"></script>
+<script src="html2pdf.min.js?v=1.27.11"></script>
+<script src="tcb-print-pdf.js?v=1.27.11"></script>
+<script src="tcb-feedback.js?v=1.27.11"></script>
+<script src="tcb-sync-api.js?v=1.27.11"></script>
+<script src="tcb-swap-mgr.js?v=1.27.11"></script>
+<script src="tcb-push-mgr.js?v=1.27.11"></script>
+<script src="tcb-login.js?v=1.27.11"></script>
+<script src="tcb-pwa-install.js?v=1.27.11"></script>
+<script src="tcb-group-hold.js?v=1.27.11"></script>
+<script src="tcb-presummary.js?v=1.27.11"></script>
+<script src="tcb-p1-flow.js?v=1.27.11"></script>
 </body>
 </html>
