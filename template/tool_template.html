@@ -1495,7 +1495,7 @@ html{color-scheme:light;}
       </details>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：いま誰が持っているかを先に見て、そのグループのメンバー内で担当を決めます。</span><button type="button" class="tcb-tip" data-tip="保有記録が基準です。<strong>片方試合</strong>ではマスタの<strong>試合道具</strong>は必ず試合組（保有者が練習組でも試合組内で付け直します）。<strong>固定担当</strong>は欠席・お茶でなければそのまま。<strong>公平に分散</strong>は同グループ内で持ち回り。<strong>前回のまま維持</strong>は欠席・お茶分だけ変更。班またぎの自動割当はしません。" aria-label="説明"></button>
+      <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：前回の各グループが持っていた道具を、いまそのグループにいるメンバー内で配ります。</span><button type="button" class="tcb-tip" data-tip="確定保有（実施確定・入れ替え確定）が基準です。<strong>前回どちらのグループが持っていたか</strong>で道具の班を決め、きょうのそのグループのメンバー内だけで担当を付けます。試合道具フラグで班を動かしたり、班またぎ自動はしません。<strong>固定担当</strong>は欠席・お茶でなければそのまま。<strong>公平に分散</strong>は同グループ内で持ち回り。<strong>前回のまま維持</strong>は欠席・お茶分だけ変更。" aria-label="説明"></button>
       <div class="tcb-seedalloc-box">
         <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>（通常）：固定以外をグループ内で持ち回り。同じ道具は前回と同じ人を避け、重い道具の偏りも抑えます。<strong>前回のまま維持</strong>：前回保有を残し、欠席・お茶当番分だけ変更します。" aria-label="説明"></button></div>
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（持ち回り。同じ道具は前回と同じ人になりにくくします）</span></label>
@@ -3975,7 +3975,9 @@ function buildTeamToolListsByRules(){
   });
   return {tA:tA,tB:tB};
 }
-/* 保有ベース：いま持っている人（または【組名】）のきょうの班へ道具を寄せる */
+/* 保有ベース：前回2分けでその道具を持っていたグループへ寄せる。
+   優先：固定担当（きょう出席）→【組名】→ snap.tools.team（前回の道具班）
+        → 前回保有者の前回班(snap.tmMap) → 前回保有者のきょうの班(tmMap) */
 function resolveHoldingsTeamForTool(t, snap, prevMap){
   var ex=exSet();
   if(t&&t.fixed&&t.note&&!ex[t.note]){
@@ -3992,26 +3994,25 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
       if(p===handoffGroupMarker('B'))return 'B';
     }
   }
-  if(p){
-    if(tmMap[p]==='A'||tmMap[p]==='B')return tmMap[p];
-    if(snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
-  }
+  /* 前回記録上の道具班（その2分けグループが保有していた印） */
   if(snap&&Array.isArray(snap.tools)){
     for(var i=0;i<snap.tools.length;i++){
       var st=snap.tools[i];
       if(st&&st.name===t.name&&(st.team==='A'||st.team==='B'))return st.team;
     }
   }
+  /* 前回保有者の「前回の班」（きょうの班替えより、前回グループ保有を優先） */
+  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
+  if(p&&(tmMap[p]==='A'||tmMap[p]==='B'))return tmMap[p];
   return null;
 }
-/* 割振り時の道具班：片方試合は試合道具フラグが最優先（保有で練習組へ流さない）。
-   両方試合／練習分離は保有者のきょうの班 → なければルール。 */
+/* 保有基準があるときは必ず保有→グループ。試合道具ルールは保有が取れない道具のフォールバックのみ */
 function resolveAllocationTeamForTool(t, snap, prevMap, ruleMap){
+  var g=resolveHoldingsTeamForTool(t, snap, prevMap);
+  if(g==='A'||g==='B')return g;
   if(pat==='kata'&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t&&t.name))){
     return toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
   }
-  var g=resolveHoldingsTeamForTool(t, snap, prevMap);
-  if(g==='A'||g==='B')return g;
   if(ruleMap&&(ruleMap[t.name]==='A'||ruleMap[t.name]==='B'))return ruleMap[t.name];
   return 'A';
 }
@@ -4055,14 +4056,15 @@ function buildAssignmentContext(opts){
   if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
   if(!mB.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
   var lists;
-  /* 保有ベース（2分けの通常）：いま持っている人の班へ道具を寄せる */
-  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object'){
+  var holdingsMode=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object');
+  /* 保有ベース（合意仕様）：前回2分けグループの保有道具 → そのグループのメンバー内で割当 */
+  if(holdingsMode){
     lists=buildHoldingsBasedToolLists(seedBaseSnap);
   }else{
     lists=buildTeamToolListsByRules();
+    /* グループ保有ON・いちから時のみ保有控えで上書き（保有基準モードでは潰さない） */
+    lists=applyGroupHoldIfEnabled(lists.tA, lists.tB);
   }
-  /* グループ保有ON：道具の所属班を保有控えで上書き */
-  lists=applyGroupHoldIfEnabled(lists.tA, lists.tB);
   var tA=lists.tA, tB=lists.tB;
   var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
   return normalizeAssignmentCtxTeams({ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)});

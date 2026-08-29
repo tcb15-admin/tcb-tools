@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.6">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.5">
-<link rel="stylesheet" href="gear.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.5">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.5">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.6">
+<link rel="stylesheet" href="gear.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.6">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1495,7 +1495,7 @@ html{color-scheme:light;}
       </details>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：いま誰が持っているかを先に見て、そのグループのメンバー内で担当を決めます。</span><button type="button" class="tcb-tip" data-tip="保有記録が基準です。<strong>片方試合</strong>ではマスタの<strong>試合道具</strong>は必ず試合組（保有者が練習組でも試合組内で付け直します）。<strong>固定担当</strong>は欠席・お茶でなければそのまま。<strong>公平に分散</strong>は同グループ内で持ち回り。<strong>前回のまま維持</strong>は欠席・お茶分だけ変更。班またぎの自動割当はしません。" aria-label="説明"></button>
+      <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：前回の各グループが持っていた道具を、いまそのグループにいるメンバー内で配ります。</span><button type="button" class="tcb-tip" data-tip="確定保有（実施確定・入れ替え確定）が基準です。<strong>前回どちらのグループが持っていたか</strong>で道具の班を決め、きょうのそのグループのメンバー内だけで担当を付けます。試合道具フラグで班を動かしたり、班またぎ自動はしません。<strong>固定担当</strong>は欠席・お茶でなければそのまま。<strong>公平に分散</strong>は同グループ内で持ち回り。<strong>前回のまま維持</strong>は欠席・お茶分だけ変更。" aria-label="説明"></button>
       <div class="tcb-seedalloc-box">
         <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>（通常）：固定以外をグループ内で持ち回り。同じ道具は前回と同じ人を避け、重い道具の偏りも抑えます。<strong>前回のまま維持</strong>：前回保有を残し、欠席・お茶当番分だけ変更します。" aria-label="説明"></button></div>
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（持ち回り。同じ道具は前回と同じ人になりにくくします）</span></label>
@@ -1695,12 +1695,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.5"></script>
-<script src="tcb-swap-list.js?v=1.27.5"></script>
-<script src="tcb-assign-board.js?v=1.27.5"></script>
-<script src="tcb-handoff-plan.js?v=1.27.5"></script>
-<script src="tcb-team-rules.js?v=1.27.5"></script>
-<script src="tcb-tool-images.js?v=1.27.5"></script>
+<script src="tcb-device.js?v=1.27.6"></script>
+<script src="tcb-swap-list.js?v=1.27.6"></script>
+<script src="tcb-assign-board.js?v=1.27.6"></script>
+<script src="tcb-handoff-plan.js?v=1.27.6"></script>
+<script src="tcb-team-rules.js?v=1.27.6"></script>
+<script src="tcb-tool-images.js?v=1.27.6"></script>
 <script>
 
 
@@ -3878,7 +3878,9 @@ function buildTeamToolListsByRules(){
   });
   return {tA:tA,tB:tB};
 }
-/* 保有ベース：いま持っている人（または【組名】）のきょうの班へ道具を寄せる */
+/* 保有ベース：前回2分けでその道具を持っていたグループへ寄せる。
+   優先：固定担当（きょう出席）→【組名】→ snap.tools.team（前回の道具班）
+        → 前回保有者の前回班(snap.tmMap) → 前回保有者のきょうの班(tmMap) */
 function resolveHoldingsTeamForTool(t, snap, prevMap){
   var ex=exSet();
   if(t&&t.fixed&&t.note&&!ex[t.note]){
@@ -3895,26 +3897,25 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
       if(p===handoffGroupMarker('B'))return 'B';
     }
   }
-  if(p){
-    if(tmMap[p]==='A'||tmMap[p]==='B')return tmMap[p];
-    if(snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
-  }
+  /* 前回記録上の道具班（その2分けグループが保有していた印） */
   if(snap&&Array.isArray(snap.tools)){
     for(var i=0;i<snap.tools.length;i++){
       var st=snap.tools[i];
       if(st&&st.name===t.name&&(st.team==='A'||st.team==='B'))return st.team;
     }
   }
+  /* 前回保有者の「前回の班」（きょうの班替えより、前回グループ保有を優先） */
+  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
+  if(p&&(tmMap[p]==='A'||tmMap[p]==='B'))return tmMap[p];
   return null;
 }
-/* 割振り時の道具班：片方試合は試合道具フラグが最優先（保有で練習組へ流さない）。
-   両方試合／練習分離は保有者のきょうの班 → なければルール。 */
+/* 保有基準があるときは必ず保有→グループ。試合道具ルールは保有が取れない道具のフォールバックのみ */
 function resolveAllocationTeamForTool(t, snap, prevMap, ruleMap){
+  var g=resolveHoldingsTeamForTool(t, snap, prevMap);
+  if(g==='A'||g==='B')return g;
   if(pat==='kata'&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t&&t.name))){
     return toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
   }
-  var g=resolveHoldingsTeamForTool(t, snap, prevMap);
-  if(g==='A'||g==='B')return g;
   if(ruleMap&&(ruleMap[t.name]==='A'||ruleMap[t.name]==='B'))return ruleMap[t.name];
   return 'A';
 }
@@ -3958,14 +3959,15 @@ function buildAssignmentContext(opts){
   if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
   if(!mB.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
   var lists;
-  /* 保有ベース（2分けの通常）：いま持っている人の班へ道具を寄せる */
-  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object'){
+  var holdingsMode=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object');
+  /* 保有ベース（合意仕様）：前回2分けグループの保有道具 → そのグループのメンバー内で割当 */
+  if(holdingsMode){
     lists=buildHoldingsBasedToolLists(seedBaseSnap);
   }else{
     lists=buildTeamToolListsByRules();
+    /* グループ保有ON・いちから時のみ保有控えで上書き（保有基準モードでは潰さない） */
+    lists=applyGroupHoldIfEnabled(lists.tA, lists.tB);
   }
-  /* グループ保有ON：道具の所属班を保有控えで上書き */
-  lists=applyGroupHoldIfEnabled(lists.tA, lists.tB);
   var tA=lists.tA, tB=lists.tB;
   var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
   return normalizeAssignmentCtxTeams({ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)});
@@ -9092,7 +9094,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.5';
+  if(vEl)vEl.textContent='v1.27.6';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9687,18 +9689,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.5"></script>
-<script src="html2canvas.min.js?v=1.27.5"></script>
-<script src="html2pdf.min.js?v=1.27.5"></script>
-<script src="tcb-print-pdf.js?v=1.27.5"></script>
-<script src="tcb-feedback.js?v=1.27.5"></script>
-<script src="tcb-sync-api.js?v=1.27.5"></script>
-<script src="tcb-swap-mgr.js?v=1.27.5"></script>
-<script src="tcb-push-mgr.js?v=1.27.5"></script>
-<script src="tcb-login.js?v=1.27.5"></script>
-<script src="tcb-pwa-install.js?v=1.27.5"></script>
-<script src="tcb-group-hold.js?v=1.27.5"></script>
-<script src="tcb-presummary.js?v=1.27.5"></script>
-<script src="tcb-p1-flow.js?v=1.27.5"></script>
+<script src="jspdf.umd.min.js?v=1.27.6"></script>
+<script src="html2canvas.min.js?v=1.27.6"></script>
+<script src="html2pdf.min.js?v=1.27.6"></script>
+<script src="tcb-print-pdf.js?v=1.27.6"></script>
+<script src="tcb-feedback.js?v=1.27.6"></script>
+<script src="tcb-sync-api.js?v=1.27.6"></script>
+<script src="tcb-swap-mgr.js?v=1.27.6"></script>
+<script src="tcb-push-mgr.js?v=1.27.6"></script>
+<script src="tcb-login.js?v=1.27.6"></script>
+<script src="tcb-pwa-install.js?v=1.27.6"></script>
+<script src="tcb-group-hold.js?v=1.27.6"></script>
+<script src="tcb-presummary.js?v=1.27.6"></script>
+<script src="tcb-p1-flow.js?v=1.27.6"></script>
 </body>
 </html>
