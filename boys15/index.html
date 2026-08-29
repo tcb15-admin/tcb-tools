@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.26.7">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.26.8">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-login.css?v=1.26.7">
-<link rel="stylesheet" href="gear.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.26.7">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.26.7">
+<link rel="stylesheet" href="tcb-shell.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-login.css?v=1.26.8">
+<link rel="stylesheet" href="gear.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.26.8">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.26.8">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1497,9 +1497,9 @@ html{color-scheme:light;}
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
       <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：持ち帰り道具をきょうのグループの中で配ります。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先します。引き継げない道具の配り方は下の「割り振り方法」で選べます。STEP3では班をまたいだ手動割当が自動でオンになります。<strong>活動パターンを変えても基準の担当は維持</strong>されます。" aria-label="説明"></button>
       <div class="tcb-seedalloc-box">
-        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>前回のまま維持</strong>（推奨）：前回の担当を最大限維持し、引き継げない道具だけを少人数へまとめます。<strong>公平に分散</strong>：固定担当以外をグループ内でいったん外し、公平に振り直します（前回の偏りは引き継ぎません）。" aria-label="説明"></button></div>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min" checked><span><strong>前回のまま維持</strong>（変更を最小にします。余った道具は少人数へまとまり、1人に集中することがあります）</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair"><span><strong>公平に分散</strong>（グループ内で担当数・負荷が偏らないよう振り直します）</span></label>
+        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>（推奨）：各グループが保有する道具を、そのグループのメンバーへ件数・負荷が偏らないよう振ります。<strong>前回のまま維持</strong>：同じ人の担当をできるだけ残します（余った道具は少人数に寄ることがあります）。" aria-label="説明"></button></div>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（グループ内で担当数・負荷が偏らないよう振り直します）</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>（変更を最小にします。余った道具は少人数へまとまることがあります）</span></label>
       </div>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地で受け渡した道具を直す</button>
@@ -1695,12 +1695,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.26.7"></script>
-<script src="tcb-swap-list.js?v=1.26.7"></script>
-<script src="tcb-assign-board.js?v=1.26.7"></script>
-<script src="tcb-handoff-plan.js?v=1.26.7"></script>
-<script src="tcb-team-rules.js?v=1.26.7"></script>
-<script src="tcb-tool-images.js?v=1.26.7"></script>
+<script src="tcb-device.js?v=1.26.8"></script>
+<script src="tcb-swap-list.js?v=1.26.8"></script>
+<script src="tcb-assign-board.js?v=1.26.8"></script>
+<script src="tcb-handoff-plan.js?v=1.26.8"></script>
+<script src="tcb-team-rules.js?v=1.26.8"></script>
+<script src="tcb-tool-images.js?v=1.26.8"></script>
 <script>
 
 
@@ -1764,10 +1764,10 @@ var DEFAULT_PAST={};
 /* ========== 定数・変数 ========== */
 var LS_KEY='tcb15Master', LS_PREV='tcb15PrevResult', LS_DEF_TM='tcb15Def', LS_HIST='tcb15History';
 var LS_CARRYOUT_CONFIRMED='tcb15CarryoutConfirmed';
-/* 前回基準モードで引き継げない道具の配り方：'min'=前回のまま維持（既定）／'fair'=公平に分散 */
+/* 前回基準モードで引き継げない道具の配り方：'fair'=グループ内で公平（既定）／'min'=変更人数を最小化 */
 var LS_SEED_ALLOC='tcb15SeedAllocMethod';
 function loadSeedAllocMethod(){
-  try{var v=_ls.get(LS_SEED_ALLOC);return v==='fair'?'fair':'min';}catch(e){return 'min';}
+  try{var v=_ls.get(LS_SEED_ALLOC);return v==='min'?'min':'fair';}catch(e){return 'fair';}
 }
 function saveSeedAllocMethod(v){
   try{_ls.set(LS_SEED_ALLOC,v==='min'?'min':'fair');}catch(e){}
@@ -3233,8 +3233,8 @@ function beginHoldingsGroupAllocation(){
     tcbToast('試行結果は基準にできません。実施確定または入れ替え確定の記録を使ってください。','warn');
     return false;
   }
-  /* グループごと割振りは「いま持っている道具」を維持するのが主目的 */
-  saveSeedAllocMethod('min');
+  /* グループごと割振りは「各グループの保有道具をメンバーへ公平に」が主目的 */
+  saveSeedAllocMethod('fair');
   syncSeedAllocRadioUI();
   if(!beginReeditFromSnap(snap,{goStep2:true}))return false;
   absS={};ochS={};
@@ -5551,6 +5551,9 @@ function assignMinChangersScore(name, st, state, prevMap, prevPerson, opts){
   if(personAlreadyChangedFromPrev(state,name,prevMap))score+=800;
   if(prevPerson&&prevPerson===name)score+=400;
   score+=(st.cnt|0)*10;
+  /* 担当0が残っているのに1人へ集中させない（グループ内の空きを先に埋める） */
+  if((st.cnt|0)===0)score-=25000;
+  else if((st.cnt|0)===1)score-=5000;
   var toolName=opts&&opts.toolName?opts.toolName:'';
   if(handoffComputeBaseSnap&&isMemberRemoteByName(name))score+=60000;
   if(prevMap&&!personAlreadyChangedFromPrev(state,name,prevMap)&&!(opts&&opts.zeroPriority&&opts.zeroPriority[name]))score-=20000;
@@ -5584,7 +5587,12 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   var placed=false;
   var minChangers=!!(opts&&opts.minChangers);
   var maxAdd=minChangers?(keys.length+1):(keys.length+8);
-  var addStart=minChangers?(keys.length):0;
+  /* 変更最小でも、担当0がいる間は件数上限を広げすぎず空きから埋める */
+  var addStart=0;
+  if(minChangers){
+    var hasZero=keys.some(function(k){return (state[k].cnt|0)===0;});
+    addStart=hasZero?0:keys.length;
+  }
   var scoreOpts=opts?Object.assign({},opts,{toolName:t.name}):{toolName:t.name};
   function notePoolAssign(name){
     if(minChangers&&opts&&opts.poolAssigned&&name)opts.poolAssigned[name]=(opts.poolAssigned[name]||0)+1;
@@ -5593,8 +5601,10 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
     var requireOther=(attachPasses[ap]===1);
     for(var relaxPrev=0;relaxPrev<=1&&!placed;relaxPrev++){
       for(var add=minChangers?addStart:0;add<maxAdd&&!placed;add++){
-        var minC=minChangers?0:Math.min.apply(null,keys.map(function(k){return state[k].cnt;}));
-        var maxAllow=minChangers?9999:(minC+add);
+        var minC=Math.min.apply(null,keys.map(function(k){return state[k].cnt;}));
+        var zerosLeft=keys.some(function(k){return (state[k].cnt|0)===0;});
+        /* 変更最小でも担当0が残る間は公平と同じ件数キャップ（1人集中を防ぐ） */
+        var maxAllow=(minChangers&&!zerosLeft)?9999:(minC+add);
         var cands=keys.filter(function(k){return state[k].cnt<=maxAllow;})
           .map(function(k){return [k,state[k]];})
           .sort(function(a,b){
@@ -8855,7 +8865,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.26.7';
+  if(vEl)vEl.textContent='v1.26.8';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9448,18 +9458,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.26.7"></script>
-<script src="html2canvas.min.js?v=1.26.7"></script>
-<script src="html2pdf.min.js?v=1.26.7"></script>
-<script src="tcb-print-pdf.js?v=1.26.7"></script>
-<script src="tcb-feedback.js?v=1.26.7"></script>
-<script src="tcb-sync-api.js?v=1.26.7"></script>
-<script src="tcb-swap-mgr.js?v=1.26.7"></script>
-<script src="tcb-push-mgr.js?v=1.26.7"></script>
-<script src="tcb-login.js?v=1.26.7"></script>
-<script src="tcb-pwa-install.js?v=1.26.7"></script>
-<script src="tcb-group-hold.js?v=1.26.7"></script>
-<script src="tcb-presummary.js?v=1.26.7"></script>
-<script src="tcb-p1-flow.js?v=1.26.7"></script>
+<script src="jspdf.umd.min.js?v=1.26.8"></script>
+<script src="html2canvas.min.js?v=1.26.8"></script>
+<script src="html2pdf.min.js?v=1.26.8"></script>
+<script src="tcb-print-pdf.js?v=1.26.8"></script>
+<script src="tcb-feedback.js?v=1.26.8"></script>
+<script src="tcb-sync-api.js?v=1.26.8"></script>
+<script src="tcb-swap-mgr.js?v=1.26.8"></script>
+<script src="tcb-push-mgr.js?v=1.26.8"></script>
+<script src="tcb-login.js?v=1.26.8"></script>
+<script src="tcb-pwa-install.js?v=1.26.8"></script>
+<script src="tcb-group-hold.js?v=1.26.8"></script>
+<script src="tcb-presummary.js?v=1.26.8"></script>
+<script src="tcb-p1-flow.js?v=1.26.8"></script>
 </body>
 </html>
