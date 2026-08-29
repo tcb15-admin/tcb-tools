@@ -48,23 +48,32 @@ npx wrangler d1 execute tcb-tools-sync --remote --file=./schema.sql
 
 （ローカル検証用の D1 にだけ流す場合は `--local` に読み替え。）
 
-## 4b. 道具写真用 R2 バケット
+## 4b. 道具写真（GitHub `boys{N}/images/`）
 
-マスタの道具写真は R2 に期ディレクトリ（`{cohort}/tools/…`）で集約する。
+追加の有料ストレージは使わない。マスタから選んだ画像は Worker が **GitHub Contents API** で
+`boys15/images/` などへコミットし、GitHub Pages の URL を道具名へ紐付ける。
+
+必要なシークレット（1回だけ）:
 
 ```bash
 cd cloudflare-sync
-npx wrangler r2 bucket create tcb-tools-images
+# Contents: Read and write（対象リポジトリ限定の fine-grained PAT 推奨）
+npx wrangler secret put GITHUB_TOKEN
 ```
 
-`wrangler.toml` / `wrangler.toml.example` に `TOOL_IMAGES` バインディング済み。作成後に `npx wrangler deploy`。
+`wrangler.toml` の `[vars]`（コミット可）:
+
+- `GITHUB_REPO` … 例 `tcb15-admin/tcb-tools`
+- `GITHUB_BRANCH` … 例 `main`
+- `TOOL_IMAGES_PAGES_BASE` … 例 `https://tcb15-admin.github.io/tcb-tools`
 
 API 概要:
 
-- `POST /api/tool-image`（Bearer）… 写真アップロード（multipart: cohort, toolName, file）
-- `DELETE /api/tool-image`（Bearer）… 紐付け画像の削除
-- `GET /api/media/tool/{cohort}/tools/{hash}.jpg` … 画像配信（トークン不要）
+- `POST /api/tool-image`（Bearer）… 写真アップロード（multipart: cohort, toolName, file）→ GitHub へ保存
+- `DELETE /api/tool-image`（Bearer）… 画像ファイル削除
 - `GET /api/public/tool-descs?sid=` … 保護者向け・マスタ全道具の説明・写真
+
+公開URL例: `https://tcb15-admin.github.io/tcb-tools/boys15/images/<hash>.jpg`
 
 ## 5. 共有トークン（シークレット）
 

@@ -7,10 +7,12 @@ binding = "DB"
 database_name = "tcb-tools-sync"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 
-# 道具写真（期ごとディレクトリで集約）: npx wrangler r2 bucket create tcb-tools-images
-[[r2_buckets]]
-binding = "TOOL_IMAGES"
-bucket_name = "tcb-tools-images"
+# 道具写真: GitHub の boys{N}/images/ に集約（追加の有料ストレージなし）
+# 本番: npx wrangler secret put GITHUB_TOKEN
+[vars]
+GITHUB_REPO = "tcb15-admin/tcb-tools"
+GITHUB_BRANCH = "main"
+TOOL_IMAGES_PAGES_BASE = "https://tcb15-admin.github.io/tcb-tools"
 
 # トークンはコミットしないこと。本番: wrangler secret put SYNC_API_TOKEN
 # Web Push（VAPID）: wrangler secret put VAPID_PRIVATE_KEY / VAPID_PUBLIC_KEY / VAPID_SUBJECT

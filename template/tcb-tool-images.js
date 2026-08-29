@@ -162,7 +162,10 @@
         var msg = String((err && err.message) || '');
         if (msg === 'unsupported_image_type') msg = '対応していない画像形式です（JPEG/PNG/WebP）';
         else if (msg === 'file_too_large') msg = '画像が大きすぎます';
-        else if (msg === 'r2_not_configured') msg = '画像保管の設定が未完了です（管理者へ）';
+        else if (msg === 'github_not_configured') msg = '画像保管の設定が未完了です（GITHUB_TOKEN）';
+        else if (msg === 'github_auth_failed') msg = 'GitHub への書き込み権限がありません';
+        else if (msg.indexOf('github_api_error') === 0) msg = 'GitHub への保存に失敗しました';
+        else if (msg === 'r2_not_configured') msg = '画像保管の設定が未完了です';
         else if (!msg || msg === 'upload_failed') msg = 'アップロードに失敗しました';
         toast(msg, 'error');
       })

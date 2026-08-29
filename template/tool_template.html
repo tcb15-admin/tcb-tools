@@ -1678,7 +1678,7 @@ html{color-scheme:light;}
     <div class="card">
       <div class="master-section">
         <h3>&#128221; 道具の説明・写真</h3>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真を登録。写真はクラウドの画像フォルダに保管し道具名へ紐付けます。割振り結果・保護者確認URLから参照できます。</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真を登録。写真は <code>boys15/images/</code> に保管し道具名へ紐付けます。割振り結果・保護者確認URLから参照できます。</div>
         <div id="m-descs"></div>
       </div>
     </div>
@@ -8243,8 +8243,8 @@ function buildMasterDescs(){
   var hint=document.createElement('div');
   hint.className='tcb-tool-img-hint';
   hint.innerHTML='<strong>写真の登録：</strong>各道具の「写真を選ぶ」から、PCのフォルダ／スマホ・タブレットのアルバム（または撮影）の画像を指定します。<br>'
-    +'選んだ画像はクラウドの<strong>画像フォルダ</strong>（期ごとのディレクトリ）に保管され、道具名に自動で紐付きます。保護者確認URLからも全道具の写真を参照できます。<br>'
-    +'登録時に自動で軽量化します（目安：横800〜1200px・JPEG）。';
+    +'選んだ画像はリポジトリの<strong>boys15/images/</strong>（期ごとの画像フォルダ）に保管され、道具名に自動で紐付きます。保護者確認URLからも全道具の写真を参照できます。<br>'
+    +'登録時に自動で軽量化します（目安：横800〜1200px・JPEG）。追加の有料ストレージは使いません。';
   el.appendChild(hint);
 
   TL.forEach(function(t){

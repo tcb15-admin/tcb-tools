@@ -5,14 +5,6 @@ export default {
     if (request.method === "OPTIONS") return cors(new Response(null, { status: 204 }));
 
     const url = new URL(request.url);
-    // 道具写真の配信（R2）はトークン不要（URLに不透明キーを含む）
-    if (url.pathname.startsWith("/api/media/tool/") && request.method === "GET") {
-      try {
-        return await serveToolImage(env, url);
-      } catch (e) {
-        return json({ error: e.message || "server_error" }, 400);
-      }
-    }
     // 保護者向け公開経路（shareId で個別検証）だけは Bearer 認証を課さない
     const isPublic = url.pathname.startsWith("/api/public/");
     if (!isPublic && !authorize(request, env)) return json({ error: "unauthorized" }, 401);
@@ -211,13 +203,13 @@ export default {
         const cohort = (url.searchParams.get("cohort") || "").trim();
         return json(await getPortalSummary(env, cohort));
       }
-      // ===== 道具写真（R2・Bearer） =====
+      // ===== 道具写真（GitHub images/ ・Bearer） =====
       if (url.pathname === "/api/tool-image" && request.method === "POST") {
-        return json(await uploadToolImage(env, request, url));
+        return json(await uploadToolImage(env, request));
       }
       if (url.pathname === "/api/tool-image" && request.method === "DELETE") {
         const body = await request.json();
-        return json(await deleteToolImage(env, body, url));
+        return json(await deleteToolImage(env, body));
       }
       return json({ error: "not_found" }, 404);
     } catch (e) {
@@ -468,13 +460,38 @@ const TOOL_IMAGE_ALLOWED_TYPES = {
   "image/webp": "webp",
 };
 
-function mustToolImages(env) {
-  if (!env.TOOL_IMAGES) throw new Error("r2_not_configured");
-  return env.TOOL_IMAGES;
+function mustGithubToken(env) {
+  const t = String(env.GITHUB_TOKEN || "").trim();
+  if (!t) throw new Error("github_not_configured");
+  return t;
 }
 
-/** 期ディレクトリ配下に道具名ハッシュで集約（上書き差し替え） */
-async function toolImageObjectKey(cohort, toolName, ext) {
+function githubRepoParts(env) {
+  const repo = String(env.GITHUB_REPO || "tcb15-admin/tcb-tools").trim();
+  const m = repo.match(/^([^/\s]+)\/([^/\s]+)$/);
+  if (!m) throw new Error("github_repo_invalid");
+  return { owner: m[1], name: m[2] };
+}
+
+function githubBranch(env) {
+  return String(env.GITHUB_BRANCH || "main").trim() || "main";
+}
+
+/** cohort 15 → boys15/images （GitHub Pages と同じ配布ツリー） */
+function toolImagesDir(env, cohort) {
+  const c = mustCohort(cohort);
+  const override = String(env.TOOL_IMAGES_FOLDER || "").trim();
+  if (override) return override.replace(/^\/+|\/+$/g, "");
+  return `boys${c}/images`;
+}
+
+function toolImagesPagesBase(env) {
+  return String(env.TOOL_IMAGES_PAGES_BASE || "https://tcb15-admin.github.io/tcb-tools")
+    .trim()
+    .replace(/\/+$/, "");
+}
+
+async function toolImageFileName(toolName, ext) {
   const enc = new TextEncoder().encode(String(toolName || ""));
   const digest = await crypto.subtle.digest("SHA-256", enc);
   const hex = [...new Uint8Array(digest)]
@@ -482,57 +499,97 @@ async function toolImageObjectKey(cohort, toolName, ext) {
     .join("")
     .slice(0, 24);
   const e = String(ext || "jpg").replace(/[^a-z0-9]/gi, "") || "jpg";
-  return `${mustCohort(cohort)}/tools/${hex}.${e}`;
+  return `${hex}.${e}`;
 }
 
-function toolImagePublicUrl(requestUrl, key) {
-  const base = new URL(requestUrl);
-  return `${base.origin}/api/media/tool/${key.split("/").map(encodeURIComponent).join("/")}`;
+function toolImagePublicUrl(env, cohort, fileName) {
+  const dir = toolImagesDir(env, cohort);
+  const base = toolImagesPagesBase(env);
+  return `${base}/${dir}/${fileName}`;
 }
 
-function parseToolMediaPath(pathname) {
-  // /api/media/tool/{cohort}/tools/{hash}.{ext}
-  const prefix = "/api/media/tool/";
-  if (!pathname.startsWith(prefix)) return null;
-  const rest = pathname.slice(prefix.length);
-  const parts = rest.split("/").map((p) => {
-    try {
-      return decodeURIComponent(p);
-    } catch {
-      return p;
-    }
-  });
-  if (parts.length !== 3) return null;
-  const [cohort, toolsDir, file] = parts;
-  if (!cohort || toolsDir !== "tools" || !file) return null;
-  if (!/^[0-9a-zA-Z._-]{1,64}$/.test(cohort)) return null;
-  if (!/^[0-9a-f]{16,64}\.(jpg|jpeg|png|webp)$/i.test(file)) return null;
-  return `${cohort}/tools/${file.replace(/\.jpeg$/i, ".jpg")}`;
-}
-
-async function serveToolImage(env, url) {
-  const key = parseToolMediaPath(url.pathname);
-  if (!key) throw new Error("invalid_media_key");
-  const bucket = mustToolImages(env);
-  const obj = await bucket.get(key);
-  if (!obj) return json({ error: "not_found" }, 404);
-  const headers = new Headers();
-  obj.writeHttpMetadata(headers);
-  headers.set("etag", obj.httpEtag);
-  headers.set("Cache-Control", "public, max-age=86400, immutable");
-  headers.set("Access-Control-Allow-Origin", "*");
-  if (!headers.has("Content-Type")) {
-    const lower = key.toLowerCase();
-    headers.set(
-      "Content-Type",
-      lower.endsWith(".png") ? "image/png" : lower.endsWith(".webp") ? "image/webp" : "image/jpeg"
-    );
+function bytesToBase64(bytes) {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
   }
-  return new Response(obj.body, { status: 200, headers });
+  return btoa(binary);
 }
 
-async function uploadToolImage(env, request, url) {
-  const bucket = mustToolImages(env);
+async function githubApi(env, method, apiPath, bodyObj) {
+  const token = mustGithubToken(env);
+  const res = await fetch(`https://api.github.com${apiPath}`, {
+    method,
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "tcb-tools-sync",
+      ...(bodyObj ? { "Content-Type": "application/json" } : {}),
+    },
+    body: bodyObj ? JSON.stringify(bodyObj) : undefined,
+  });
+  const text = await res.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { raw: text };
+  }
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) throw new Error("github_auth_failed");
+    if (res.status === 404) throw new Error("github_not_found");
+    const msg = String((data && data.message) || "").slice(0, 120);
+    throw new Error(msg ? `github_api_error:${msg}` : `github_api_error:${res.status}`);
+  }
+  return data;
+}
+
+async function githubGetContentSha(env, path) {
+  const { owner, name } = githubRepoParts(env);
+  const branch = githubBranch(env);
+  const apiPath =
+    `/repos/${owner}/${name}/contents/${path.split("/").map(encodeURIComponent).join("/")}` +
+    `?ref=${encodeURIComponent(branch)}`;
+  try {
+    const data = await githubApi(env, "GET", apiPath, null);
+    return data && data.sha ? String(data.sha) : "";
+  } catch (e) {
+    if (String(e && e.message) === "github_not_found") return "";
+    throw e;
+  }
+}
+
+async function githubPutFile(env, path, bytes, message) {
+  const { owner, name } = githubRepoParts(env);
+  const branch = githubBranch(env);
+  const sha = await githubGetContentSha(env, path);
+  const apiPath = `/repos/${owner}/${name}/contents/${path.split("/").map(encodeURIComponent).join("/")}`;
+  const body = {
+    message: String(message || "chore: update tool image").slice(0, 200),
+    content: bytesToBase64(bytes),
+    branch,
+  };
+  if (sha) body.sha = sha;
+  return githubApi(env, "PUT", apiPath, body);
+}
+
+async function githubDeleteFile(env, path, message) {
+  const { owner, name } = githubRepoParts(env);
+  const branch = githubBranch(env);
+  const sha = await githubGetContentSha(env, path);
+  if (!sha) return { ok: true, missing: true };
+  const apiPath = `/repos/${owner}/${name}/contents/${path.split("/").map(encodeURIComponent).join("/")}`;
+  await githubApi(env, "DELETE", apiPath, {
+    message: String(message || "chore: remove tool image").slice(0, 200),
+    sha,
+    branch,
+  });
+  return { ok: true, missing: false };
+}
+
+async function parseToolImageUpload(request) {
   const ct = String(request.headers.get("content-type") || "");
   let cohort = "";
   let toolName = "";
@@ -567,27 +624,44 @@ async function uploadToolImage(env, request, url) {
   if (bytes.length > TOOL_IMAGE_MAX_BYTES) throw new Error("file_too_large");
   const ext = TOOL_IMAGE_ALLOWED_TYPES[mime];
   if (!ext) throw new Error("unsupported_image_type");
-
-  const key = await toolImageObjectKey(cohort, toolName, ext);
-  await bucket.put(key, bytes, {
-    httpMetadata: { contentType: mime === "image/jpg" ? "image/jpeg" : mime },
-    customMetadata: { toolName: toolName.slice(0, 80), cohort },
-  });
-  const publicUrl = toolImagePublicUrl(url.href, key);
-  return { ok: true, key, url: publicUrl, toolName, bytes: bytes.length };
+  return { cohort, toolName, bytes, ext };
 }
 
-async function deleteToolImage(env, body, url) {
-  const bucket = mustToolImages(env);
+async function uploadToolImage(env, request) {
+  mustGithubToken(env);
+  const { cohort, toolName, bytes, ext } = await parseToolImageUpload(request);
+  const fileName = await toolImageFileName(toolName, ext);
+  const dir = toolImagesDir(env, cohort);
+  const path = `${dir}/${fileName}`;
+  const put = await githubPutFile(
+    env,
+    path,
+    bytes,
+    `chore(${dir}): tool image for ${toolName}`
+  );
+  const bust = String(
+    (put && put.content && put.content.sha) ||
+      (put && put.commit && put.commit.sha) ||
+      Date.now()
+  ).slice(0, 12);
+  const publicUrl = `${toolImagePublicUrl(env, cohort, fileName)}?v=${bust}`;
+  return { ok: true, path, url: publicUrl, toolName, bytes: bytes.length };
+}
+
+async function deleteToolImage(env, body) {
+  mustGithubToken(env);
   const cohort = mustCohort(body && body.cohort);
   const toolName = sliceStr(body && body.toolName, 80);
   if (!toolName) throw new Error("tool_name_required");
-  // 拡張子違いの残骸も消す
-  const keys = await Promise.all(
-    ["jpg", "png", "webp"].map((ext) => toolImageObjectKey(cohort, toolName, ext))
-  );
-  await Promise.all(keys.map((k) => bucket.delete(k)));
-  return { ok: true, toolName, urls: keys.map((k) => toolImagePublicUrl(url.href, k)) };
+  const dir = toolImagesDir(env, cohort);
+  const results = [];
+  for (const ext of ["jpg", "png", "webp"]) {
+    const fileName = await toolImageFileName(toolName, ext);
+    const path = `${dir}/${fileName}`;
+    const r = await githubDeleteFile(env, path, `chore(${dir}): remove tool image for ${toolName}`);
+    results.push({ path, missing: !!r.missing });
+  }
+  return { ok: true, toolName, results };
 }
 
 /** 保護者向け：有効な shareId からマスタ全道具の説明・写真を返す */
