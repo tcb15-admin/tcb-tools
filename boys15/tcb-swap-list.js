@@ -113,8 +113,8 @@
 
     var html = '';
     html += '<div class="tcb-swap-list">';
-    html += '<div class="tcb-swap-list-hd">入れ替えリスト</div>';
-    html += '<p class="tcb-swap-list-lead">次回活動日までに、下記の保護者間で道具を受け渡してください（試合組⇔練習組の入れ替え含む）。</p>';
+    html += '<div class="tcb-swap-list-hd">保有基準との受け渡しリスト</div>';
+    html += '<p class="tcb-swap-list-lead">基準にした保有記録と、今回の割振りの差分です（いちからの割振りでは出ません）。括弧の組名は<strong>きょうの班分け</strong>です。試合道具のルールなどで班が変わる場合、練習組⇔試合組の受け渡しに見えます。</p>';
     html += '<div class="tcb-swap-list-meta">維持 <strong>' + esc(String(report.kept)) + '</strong> 点';
     if (report.changed) {
       html += '／変更 <strong>' + esc(String(report.changed)) + '</strong> 点';

@@ -12,15 +12,28 @@
 .tcb-ghold-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
 .tcb-ghold-toolbar button{flex:1;min-width:120px;font-size:12px;}
 .tcb-ghold-list{max-height:48vh;overflow:auto;margin:0 0 12px;border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));border-radius:var(--tcb-r,4px);}
+.tcb-ghold-sort-note{font-size:11px;line-height:1.45;color:var(--txt2);margin:0 0 8px;}
+.tcb-ghold-sec-hd{
+  position:sticky;top:0;z-index:1;
+  padding:6px 10px;font-size:12px;font-weight:800;color:var(--ink-heading);
+  background:var(--surface-2,#f2f2f5);border-bottom:1px solid var(--tcb-line,var(--bdr,#e4e4e7));
+}
 .tcb-ghold-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--tcb-line,var(--bdr,#e4e4e7));}
 .tcb-ghold-row:last-child{border-bottom:none;}
-.tcb-ghold-tool{flex:1;font-size:13px;color:var(--ink-heading);font-weight:700;word-break:break-word;}
+.tcb-ghold-tool{flex:1;font-size:13px;color:var(--ink-heading);font-weight:700;word-break:break-word;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+.tcb-ghold-badge{
+  display:inline-block;font-size:10px;font-weight:800;padding:2px 6px;border-radius:6px;
+  line-height:1.2;letter-spacing:.02em;
+}
+.tcb-ghold-badge-match{background:#eef1f8;color:#122050;border:1px solid #aab6d4;}
 .tcb-ghold-sel{flex:0 0 42%;max-width:42%;font-family:inherit;font-size:16px;padding:6px 4px;border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));border-radius:var(--tcb-r,4px);min-height:var(--tap);background:var(--tcb-surface,var(--card,#fff));color:var(--ink-heading);}
 .tcb-ghold-btns{display:flex;gap:8px;}
 .tcb-ghold-btns button{flex:1;}
 
 @media (prefers-color-scheme: dark){
   .tcb-ghold-list,.tcb-ghold-row{border-color:var(--bdr);}
+  .tcb-ghold-sec-hd{background:var(--surface-2);border-color:var(--bdr);}
+  .tcb-ghold-badge-match{background:#22242b;color:#9fb4e8;border-color:#3a4a6a;}
   .tcb-ghold-note{color:var(--tcb-muted,#a1a1aa);}
   .tcb-ghold-status.tcb-ghold-on{color:#a5d6a7;}
   .tcb-ghold-sel{background:var(--surface-2);color:var(--ink-heading);}

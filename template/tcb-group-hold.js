@@ -132,24 +132,61 @@
     var listEl = document.getElementById('tcb-ghold-list');
     if (!listEl) return;
     ensureDraftComplete();
-    var names = activeToolNames().slice().sort(function (a, b) {
-      return String(a).localeCompare(String(b), 'ja');
-    });
+    var names = activeToolNames().slice();
     var labels = displayLabels();
     if (!names.length) {
       listEl.innerHTML = '<div class="tcb-ghold-row"><div class="tcb-ghold-tool">対象道具がありません（除外道具を確認）。</div></div>';
       return;
     }
-    var html = '';
+    var metaOf = function (tn) {
+      if (ctx && typeof ctx.getToolMeta === 'function') return ctx.getToolMeta(tn) || {};
+      return {};
+    };
+    var sortNames = function (arr) {
+      return arr.slice().sort(function (a, b) {
+        var ma = metaOf(a);
+        var mb = metaOf(b);
+        var ia = typeof ma.order === 'number' ? ma.order : 9999;
+        var ib = typeof mb.order === 'number' ? mb.order : 9999;
+        if (ia !== ib) return ia - ib;
+        var maMatch = ma.matchTool ? 0 : 1;
+        var mbMatch = mb.matchTool ? 0 : 1;
+        if (maMatch !== mbMatch) return maMatch - mbMatch;
+        return String(a).localeCompare(String(b), 'ja');
+      });
+    };
+    var groupA = [];
+    var groupB = [];
     names.forEach(function (tn) {
-      var g = draftMap[tn] === 'A' ? 'A' : 'B';
-      html += '<div class="tcb-ghold-row">'
-        + '<div class="tcb-ghold-tool">' + esc(tn) + '</div>'
-        + '<select class="tcb-ghold-sel" data-tcb-ghold-tool="' + esc(tn) + '">'
-        + '<option value="A"' + (g === 'A' ? ' selected' : '') + '>' + esc(labels.la) + '</option>'
-        + '<option value="B"' + (g === 'B' ? ' selected' : '') + '>' + esc(labels.lb) + '</option>'
-        + '</select></div>';
+      if (draftMap[tn] === 'A') groupA.push(tn);
+      else groupB.push(tn);
     });
+    groupA = sortNames(groupA);
+    groupB = sortNames(groupB);
+
+    function sectionHtml(team, title, arr) {
+      if (!arr.length) return '';
+      var h = '<div class="tcb-ghold-sec-hd">' + esc(title) + '（' + arr.length + '）</div>';
+      arr.forEach(function (tn) {
+        var g = team;
+        var meta = metaOf(tn);
+        var badge = meta.matchTool
+          ? '<span class="tcb-ghold-badge tcb-ghold-badge-match">試合道具</span>'
+          : '';
+        h += '<div class="tcb-ghold-row">'
+          + '<div class="tcb-ghold-tool">' + esc(tn) + badge + '</div>'
+          + '<select class="tcb-ghold-sel" data-tcb-ghold-tool="' + esc(tn) + '">'
+          + '<option value="A"' + (g === 'A' ? ' selected' : '') + '>' + esc(labels.la) + '</option>'
+          + '<option value="B"' + (g === 'B' ? ' selected' : '') + '>' + esc(labels.lb) + '</option>'
+          + '</select></div>';
+      });
+      return h;
+    }
+
+    var html = '';
+    html += '<p class="tcb-ghold-sort-note">表示：保有グループ別（' + esc(labels.la) + ' → ' + esc(labels.lb) + '）／各組内はマスタ順・試合道具優先</p>';
+    html += sectionHtml('A', labels.la, groupA);
+    html += sectionHtml('B', labels.lb, groupB);
     listEl.innerHTML = html;
   }
 

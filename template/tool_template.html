@@ -3170,18 +3170,21 @@ function applySnapToActivityUI(snap, opts){
     if(opts.useTodayDate)adEl.value=localIsoDateFromDate();
     else if(snap.date)adEl.value=snap.date;
   }
-  if(snap.pat)setPat(snap.pat);
-  if(snap.pat==='renshu'){
-    var rs=!!normFlag01(snap.renshuSplit);
-    applyRenshuSplit(rs);
-    var chkx=document.getElementById('chk-renshu-split');
-    if(chkx)chkx.checked=rs;
+  /* 保有ベース／再調整開始では「きょうの活動パターン」を履歴で上書きしない */
+  if(!opts.preservePat){
+    if(snap.pat)setPat(snap.pat);
+    if(snap.pat==='renshu'){
+      var rs=!!normFlag01(snap.renshuSplit);
+      applyRenshuSplit(rs);
+      var chkx=document.getElementById('chk-renshu-split');
+      if(chkx)chkx.checked=rs;
+    }
+    var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
+    if(inpA&&snap.la!=null){inpA.value=snap.la;tnA=snap.la;}
+    if(inpB&&snap.lb!=null){inpB.value=snap.lb;tnB=snap.lb;}
+    var chkMu=document.getElementById('chk-mem-unpublished');
+    if(chkMu)chkMu.checked=snapMemUnpublished(snap);
   }
-  var inpA=document.getElementById('tnA'), inpB=document.getElementById('tnB');
-  if(inpA&&snap.la!=null){inpA.value=snap.la;tnA=snap.la;}
-  if(inpB&&snap.lb!=null){inpB.value=snap.lb;tnB=snap.lb;}
-  var chkMu=document.getElementById('chk-mem-unpublished');
-  if(chkMu)chkMu.checked=snapMemUnpublished(snap);
   updDesc();
   updateMemUnpublishedWrap();
 }
@@ -3216,7 +3219,7 @@ function beginReeditFromSnap(snap, opts){
   carryAdjustMode=true;
   carryAdjustRunNotes=[];
   pdfFileNameUseTodayDate=true;
-  applySnapToActivityUI(enriched, {useTodayDate:true});
+  applySnapToActivityUI(enriched, {useTodayDate:true, preservePat:true});
   restoreExclusionStateFromSnap(enriched);
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.restoreFromSnap==='function'){
     TCB_GroupHold.restoreFromSnap(enriched);
@@ -3226,6 +3229,13 @@ function beginReeditFromSnap(snap, opts){
   closeModal('hist-modal');
   if(opts.goStep2)goStep(2);
   else goStep(1);
+  if(enriched.pat){
+    var baseLbl={kata:'片方試合',ryoho:'両方試合',renshu:'両方練習'}[enriched.pat]||enriched.pat;
+    var curLbl={kata:'片方試合',ryoho:'両方試合',renshu:'両方練習'}[pat]||pat;
+    if(enriched.pat!==pat){
+      tcbToast('基準日は「'+baseLbl+'」でしたが、きょうの活動パターン「'+curLbl+'」のまま進めます。','info');
+    }
+  }
   return true;
 }
 function beginReeditFromStoredPrev(){
@@ -4446,9 +4456,9 @@ function renderCarryAdjustDiffSummary(){
         el.innerHTML='';
       }else{
         var lineBody=getCarryAdjustLineBodyPlain();
-        var html='<strong>前回からの調整：</strong>維持 '+report.kept+' 点';
+        var html='<strong>保有基準との差分：</strong>維持 '+report.kept+' 点';
         if(report.changed)html+='／変更 '+report.changed+' 点';
-        if(report.changed)html+='。<span class="p3-carry-adjust-legend">色分けは下の「道具別」表（緑＝維持・橙＝変更）。</span>';
+        if(report.changed)html+='。<span class="p3-carry-adjust-legend">「いちから」ではなく保有ベース／再調整のときだけ表示。色分けは下の「道具別」表（緑＝維持・橙＝変更）。括弧の組名は<strong>きょうの班</strong>です。</span>';
         if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function'){
           html+=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:carryAdjustPersonLabel});
         }else if(!report.changed){
@@ -8987,6 +8997,14 @@ document.addEventListener('DOMContentLoaded',function(){
       },
       listActiveToolNames:function(){
         return TL.filter(function(t){return !skipS[t.name];}).map(function(t){return t.name;});
+      },
+      getToolMeta:function(name){
+        for(var i=0;i<TL.length;i++){
+          if(TL[i].name===name){
+            return {order:i, matchTool:toolIsMatchTool(TL[i])};
+          }
+        }
+        return {order:9999, matchTool:false};
       },
       inferHoldFromMaster:function(){
         var active=TL.filter(function(t){return !skipS[t.name];});
