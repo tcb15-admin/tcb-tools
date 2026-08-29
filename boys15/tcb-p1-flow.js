@@ -1,4 +1,4 @@
-/* STEP1：きょうの割り振り方（いちから／いまの保有でグループごと）
+/* STEP1：割り振り方の案内（2分けは保有ベースが通常・選択肢なし）
  * 本体から init(hooks) で状態取得・描画更新を受け取る。
  */
 (function (global) {
@@ -12,17 +12,17 @@
     });
   }
 
-  function holdingsAvailable() {
+  function needsTeam() {
     try {
-      return !!(ctx.getHoldingsSnap && ctx.getHoldingsSnap());
+      return !!(ctx.needsTeamUI && ctx.needsTeamUI());
     } catch (e) {
       return false;
     }
   }
 
-  function holdingsBaseIsTwoSplit() {
+  function holdingsAvailable() {
     try {
-      return !!(ctx.isHoldingsBaseTwoSplit && ctx.isHoldingsBaseTwoSplit());
+      return !!(ctx.getHoldingsSnap && ctx.getHoldingsSnap());
     } catch (e) {
       return false;
     }
@@ -54,35 +54,39 @@
       return;
     }
 
+    var twoSplit = needsTeam();
     var hasBase = holdingsAvailable();
-    /* おすすめ：確定保有があり、その活動が2分けだったとき
-       （作業中の STEP1 パターンではなく、基準記録側を見る） */
-    var recommendHold = hasBase && holdingsBaseIsTwoSplit();
     var baseTxt = baseLabel();
-    var holdDesc = hasBase
-      ? ('確定済みの保有を、きょうのグループ内で配ります。'
-        + (baseTxt ? '（基準：' + esc(baseTxt) + '）' : '')
-        + (recommendHold ? '' : ' ※基準の活動は2分けではないため、いちからがおすすめです。'))
-      : '実施確定または入れ替え確定の記録が必要です（試行は使いません）。';
+    var html = '';
 
-    var html = ''
-      + '<div class="p1-flow-panel" role="group" aria-labelledby="p1-flow-title">'
-      + '<div class="ct p1-flow-hd" id="p1-flow-title">きょうの割り振り方</div>'
-      + '<label class="p1-flow-opt' + (!recommendHold ? ' p1-flow-opt-rec' : '') + '">'
-      + '<input type="radio" name="p1-flow" value="fresh"' + (recommendHold ? '' : ' checked') + '>'
-      + '<span class="p1-flow-opt-body"><strong>いちから割り振る</strong>'
-      + '<span class="p1-flow-opt-desc">負荷を公平に配り直します。2分けしない活動や、担当を大きく変えたいとき。</span></span>'
-      + '</label>'
-      + '<label class="p1-flow-opt' + (hasBase ? '' : ' p1-flow-opt-disabled') + (recommendHold ? ' p1-flow-opt-rec' : '') + '">'
-      + '<input type="radio" name="p1-flow" value="holdings"' + (hasBase ? '' : ' disabled') + (recommendHold ? ' checked' : '') + '>'
-      + '<span class="p1-flow-opt-body"><strong>いま持っている道具で、グループごとに割り振る</strong>'
-      + '<span class="p1-flow-opt-desc">' + holdDesc + '</span></span>'
-      + '</label>'
-      + '<p class="p1-flow-foot">'
-      + '<button type="button" class="p1-flow-link" id="btn-p1-flow-hist">別の日の確定記録を基準にする</button>'
-      + '／活動日前にチーム道具の入れ替えを依頼する場合は、上のボタンを使います。'
-      + '</p>'
-      + '</div>';
+    if (twoSplit) {
+      if (hasBase) {
+        html = ''
+          + '<div class="p1-flow-panel" role="status">'
+          + '<div class="ct p1-flow-hd">割り振り方</div>'
+          + '<p class="p1-flow-auto">'
+          + 'いま持っている道具を、<strong>各グループのメンバー内</strong>で割り振ります。'
+          + (baseTxt ? '（保有基準：' + esc(baseTxt) + '）' : '')
+          + '</p>'
+          + '<p class="p1-flow-foot">'
+          + '<button type="button" class="p1-flow-link" id="btn-p1-flow-hist">別の日の確定記録を基準にする</button>'
+          + '</p>'
+          + '</div>';
+      } else {
+        html = ''
+          + '<div class="p1-flow-panel p1-flow-panel-warn" role="status">'
+          + '<div class="ct p1-flow-hd">割り振り方</div>'
+          + '<p class="p1-flow-auto">確定保有がまだないため、いちから割り振ります。'
+          + '通常は実施確定または入れ替え確定のあとでご利用ください。</p>'
+          + '</div>';
+      }
+    } else {
+      html = ''
+        + '<div class="p1-flow-panel" role="status">'
+        + '<div class="ct p1-flow-hd">割り振り方</div>'
+        + '<p class="p1-flow-auto">この活動はグループ分けがないため、全員の中で割り振ります。</p>'
+        + '</div>';
+    }
 
     host.innerHTML = html;
     host.style.display = '';
@@ -95,10 +99,11 @@
     }
   }
 
+  /* 互換：常に自動判定（ラジオなし） */
   function getSelectedMode() {
     if (isSeedMode()) return 'holdings';
-    var checked = document.querySelector('input[name="p1-flow"]:checked');
-    return checked ? checked.value : 'fresh';
+    if (needsTeam() && holdingsAvailable()) return 'holdings';
+    return 'fresh';
   }
 
   function init(hooks) {

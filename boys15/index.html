@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.26.9">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.0">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-login.css?v=1.26.9">
-<link rel="stylesheet" href="gear.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.26.9">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.26.9">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.0">
+<link rel="stylesheet" href="gear.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.0">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.0">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1495,11 +1495,11 @@ html{color-scheme:light;}
       </details>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：持ち帰り道具をきょうのグループの中で配ります。</span><button type="button" class="tcb-tip" data-tip="欠席・お茶当番の変更と当番引き継ぎを反映。班をまたぐ入替は<strong>最小限の2人スワップ</strong>を優先します。引き継げない道具の配り方は下の「割り振り方法」で選べます。STEP3では班をまたいだ手動割当が自動でオンになります。<strong>活動パターンを変えても基準の担当は維持</strong>されます。" aria-label="説明"></button>
+      <strong id="p2-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p2-seed-mode-banner-body">：いま誰が持っているかを先に見て、そのグループのメンバー内で担当を決めます。</span><button type="button" class="tcb-tip" data-tip="保有記録（実施確定・入れ替え確定）が基準です。<strong>固定担当</strong>は欠席・お茶当番でなければそのまま。<strong>公平に分散</strong>は同じ道具を前回と同じ人に付けにくくし、持ち回りします。<strong>前回のまま維持</strong>は欠席・お茶当番だけ変え、班またぎは自動ではしません（必要なら手直し）。" aria-label="説明"></button>
       <div class="tcb-seedalloc-box">
-        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>（推奨）：固定以外をグループ内で持ち回り。件数・負荷が偏らないよう振り直し、前回と同じ担当にはなりにくくします。<strong>前回のまま維持</strong>：前回保有を出発点に、欠席・お茶当番などで引き継げない分だけ変更します。固定担当はどちらの方法でも、欠席・お茶当番でなければその人のままです。" aria-label="説明"></button></div>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（グループ内で持ち回り。固定以外は前回と同じ人になりにくくします）</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>（欠席・お茶当番など、引き継げない分だけ変更）</span></label>
+        <div class="tcb-seedalloc-title">割り振り方法<button type="button" class="tcb-tip" data-tip="<strong>公平に分散</strong>（通常）：固定以外をグループ内で持ち回り。同じ道具は前回と同じ人を避け、重い道具の偏りも抑えます。<strong>前回のまま維持</strong>：前回保有を残し、欠席・お茶当番分だけ変更します。" aria-label="説明"></button></div>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>（持ち回り。同じ道具は前回と同じ人になりにくくします）</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>（欠席・お茶当番分だけ変更）</span></label>
       </div>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地で受け渡した道具を直す</button>
@@ -1695,12 +1695,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.26.9"></script>
-<script src="tcb-swap-list.js?v=1.26.9"></script>
-<script src="tcb-assign-board.js?v=1.26.9"></script>
-<script src="tcb-handoff-plan.js?v=1.26.9"></script>
-<script src="tcb-team-rules.js?v=1.26.9"></script>
-<script src="tcb-tool-images.js?v=1.26.9"></script>
+<script src="tcb-device.js?v=1.27.0"></script>
+<script src="tcb-swap-list.js?v=1.27.0"></script>
+<script src="tcb-assign-board.js?v=1.27.0"></script>
+<script src="tcb-handoff-plan.js?v=1.27.0"></script>
+<script src="tcb-team-rules.js?v=1.27.0"></script>
+<script src="tcb-tool-images.js?v=1.27.0"></script>
 <script>
 
 
@@ -3222,38 +3222,29 @@ function beginReeditFromSnap(snap, opts){
 function beginReeditFromStoredPrev(){
   return beginReeditFromSnap(loadStoredAllocationSnap());
 }
-/* いまの保有でグループごとに割り振る（活動当日・2分け向け） */
+/* いまの保有でグループごとに割り振る（2分けの通常経路） */
 function beginHoldingsGroupAllocation(){
   var snap=getHoldingsBaseSnap();
   if(!snap||typeof snap.map!=='object'){
-    tcbToast('確定済みの保有記録がありません。実施確定または入れ替え確定のあとでお試しください（試行は基準にしません）。','warn');
-    return false;
+    tcbToast('確定済みの保有記録がありません。いちから割り振ります。','warn');
+    clearReeditMode();
+    return true;
   }
   if(!snap.confirmedAt&&!(seedFromPrev||carryAdjustMode)){
-    tcbToast('試行結果は基準にできません。実施確定または入れ替え確定の記録を使ってください。','warn');
-    return false;
+    tcbToast('試行結果は基準にできません。いちから割り振ります。','warn');
+    clearReeditMode();
+    return true;
   }
-  /* グループごと割振りは「各グループの保有道具をメンバーへ公平に」が主目的 */
-  saveSeedAllocMethod('fair');
-  syncSeedAllocRadioUI();
   if(!beginReeditFromSnap(snap,{goStep2:true}))return false;
   absS={};ochS={};
   var baseTxt=holdingsBaseLabel(snap);
-  var markerCnt=0;
-  Object.keys(snap.map||{}).forEach(function(tn){
-    if(typeof handoffIsGroupDest==='function'&&handoffIsGroupDest(snap.map[tn]))markerCnt++;
-  });
-  var extra=markerCnt?(' 入れ替えで組宛てになった道具'+markerCnt+'点は、きょうのグループ内で担当を決めます。'):'';
-  tcbToast('保有基準「'+baseTxt+'」で開始しました。欠席・お茶当番を選んで「割振りを実行」してください。'+extra,'info');
+  tcbToast('保有基準「'+baseTxt+'」で開始しました。欠席・お茶当番を選んで「割振りを実行」してください。','info');
   return true;
 }
 function proceedP1ToStep2(){
   if((seedFromPrev||carryAdjustMode)&&seedBaseSnap)return true;
-  var mode='fresh';
-  if(window.TCB_P1Flow&&typeof TCB_P1Flow.getSelectedMode==='function'){
-    mode=TCB_P1Flow.getSelectedMode();
-  }
-  if(mode==='holdings')return beginHoldingsGroupAllocation();
+  /* 2分け＝常に保有ベースのグループ内割振り（選択肢なし） */
+  if(needsTeamUI())return beginHoldingsGroupAllocation();
   clearReeditMode();
   return true;
 }
@@ -3838,6 +3829,48 @@ function buildTeamToolListsByRules(){
   });
   return {tA:tA,tB:tB};
 }
+/* 保有ベース：いま持っている人（または【組名】）のきょうの班へ道具を寄せる */
+function resolveHoldingsTeamForTool(t, snap, prevMap){
+  var ex=exSet();
+  if(t&&t.fixed&&t.note&&!ex[t.note]){
+    if(tmMap[t.note]==='A'||tmMap[t.note]==='B')return tmMap[t.note];
+  }
+  var p=prevMap&&t?prevMap[t.name]:null;
+  if(p&&typeof handoffIsGroupDest==='function'&&handoffIsGroupDest(p)){
+    var mk=(snap&&snap.tmMap)||{};
+    if(mk[p]==='A'||mk[p]==='B')return mk[p];
+    if(snap&&snap.la&&p==='【'+snap.la+'】')return 'A';
+    if(snap&&snap.lb&&p==='【'+snap.lb+'】')return 'B';
+    if(typeof handoffGroupMarker==='function'){
+      if(p===handoffGroupMarker('A'))return 'A';
+      if(p===handoffGroupMarker('B'))return 'B';
+    }
+  }
+  if(p){
+    if(tmMap[p]==='A'||tmMap[p]==='B')return tmMap[p];
+    if(snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
+  }
+  if(snap&&Array.isArray(snap.tools)){
+    for(var i=0;i<snap.tools.length;i++){
+      var st=snap.tools[i];
+      if(st&&st.name===t.name&&(st.team==='A'||st.team==='B'))return st.team;
+    }
+  }
+  return null;
+}
+function buildHoldingsBasedToolLists(snap){
+  var prevMap=(snap&&snap.map&&typeof snap.map==='object')?snap.map:{};
+  var active=TL.filter(function(t){return !skipS[t.name];});
+  var ruleMap=computeRuleTeamMap(active)||{};
+  var tA=[], tB=[];
+  active.forEach(function(t){
+    var g=resolveHoldingsTeamForTool(t, snap, prevMap);
+    if(g!=='A'&&g!=='B')g=(ruleMap[t.name]==='B')?'B':'A';
+    var copy=Object.assign({},t,{ls:lscore(t),team:g});
+    if(g==='A')tA.push(copy); else tB.push(copy);
+  });
+  return {tA:tA,tB:tB};
+}
 function buildAssignmentContext(opts){
   opts=opts||{};
   var silent=!!opts.silent;
@@ -3855,7 +3888,13 @@ function buildAssignmentContext(opts){
   var mB=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='B';});
   if(!mA.length){if(!silent)alert(la+'グループに1名以上タップしてください。');return null;}
   if(!mB.length){if(!silent)alert(lb+'グループが0名です。欠席者を確認してください。');return null;}
-  var lists=buildTeamToolListsByRules();
+  var lists;
+  /* 保有ベース（2分けの通常）：いま持っている人の班へ道具を寄せる */
+  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object'){
+    lists=buildHoldingsBasedToolLists(seedBaseSnap);
+  }else{
+    lists=buildTeamToolListsByRules();
+  }
   var tA=lists.tA, tB=lists.tB;
   var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
   return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
@@ -4595,14 +4634,13 @@ function runAlgoApplyPrevSeed(snap, ctx, runSeed){
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, {});
   return true;
 }
-/* 持ち帰り調整：当番引き継ぎ＋班入替。公平＝固定以外を持ち回り／前回維持＝欠席・当番など引き継げない分のみ */
+/* 持ち帰り調整：保有ベース。公平＝固定以外を持ち回り／前回維持＝欠席・お茶分のみ */
 function runAlgoCarryAdjust(snap, ctx, runSeed){
   var ex=ctx.ex;
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ex);
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
-  var ochNotes=applyOchHandoff(built.baseMap, built.poolSet, snap, ctx);
-  var swapNotes=applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ex);
+  /* お茶当番への寄せはしない（欠席と同様に対象外にするだけ） */
   enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
   var zeroSide={};
   if(ctx.mode==='team'){
@@ -4612,14 +4650,13 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
     zeroSide.all=buildZeroPrioritySet(snap, ctx.members);
   }
   var fairPool=(loadSeedAllocMethod()!=='min');
-  /* 公平：固定以外をすべてプールしてグループ内持ち回り。前回維持：プールは引き継げない分だけ */
   if(fairPool)releaseNonFixedToPoolForFair(built.baseMap, built.poolSet, allTools);
   var poolFn=fairPool?assignPoolFair:assignPoolCarryAdjust;
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, zeroSide);
   var methodNote=fairPool
     ?'「公平に分散」：固定以外をグループ内で持ち回り再割当しました（固定は欠席・お茶当番でなければそのまま）。'
-    :'「前回のまま維持」：前回保有を維持し、欠席・お茶当番・班移動などで引き継げない分だけ変更しました。';
-  return (ochNotes||[]).concat(swapNotes||[]).concat([methodNote]);
+    :'「前回のまま維持」：前回保有を維持し、欠席・お茶当番分だけ変更しました。';
+  return [methodNote];
 }
 /* 次回活動の入れ替え案：モーダル操作前の STEP1 状態（パターン・班分け・グループ名）を控えて、閉じたら戻す */
 var handoffStateSnap=null;
@@ -5853,18 +5890,30 @@ function syncAssignStateFromMap(){
   }
 }
 /* 担当件数が少ない層を優先しつつ doAssign と同様の制約でプール道具を割当。
-   公平・持ち回り：前回担当は「避ける」用途のみ（優先はしない） */
+   公平・持ち回り：前回担当は避け、件数・累計に加え実行ごとの seed で入れ替えを出す */
 function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed, zeroPriority){
   if(!Object.keys(fullState).length)return;
   var prevMap=prevAssignMap||null;
   var carryMap=loadCarryoutPrevMap();
   var seed=(runSeed|0)||0;
   var defer=sortToolsForDefer(poolToolObjs);
+  /* 同程度の優先度内で実行ごとに順を入れ替え（見た目の持ち回り） */
+  defer=shuffleToolListSeeded(defer, seed);
   var opts={rotateFair:true};
   if(zeroPriority)opts.zeroPriority=zeroPriority;
   defer.forEach(function(t){
     assignOneToolToState(t, fullState, prevMap, carryMap, seed, opts);
   });
+}
+function shuffleToolListSeeded(list, seed){
+  var a=(list||[]).slice();
+  var s=(seed|0)^0x9e3779b9;
+  for(var i=a.length-1;i>0;i--){
+    s=(Math.imul(s,1103515245)+12345)|0;
+    var j=(s>>>0)%(i+1);
+    var tmp=a[i];a[i]=a[j];a[j]=tmp;
+  }
+  return a;
 }
 /* 持ち帰り調整：変更人数を最小化（余剰道具は既に変更が必要な人へ集中）＋欠席復帰者優先 */
 function assignPoolCarryAdjust(poolToolObjs, fullState, prevAssignMap, runSeed, zeroPriority){
@@ -8860,7 +8909,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.26.9';
+  if(vEl)vEl.textContent='v1.27.0';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9160,7 +9209,7 @@ document.addEventListener('DOMContentLoaded',function(){
     TCB_P1Flow.init({
       getHoldingsSnap:getHoldingsBaseSnap,
       getHoldingsLabel:function(){return holdingsBaseLabel();},
-      isHoldingsBaseTwoSplit:holdingsBaseIsTwoSplit,
+      needsTeamUI:needsTeamUI,
       isSeedModeOn:function(){return !!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);},
       onPickOther:function(){
         window._histPreferConfirmedOnly=true;
@@ -9453,18 +9502,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.26.9"></script>
-<script src="html2canvas.min.js?v=1.26.9"></script>
-<script src="html2pdf.min.js?v=1.26.9"></script>
-<script src="tcb-print-pdf.js?v=1.26.9"></script>
-<script src="tcb-feedback.js?v=1.26.9"></script>
-<script src="tcb-sync-api.js?v=1.26.9"></script>
-<script src="tcb-swap-mgr.js?v=1.26.9"></script>
-<script src="tcb-push-mgr.js?v=1.26.9"></script>
-<script src="tcb-login.js?v=1.26.9"></script>
-<script src="tcb-pwa-install.js?v=1.26.9"></script>
-<script src="tcb-group-hold.js?v=1.26.9"></script>
-<script src="tcb-presummary.js?v=1.26.9"></script>
-<script src="tcb-p1-flow.js?v=1.26.9"></script>
+<script src="jspdf.umd.min.js?v=1.27.0"></script>
+<script src="html2canvas.min.js?v=1.27.0"></script>
+<script src="html2pdf.min.js?v=1.27.0"></script>
+<script src="tcb-print-pdf.js?v=1.27.0"></script>
+<script src="tcb-feedback.js?v=1.27.0"></script>
+<script src="tcb-sync-api.js?v=1.27.0"></script>
+<script src="tcb-swap-mgr.js?v=1.27.0"></script>
+<script src="tcb-push-mgr.js?v=1.27.0"></script>
+<script src="tcb-login.js?v=1.27.0"></script>
+<script src="tcb-pwa-install.js?v=1.27.0"></script>
+<script src="tcb-group-hold.js?v=1.27.0"></script>
+<script src="tcb-presummary.js?v=1.27.0"></script>
+<script src="tcb-p1-flow.js?v=1.27.0"></script>
 </body>
 </html>
