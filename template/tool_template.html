@@ -1515,7 +1515,7 @@ html{color-scheme:light;}
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
         <summary>
-          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="いま誰の班が持っているかの<strong>控え</strong>です。割振りの班分けは<strong>ルール優先</strong>です。次回活動のグループが決まったら STEP1「いま持っている道具で、グループごとに割り振る」または STEP3「最小変更で再調整」→実行し、STEP3の<strong>入れ替えリスト</strong>をLINE依頼に使ってください。" aria-label="説明"></button></div>
+          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="いま誰の班が持っているかの<strong>控え</strong>です。割振りの班分けは<strong>ルール優先</strong>です。活動前に個人間で道具を入れ替えるときは STEP1「活動日前：チーム道具の入れ替えを依頼する」を使います。" aria-label="説明"></button></div>
           <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
           <span class="tcb-fold-arrow">&#9660;</span>
         </summary>
@@ -4444,46 +4444,18 @@ function renderCrossGroupHandoffNotice(){
   el.innerHTML=html;
 }
 function renderCarryAdjustDiffSummary(){
+  /* 通常割振りの STEP3 では個人間受け渡しリストを出さない。
+     活動前の入れ替えは handoff モーダル側のリストを使う。 */
   var el=document.getElementById('p3-carry-adjust-summary');
   if(el){
-    if(!carryAdjustRefSnap||!R||typeof carryAdjustRefSnap.map!=='object'){
-      el.className='p3-carry-adjust-summary';
-      el.innerHTML='';
-    }else{
-      var report=getCarryAdjustChangeReport();
-      if(!report){
-        el.className='p3-carry-adjust-summary';
-        el.innerHTML='';
-      }else{
-        var lineBody=getCarryAdjustLineBodyPlain();
-        var html='<strong>保有基準との差分：</strong>維持 '+report.kept+' 点';
-        if(report.changed)html+='／変更 '+report.changed+' 点';
-        if(report.changed)html+='。<span class="p3-carry-adjust-legend">「いちから」ではなく保有ベース／再調整のときだけ表示。色分けは下の「道具別」表（緑＝維持・橙＝変更）。括弧の組名は<strong>きょうの班</strong>です。</span>';
-        if(window.TCB_SWAP_LIST&&typeof TCB_SWAP_LIST.renderHtml==='function'){
-          html+=TCB_SWAP_LIST.renderHtml(report,{esc:esc,labelPerson:carryAdjustPersonLabel});
-        }else if(!report.changed){
-          html+='<div class="p3-carry-adjust-people"><strong>変更はありません。</strong></div>';
-        }
-        if(report.changed){
-          html+='<div class="tcb-swap-list-actions">'
-            +'<button type="button" class="tcb-swap-list-copybtn" id="btn-copy-carry-adjust-full">入れ替えリスト（全文）をコピー</button>'
-            +'<button type="button" class="tcb-swap-list-copybtn tcb-swap-list-copybtn-sec" id="btn-copy-carry-adjust">LINE用の要点をコピー</button>'
-            +'</div>';
-          html+='<div class="tcb-swap-list-line-wrap">'
-            +'<div class="tcb-swap-list-line-hd">LINE本文に自動で入る要点（参考）</div>'
-            +'<pre class="tcb-swap-list-line-pre" id="p3-carry-adjust-text">'+esc(lineBody)+'</pre>'
-            +'</div>';
-        }
-        el.className='p3-carry-adjust-summary on';
-        el.innerHTML=html;
-        var copyBtn=document.getElementById('btn-copy-carry-adjust');
-        if(copyBtn)copyBtn.addEventListener('click',copyCarryAdjustChangeText);
-        var fullBtn=document.getElementById('btn-copy-carry-adjust-full');
-        if(fullBtn)fullBtn.addEventListener('click',copyCarryAdjustFullText);
-      }
-    }
+    el.className='p3-carry-adjust-summary';
+    el.innerHTML='';
   }
-  renderCrossGroupHandoffNotice();
+  var notice=document.getElementById('p3-cross-handoff-notice');
+  if(notice){
+    notice.className='p3-cross-handoff-notice';
+    notice.innerHTML='';
+  }
 }
 function applyOchHandoff(baseMap, poolSet, snap, ctx){
   var notes=[];
@@ -6561,7 +6533,9 @@ function runAlgo(){
       carryAdjustRunNotes=snapCtxDiffWarnings(seedSnap, ctx);
       var ochNotes=runAlgoCarryAdjust(seedSnap, ctx, runSeed);
       carryAdjustRunNotes=carryAdjustRunNotes.concat(ochNotes||[]);
-      carryAdjustRefSnap=clonePlainObj(seedSnap);
+      /* 通常割振りでは個人間受け渡しリストを出さない（会場で持ち帰る担当の決定のみ）。
+         個人間の入れ替え案内は STEP1「活動日前：チーム道具の入れ替え」専用。 */
+      clearCarryAdjustRef();
       usedPrevSeed=true;
       pdfFileNameUseTodayDate=true;
       clearReeditMode();
@@ -7281,8 +7255,7 @@ function buildShareLineExtraText(opts){
   var url=String(opts.url||_parentViewUrl||'').trim();
   if(shareUsesRevisedLineMessage())return '';
   var parts=[];
-  var lineBody=getCarryAdjustLineBodyPlain();
-  if(lineBody)parts.push(lineBody);
+  /* 通常割振りの LINE には個人間受け渡しリストを載せない（活動前入れ替えは handoff 側） */
   if(includeUrl&&url)parts.push('最新の担当確認はこちら\n'+url);
   return parts.join('\n\n');
 }

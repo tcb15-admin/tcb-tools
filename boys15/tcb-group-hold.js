@@ -111,7 +111,7 @@
       if (enabled) {
         var c = countByTeam(holdMap);
         status.className = 'tcb-ghold-status tcb-ghold-on';
-        status.textContent = '参考：いまの保有控え（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。割振りの班分けはルール優先です。入れ替えはSTEP3のリストで確認してください。';
+        status.textContent = '参考：いまの保有控え（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。割振りの班分けはルール優先です。活動前の個人間入れ替えは STEP1 の入れ替え依頼から行います。';
       } else {
         status.className = 'tcb-ghold-status';
         status.textContent = '未使用。割振りの班分けはルール優先です。保有控えは任意の参考記録です。';
