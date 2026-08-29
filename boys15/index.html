@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.16">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.25.17">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,13 +1120,13 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-login.css?v=1.25.16">
-<link rel="stylesheet" href="gear.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.16">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.25.16">
+<link rel="stylesheet" href="tcb-shell.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-login.css?v=1.25.17">
+<link rel="stylesheet" href="gear.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.25.17">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.25.17">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1688,11 +1688,11 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.25.16"></script>
-<script src="tcb-swap-list.js?v=1.25.16"></script>
-<script src="tcb-assign-board.js?v=1.25.16"></script>
-<script src="tcb-handoff-plan.js?v=1.25.16"></script>
-<script src="tcb-team-rules.js?v=1.25.16"></script>
+<script src="tcb-device.js?v=1.25.17"></script>
+<script src="tcb-swap-list.js?v=1.25.17"></script>
+<script src="tcb-assign-board.js?v=1.25.17"></script>
+<script src="tcb-handoff-plan.js?v=1.25.17"></script>
+<script src="tcb-team-rules.js?v=1.25.17"></script>
 <script>
 
 
@@ -3948,36 +3948,6 @@ function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
   if(swapCount)notes.push('班入替の最小スワップ：'+swapCount+'組を自動入れ替え（'+detail.join('、')+'）。');
   return notes;
 }
-/* 入れ替え案：遠方メンバーが保有したままの道具を、同班の非遠方へ移す（直前の受け渡し負担を減らす） */
-function applyHandoffRelocateFromRemote(baseMap, poolSet, prevMap, ctx, ex){
-  if(!handoffComputeBaseSnap||ctx.mode!=='team')return;
-  ex=ex||{};
-  var toolByName={};
-  (ctx.allTools||[]).forEach(function(t){if(t&&t.name)toolByName[t.name]=t;});
-  Object.keys(baseMap).slice().forEach(function(tn){
-    var holder=baseMap[tn];
-    if(!holder||ex[holder]||!isMemberRemoteByName(holder))return;
-    var t=toolByName[tn];
-    if(!t||t.fixed)return;
-    var team=t.team||tmMap[holder]||'';
-    if(team!=='A'&&team!=='B')return;
-    var candidates=(team==='A'?ctx.mA:ctx.mB).filter(function(m){
-      return m&&m.name&&!ex[m.name]&&!isMemberRemoteByName(m.name);
-    });
-    candidates.sort(function(a,b){
-      var ca=countAssignMapToolsForPerson(baseMap,a.name,null);
-      var cb=countAssignMapToolsForPerson(baseMap,b.name,null);
-      if(ca!==cb)return ca-cb;
-      return countMapTarpsForPerson(baseMap,a.name)-countMapTarpsForPerson(baseMap,b.name);
-    });
-    for(var i=0;i<candidates.length;i++){
-      var nm=candidates[i].name;
-      if(isMemberNoMultiByName(nm)&&countAssignMapToolsForPerson(baseMap,nm,null)>=1)continue;
-      baseMap[tn]=nm;
-      break;
-    }
-  });
-}
 /* 入れ替え案：各班でタープ本数を非遠方メンバー間でほぼ均等に */
 function applyHandoffBalanceTarpsAmongNonRemote(map, ctx, allTools, ex){
   if(!handoffComputeBaseSnap||ctx.mode!=='team')return;
@@ -4944,11 +4914,12 @@ function resetHandoffPlanToAuto(){
   if(!plan||!plan.autoMap)return {error:'算出結果がありません。'};
   return rebuildHandoffPlanFromMap(clonePlainObj(plan.autoMap), false);
 }
-/* 次回活動の入れ替え案：前回保有を維持し、ルール上動かせない分だけ最小スワップ＋余剰は変更人数最小。公平分散はしない。R は触らない */
+/* 遠方の「維持できる保有」は動かさない。
+   同班の非遠方へ移すと受け渡し（遠方→組）が増え、試合組→試合組のような分かりにくい行になるため。
+   遠方は交換・新規受取からの除外（applyMinimalCrossTeamSwaps / assignOneToolToState）で扱う。 */
 function buildHandoffKeepMinMap(snap, ctx, seed){
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ctx.ex);
-  applyHandoffRelocateFromRemote(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
   enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
@@ -8713,7 +8684,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.25.16';
+  if(vEl)vEl.textContent='v1.25.17';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9277,18 +9248,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.25.16"></script>
-<script src="html2canvas.min.js?v=1.25.16"></script>
-<script src="html2pdf.min.js?v=1.25.16"></script>
-<script src="tcb-print-pdf.js?v=1.25.16"></script>
-<script src="tcb-feedback.js?v=1.25.16"></script>
-<script src="tcb-sync-api.js?v=1.25.16"></script>
-<script src="tcb-swap-mgr.js?v=1.25.16"></script>
-<script src="tcb-push-mgr.js?v=1.25.16"></script>
-<script src="tcb-login.js?v=1.25.16"></script>
-<script src="tcb-pwa-install.js?v=1.25.16"></script>
-<script src="tcb-group-hold.js?v=1.25.16"></script>
-<script src="tcb-presummary.js?v=1.25.16"></script>
-<script src="tcb-p1-flow.js?v=1.25.16"></script>
+<script src="jspdf.umd.min.js?v=1.25.17"></script>
+<script src="html2canvas.min.js?v=1.25.17"></script>
+<script src="html2pdf.min.js?v=1.25.17"></script>
+<script src="tcb-print-pdf.js?v=1.25.17"></script>
+<script src="tcb-feedback.js?v=1.25.17"></script>
+<script src="tcb-sync-api.js?v=1.25.17"></script>
+<script src="tcb-swap-mgr.js?v=1.25.17"></script>
+<script src="tcb-push-mgr.js?v=1.25.17"></script>
+<script src="tcb-login.js?v=1.25.17"></script>
+<script src="tcb-pwa-install.js?v=1.25.17"></script>
+<script src="tcb-group-hold.js?v=1.25.17"></script>
+<script src="tcb-presummary.js?v=1.25.17"></script>
+<script src="tcb-p1-flow.js?v=1.25.17"></script>
 </body>
 </html>

@@ -4045,36 +4045,6 @@ function applyMinimalCrossTeamSwaps(baseMap, poolSet, prevMap, ctx, ex){
   if(swapCount)notes.push('班入替の最小スワップ：'+swapCount+'組を自動入れ替え（'+detail.join('、')+'）。');
   return notes;
 }
-/* 入れ替え案：遠方メンバーが保有したままの道具を、同班の非遠方へ移す（直前の受け渡し負担を減らす） */
-function applyHandoffRelocateFromRemote(baseMap, poolSet, prevMap, ctx, ex){
-  if(!handoffComputeBaseSnap||ctx.mode!=='team')return;
-  ex=ex||{};
-  var toolByName={};
-  (ctx.allTools||[]).forEach(function(t){if(t&&t.name)toolByName[t.name]=t;});
-  Object.keys(baseMap).slice().forEach(function(tn){
-    var holder=baseMap[tn];
-    if(!holder||ex[holder]||!isMemberRemoteByName(holder))return;
-    var t=toolByName[tn];
-    if(!t||t.fixed)return;
-    var team=t.team||tmMap[holder]||'';
-    if(team!=='A'&&team!=='B')return;
-    var candidates=(team==='A'?ctx.mA:ctx.mB).filter(function(m){
-      return m&&m.name&&!ex[m.name]&&!isMemberRemoteByName(m.name);
-    });
-    candidates.sort(function(a,b){
-      var ca=countAssignMapToolsForPerson(baseMap,a.name,null);
-      var cb=countAssignMapToolsForPerson(baseMap,b.name,null);
-      if(ca!==cb)return ca-cb;
-      return countMapTarpsForPerson(baseMap,a.name)-countMapTarpsForPerson(baseMap,b.name);
-    });
-    for(var i=0;i<candidates.length;i++){
-      var nm=candidates[i].name;
-      if(isMemberNoMultiByName(nm)&&countAssignMapToolsForPerson(baseMap,nm,null)>=1)continue;
-      baseMap[tn]=nm;
-      break;
-    }
-  });
-}
 /* 入れ替え案：各班でタープ本数を非遠方メンバー間でほぼ均等に */
 function applyHandoffBalanceTarpsAmongNonRemote(map, ctx, allTools, ex){
   if(!handoffComputeBaseSnap||ctx.mode!=='team')return;
@@ -5041,11 +5011,12 @@ function resetHandoffPlanToAuto(){
   if(!plan||!plan.autoMap)return {error:'算出結果がありません。'};
   return rebuildHandoffPlanFromMap(clonePlainObj(plan.autoMap), false);
 }
-/* 次回活動の入れ替え案：前回保有を維持し、ルール上動かせない分だけ最小スワップ＋余剰は変更人数最小。公平分散はしない。R は触らない */
+/* 遠方の「維持できる保有」は動かさない。
+   同班の非遠方へ移すと受け渡し（遠方→組）が増え、試合組→試合組のような分かりにくい行になるため。
+   遠方は交換・新規受取からの除外（applyMinimalCrossTeamSwaps / assignOneToolToState）で扱う。 */
 function buildHandoffKeepMinMap(snap, ctx, seed){
   var prevMap=snap.map;
   var built=buildPrevSeedBaseAndPool(snap, ctx, ctx.ex);
-  applyHandoffRelocateFromRemote(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   applyMinimalCrossTeamSwaps(built.baseMap, built.poolSet, prevMap, ctx, ctx.ex);
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
   enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
