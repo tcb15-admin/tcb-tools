@@ -193,12 +193,15 @@
     if (!root) return;
     var eFn = function (s) { return esc(s, opts && opts.esc); };
     var lead = opts.lead || '道具タイルをタップして選び、移動先の人（または未割当）をタップすると移動します。別の道具タイルをタップすると入れ替えます。';
+    var foot = (opts && opts.foot != null)
+      ? String(opts.foot)
+      : '固定担当の道具も手動では動かせます（必要時のみ）。変更は「元に戻す」で取り消せます。';
     root.innerHTML = '<div class="tcb-ab">'
       + '<p class="tcb-ab-lead">' + eFn(lead) + '</p>'
       + renderStatus(opts, eFn)
       + renderPool(opts, eFn)
       + renderGroups(opts, eFn)
-      + '<p class="tcb-ab-foot">固定担当の道具も手動では動かせます（必要時のみ）。変更は「元に戻す」で取り消せます。</p>'
+      + (foot ? ('<p class="tcb-ab-foot">' + eFn(foot) + '</p>') : '')
       + '</div>';
   }
 

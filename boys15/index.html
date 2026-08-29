@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.8">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.9">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -366,14 +366,13 @@ tr.p3-multi-row{background:#fff8e1;}
 .tcb-seedalloc-opt input{margin-top:2px;flex-shrink:0;}
 .tcb-actual-hold-desc{font-size:12px;line-height:1.6;color:var(--txt2);margin-bottom:10px;}
 .tcb-actual-hold-note{font-size:11px;line-height:1.55;color:#6a1b9a;margin-bottom:10px;}
-.tcb-actual-hold-list{max-height:52vh;overflow:auto;margin:0 0 12px;border:1px solid #eee;border-radius:8px;}
-.tcb-actual-hold-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f0f0f0;}
-.tcb-actual-hold-row:last-child{border-bottom:none;}
-.tcb-actual-hold-tool{flex:1;font-size:13px;color:var(--ink-heading);font-weight:700;word-break:break-word;}
-.tcb-actual-hold-sel{flex:0 0 46%;max-width:46%;font-family:inherit;font-size:13px;padding:6px 4px;border:2px solid var(--bdr);border-radius:7px;min-height:var(--tap);background:#f8f9fa;color:var(--ink-heading);}
-.tcb-actual-hold-row.tcb-actual-hold-changed{background:#fff3e0;}
-.tcb-actual-hold-btns{display:flex;gap:8px;}
+.tcb-actual-hold-board-wrap{margin:0 0 4px;}
+.tcb-actual-hold-modal.tcb-scroll-modal{max-width:min(720px,96vw);width:96vw;}
+.tcb-actual-hold-modal .tcb-scroll-modal-body{max-height:min(62vh,560px);}
+.tcb-actual-hold-btns{display:flex;gap:8px;margin-top:10px;flex-shrink:0;}
 .tcb-actual-hold-btns button{flex:1;}
+.tcb-actual-hold-under-tgrid{width:100%;margin-top:12px;display:none;}
+.tcb-actual-hold-under-tgrid.on{display:block;}
 .p3-carry-adjust-summary{display:none;margin-top:8px;padding:10px 12px;background:#f3e5f5;border-left:4px solid #7b1fa2;border-radius:8px;font-size:12px;line-height:1.55;color:var(--txt2);}
 .p3-carry-adjust-summary.on{display:block;}
 .p3-carry-adjust-summary strong{color:#4a148c;}
@@ -1120,14 +1119,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.8">
-<link rel="stylesheet" href="gear.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.8">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.8">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.9">
+<link rel="stylesheet" href="gear.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.9">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.9">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1220,14 +1219,16 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<!-- 現地の実保有に補正モーダル -->
+<!-- 保有の確認・補正（手直しボードと同操作） -->
 <div class="overlay" id="actual-hold-modal">
-  <div class="modal">
+  <div class="modal tcb-scroll-modal tcb-actual-hold-modal">
     <button class="mclose" id="actual-hold-close">&#10005;</button>
-    <h2>&#128230; 現地で受け渡した道具を直す</h2>
-    <p class="tcb-actual-hold-desc">前回の割り当てです。現地で受け渡しがあった道具は、<strong>実際にいま持っている人</strong>に直してください。</p>
-    <p class="tcb-actual-hold-note">ここで直した内容が「前回持っていた道具」の基準になります。入れ替え案内（LINE／PDF）も、この<strong>実態との差分</strong>で作られます。変更した行はオレンジ色になります。</p>
-    <div class="tcb-actual-hold-list" id="actual-hold-list"></div>
+    <h2>&#128230; 保有を確認・直す</h2>
+    <div class="tcb-scroll-modal-body">
+      <p class="tcb-actual-hold-desc">確定保有（前回の割り当て）を、組ごとに確認できます。現地で受け渡しがあった道具は、<strong>実際にいま持っている人</strong>へ手直しと同じ操作で直してください。</p>
+      <p class="tcb-actual-hold-note">道具タイル→移動先の人（班またぎ可）。保存すると保有基準と<strong>道具の組</strong>（持っている人の班）が更新され、このあとグループ内割振りの正になります。</p>
+      <div id="tcb-actual-hold-board-root" class="tcb-actual-hold-board-wrap"></div>
+    </div>
     <div class="tcb-actual-hold-btns">
       <button type="button" class="rbtn" id="btn-actual-hold-save">この内容で補正する</button>
       <button type="button" class="nb nbs" id="btn-actual-hold-cancel">閉じる</button>
@@ -1449,7 +1450,7 @@ html{color-scheme:light;}
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
         <strong id="p1-seed-mode-banner-title">いまの保有でグループごとに割振る</strong><span id="p1-seed-mode-banner-body">：持ち帰り道具をきょうのグループの中で配ります。</span><button type="button" class="tcb-tip" data-tip="選択した<strong>保有記録</strong>（実施確定・入れ替え確定・現地補正後）を基準に、いま持っている人のグループ内で配ります。配り方（<strong>公平に分散／前回のまま維持</strong>）は STEP2 で選べます。班またぎの自動入れ替えはしません（必要なら手直し）。活動日は本日に設定。" aria-label="説明"></button>
         <div class="tcb-seed-mode-banner-btns">
-          <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 現地で受け渡した道具を直す</button>
+          <button type="button" class="rbtn" id="btn-actual-hold-p1">&#128230; 保有を確認・直す</button>
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">新規の割り振りに切り替える</button>
         </div>
       </div>
@@ -1502,7 +1503,7 @@ html{color-scheme:light;}
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>（欠席・お茶当番分だけ変更）</span></label>
       </div>
       <div class="tcb-seed-mode-banner-btns">
-        <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 現地で受け渡した道具を直す</button>
+        <button type="button" class="rbtn" id="btn-actual-hold-p2">&#128230; 保有を確認・直す</button>
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
       </div>
     </div>
@@ -1517,11 +1518,12 @@ html{color-scheme:light;}
         <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
       </div>
       <div class="mgrid" id="tgrid"></div>
+      <button type="button" class="rbtn tcb-actual-hold-under-tgrid" id="btn-actual-hold-p2b">&#128230; 保有を確認・直す（組ごとの道具）</button>
     </div>
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
         <summary>
-          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="いま誰の班が持っているかの<strong>控え</strong>です。割振りの班分けは<strong>ルール優先</strong>です。活動前に個人間で道具を入れ替えるときは STEP1「活動日前：チーム道具の入れ替えを依頼する」を使います。" aria-label="説明"></button></div>
+          <div class="ct">いま道具を持っているグループ（参考）<button type="button" class="tcb-tip" data-tip="<strong>確定保有があるとき</strong>は上の「保有を確認・直す」が正です。ここは確定保有が無いときや、両方練習で組の箱だけ先に決めたいときの<strong>任意控え</strong>です。" aria-label="説明"></button></div>
           <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
           <span class="tcb-fold-arrow">&#9660;</span>
         </summary>
@@ -1695,12 +1697,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.8"></script>
-<script src="tcb-swap-list.js?v=1.27.8"></script>
-<script src="tcb-assign-board.js?v=1.27.8"></script>
-<script src="tcb-handoff-plan.js?v=1.27.8"></script>
-<script src="tcb-team-rules.js?v=1.27.8"></script>
-<script src="tcb-tool-images.js?v=1.27.8"></script>
+<script src="tcb-device.js?v=1.27.9"></script>
+<script src="tcb-swap-list.js?v=1.27.9"></script>
+<script src="tcb-assign-board.js?v=1.27.9"></script>
+<script src="tcb-handoff-plan.js?v=1.27.9"></script>
+<script src="tcb-team-rules.js?v=1.27.9"></script>
+<script src="tcb-tool-images.js?v=1.27.9"></script>
 <script>
 
 
@@ -3189,12 +3191,17 @@ function updateSeedModeBanners(){
     var el=document.getElementById(id);
     if(el)el.className='tcb-seed-mode-banner'+(on?' on':'');
   });
+  var under=document.getElementById('btn-actual-hold-p2b');
+  if(under)under.className='rbtn tcb-actual-hold-under-tgrid'+(on?' on':'');
   if(on)syncSeedAllocRadioUI();
   var hint=document.getElementById('p3-reedit-hint');
   if(hint)hint.style.display=(R&&!on)?'block':'none';
   /* 入れ替え案の入口：基準になる結果（履歴・調整中の基準など）があるときだけ表示 */
   var hoEntry=document.getElementById('tcb-handoff-entry');
   if(hoEntry)hoEntry.style.display=handoffHasAnyBase()?'block':'none';
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
+    TCB_GroupHold.updateStatusUI();
+  }
   if(window.TCB_PreSummary)TCB_PreSummary.update();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
 }
@@ -3349,39 +3356,17 @@ function beginReeditFromCurrentResult(){
   persistAllocationSnapshot(snap);
   return beginReeditFromSnap(snap);
 }
-/* ===== 現地の実保有に補正（v1.6.8）：前回確定と実態のズレを実保有者へ手動補正 ===== */
-function actualHoldMemberOptions(selectedPerson){
-  var opts='<option value=""'+(!selectedPerson?' selected':'')+'>未割当</option>';
-  var seen={};
-  (MB||[]).forEach(function(m){
-    if(!m||!m.name)return;
-    if(memberMasterExcluded(m))return;
-    seen[m.name]=1;
-    opts+='<option value="'+esc(m.name)+'"'+(m.name===selectedPerson?' selected':'')+'>'+esc(m.name)+'</option>';
-  });
-  if(selectedPerson&&!seen[selectedPerson]){
-    opts+='<option value="'+esc(selectedPerson)+'" selected>'+esc(selectedPerson)+'（対象外）</option>';
+/* ===== 保有の確認・補正：手直しボードと同UIで確定保有を直す ===== */
+var _actualHoldDraft=null;
+function closeActualHoldModal(){
+  if(typeof TCB_AssignBoard!=='undefined'&&TCB_AssignBoard&&typeof TCB_AssignBoard.unmount==='function'){
+    TCB_AssignBoard.unmount();
   }
-  return opts;
+  _actualHoldDraft=null;
+  closeModal('actual-hold-modal');
 }
-function onActualHoldSelChange(e){
-  var sel=e&&e.target;
-  if(!sel||sel.tagName!=='SELECT'||!sel.hasAttribute('data-tcb-ah-tool'))return;
-  var row=sel.closest?sel.closest('.tcb-actual-hold-row'):null;
-  if(!row)return;
-  var orig=sel.getAttribute('data-tcb-ah-orig')||'';
-  if((sel.value||'')!==orig)row.classList.add('tcb-actual-hold-changed');
-  else row.classList.remove('tcb-actual-hold-changed');
-}
-function openActualHoldModal(){
-  var base=seedBaseSnap;
-  if(!base||typeof base.map!=='object'||base.map===null){
-    alert('補正の基準となる割り当てがありません。\n先に STEP1「いま持っている道具で、グループごとに割り振る」または STEP3「最小変更で再調整」から開始してください。');
-    return;
-  }
-  var listEl=document.getElementById('actual-hold-list');
-  if(!listEl)return;
-  var map=base.map;
+function actualHoldToolNames(base){
+  var map=(base&&base.map)||{};
   var names=[], seen={};
   (TL||[]).forEach(function(t){
     if(!t||!t.name)return;
@@ -3390,52 +3375,189 @@ function openActualHoldModal(){
   Object.keys(map).forEach(function(tn){
     if(map[tn]&&!seen[tn]){names.push(tn);seen[tn]=1;}
   });
-  if(!names.length){
-    listEl.innerHTML='<div class="tcb-actual-hold-row"><div class="tcb-actual-hold-tool">前回の割り当て道具がありません。</div></div>';
-  }else{
-    var html='';
-    names.forEach(function(tn){
-      var person=map[tn]||'';
-      html+='<div class="tcb-actual-hold-row">'
-        +'<div class="tcb-actual-hold-tool">'+esc(tn)+'</div>'
-        +'<select class="tcb-actual-hold-sel" data-tcb-ah-tool="'+esc(tn)+'" data-tcb-ah-orig="'+esc(person)+'">'
-        +actualHoldMemberOptions(person)
-        +'</select>'
-        +'</div>';
+  return names;
+}
+function actualHoldMemberInfo(name, team){
+  var row=memberRowByName(name);
+  var isGroup=typeof handoffIsGroupDest==='function'&&handoffIsGroupDest(name);
+  return {
+    name:name,
+    label:name,
+    team:team||'',
+    remote:!isGroup&&isMemberRemote(row),
+    excluded:!isGroup&&!!(absS[name]||ochS[name]),
+    isGroup:!!isGroup
+  };
+}
+function refreshActualHoldBoard(){
+  if(!_actualHoldDraft)return;
+  var root=document.getElementById('tcb-actual-hold-board-root');
+  if(!root||typeof TCB_AssignBoard==='undefined'||!TCB_AssignBoard)return;
+  var opts=buildActualHoldBoardOpts();
+  if(!opts)return;
+  TCB_AssignBoard.mount(root, opts);
+}
+function buildActualHoldBoardOpts(){
+  if(!_actualHoldDraft||!seedBaseSnap)return null;
+  var map=_actualHoldDraft.map||{};
+  var names=actualHoldToolNames({map:map});
+  if(!names.length)names=actualHoldToolNames(seedBaseSnap);
+  var toolsMeta=names.map(function(tn){
+    var master=null;
+    for(var i=0;i<(TL||[]).length;i++){if(TL[i].name===tn){master=TL[i];break;}}
+    return {name:tn,fixed:!!(master&&master.fixed)};
+  });
+  var toolsByPerson={};
+  var unassigned=[];
+  names.forEach(function(tn){
+    var holder=map[tn]||'';
+    var meta={name:tn,fixed:false};
+    for(var j=0;j<toolsMeta.length;j++){if(toolsMeta[j].name===tn){meta=toolsMeta[j];break;}}
+    if(holder){
+      if(!toolsByPerson[holder])toolsByPerson[holder]=[];
+      toolsByPerson[holder].push(meta);
+    }else{
+      unassigned.push(meta);
+    }
+  });
+  var la=tnA||seedBaseSnap.la||'試合組';
+  var lb=tnB||seedBaseSnap.lb||'練習組';
+  var useTeams=effectiveNeedsTeamUI()||snapIsTwoSplit(seedBaseSnap);
+  var groups=null, members=null;
+  if(useTeams){
+    var mA=[], mB=[], mX=[];
+    var inSet={};
+    (MB||[]).forEach(function(m){
+      if(!m||!m.name||memberMasterExcluded(m))return;
+      var tm=tmMap[m.name];
+      if(tm!=='A'&&tm!=='B')tm=(seedBaseSnap.tmMap||{})[m.name];
+      if(tm==='A'){mA.push(actualHoldMemberInfo(m.name,'A'));inSet[m.name]=1;}
+      else if(tm==='B'){mB.push(actualHoldMemberInfo(m.name,'B'));inSet[m.name]=1;}
+      else {mX.push(actualHoldMemberInfo(m.name,''));inSet[m.name]=1;}
     });
-    listEl.innerHTML=html;
+    Object.keys(toolsByPerson).forEach(function(n){
+      if(inSet[n])return;
+      var tm=tmMap[n]||(seedBaseSnap.tmMap||{})[n]||'';
+      var info=actualHoldMemberInfo(n, tm==='A'||tm==='B'?tm:'');
+      if(tm==='A')mA.push(info);
+      else if(tm==='B')mB.push(info);
+      else mX.push(info);
+      inSet[n]=1;
+    });
+    groups=[
+      {id:'A',label:la,members:mA},
+      {id:'B',label:lb,members:mB}
+    ];
+    if(mX.length)groups.push({id:'X',label:'その他・組未定',members:mX});
+  }else{
+    members=[];
+    var flatSet={};
+    (MB||[]).forEach(function(m){
+      if(!m||!m.name||memberMasterExcluded(m))return;
+      members.push(actualHoldMemberInfo(m.name,''));
+      flatSet[m.name]=1;
+    });
+    Object.keys(toolsByPerson).forEach(function(n){
+      if(flatSet[n])return;
+      members.push(actualHoldMemberInfo(n,''));
+    });
   }
+  function applyDraftChange(){
+    refreshActualHoldBoard();
+  }
+  return {
+    esc:esc,
+    lead:'道具タイルをタップ→移動先の人で移動。別の道具で入れ替え。未割当枠へも戻せます。班をまたいでも実態どおり直せます。',
+    foot:'「この内容で補正する」で保有基準に反映します（まだ割振り結果の手直しではありません）。',
+    map:map,
+    tools:toolsMeta,
+    toolsByPerson:toolsByPerson,
+    unassigned:unassigned,
+    groups:groups,
+    members:members,
+    canDropOnPerson:function(){return {ok:true};},
+    canSwap:function(toolA, toolB){
+      var ha=map[toolA]||'';
+      var hb=map[toolB]||'';
+      if(!ha&&!hb)return {ok:false,reason:''};
+      if(ha&&hb)return {ok:true};
+      return {ok:false,reason:''};
+    },
+    onMove:function(toolName, toPerson){
+      if(!_actualHoldDraft)return;
+      if(toPerson)_actualHoldDraft.map[toolName]=toPerson;
+      else delete _actualHoldDraft.map[toolName];
+      applyDraftChange();
+    },
+    onSwap:function(toolA, toolB){
+      if(!_actualHoldDraft)return;
+      var ha=_actualHoldDraft.map[toolA]||'';
+      var hb=_actualHoldDraft.map[toolB]||'';
+      if(hb)_actualHoldDraft.map[toolA]=hb; else delete _actualHoldDraft.map[toolA];
+      if(ha)_actualHoldDraft.map[toolB]=ha; else delete _actualHoldDraft.map[toolB];
+      applyDraftChange();
+    },
+    onReject:function(msg){
+      if(msg)tcbToast(msg,'warn');
+    }
+  };
+}
+function openActualHoldModal(){
+  var base=seedBaseSnap;
+  if(!base||typeof base.map!=='object'||base.map===null){
+    alert('補正の基準となる割り当てがありません。\n先に STEP1「いまの保有でグループごとに割振る」または履歴から保有基準を選んでください。');
+    return;
+  }
+  var root=document.getElementById('tcb-actual-hold-board-root');
+  if(!root)return;
+  if(typeof TCB_AssignBoard==='undefined'||!TCB_AssignBoard||typeof TCB_AssignBoard.mount!=='function'){
+    alert('手直しボードを読み込めませんでした。ページを再読み込みしてください。');
+    return;
+  }
+  _actualHoldDraft={
+    map:clonePlainObj(base.map),
+    origMap:clonePlainObj(base.map)
+  };
+  var opts=buildActualHoldBoardOpts();
+  if(!opts)return;
+  TCB_AssignBoard.mount(root, opts);
   openModal('actual-hold-modal');
 }
 function saveActualHoldAdjust(){
   var base=seedBaseSnap;
-  if(!base||typeof base.map!=='object'||base.map===null){closeModal('actual-hold-modal');return;}
-  var listEl=document.getElementById('actual-hold-list');
-  if(!listEl){closeModal('actual-hold-modal');return;}
-  var sels=listEl.querySelectorAll('select[data-tcb-ah-tool]');
+  if(!base||typeof base.map!=='object'||base.map===null||!_actualHoldDraft){
+    closeActualHoldModal();
+    return;
+  }
+  var next=clonePlainObj(_actualHoldDraft.map);
+  var orig=_actualHoldDraft.origMap||{};
   var changed=0;
-  for(var i=0;i<sels.length;i++){
-    var sel=sels[i];
-    var tn=sel.getAttribute('data-tcb-ah-tool');
-    if(!tn)continue;
-    var val=sel.value||'';
-    var cur=base.map[tn]||'';
-    if(val!==cur){
-      if(val)base.map[tn]=val;
-      else delete base.map[tn];
-      changed++;
-    }
+  var allKeys={};
+  Object.keys(orig).forEach(function(k){allKeys[k]=1;});
+  Object.keys(next).forEach(function(k){allKeys[k]=1;});
+  Object.keys(allKeys).forEach(function(tn){
+    if((orig[tn]||'')!==(next[tn]||''))changed++;
+  });
+  base.map=next;
+  /* 持っている人の班（きょうの班分け優先）に道具.team を合わせる */
+  var teamByPerson=Object.assign({}, seedBaseSnap.tmMap||{}, tmMap||{});
+  if(Array.isArray(base.tools)){
+    base.tools=reconcileToolsTeamWithHolders(base.tools, next, teamByPerson);
   }
   if(carryAdjustRefSnap&&typeof carryAdjustRefSnap.map==='object'&&carryAdjustRefSnap.map!==null){
-    carryAdjustRefSnap.map=clonePlainObj(base.map);
+    carryAdjustRefSnap.map=clonePlainObj(next);
+    if(Array.isArray(carryAdjustRefSnap.tools)){
+      carryAdjustRefSnap.tools=reconcileToolsTeamWithHolders(carryAdjustRefSnap.tools, next, teamByPerson);
+    }
   }
-  closeModal('actual-hold-modal');
+  closeActualHoldModal();
   if(changed){
     if(R){
       if(typeof buildTbl==='function')buildTbl();
       if(typeof renderCarryAdjustDiffSummary==='function')renderCarryAdjustDiffSummary();
     }
-    alert(changed+'点の実保有を補正しました。\nこの内容が「前回持っていた道具」の基準になり、入れ替え案内はこの実態との差分で作られます。');
+    if(window.TCB_PreSummary)TCB_PreSummary.update();
+    alert(changed+'点の実保有を補正しました。\n道具の組も持っている人の班に合わせました。この内容がグループ内割振りの基準になります。');
   }else{
     tcbToast('変更はありませんでした。','info');
   }
@@ -9147,7 +9269,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.8';
+  if(vEl)vEl.textContent='v1.27.9';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9257,7 +9379,7 @@ document.addEventListener('DOMContentLoaded',function(){
   /* 前回モーダル */
   var btnReedit=document.getElementById('btn-reedit-from-prev');
   if(btnReedit)btnReedit.addEventListener('click',function(){beginReeditFromCurrentResult();});
-  ['btn-actual-hold-p1','btn-actual-hold-p2'].forEach(function(id){
+  ['btn-actual-hold-p1','btn-actual-hold-p2','btn-actual-hold-p2b'].forEach(function(id){
     var el=document.getElementById(id);
     if(el)el.addEventListener('click',function(){openActualHoldModal();});
   });
@@ -9265,10 +9387,12 @@ document.addEventListener('DOMContentLoaded',function(){
   if(btnActualHoldSave)btnActualHoldSave.addEventListener('click',function(){saveActualHoldAdjust();});
   ['btn-actual-hold-cancel','actual-hold-close'].forEach(function(id){
     var el=document.getElementById(id);
-    if(el)el.addEventListener('click',function(){closeModal('actual-hold-modal');});
+    if(el)el.addEventListener('click',function(){closeActualHoldModal();});
   });
-  var actualHoldListEl=document.getElementById('actual-hold-list');
-  if(actualHoldListEl)actualHoldListEl.addEventListener('change',onActualHoldSelChange);
+  var actualHoldModal=document.getElementById('actual-hold-modal');
+  if(actualHoldModal)actualHoldModal.addEventListener('click',function(e){
+    if(e.target===actualHoldModal)closeActualHoldModal();
+  });
   ['btn-seed-mode-cancel-p1','btn-seed-mode-cancel-p2'].forEach(function(id){
     var el=document.getElementById(id);
     if(el)el.addEventListener('click',function(){
@@ -9358,6 +9482,7 @@ document.addEventListener('DOMContentLoaded',function(){
       closeModal:closeModal,
       esc:esc,
       onEnabledChange:refreshTeamUiForGroupHold,
+      isHoldingsSeedActive:function(){return !!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);},
       /* 端末保存（リロード・PWA再起動しても保有登録が消えないように） */
       loadPersisted:function(){
         try{var raw=_ls.get('tcb15GroupHold');return raw?JSON.parse(raw):null;}catch(e){return null;}
@@ -9742,18 +9867,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.8"></script>
-<script src="html2canvas.min.js?v=1.27.8"></script>
-<script src="html2pdf.min.js?v=1.27.8"></script>
-<script src="tcb-print-pdf.js?v=1.27.8"></script>
-<script src="tcb-feedback.js?v=1.27.8"></script>
-<script src="tcb-sync-api.js?v=1.27.8"></script>
-<script src="tcb-swap-mgr.js?v=1.27.8"></script>
-<script src="tcb-push-mgr.js?v=1.27.8"></script>
-<script src="tcb-login.js?v=1.27.8"></script>
-<script src="tcb-pwa-install.js?v=1.27.8"></script>
-<script src="tcb-group-hold.js?v=1.27.8"></script>
-<script src="tcb-presummary.js?v=1.27.8"></script>
-<script src="tcb-p1-flow.js?v=1.27.8"></script>
+<script src="jspdf.umd.min.js?v=1.27.9"></script>
+<script src="html2canvas.min.js?v=1.27.9"></script>
+<script src="html2pdf.min.js?v=1.27.9"></script>
+<script src="tcb-print-pdf.js?v=1.27.9"></script>
+<script src="tcb-feedback.js?v=1.27.9"></script>
+<script src="tcb-sync-api.js?v=1.27.9"></script>
+<script src="tcb-swap-mgr.js?v=1.27.9"></script>
+<script src="tcb-push-mgr.js?v=1.27.9"></script>
+<script src="tcb-login.js?v=1.27.9"></script>
+<script src="tcb-pwa-install.js?v=1.27.9"></script>
+<script src="tcb-group-hold.js?v=1.27.9"></script>
+<script src="tcb-presummary.js?v=1.27.9"></script>
+<script src="tcb-p1-flow.js?v=1.27.9"></script>
 </body>
 </html>

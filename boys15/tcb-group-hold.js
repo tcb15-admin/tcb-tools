@@ -104,11 +104,17 @@
     var card = document.getElementById('tcb-ghold-card');
     var status = document.getElementById('tcb-ghold-status');
     var btnClear = document.getElementById('btn-tcb-ghold-clear');
+    var btnEdit = document.getElementById('btn-tcb-ghold-edit');
+    var actions = document.querySelector('.tcb-ghold-actions');
     /* STEP2 内のカードは常時表示（パターン問わず登録可能） */
     if (card) card.className = 'card tcb-ghold-card on';
+    var seedOn = !!(ctx && typeof ctx.isHoldingsSeedActive === 'function' && ctx.isHoldingsSeedActive());
     var labels = displayLabels();
     if (status) {
-      if (enabled) {
+      if (seedOn) {
+        status.className = 'tcb-ghold-status';
+        status.textContent = '確定保有が優先されています。組ごとの道具の確認・修正は上の「保有を確認・直す」を使ってください。ここは確定保有が無いとき用の任意控えです。';
+      } else if (enabled) {
         var c = countByTeam(holdMap);
         status.className = 'tcb-ghold-status tcb-ghold-on';
         status.textContent = '有効：保有控え（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）に沿い、各グループ内で割り振ります。活動前の個人間入れ替えは STEP1 の入れ替え依頼から行います。';
@@ -117,15 +123,25 @@
         status.textContent = '未使用。割振りの班分けは活動パターンとルールに従います。必要なときだけ保有控えを登録してください。';
       }
     }
-    if (btnClear) btnClear.style.display = enabled ? '' : 'none';
+    if (btnClear) btnClear.style.display = (!seedOn && enabled) ? '' : 'none';
+    if (btnEdit) btnEdit.style.display = seedOn ? 'none' : '';
+    if (actions) actions.style.display = seedOn ? 'none' : '';
     /* 折りたたみ（STEP2カード）の状態ピルと自動展開 */
     var sum = document.getElementById('tcb-ghold-sumstate');
     if (sum) {
-      sum.textContent = enabled ? '使用中' : '未使用';
-      sum.className = 'tcb-fold-state' + (enabled ? ' on' : '');
+      if (seedOn) {
+        sum.textContent = '確定保有優先';
+        sum.className = 'tcb-fold-state';
+      } else {
+        sum.textContent = enabled ? '使用中' : '未使用';
+        sum.className = 'tcb-fold-state' + (enabled ? ' on' : '');
+      }
     }
     var det = document.getElementById('tcb-ghold-details');
-    if (det && enabled && !det.open) det.open = true;
+    if (det) {
+      if (seedOn) det.open = false;
+      else if (enabled && !det.open) det.open = true;
+    }
   }
 
   function renderDraftList() {
