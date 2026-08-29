@@ -4789,10 +4789,6 @@ function handoffActiveMembers(ctx){
 function handoffEditHolderOptions(toolName, ctx, snap){
   var prev=(snap&&snap.map&&snap.map[toolName])||'';
   var opts=[{value:'__prev__',label:'前回どおり'+(prev?'（'+prev+'）':'（変更なし）')}];
-  var toolTeam='';
-  (ctx&&(ctx.allTools||ctx.tools)||[]).forEach(function(t){
-    if(t&&t.name===toolName)toolTeam=t.team||'';
-  });
   var seen={};
   function addPerson(name){
     if(!name||seen[name])return;
@@ -4800,20 +4796,34 @@ function handoffEditHolderOptions(toolName, ctx, snap){
     opts.push({value:name,label:name});
   }
   if(ctx&&ctx.mode==='team'){
-    var members=(toolTeam==='B')?(ctx.mB||[]):(ctx.mA||[]);
-    if(toolTeam!=='A'&&toolTeam!=='B'){
-      members=handoffActiveMembers(ctx);
-    }
-    members.forEach(function(m){addPerson(m&&m.name);});
-    if(toolTeam==='A'||toolTeam==='B'){
-      var mk=handoffGroupMarker(toolTeam);
-      opts.push({value:mk,label:mk+'（組内で調整・担当未定）'});
-    }
+    /* 手直しは班跨ぎ可（自動算出の班分けを上書きする用途） */
+    handoffActiveMembers(ctx).forEach(function(m){addPerson(m&&m.name);});
+    opts.push({value:handoffGroupMarker('A'),label:handoffGroupMarker('A')+'（組内で調整・担当未定）'});
+    opts.push({value:handoffGroupMarker('B'),label:handoffGroupMarker('B')+'（組内で調整・担当未定）'});
   }else{
     (ctx.members||[]).forEach(function(m){addPerson(m&&m.name);});
   }
   if(prev&&!seen[prev]&&!handoffIsGroupDest(prev))opts.push({value:prev,label:prev+'（前回担当・班外）'});
   return opts;
+}
+/* 手直し後：宛先の班に合わせて道具の team を揃える（班跨ぎ調整用） */
+function handoffSyncToolTeamsFromMap(map, allTools, ctx){
+  if(!ctx||ctx.mode!=='team'||!map)return;
+  var byName={};
+  (allTools||[]).forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+  var mkA=handoffGroupMarker('A'), mkB=handoffGroupMarker('B');
+  Object.keys(map).forEach(function(tn){
+    var h=map[tn], t=byName[tn];
+    if(!t||!h)return;
+    if(h===mkA){t.team='A';return;}
+    if(h===mkB){t.team='B';return;}
+    if(handoffIsGroupDest(h))return;
+    var team='';
+    if(ctx.mA&&ctx.mA.some(function(m){return m&&m.name===h;}))team='A';
+    else if(ctx.mB&&ctx.mB.some(function(m){return m&&m.name===h;}))team='B';
+    else if(tmMap[h]==='A'||tmMap[h]==='B')team=tmMap[h];
+    if(team==='A'||team==='B')t.team=team;
+  });
 }
 function handoffPlanRenderPayload(plan){
   if(!plan||!plan.baseSnap||!plan.ctx)return null;
@@ -4860,6 +4870,7 @@ function rebuildHandoffPlanFromMap(finalMap, editedFlag, manualTn){
   if(!plan||!plan.baseSnap||!plan.ctx)return {error:'調整対象がありません。先に入れ替え案を算出してください。'};
   var snap=plan.baseSnap, ctx=plan.ctx, allTools=plan.allTools;
   var resolvedMap=editedFlag?handoffMapAfterManualEdit(finalMap, snap, ctx, allTools, manualTn):finalMap;
+  if(editedFlag)handoffSyncToolTeamsFromMap(resolvedMap, allTools, ctx);
   var markerTm=handoffMarkerTmFromMap(resolvedMap, allTools);
   var report=buildCarryAdjustChangeReport(snap.map, resolvedMap, allTools);
   var lineText=buildHandoffLineText(report, snap);
@@ -4880,7 +4891,7 @@ function buildHandoffEditPanelHtml(plan){
   var editedNote=plan.edited?'<p class="tcb-handoff-edit-warn">※ 算出結果から手動調整済みです。LINE本文・PDFはこの内容です。</p>':'';
   return '<div class="tcb-handoff-edit">'
     +'<div class="tcb-handoff-edit-hd">手直しボード（任意調整）</div>'
-    +'<p class="tcb-handoff-edit-note">道具タイルをタップ→移動先をタップで変更。別の道具で入れ替え。組名の枠へ落とすと「グループ宛て」になります。変更はすぐ反映され、LINE本文も更新されます。</p>'
+    +'<p class="tcb-handoff-edit-note">道具タイルをタップ→移動先をタップで変更。別の道具で入れ替え。<strong>試合組⇔練習組の班跨ぎも可</strong>。組名枠＝グループ宛て。変更はすぐ反映され、LINE本文も更新されます。</p>'
     +editedNote
     +'<div id="tcb-handoff-board-root"></div>'
     +'<div class="tcb-handoff-edit-actions">'
@@ -4960,7 +4971,7 @@ function buildHandoffAssignBoardOpts(){
   }
   return {
     esc:esc,
-    lead:'入れ替え先をボードで変更できます。組名枠＝グループ宛て（誰が受け取ってもOK）。未割当に戻すとその道具は受け渡し対象外（担当なし）になります。',
+    lead:'入れ替え先をボードで変更できます。試合組⇔練習組の班跨ぎも手直しでは可能です。組名枠＝グループ宛て（誰が受け取ってもOK）。未割当に戻すとその道具は受け渡し対象外になります。',
     map:map,
     tools:toolsMeta,
     toolsByPerson:toolsByPerson,
@@ -4970,7 +4981,6 @@ function buildHandoffAssignBoardOpts(){
     canDropOnPerson:function(toolName, person){
       var ok=allowedHolders(toolName).indexOf(person)>=0;
       if(ok)return {ok:true};
-      /* 前回担当へ戻すのは常に許可 */
       if(snap.map&&snap.map[toolName]===person)return {ok:true};
       return {ok:false,reason:'この宛先には割り当てできません。'};
     },
@@ -4979,7 +4989,7 @@ function buildHandoffAssignBoardOpts(){
       if(!ha||!hb)return {ok:false,reason:''};
       var okA=allowedHolders(toolA).indexOf(hb)>=0||(snap.map&&snap.map[toolA]===hb);
       var okB=allowedHolders(toolB).indexOf(ha)>=0||(snap.map&&snap.map[toolB]===ha);
-      return (okA&&okB)?{ok:true}:{ok:false,reason:'班の制約で入れ替えできません。'};
+      return (okA&&okB)?{ok:true}:{ok:false,reason:'入れ替えできない組み合わせです。'};
     },
     onMove:null,
     onSwap:null,
