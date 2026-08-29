@@ -4080,8 +4080,12 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
   });
   return {baseMap:baseMap, poolSet:poolSet};
 }
-/* 「公平に分散」用：固定以外の前回担当をいったんプールへ戻し、グループ内で公平に振り直す */
-function releaseNonFixedToPoolForFair(baseMap, poolSet, toolList){
+/* 「公平に分散」用：固定以外の前回担当をいったんプールへ戻し、グループ内で公平に振り直す。
+   ただし基準が班分けあり → きょうが班なし（例: 片方試合→両方練習）のときは、
+   班をまたいだ再配分になるため放さない（持ち帰り担当を維持）。 */
+function releaseNonFixedToPoolForFair(baseMap, poolSet, toolList, opts){
+  opts=opts||{};
+  if(opts.preserveHoldingsAcrossModeChange)return;
   var byName={};
   (toolList||[]).forEach(function(t){if(t&&t.name)byName[t.name]=t;});
   Object.keys(baseMap||{}).forEach(function(tn){
@@ -4687,7 +4691,8 @@ function runAlgoApplyPrevSeed(snap, ctx, runSeed){
   var allTools=ctx.mode==='team'?ctx.allTools:ctx.tools;
   enforceNoMultiOnBaseMap(built.baseMap, built.poolSet, allTools);
   var fairPool=(loadSeedAllocMethod()!=='min');
-  if(fairPool)releaseNonFixedToPoolForFair(built.baseMap, built.poolSet, allTools);
+  var preserveHoldings=!!(fairPool&&snap&&snap.mode==='team'&&ctx&&ctx.mode==='single');
+  if(fairPool)releaseNonFixedToPoolForFair(built.baseMap, built.poolSet, allTools,{preserveHoldingsAcrossModeChange:preserveHoldings});
   var poolFn=fairPool?assignPoolFair:assignPoolCarryAdjust;
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, {});
   return true;
@@ -4708,14 +4713,21 @@ function runAlgoCarryAdjust(snap, ctx, runSeed){
   }else{
     zeroSide.all=buildZeroPrioritySet(snap, ctx.members);
   }
-  /* 公平：固定以外をグループ内で振り直し／変更最小：前回維持＋余剰は少人数へ */
+  /* 公平：固定以外をグループ内で振り直し／変更最小：前回維持＋余剰は少人数へ
+     班あり→班なしへ変えたときは公平でも持ち帰り担当を崩さない */
   var fairPool=(loadSeedAllocMethod()!=='min');
-  if(fairPool)releaseNonFixedToPoolForFair(built.baseMap, built.poolSet, allTools);
+  var preserveHoldings=!!(fairPool&&snap&&snap.mode==='team'&&ctx&&ctx.mode==='single');
+  if(fairPool)releaseNonFixedToPoolForFair(built.baseMap, built.poolSet, allTools,{preserveHoldingsAcrossModeChange:preserveHoldings});
   var poolFn=fairPool?assignPoolFair:assignPoolCarryAdjust;
   finalizePrevSeedAssignment(ctx, ex, built.baseMap, built.poolSet, prevMap, runSeed, poolFn, zeroSide);
-  var methodNote=fairPool
-    ?'「公平に分散」：固定以外の道具をグループ内で公平に振り直しました。'
-    :'「前回のまま維持」：前回の担当を最大限維持し、余った道具は少人数へまとめました。';
+  var methodNote;
+  if(preserveHoldings){
+    methodNote='「公平に分散」ですが、基準はグループ分けあり・きょうは分けなしのため、持ち帰り担当を維持し、引き継げない道具だけ再配分しました。';
+  }else if(fairPool){
+    methodNote='「公平に分散」：固定以外の道具をグループ内で公平に振り直しました。';
+  }else{
+    methodNote='「前回のまま維持」：前回の担当を最大限維持し、余った道具は少人数へまとめました。';
+  }
   return (ochNotes||[]).concat(swapNotes||[]).concat([methodNote]);
 }
 /* 次回活動の入れ替え案：モーダル操作前の STEP1 状態（パターン・班分け・グループ名）を控えて、閉じたら戻す */

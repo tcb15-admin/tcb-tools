@@ -57,7 +57,7 @@
 
   /**
    * キャッチャー道具：固定担当の所属グループへ。
-   * 固定メンバーがすべて同グループなら、非固定（もう一つ等）は反対グループへ振り、偏りを防ぐ。
+   * 非固定は前回保有側を優先。前回が無いときだけ、固定が片側に偏っていれば反対側へ振る。
    */
   function assignCatcher(tools, out, opts) {
     var list = tools.slice().sort(sortByCircled);
@@ -78,21 +78,24 @@
     else if (fixedTools.length && sides.B > 0 && sides.A === 0) allFixedSame = 'B';
 
     freeTools.forEach(function (t, idx) {
+      /* 前回保有（試合組が持っている等）を最優先。反対側への強制振りはしない */
+      var pt = prevTeamOf(t.name, opts);
+      if (pt === 'A' || pt === 'B') {
+        out[t.name] = pt;
+        sides[pt]++;
+        return;
+      }
       if (allFixedSame) {
         out[t.name] = allFixedSame === 'A' ? 'B' : 'A';
+        sides[out[t.name]]++;
         return;
       }
       if (!fixedTools.length) {
-        out[t.name] = prevTeamOf(t.name, opts) || (idx % 2 === 0 ? 'A' : 'B');
+        out[t.name] = (idx % 2 === 0 ? 'A' : 'B');
+        sides[out[t.name]]++;
         return;
       }
-      /* 固定が両グループにいる： sticky → 少ない側 */
-      var pt = prevTeamOf(t.name, opts);
-      if (pt) {
-        out[t.name] = pt;
-      } else {
-        out[t.name] = sides.A <= sides.B ? 'A' : 'B';
-      }
+      out[t.name] = sides.A <= sides.B ? 'A' : 'B';
       sides[out[t.name]]++;
     });
   }
