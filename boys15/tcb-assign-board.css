@@ -162,6 +162,7 @@
   align-items:center;
   gap:4px;
   max-width:100%;
+  width:100%;
   padding:7px 9px;
   border-radius:9px;
   border:1.5px solid #b0bec5;
@@ -181,10 +182,21 @@
 }
 .tcb-ab-tile:active{opacity:.92;}
 .tcb-ab-tile-txt{
+  display:inline-flex;
+  align-items:baseline;
+  min-width:0;
+  flex:1;
+  max-width:100%;
+}
+.tcb-ab-tile-base{
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  max-width:11em;
+  min-width:0;
+}
+.tcb-ab-tile-serial{
+  flex-shrink:0;
+  font-variant-numeric:tabular-nums;
 }
 .tcb-ab-tile-fixed{border-color:#ce93d8;background:#f3e5f5;color:#6a1b9a;}
 .tcb-ab-tile-on{
@@ -215,7 +227,6 @@
   .tcb-ab-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   .tcb-ab-card{padding:8px;min-height:80px;}
   .tcb-ab-tile{padding:6px 8px;font-size:11.5px;min-height:34px;}
-  .tcb-ab-tile-txt{max-width:9em;}
 }
 
 @media (prefers-color-scheme:dark){

@@ -73,8 +73,19 @@
     return { ok: true };
   }
 
+  function splitToolLabel(name) {
+    var s = String(name == null ? '' : name);
+    /* 末尾の通し番号（①②・半角/全角数字）は常に見せる */
+    var m = s.match(/^(.*?)([①-⑳❶-❿⑪-⒇]+|[0-9０-９]+)$/);
+    if (m && m[1].length >= 2) {
+      return { base: m[1], serial: m[2], full: s };
+    }
+    return { base: s, serial: '', full: s };
+  }
+
   function renderTile(opts, tool, eFn) {
     var name = tool.name || '';
+    var parts = splitToolLabel(name);
     var locked = !!tool.locked;
     var fixed = !!tool.fixed;
     var on = selectedTool === name;
@@ -86,11 +97,17 @@
       if (sw.ok) cls += ' tcb-ab-tile-swap-target';
     }
     var lockMark = locked ? '<span class="tcb-ab-tile-lock" aria-hidden="true">🔒</span>' : (fixed ? '<span class="tcb-ab-tile-lock" aria-hidden="true">固</span>' : '');
+    var labelHtml = parts.serial
+      ? ('<span class="tcb-ab-tile-base">' + eFn(parts.base) + '</span>'
+        + '<span class="tcb-ab-tile-serial">' + eFn(parts.serial) + '</span>')
+      : ('<span class="tcb-ab-tile-base">' + eFn(parts.base) + '</span>');
     return '<button type="button" class="' + cls + '" data-ab-tool="' + eFn(name) + '"'
+      + ' title="' + eFn(parts.full) + '"'
       + (locked ? ' disabled aria-disabled="true"' : '')
+      + ' aria-label="' + eFn(parts.full) + '"'
       + ' aria-pressed="' + (on ? 'true' : 'false') + '">'
       + lockMark
-      + '<span class="tcb-ab-tile-txt">' + eFn(name) + '</span>'
+      + '<span class="tcb-ab-tile-txt">' + labelHtml + '</span>'
       + '</button>';
   }
 
