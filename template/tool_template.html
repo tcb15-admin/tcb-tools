@@ -1562,7 +1562,7 @@ html{color-scheme:light;}
         欠席・当番が変わったときは<strong>「最小変更で再調整」</strong>で、いまの割振りを基準に STEP1 からやり直せます。<button type="button" class="tcb-tip" data-tip="表示中の割振り結果を<strong>基準</strong>に最小変更で再調整モードへ入ります。前回と同じ担当をできるだけ維持し、必要な人だけ入れ替えます。" aria-label="説明"></button>
       </div>
       <div class="p3-cross-team-wrap" id="p3-cross-team-wrap" style="display:none;">
-        <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示<button type="button" class="tcb-tip" data-tip="<strong>手動割当のみ</strong>に適用（自動の「割振りを実行」は従来どおり班ごと）。持ち帰り調整モードでは自動でオンになります。" aria-label="説明"></button></label>
+        <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示<button type="button" class="tcb-tip" data-tip="<strong>手動割当のみ</strong>に適用（自動の「割振りを実行」は常に班ごと）。通常はオフのまま、手直しで班またぎが必要なときだけオンにしてください。" aria-label="説明"></button></label>
       </div>
       <div class="al ali tcb-p3-hint" id="p3-mem-unpublished-hint" style="display:none;">
         試合メンバー未発表モード — 印刷・メンバー別は組名・班なしの1一覧です。
@@ -4667,13 +4667,18 @@ function applyOchHandoff(baseMap, poolSet, snap, ctx){
   if(toPool)notes.push('班不一致等で引き継げなかった道具'+toPool+'点はプールへ回しました。');
   return notes;
 }
-/* プール割当後：割振り対象メンバー＋お茶当番引き継ぎ等（除外者）の state を side へ反映 */
+/* プール割当後：当該班メンバーへ反映。他班の現役メンバーは混ぜない。
+   欠席・お茶当番への手動割当分だけ例外で残す。 */
 function mergePoolSideState(fullSt, memberList, sideObj){
+  var own={};
   (memberList||[]).forEach(function(m){
+    if(m&&m.name)own[m.name]=1;
     if(fullSt[m.name])sideObj[m.name]=fullSt[m.name];
   });
+  var ex=exSet();
   Object.keys(fullSt||{}).forEach(function(n){
-    if(sideObj[n])return;
+    if(sideObj[n]||own[n])return;
+    if(!ex[n])return;
     var st=fullSt[n];
     if(st&&(st.cnt|0)>0)sideObj[n]=st;
   });
@@ -4703,6 +4708,7 @@ function finalizePrevSeedAssignment(ctx, ex, baseMap, poolSet, prevMap, runSeed,
     }else R.sB=buildStateExcludingPool(R.mB, {}, 'B');
     R.map=Object.assign({},mkMap(R.sA),mkMap(R.sB));
     R.state=Object.assign({},R.sA,R.sB);
+    repairCrossTeamAssignments(ctx, prevMap, seed, poolAssignFn, zeroPriBySide);
   }else{
     R={mode:'single',tools:ctx.tools,members:ctx.members,map:{},state:{},ex:ex};
     Object.assign(R.map, baseMap);
@@ -4718,6 +4724,52 @@ function finalizePrevSeedAssignment(ctx, ex, baseMap, poolSet, prevMap, runSeed,
     R.map=mkMap(R.state);
   }
   return true;
+}
+/* 道具の班と担当者の班が食い違う割当を剥がし、正しい班内で再割当する（再発防止） */
+function repairCrossTeamAssignments(ctx, prevMap, runSeed, poolAssignFn, zeroPriBySide){
+  if(!R||R.mode!=='team'||!ctx)return 0;
+  var nA=memberNameSet(ctx.mA), nB=memberNameSet(ctx.mB);
+  var byName={};
+  (ctx.allTools||[]).forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+  var badA=[], badB=[], fixed=0;
+  Object.keys(R.map||{}).forEach(function(tn){
+    var t=byName[tn];
+    if(!t)return;
+    var p=R.map[tn];
+    if(!p)return;
+    var tm=t.team==='B'?'B':'A';
+    var ok=(tm==='A')?nA[p]:nB[p];
+    if(ok)return;
+    /* 欠席・お茶への手動例外は残す */
+    if(exSet()[p])return;
+    delete R.map[tn];
+    if(tm==='A')badA.push(t); else badB.push(t);
+    fixed++;
+  });
+  if(!fixed)return 0;
+  zeroPriBySide=zeroPriBySide||{};
+  var seed=(runSeed|0)||Date.now();
+  var poolFn=poolAssignFn||assignPoolFair;
+  if(badA.length){
+    var poA={}; badA.forEach(function(t){poA[t.name]=1;});
+    var fA=buildStateExcludingPool(ctx.mA, poA, 'A');
+    poolFn(badA, fA, prevMap, seed, zeroPriBySide.A||null);
+    R.sA={}; mergePoolSideState(fA, ctx.mA, R.sA);
+  }else R.sA=buildStateExcludingPool(ctx.mA, {}, 'A');
+  if(badB.length){
+    var poB={}; badB.forEach(function(t){poB[t.name]=1;});
+    var fB=buildStateExcludingPool(ctx.mB, poB, 'B');
+    poolFn(badB, fB, prevMap, seed, zeroPriBySide.B||null);
+    R.sB={}; mergePoolSideState(fB, ctx.mB, R.sB);
+  }else R.sB=buildStateExcludingPool(ctx.mB, {}, 'B');
+  R.map=Object.assign({},mkMap(R.sA),mkMap(R.sB));
+  R.state=Object.assign({},R.sA,R.sB);
+  if(fixed){
+    carryAdjustRunNotes=(carryAdjustRunNotes||[]).concat([
+      '班またぎ割当 '+fixed+'点を検出し、正しいグループ内で付け直しました。'
+    ]);
+  }
+  return fixed;
 }
 /* LS_PREV の map をベースに R を組み立て。差分道具は snap.map を前回担当としてプール割当に渡す */
 function runAlgoApplyPrevSeed(snap, ctx, runSeed){
@@ -5618,7 +5670,8 @@ function prio(s, medianPast){
 
 /* ========== アルゴリズム ========== */
 /* チーム割り：固定担当が相手グループにいる道具は、相手側の道具リストへ移す（fixed は維持）。
-   旧実装は fixed を外すだけで元リストに残り、担当者不在の defer 扱いとなり誤配分されていた。 */
+   旧実装は fixed を外すだけで元リストに残り、担当者不在の defer 扱いとなり誤配分されていた。
+   移したあとは必ず t.team をリスト側に合わせて更新する（未更新だと表示班と割当班が食い違う）。 */
 function partitionFixedCrossTeam(toolList, ownGroup, otherGroup){
   var ownNames={}, otherNames={};
   ownGroup.forEach(function(m){ownNames[m.name]=1;});
@@ -5633,10 +5686,16 @@ function partitionFixedCrossTeam(toolList, ownGroup, otherGroup){
   });
   return {keep:keep,toOther:toOther};
 }
+function stampToolTeam(list, team){
+  return (list||[]).map(function(t){return Object.assign({},t,{team:team});});
+}
 function mergeTeamToolListsForFixed(tA,tB,mA,mB){
   var pa=partitionFixedCrossTeam(tA,mA,mB);
   var pb=partitionFixedCrossTeam(tB,mB,mA);
-  return {tA:pa.keep.concat(pb.toOther),tB:pb.keep.concat(pa.toOther)};
+  return {
+    tA:stampToolTeam(pa.keep.concat(pb.toOther),'A'),
+    tB:stampToolTeam(pb.keep.concat(pa.toOther),'B')
+  };
 }
 /* マスタ固定：車両上限・noMul の「他に回さない」等を無視して必ずその人へ（同一人物に多数固定可） */
 function applyAssignToolToState(s,t){
@@ -5953,7 +6012,10 @@ function buildStateExcludingPool(memberList, poolSet, teamFilter, mapOverride, t
     if(!R||!R.map)return state;
     if(!assignMap)assignMap=R.map;
     if(!allT)allT=(R.mode==='team')?R.allTools:R.tools;
-    ensureStateMembers(state, collectMapAssigneeNames(teamFilter));
+    /* 他班の現役は state に入れない（プール自動割当への混入防止）。欠席・お茶のみ補完 */
+    var ex=exSet();
+    var extras=collectMapAssigneeNames(teamFilter).filter(function(n){return !!ex[n];});
+    ensureStateMembers(state, extras);
   }
   allT=allT||[];
   allT.forEach(function(t){
@@ -6088,12 +6150,26 @@ function memberDisplayTeam(name){
   for(i=0;i<R.mB.length;i++){if(R.mB[i].name===name)return 'B';}
   return tmMap[name]||null;
 }
+function listCrossTeamAssignNames(){
+  if(!R||R.mode!=='team')return [];
+  var out=[];
+  var nA=memberNameSet(R.mA), nB=memberNameSet(R.mB);
+  (R.allTools||[]).forEach(function(t){
+    if(!t||!t.name)return;
+    var p=R.map[t.name];
+    if(!p||exSet()[p])return;
+    var tm=t.team==='B'?'B':'A';
+    var ok=(tm==='A')?nA[p]:nB[p];
+    if(!ok)out.push(t.name+'→'+p);
+  });
+  return out;
+}
 function isCarryAdjustCrossTeamActive(){
-  return !!(carryAdjustMode||seedFromPrev);
+  /* 保有ベースの通常割振りでは班またぎを自動オンにしない（手直しは明示チェックのみ） */
+  return false;
 }
 function isManualCrossTeamEnabled(){
   if(!R||R.mode!=='team')return false;
-  if(isCarryAdjustCrossTeamActive())return true;
   if(shareHidesTeamSplit())return false;
   var chk=document.getElementById('chk-manual-cross-team');
   return !!(chk&&chk.checked);
@@ -6115,13 +6191,7 @@ function updateManualCrossTeamWrap(){
   wrap.style.display=showTeam?'block':'none';
   var chk=document.getElementById('chk-manual-cross-team');
   if(!chk)return;
-  var autoCross=showTeam&&isCarryAdjustCrossTeamActive();
-  if(autoCross){
-    chk.checked=true;
-    chk.disabled=true;
-  }else{
-    chk.disabled=false;
-  }
+  chk.disabled=false;
 }
 /* STEP3 手動割当：自動割振り対象＋欠席・お茶当番＋map 上の担当者（班跨ぎ時は両班） */
 function candsManual(team, toolName){
@@ -6779,6 +6849,7 @@ function runAlgo(){
       R={mode:'team',tA:ctx.tA,tB:ctx.tB,sA:sA,sB:sB,mA:ctx.mA,mB:ctx.mB,
          allTools:ctx.allTools,map:Object.assign({},mkMap(sA),mkMap(sB)),
          state:Object.assign({},sA,sB),ex:ctx.ex,la:ctx.la,lb:ctx.lb};
+      repairCrossTeamAssignments(ctx, prevAssignMap, runSeed, assignPoolFair, {});
     }else{
       var state=doAssign(ctx.tools,initSt(ctx.members),prevAssignMap,runSeed);
       R={mode:'single',tools:ctx.tools,map:mkMap(state),state:state,members:ctx.members,ex:ctx.ex};
@@ -6838,6 +6909,12 @@ function renderAll(){
     var dB=document.createElement('div'); dB.className='al alb';
     dB.textContent=R.lb+'グループ：'+R.mB.map(function(m){return m.name;}).join('・');
     aa.appendChild(dA); aa.appendChild(dB);
+    var crossBad=listCrossTeamAssignNames();
+    if(crossBad.length){
+      var dX=document.createElement('div'); dX.className='al alw';
+      dX.textContent='班またぎ割当が残っています（手直しで同グループへ）：'+crossBad.join('、');
+      aa.appendChild(dX);
+    }
   }
   if(R.mode==='team'&&pat==='kata'){
     var matchT=kataMatchTeamId();
