@@ -36,41 +36,40 @@ body.gear-body{
   padding:14px 14px calc(88px + env(safe-area-inset-bottom,0px));
 }
 
-/* ---- ステップナビ（att-flow-btn 同型） ---- */
+/* ---- ステップナビ（矢羽根：ホームベース五角形で左→右の流れ） ---- */
 .gear-body .steps{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
-  margin:0 0 8px;background:transparent;
+  display:flex;gap:4px;margin:0 0 16px;background:transparent;
 }
 .gear-body .si{
-  display:flex;align-items:center;gap:8px;
-  padding:10px;text-align:left;cursor:pointer;
-  border:1px solid var(--gear-bdr);border-radius:12px;
-  background:var(--gear-card);
-  font:inherit;color:inherit;appearance:none;-webkit-appearance:none;
-  min-height:var(--gear-tap);
+  flex:1;min-width:0;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  height:42px;min-height:42px;padding:0 10px 0 18px;text-align:center;
+  border:none;border-radius:0;box-shadow:none;
+  background:var(--gear-surface);color:var(--gear-txt2);
+  font:inherit;font-size:12px;font-weight:700;
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);
 }
 .gear-body .si.on{
-  border-color:var(--gear-navy);
-  box-shadow:inset 0 0 0 1px var(--gear-navy);
-  background:var(--gear-card);
+  background:var(--gear-navy);color:var(--gear-bg);
+  border:none;box-shadow:none;
 }
 .gear-body .si.done{
-  border-color:var(--tcb-ok,#15803d);
-  background:#e7f5ea;
+  background:#e7f5ea;color:var(--tcb-ok,#15803d);border:none;
 }
+.gear-body .si.si0{flex:0 0 auto;background:#f3e9f8;color:#7b3f9e;}
 .gear-body .sn{
-  width:22px;height:22px;border-radius:50%;flex-shrink:0;
-  background:var(--gear-surface);color:var(--gear-txt2);
-  font-size:12px;font-weight:800;
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  background:rgba(0,0,0,.08);color:inherit;
+  font-size:11px;font-weight:800;
   display:inline-flex;align-items:center;justify-content:center;margin:0;
 }
-.gear-body .si.on .sn{background:var(--gear-navy);color:#fff;}
+.gear-body .si.on .sn{background:var(--gear-bg);color:var(--gear-navy);}
 .gear-body .si.done .sn{background:var(--tcb-ok,#15803d);color:#fff;}
+.gear-body .si.si0 .sn{background:rgba(106,27,154,.15);color:#7b3f9e;}
 .gear-body .sl{
-  font-size:12px;font-weight:800;color:var(--gear-heading);line-height:1.3;
-}
-.gear-body .tcb-flow-hint{
-  font-size:12px;color:var(--gear-txt2);line-height:1.45;margin:0 0 12px;
+  font-size:inherit;font-weight:inherit;color:inherit;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
 /* ---- カード ---- */
@@ -100,12 +99,21 @@ body.gear-body{
 
 @media (max-width:520px){
   .gear-body .card{padding:14px 12px;}
-  .gear-body .si .sl{word-break:keep-all;}
+  /* 狭い画面：現在のステップだけラベル表示、他は番号のみ（折返し禁止） */
+  .gear-body .si{height:38px;min-height:38px;padding:0 8px 0 16px;
+    clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%,9px 50%);}
+  .gear-body .si .sl{display:none;}
+  .gear-body .si.on{flex:2.6;}
+  .gear-body .si.on .sl{display:block;font-size:11.5px;}
 }
 
 @media (prefers-color-scheme:dark){
-  .gear-body .si{background:var(--gear-card);}
-  .gear-body .si.on{background:var(--gear-card);}
-  .gear-body .si.done{background:rgba(21,128,61,.18);}
+  :root{--gear-surface:#2c2c2e;}
+  .gear-body .si{background:var(--gear-surface);}
+  .gear-body .si.done{background:rgba(48,209,88,.16);color:#7fd99a;}
+  .gear-body .si.done .sn{background:var(--tcb-ok,#15803d);color:#fff;}
+  .gear-body .si.si0{background:rgba(106,27,154,.25);color:#e1bee7;}
+  .gear-body .si.si0 .sn{background:rgba(225,190,231,.2);color:#e1bee7;}
+  .gear-body .sn{background:rgba(255,255,255,.12);}
   .gear-body .card{box-shadow:none;}
 }

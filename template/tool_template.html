@@ -70,34 +70,31 @@ html[data-cohort="15"] header{
   box-shadow:none;
 }
 .wrap{max-width:680px;margin:0 auto;padding:14px 12px 64px;}
-.steps{
-  display:flex;gap:8px;
-  margin:0 0 8px;
-}
+/* ステップナビ：矢羽根（ホームベース型）で左→右の流れを表す */
+.steps{display:flex;gap:4px;margin:0 0 16px;}
 .si{
   flex:1;min-width:0;
-  display:flex;align-items:center;gap:8px;
-  padding:10px;text-align:left;cursor:pointer;
-  border:1px solid var(--bdr);background:var(--card);
-  font:inherit;color:inherit;appearance:none;-webkit-appearance:none;
-  min-height:var(--tap);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  height:42px;padding:0 10px 0 18px;
+  border:none;background:var(--surface-2);color:var(--txt2);
+  font:inherit;font-size:12px;font-weight:700;
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);
 }
-/* ⓪入れ替え依頼：発生時対応のサブ導線（点線・小さめ） */
-.si.si0{flex:0 0 auto;border-style:dashed;border-color:#9c6bb5;}
-.si.si0 .sn{background:rgba(106,27,154,.14);color:#7b3f9e;}
-.si.si0 .sl{font-size:10px;line-height:1.25;color:#7b3f9e;}
-.si.on{border-color:var(--ink-heading);background:var(--card);}
-.si.done{border-color:var(--grn);background:var(--grn-l);}
+.si.on{background:var(--act);color:#fff;}
+.si.done{background:var(--grn-l);color:var(--grn);}
+/* ⓪入れ替え依頼：必要なときだけ出るサブ導線 */
+.si.si0{flex:0 0 auto;background:#f3e9f8;color:#7b3f9e;}
+.si.si0 .sn{background:rgba(106,27,154,.15);color:#7b3f9e;}
 .sn{
-  width:22px;height:22px;border-radius:50%;flex-shrink:0;
-  background:var(--surface-2);color:var(--txt2);
-  font-size:12px;font-weight:800;
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  background:rgba(0,0,0,.08);color:inherit;
+  font-size:11px;font-weight:800;
   display:inline-flex;align-items:center;justify-content:center;margin:0;
 }
-.si.on .sn{background:var(--ink-heading);color:#fff;}
+.si.on .sn{background:rgba(255,255,255,.28);color:#fff;}
 .si.done .sn{background:var(--grn);color:#fff;}
-.sl{font-size:12px;font-weight:800;color:var(--ink-heading);line-height:1.3;}
-.tcb-flow-hint{font-size:12px;color:var(--txt2);line-height:1.45;margin:0 0 12px;}
+.sl{font-size:inherit;font-weight:inherit;color:inherit;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pnl{display:none;}.pnl.on{display:block;}
 .card{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:20px;margin-bottom:16px;}
 .ct{font-weight:750;font-size:18px;letter-spacing:-.3px;color:var(--ink-heading);margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
@@ -747,9 +744,12 @@ html.tcb-ui-simple .tcb-ui-advanced{display:none!important;}
   #btn-pwa-install .tcb-hdr-lbl-full{display:none;}
   #btn-pwa-install .tcb-hdr-lbl-short{display:inline;}
   .tcb-seed-mode-banner{font-size:11px;line-height:1.5;padding:10px;}
-  .steps{margin-bottom:8px;gap:6px;}
-  .si{padding:8px;gap:6px;}
-  .si .sl{font-size:11px;}
+  .steps{margin-bottom:12px;gap:3px;}
+  .si{
+    font-size:10.5px;height:38px;padding:0 6px 0 14px;gap:4px;
+    clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%,9px 50%);
+  }
+  .sn{width:16px;height:16px;font-size:10px;}
   .wrap{
     padding:12px 10px calc(72px + env(safe-area-inset-bottom,0px));
   }
@@ -1064,17 +1064,17 @@ html{color-scheme:light;}
   /* 選択タブを明るいブルーで強調（選択が分かりやすいように） */
   .tabbtn.on{background:#3f5bd0;color:#fff;}
   .tb2.on{background:#4a5fb0;color:#fff;box-shadow:none;}
-  .si{background:var(--card);border-color:var(--bdr);}
-  .si.si0{border-color:#7b1fa2;}
-  .si.si0 .sn{background:rgba(106,27,154,.3);color:#e1bee7;}
-  .si.si0 .sl{color:#e1bee7;}
+  .si{background:var(--surface-2);color:var(--txt2);}
+  .si.on{background:#3f5bd0;color:#fff;}
+  .si.done{background:rgba(48,209,88,.16);color:#7fd99a;}
+  .si.si0{background:rgba(106,27,154,.22);color:#e1bee7;}
+  .si.si0 .sn{background:rgba(225,190,231,.2);color:#e1bee7;}
+  .sn{background:rgba(255,255,255,.1);}
+  .si.on .sn{background:rgba(255,255,255,.24);color:#fff;}
+  .si.done .sn{background:var(--grn);color:#fff;}
   .tcb-tgh-chip{background:var(--surface-2);border-color:var(--bdr);color:var(--txt);}
   .tcb-tgh-chip.on{background:#3f5bd0;border-color:#3f5bd0;color:#fff;}
   .tcb-tgh-bar.on{background:rgba(6,199,133,.16);}
-  .si.on{background:var(--card);border-color:var(--ink-heading);box-shadow:inset 0 0 0 1px var(--ink-heading);}
-  .si.done{background:rgba(48,209,88,.14);border-color:var(--grn);}
-  .sn{background:var(--surface-2);color:var(--txt2);}
-  .si.on .sn{background:var(--ink-heading);color:var(--card);}
   /* マスタ編集：白面/淡色面 → ダーク面 */
   .master-tl-mrow{background:var(--card);border-color:var(--bdr);border-left-color:#9fb4e8;}
   .master-tl-mrow:nth-child(even){background:var(--surface-2);border-color:var(--bdr);}
@@ -1236,10 +1236,10 @@ html{color-scheme:light;}
     <button class="mclose" id="tcb-handoff-close" type="button">&#10005;</button>
     <h2>次回活動の入れ替え案</h2>
     <div class="tcb-scroll-modal-body">
-      <p class="tcb-handoff-lead">急に2分けが決まったときや、2分けは決まっていても<strong>メンバーの確定が活動日の直前</strong>になったときに使います。次回の<strong>活動パターン</strong>と<strong>グループ分け</strong>を登録すると、いまの保有から<strong>必要な交換だけ</strong>を依頼案にします（全体の割り振りはしません）。ここでの変更は<strong>この画面だけの仮の入力</strong>で、閉じると STEP1 は元に戻ります。</p>
+      <p class="tcb-handoff-lead">急な2分けや、メンバー確定が直前になったときに。次回のパターンと班分けを入れると、<strong>必要な交換だけ</strong>依頼案にします。入力は仮で、閉じると元に戻ります。</p>
       <div class="tcb-handoff-sec-hd">1. 基準にする割振り結果（いまの保有）</div>
       <select id="handoff-base-sel" class="tcb-handoff-base-sel"></select>
-      <p class="tcb-handoff-base-note">通常は最新の<strong>（実施確定）</strong>を選んでください。「（試行）」は割振りを実行しただけで、確定していない結果です。</p>
+      <p class="tcb-handoff-base-note">通常は最新の<strong>（実施確定）</strong>を選択。</p>
       <div class="tcb-handoff-prev" id="tcb-handoff-prev" style="display:none;"></div>
       <div class="tcb-handoff-skip-note" id="tcb-handoff-skip-note" style="display:none;"></div>
       <div class="tcb-handoff-sec-hd">2. 次回の活動パターン</div>
@@ -1268,7 +1268,7 @@ html{color-scheme:light;}
         <div class="mgrid" id="handoff-tgrid"></div>
       </div>
       <button type="button" class="rbtn tcb-handoff-calc" id="btn-handoff-calc">入れ替え案を算出</button>
-      <p class="tcb-handoff-note">欠席・お茶当番は見ません。ルール上動かす必要がある道具だけ入れ替え、それ以外は前回の担当のままです。2名交換は当人同士で直接、一方向の受け渡しは<strong>グループ宛て</strong>（そのグループの誰かに渡ればOK）になります。マスタ「遠方」は事前受け渡しが難しい前提で、<strong>保有はそのまま／交換・新規受取の対象外</strong>とします（<strong>試合道具</strong>だけ班の都合で動かしうるので、必要なら手直しボードで調整）。受け渡しが決まったら「入れ替えを実施確定」で、次回割振りの基準として記録できます。</p>
+      <p class="tcb-handoff-note">動かす必要がある道具だけ入れ替えます（「遠方」は対象外）。受け渡しが決まったら<strong>「入れ替えを実施確定」</strong>で保有を記録します。</p>
       <div id="tcb-handoff-result"></div>
     </div>
   </div>
@@ -1279,8 +1279,8 @@ html{color-scheme:light;}
   <div class="modal">
     <button class="mclose" id="tcb-ghold-modal-close">&#10005;</button>
     <h2>いま道具を持っているグループの登録</h2>
-    <p class="tcb-ghold-desc">いま各グループが<strong>現地で持っている道具</strong>を登録します。登録すると、<strong>次回の活動パターンに関係なく</strong>、割振りはそのグループのメンバーにのみ行います（グループ間で道具を動かさない運用向け）。</p>
-    <p class="tcb-ghold-note">毎回必須ではありません。会場が分かれている日や、その保有を次回以降も維持したいときに使ってください。「この内容で使う」で有効になります。有効中はメンバーのグループ振り分けも必要です。</p>
+    <p class="tcb-ghold-desc">各グループが持っている道具を登録すると、割振りを<strong>そのグループ内</strong>に限定します。</p>
+    <p class="tcb-ghold-note">「この内容で使う」で有効になります。</p>
     <div class="tcb-ghold-toolbar">
       <button type="button" class="nb nbs" id="btn-tcb-ghold-from-prev">前回結果から推測</button>
       <button type="button" class="nb nbs" id="btn-tcb-ghold-from-master">マスタ設定から初期化</button>
@@ -1403,7 +1403,7 @@ html{color-scheme:light;}
       <button type="button" class="tcb-hist-mo-tb tcb-hist-mo-tb-pdf" id="hist-month-pdf">&#128196; PDF（横1枚）</button>
       <button type="button" class="tcb-hist-mo-tb tcb-hist-mo-tb-print" id="hist-month-print">&#128424; 印刷 / PDF保存</button>
     </div>
-    <p class="tcb-hist-mo-note" style="font-size:11px;">PDFは「PDF（横1枚）」でダウンロードするか、印刷ダイアログの送り先で<strong>PDFに保存</strong>してください。表が幅広のときは印刷設定の<strong>縮小</strong>で1枚に収められます。</p>
+    <p class="tcb-hist-mo-note" style="font-size:11px;">「PDF（横1枚）」でダウンロード、または印刷ダイアログで<strong>PDFに保存</strong>。</p>
     <div class="tcb-hist-mo-scroll" id="hist-month-body"></div>
   </div>
 </div>
@@ -1412,18 +1412,17 @@ html{color-scheme:light;}
 
 <div class="wrap">
   <nav class="steps" aria-label="作業の流れ">
-    <button type="button" class="si si0" id="st0" style="display:none;" title="急な2分けや、メンバー確定が直前になったときに、活動日前の道具入れ替えを依頼します"><span class="sn">0</span><span class="sl">入れ替え<br>依頼</span></button>
+    <button type="button" class="si si0" id="st0" style="display:none;" title="急な2分け・メンバー直前確定のときの道具入れ替え依頼"><span class="sn">0</span><span class="sl">入替依頼</span></button>
     <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・班分け</span></button>
     <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">欠席・当番</span></button>
     <button type="button" class="si" id="st3"><span class="sn">3</span><span class="sl">割振り・展開</span></button>
   </nav>
-  <p class="tcb-flow-hint">パターンと班分け → 欠席・お茶当番 → 割振り実行 → LINE／PDF展開</p>
   <!-- STEP1 -->
   <div class="pnl on" id="p1">
     <div class="card">
-      <div class="ct" style="margin-bottom:6px;">&#128197; 活動日 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="割り振る活動の日付です。履歴・実施確定・LINE／PDF の日付になります。通常は本日のままで構いません。" aria-label="説明"></button></div>
+      <div class="ct" style="margin-bottom:6px;">&#128197; 活動日 <span class="bdg">STEP 1</span><button type="button" class="tcb-tip" data-tip="履歴・LINE／PDFに使う日付。通常は本日のまま。" aria-label="説明"></button></div>
       <input type="date" id="adate" class="date-inp" style="margin-bottom:14px;">
-      <div class="ct">活動パターンを選択<button type="button" class="tcb-tip" data-tip="上の<strong>活動日</strong>のパターンです。片方試合・両方試合・練習場所分離の日は<strong>2グループ</strong>になります。" aria-label="説明"></button></div>
+      <div class="ct">活動パターンを選択<button type="button" class="tcb-tip" data-tip="片方試合・両方試合・練習場所分離の日は<strong>2グループ</strong>になります。" aria-label="説明"></button></div>
       <div class="tgg">
         <button class="tb2"    id="btn-renshu">両方練習</button>
         <button class="tb2 on" id="btn-kata">片方試合</button>
@@ -1432,14 +1431,14 @@ html{color-scheme:light;}
       <div id="pdesc" class="desc-bar"></div>
       <div id="tcb-sameday-hint-p1" class="al ali tcb-sameday-hint-p1" style="display:none;" role="note"></div>
       <div id="renshu-split-wrap" class="p1-renshu-split-wrap" style="display:none;">
-        <label class="p1-renshu-split-lbl" for="chk-renshu-split"><input type="checkbox" id="chk-renshu-split" autocomplete="off">練習場所が分かれる<button type="button" class="tcb-tip" data-tip="2グループに分けて割り振ります。各道具のグループは<strong>割振りルール</strong>（半々・試合組／練習組など）と、可能な範囲で前回保有側の維持で決まります。" aria-label="説明"></button></label>
+        <label class="p1-renshu-split-lbl" for="chk-renshu-split"><input type="checkbox" id="chk-renshu-split" autocomplete="off">練習場所が分かれる<button type="button" class="tcb-tip" data-tip="チェックすると2グループに分けて割り振ります。" aria-label="説明"></button></label>
       </div>
       <div id="ryoho-same-venue-wrap" class="p1-renshu-split-wrap" style="display:none;">
-        <label class="p1-renshu-split-lbl" for="chk-ryoho-same-venue"><input type="checkbox" id="chk-ryoho-same-venue" autocomplete="off">同一会場で試合する<button type="button" class="tcb-tip" data-tip="通常の両方試合は<strong>会場が分かれる</strong>（2グループ）前提です。両試合が同じ会場のときだけチェックすると、グループ分けなし（全員で分担）になります。" aria-label="説明"></button></label>
+        <label class="p1-renshu-split-lbl" for="chk-ryoho-same-venue"><input type="checkbox" id="chk-ryoho-same-venue" autocomplete="off">同一会場で試合する<button type="button" class="tcb-tip" data-tip="両試合が同じ会場のときだけチェック（グループ分けなしになります）。" aria-label="説明"></button></label>
       </div>
       <div id="p1-flow-host" style="display:none;"></div>
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>：各グループが持っている道具を、そのグループの中で配ります。保有の確認・修正と配り方は STEP2 で行えます。
+        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>。保有の確認・修正はSTEP2で。
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">新規の割り振りに切り替える</button>
         </div>
@@ -1450,7 +1449,7 @@ html{color-scheme:light;}
           <div class="tng"><label class="tng-dot tng-dot-a" for="tnA">&#9679;</label><input class="tninp A" id="tnA" type="text" maxlength="12" value="試合組"></div>
           <div class="tng"><label class="tng-dot tng-dot-b" for="tnB">&#9679;</label><input class="tninp B" id="tnB" type="text" maxlength="12" value="練習組"></div>
           <div id="mem-unpublished-wrap" class="p1-mem-unpublished-wrap" style="display:none;">
-            <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">試合メンバー未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷で<strong>組別（班）を表示しません</strong>。メンバー発表前の共有向けです。" aria-label="メンバー未発表の説明"></button></label>
+            <label class="p1-mem-unpublished-lbl" for="chk-mem-unpublished"><input type="checkbox" id="chk-mem-unpublished" autocomplete="off" checked><span class="p1-mem-unpublished-txt">試合メンバー未発表</span><button type="button" class="tcb-tip" data-tip="共有・印刷に<strong>班を表示しません</strong>。" aria-label="メンバー未発表の説明"></button></label>
           </div>
         </div>
       </div>
@@ -1462,11 +1461,11 @@ html{color-scheme:light;}
   <!-- STEP2 -->
   <div class="pnl" id="p2">
     <div class="card">
-      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席などで<strong>この日の割振りから外す人</strong>をタップ。休部・退部・コーチ・14期帯同・兄弟所属は常に対象外です。<strong>1道具まで</strong>の人は割振り対象ですが、自動割振りでは1日1道具までです。" aria-label="説明"></button></div>
+      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席など、<strong>この日の割振りから外す人</strong>をタップ。" aria-label="説明"></button></div>
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
-      <div class="ct">お茶当番（翌活動日分・保護者）<button type="button" class="tcb-tip" data-tip="ここで選ぶのは<strong>翌活動日分</strong>の<strong>コーチ保護者当番</strong>（名簿は選手名）。次回準備のため当日に当番道具を多く持ち帰るので、通常の割振りからは外します。お茶当番ツールの月次表から<strong>取込</strong>できます。" aria-label="説明"></button></div>
+      <div class="ct">お茶当番（翌活動日分・保護者）<button type="button" class="tcb-tip" data-tip="<strong>翌活動日分</strong>の当番。当番道具を持ち帰るため割振りから外します。" aria-label="説明"></button></div>
       <div id="tcb-tea-reflect" class="tcb-tea-reflect" hidden>
         <span id="tcb-tea-reflect-msg" class="tcb-tea-reflect-msg"></span>
         <button type="button" id="tcb-tea-reflect-btn" class="nb" style="min-height:36px;padding:6px 12px;font-size:12px;">表から取込</button>
@@ -1486,13 +1485,13 @@ html{color-scheme:light;}
       </details>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループが持っている道具を、そのグループの中で配ります。<button type="button" class="tcb-tip" data-tip="固定担当は欠席・お茶でなければそのまま。班をまたぐ自動入れ替えはしません（必要なら STEP3 の手直し）。" aria-label="説明"></button>
+      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。
       <div class="tcb-seedalloc-box">
         <div class="tcb-seedalloc-title">配り方</div>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り（同じ人に同じ道具が続きにくい）</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・お茶当番の分だけ変更</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・当番の分だけ変更</span></label>
       </div>
-      <p class="tcb-seed-hold-hint">保有の確認・修正は、下の<strong>グループ振り分け</strong>で行えます（名前の下＝いま持っている道具）。</p>
+      <p class="tcb-seed-hold-hint">保有の確認・修正は下の<strong>グループ振り分け</strong>で。</p>
       <div class="tcb-seed-mode-banner-btns">
         <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
       </div>
@@ -1512,7 +1511,7 @@ html{color-scheme:light;}
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
         <summary>
-          <div class="ct">いま道具を持っているグループ（控え）<button type="button" class="tcb-tip" data-tip="確定保有の記録がまだないとき用の<strong>任意の控え</strong>です。登録すると、活動パターンに関係なく各グループの中で割り振ります。" aria-label="説明"></button></div>
+          <div class="ct">いま道具を持っているグループ（控え）<button type="button" class="tcb-tip" data-tip="確定保有の記録がないとき用の控え。登録するとグループ内で割り振ります。" aria-label="説明"></button></div>
           <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
           <span class="tcb-fold-arrow">&#9660;</span>
         </summary>
@@ -1526,7 +1525,7 @@ html{color-scheme:light;}
       </details>
     </div>
     <div class="card tcb-presum-card" id="tcb-presum-card">
-      <div class="ct">実行前の確認<button type="button" class="tcb-tip" data-tip="下の「⚡割振りを実行」を押したときに<strong>この内容で割振られます</strong>。欠席・当番・グループなどを変えると自動で更新されます。" aria-label="説明"></button></div>
+      <div class="ct">実行前の確認<button type="button" class="tcb-tip" data-tip="「⚡割振りを実行」はこの内容で実行されます。" aria-label="説明"></button></div>
       <div id="tcb-presum-body"></div>
     </div>
     <div class="nav">
@@ -1538,7 +1537,7 @@ html{color-scheme:light;}
   <div class="pnl" id="p3">
     <div class="card">
       <div class="rh">
-        <div><div class="rt">&#128203; 割振り結果<button type="button" class="tcb-tip" data-tip="<strong>手直し</strong>タブのボード、または道具別の担当プルダウンで手動変更できます（お茶当番・欠席の方も選択可）。展開後の指摘修正も同じ手直しボードから再展開できます。STEP1でパターンを変えたら STEP2 で「割振りを実行」し直してください。" aria-label="説明"></button></div><div class="rm" id="rmeta"></div></div>
+        <div><div class="rt">&#128203; 割振り結果<button type="button" class="tcb-tip" data-tip="<strong>手直し</strong>タブか担当プルダウンで変更できます。" aria-label="説明"></button></div><div class="rm" id="rmeta"></div></div>
         <div class="p3-rh-actions">
           <button type="button" class="nb nbs" id="btn-assign-undo" disabled style="font-size:13px;">&#8630; 元に戻す</button>
           <button type="button" class="nb nbs" id="btn-assign-redo" disabled style="font-size:13px;">&#8631; 先に進む</button>
@@ -1550,22 +1549,22 @@ html{color-scheme:light;}
       <div class="p3-carry-adjust-summary" id="p3-carry-adjust-summary" role="status"></div>
       <div class="p3-cross-handoff-notice" id="p3-cross-handoff-notice" role="status"></div>
       <div class="al ali tcb-p3-hint" id="p3-reedit-hint" style="display:none;">
-        欠席・当番が変わったときは<strong>「最小変更で再調整」</strong>で、いまの割振りを基準に STEP1 からやり直せます。<button type="button" class="tcb-tip" data-tip="表示中の割振り結果を<strong>基準</strong>に最小変更で再調整モードへ入ります。前回と同じ担当をできるだけ維持し、必要な人だけ入れ替えます。" aria-label="説明"></button>
+        欠席・当番が変わったら<strong>「最小変更で再調整」</strong>で、いまの割振りを保ったままやり直せます。
       </div>
       <div class="p3-cross-team-wrap" id="p3-cross-team-wrap" style="display:none;">
-        <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示<button type="button" class="tcb-tip" data-tip="<strong>手動割当のみ</strong>に適用（自動の「割振りを実行」は常に班ごと）。通常はオフのまま、手直しで班またぎが必要なときだけオンにしてください。" aria-label="説明"></button></label>
+        <label class="p3-cross-team-lbl" for="chk-manual-cross-team"><input type="checkbox" id="chk-manual-cross-team" autocomplete="off">班を問わず全員を担当候補に表示<button type="button" class="tcb-tip" data-tip="手動割当のみに適用されます。" aria-label="説明"></button></label>
       </div>
       <div class="al ali tcb-p3-hint" id="p3-mem-unpublished-hint" style="display:none;">
         試合メンバー未発表モード — 印刷・メンバー別は組名・班なしの1一覧です。
       </div>
       <div class="p3-rebalance-bar tcb-ui-advanced" id="p3-rebalance-bar" style="display:none;">
-        <div class="p3-rebalance-t"><strong>公平に再分配</strong>：チェックした道具と、担当が<strong>未割当</strong>の道具をまとめて対象にします。いま<strong>担当0件</strong>の人を優先し、足りなければ<strong>最も少ない人</strong>へ順に割り当てます（割振り実行と同じ負荷・上限ルール）。<strong>固定担当</strong>の道具は対象外です。</div>
+        <div class="p3-rebalance-t"><strong>公平に再分配</strong>：チェックした道具と未割当の道具を、担当の少ない人から順に割り当て直します（固定担当は対象外）。</div>
         <button type="button" class="p3-rebalance-btn" id="btn-rebalance-fair">&#9889; 公平に再分配</button>
       </div>
       <div class="p3-result-card-foot">
         <div class="p3-confirm-wrap">
           <button type="button" class="p3-confirm-btn" id="btn-confirm-carryout">実施確定</button>
-          <button type="button" class="tcb-tip" data-tip="「割振りを実行」だけでは<strong>累計負荷（PAST）</strong>は増えません。保護者へ連絡した内容で確定したら押してください。同じ活動日で押し直すと、その日の PAST を差し替えます。<strong>保護者確認URL付きでLINE展開するとき</strong>も、未確定なら送信前に実施確定を求めます。" aria-label="実施確定の説明"></button>
+          <button type="button" class="tcb-tip" data-tip="保護者へ連絡した内容が決まったら押してください。累計負荷（PAST）と保有の記録に反映されます。" aria-label="実施確定の説明"></button>
         </div>
       </div>
     </div>
@@ -1592,7 +1591,7 @@ html{color-scheme:light;}
     </div>
     <div id="tboard" style="display:none;">
       <div class="card" style="margin-top:0;">
-        <div class="ct">手直しボード<button type="button" class="tcb-tip" data-tip="道具タイルをタップ→移動先の人をタップで<strong>移動</strong>。別の道具をタップで<strong>入れ替え</strong>。未割当枠へ戻せます。展開後の修正・再展開にも使えます。" aria-label="説明"></button></div>
+        <div class="ct">手直しボード<button type="button" class="tcb-tip" data-tip="道具をタップ→人をタップで<strong>移動</strong>。道具同士なら<strong>入れ替え</strong>。" aria-label="説明"></button></div>
         <div id="tcb-assign-board-root"></div>
       </div>
     </div>
@@ -1611,7 +1610,7 @@ html{color-scheme:light;}
       <div id="master-alert" style="display:none;"></div>
       <div class="card tcb-master-restore-card" style="margin-top:10px;">
         <div class="ct" style="margin-bottom:8px;">&#128260; マスタの元に戻す</div>
-        <p class="tcb-master-restore-note">誤編集・誤削除のときに使います。<strong>「開いた時点に戻す」</strong>は、今回マスタ画面を開いてから<strong>まだ保存していない内容</strong>に戻します。<strong>「端末の保存を読み直す」</strong>は、直近で<strong>保存ボタンを押したとき</strong>にこの端末へ書き込まれたマスタで上書きします（クラウド同期時は同期成功後の内容と一致することが多いです）。<strong>「初期マスタに戻す」</strong>は、このツールに同梱の初期データへ置き換えます。いずれも<strong>「保存」するまでクラウドやファイルには反映されません</strong>。</p>
+        <p class="tcb-master-restore-note"><strong>開いた時点に戻す</strong>＝この画面での編集を破棄。<strong>端末の保存を読み直す</strong>＝最後に保存した内容へ。<strong>初期マスタに戻す</strong>＝同梱の初期データへ。いずれも<strong>「保存」するまで反映されません</strong>。</p>
         <div class="tcb-master-restore-btns">
           <button type="button" class="nb nbs" id="btn-master-revert-session">&#8630; 開いた時点に戻す</button>
           <button type="button" class="nb nbs" id="btn-master-reload-ls">&#128190; 端末の保存を読み直す</button>
@@ -1637,7 +1636,7 @@ html{color-scheme:light;}
     </div>
     <div class="card tcb-past-reset-wrap" style="margin-top:10px;border:1px solid var(--bdr);">
       <div class="ct" style="margin-bottom:8px;">&#128200; 累計負荷（PAST）</div>
-      <p style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:10px;">道具の重さ・長さに応じた<strong>負荷ポイント</strong>の累計です。公平割振りでは班内の中央値より<strong>上の人だけ</strong>やや後回しにします（少ないから集中はしません）。端末の<strong>実施確定</strong>記録も消えます。続けて<strong>保存</strong>で反映してください。旧「回数」単位のデータがある場合はシーズン初めのリセットを推奨します。</p>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:10px;">道具の重さ・長さに応じた<strong>負荷ポイント</strong>の累計です。リセットすると実施確定の記録も消えます。続けて<strong>保存</strong>で反映してください。</p>
       <button type="button" class="nb nbs" id="btn-past-reset" style="font-size:13px;">PAST をゼロにリセット</button>
     </div>
     <div class="card">
@@ -1649,9 +1648,9 @@ html{color-scheme:light;}
             <button class="io-btn exp" id="btn-mbr-export">&#11015; 書出</button>
           </span>
         </h3>
-        <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示は背番号（名前の「番号：」の左側）の昇順です。番号がない行は末尾に並びます。</div>
-        <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分（名前の右のプルダウン）：S＝軽自動車、M＝普通車、L＝ミニバン程度、LL＝大型ワゴン程度。</div>
-        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部</strong>・<strong>退部</strong>・<strong>コーチ</strong>に加え、<strong>14期帯同</strong>（上の代に帯同し当期未参加）、<strong>兄弟所属</strong>（上下期に兄妹がおり当期対象外）。<strong>遠方</strong>は当日の割振り対象のままですが、活動前の入れ替え案では<strong>事前受け渡しができない</strong>前提で保有を維持し、交換・新規受取の対象外にします（試合道具など必要な引き継ぎは手直しで調整）。</div>
+        <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">背番号の昇順で表示（番号なしは末尾）。</div>
+        <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分：S＝軽 / M＝普通車 / L＝ミニバン / LL＝大型ワゴン。</div>
+        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部・退部・コーチ・14期帯同・兄弟所属</strong>。<strong>遠方</strong>は割振り対象のまま、事前の入れ替え案のみ対象外。</div>
         <div id="m-members"></div>
         <button class="madd" id="btn-add-mbr">&#65291; メンバー追加</button>
       </div>
@@ -6318,18 +6317,18 @@ function updDesc(){
   var el=document.getElementById('pdesc');
   if(el){
     if(pat==='renshu'&&renshuSplit){
-      el.textContent=la+'（A）／'+lb+'（B）。道具のグループ分けは割振りルール（半々・試合組／練習組など）に従います。';
+      el.textContent=la+'（A）／'+lb+'（B）の2グループで分担';
     }else if(pat==='ryoho'&&ryohoSameVenue){
-      el.textContent='同一会場の両方試合：全道具を全メンバーで分担';
+      el.textContent='同一会場：全員で分担';
     }else{
       var msgs={
-        'kata':   'マスタで試合道具にした道具は試合組、それ以外は練習組へ割り当てます',
-        'ryoho':  '会場が分かれる前提。道具のグループ分けは割振りルールに従います（半々・1点ずつ・前回保有側の維持など）',
+        'kata':   '試合道具は試合組、それ以外は練習組へ',
+        'ryoho':  '会場別の2グループで分担',
         'renshu': ((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap))
-          ?'確定保有を基準に、'+la+'／'+lb+'の保有道具をそれぞれのグループ内で分担'
+          ?la+'／'+lb+'の保有道具を各グループ内で分担'
           :(pat==='renshu'&&isGroupHoldEnabled())
-            ?'グループ保有の控えが有効：'+la+'／'+lb+'の保有道具を、それぞれのグループ内で分担'
-            :'全道具を全メンバーで分担'
+            ?la+'／'+lb+'の保有道具を各グループ内で分担（控え使用）'
+            :'全員で分担'
       };
       el.textContent=msgs[pat];
     }
@@ -6775,10 +6774,10 @@ function buildTGrid(opts){
   var hint=pat==='kata'?'片方試合':(pat==='renshu'?(renshuSplit?'両方練習・場所分離':'グループ保有'):'両方試合');
   var hd=document.getElementById(opts.hdId||'tcard-hd');
   if(hd){
-    var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>（青）と<strong>'+esc(lb)+'</strong>（赤）を切り替えます。'
+    var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>／<strong>'+esc(lb)+'</strong>を切替。'
       +(holdMap
-        ?'名前の下は<strong>いま持っている道具</strong>です。実際と違うときは、道具をタップ→実際に持っている人をタップで直せます（直した内容が割振りの基準になります）。'
-        :'最初は全員<strong>'+esc(lb)+'</strong>です。当日の2分けに合わせて並べ替えてから進めてください。');
+        ?'名前の下＝保有道具。道具→人の順にタップで修正できます。'
+        :'当日の班分けに合わせてください。');
     hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
       +'<button type="button" class="tcb-tip" data-tip="'+tipText.replace(/"/g,'&quot;')+'" aria-label="説明"></button>';
   }
@@ -6787,7 +6786,7 @@ function buildTGrid(opts){
     bar.className='tcb-tgh-bar'+(_tgridHoldSel?' on':'');
     bar.innerHTML=_tgridHoldSel
       ?('「'+esc(_tgridHoldSel)+'」を選択中 → 実際に持っている人をタップ <button type="button" class="tcb-tgh-cancel" data-tgh-cancel="1">取消</button>')
-      :'名前の下＝いま持っている道具。実際と違うときは道具をタップ→持っている人をタップ。';
+      :'名前の下＝保有道具。違うときは道具→持っている人の順にタップ。';
     bar.addEventListener('click',function(ev){
       if(ev.target&&ev.target.closest&&ev.target.closest('[data-tgh-cancel]')){
         _tgridHoldSel=null;

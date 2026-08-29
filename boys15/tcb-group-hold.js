@@ -113,10 +113,10 @@
       if (enabled) {
         var c = countByTeam(holdMap);
         status.className = 'tcb-ghold-status tcb-ghold-on';
-        status.textContent = '有効：控え（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）どおり、各グループの中で割り振ります。';
+        status.textContent = '使用中（' + labels.la + ': ' + c.a + '点 / ' + labels.lb + ': ' + c.b + '点）。各グループ内で割り振ります。';
       } else {
         status.className = 'tcb-ghold-status';
-        status.textContent = '未使用。班分けは活動パターンとルールで決まります。';
+        status.textContent = '未使用。';
       }
     }
     if (btnClear) btnClear.style.display = enabled ? '' : 'none';

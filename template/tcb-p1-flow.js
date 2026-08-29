@@ -75,10 +75,8 @@
           + '<div class="p1-flow-panel" role="status">'
           + '<div class="ct p1-flow-hd">割り振り方</div>'
           + '<p class="p1-flow-auto">'
-          + (gHold
-            ? 'グループ保有が有効です。各グループの保有道具を、<strong>そのグループのメンバー内</strong>で割り振ります。'
-            : 'いま持っている道具を、<strong>各グループのメンバー内</strong>で割り振ります。')
-          + (baseTxt ? '（保有基準：' + esc(baseTxt) + '）' : '')
+          + 'いまの保有を<strong>各グループ内</strong>で割り振ります。'
+          + (baseTxt ? '（基準：' + esc(baseTxt) + '）' : '')
           + '</p>'
           + '<p class="p1-flow-foot">'
           + '<button type="button" class="p1-flow-link" id="btn-p1-flow-hist">別の日の確定記録を基準にする</button>'
@@ -90,8 +88,8 @@
           + '<div class="ct p1-flow-hd">割り振り方</div>'
           + '<p class="p1-flow-auto">'
           + (gHold
-            ? 'グループ保有の控えと班分けに沿って割り振ります（確定保有の記録はまだありません）。'
-            : '確定保有の記録がまだないため、いちから割り振ります。')
+            ? 'グループ保有の控えに沿って、各グループ内で割り振ります。'
+            : '確定保有の記録がないため、いちから割り振ります。')
           + '</p>'
           + '</div>';
       }
@@ -99,7 +97,7 @@
       html = ''
         + '<div class="p1-flow-panel" role="status">'
         + '<div class="ct p1-flow-hd">割り振り方</div>'
-        + '<p class="p1-flow-auto">この活動はグループ分けがないため、全員の中で割り振ります。</p>'
+        + '<p class="p1-flow-auto">グループ分けなし。全員の中で割り振ります。</p>'
         + '</div>';
     }
 
