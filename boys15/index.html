@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.2">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.3">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.2">
-<link rel="stylesheet" href="gear.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.2">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.2">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.3">
+<link rel="stylesheet" href="gear.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.3">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.3">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1695,12 +1695,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.2"></script>
-<script src="tcb-swap-list.js?v=1.27.2"></script>
-<script src="tcb-assign-board.js?v=1.27.2"></script>
-<script src="tcb-handoff-plan.js?v=1.27.2"></script>
-<script src="tcb-team-rules.js?v=1.27.2"></script>
-<script src="tcb-tool-images.js?v=1.27.2"></script>
+<script src="tcb-device.js?v=1.27.3"></script>
+<script src="tcb-swap-list.js?v=1.27.3"></script>
+<script src="tcb-assign-board.js?v=1.27.3"></script>
+<script src="tcb-handoff-plan.js?v=1.27.3"></script>
+<script src="tcb-team-rules.js?v=1.27.3"></script>
+<script src="tcb-tool-images.js?v=1.27.3"></script>
 <script>
 
 
@@ -3858,18 +3858,36 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
   }
   return null;
 }
+/* 割振り時の道具班：片方試合は試合道具フラグが最優先（保有で練習組へ流さない）。
+   両方試合／練習分離は保有者のきょうの班 → なければルール。 */
+function resolveAllocationTeamForTool(t, snap, prevMap, ruleMap){
+  if(pat==='kata'&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t&&t.name))){
+    return toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
+  }
+  var g=resolveHoldingsTeamForTool(t, snap, prevMap);
+  if(g==='A'||g==='B')return g;
+  if(ruleMap&&(ruleMap[t.name]==='A'||ruleMap[t.name]==='B'))return ruleMap[t.name];
+  return 'A';
+}
 function buildHoldingsBasedToolLists(snap){
   var prevMap=(snap&&snap.map&&typeof snap.map==='object')?snap.map:{};
   var active=TL.filter(function(t){return !skipS[t.name];});
   var ruleMap=computeRuleTeamMap(active)||{};
   var tA=[], tB=[];
   active.forEach(function(t){
-    var g=resolveHoldingsTeamForTool(t, snap, prevMap);
-    if(g!=='A'&&g!=='B')g=(ruleMap[t.name]==='B')?'B':'A';
+    var g=resolveAllocationTeamForTool(t, snap, prevMap, ruleMap);
+    if(g!=='A'&&g!=='B')g='A';
     var copy=Object.assign({},t,{ls:lscore(t),team:g});
     if(g==='A')tA.push(copy); else tB.push(copy);
   });
   return {tA:tA,tB:tB};
+}
+function normalizeAssignmentCtxTeams(ctx){
+  if(!ctx||ctx.mode!=='team')return ctx;
+  ctx.tA=stampToolTeam(ctx.tA||[],'A');
+  ctx.tB=stampToolTeam(ctx.tB||[],'B');
+  ctx.allTools=ctx.tA.concat(ctx.tB);
+  return ctx;
 }
 function buildAssignmentContext(opts){
   opts=opts||{};
@@ -3897,7 +3915,7 @@ function buildAssignmentContext(opts){
   }
   var tA=lists.tA, tB=lists.tB;
   var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
-  return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
+  return normalizeAssignmentCtxTeams({ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)});
 }
 /* STEP3 表示時：STEP2 の欠席・お茶当番変更を R のメンバー一覧へ反映（道具リストは変えない） */
 function refreshResultMemberLists(){
@@ -3983,10 +4001,9 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
     var nA=memberNameSet(ctx.mA), nB=memberNameSet(ctx.mB);
     var baseMap={}, poolSet={};
     function placeTeamTool(t){
-      var tm=t.team||'';
-      /* ルール割振りのみ試合道具で組を強制。保有バケット済みは t.team を優先 */
-      if(!(seedFromPrev||carryAdjustMode)&&pat==='kata'&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t.name))){
-        tm=toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
+      var tm=(t.team==='B')?'B':(t.team==='A')?'A':'';
+      if(tm!=='A'&&tm!=='B'){
+        poolSet[t.name]=1;return;
       }
       var mem=(tm==='A')?nA:nB;
       if(!mem)return;
@@ -4586,10 +4603,33 @@ function mergePoolSideState(fullSt, memberList, sideObj){
     if(st&&(st.cnt|0)>0)sideObj[n]=st;
   });
 }
+/* baseMap の担当が道具班のメンバーでなければ剥がしてプールへ */
+function scrubBaseMapToTeams(baseMap, poolSet, ctx){
+  if(!ctx||ctx.mode!=='team')return 0;
+  var nA=memberNameSet(ctx.mA), nB=memberNameSet(ctx.mB);
+  var byName={};
+  (ctx.allTools||[]).forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+  var n=0;
+  Object.keys(baseMap||{}).forEach(function(tn){
+    var t=byName[tn];
+    var p=baseMap[tn];
+    if(!t||!p)return;
+    var tm=t.team==='B'?'B':'A';
+    var ok=(tm==='A')?nA[p]:nB[p];
+    if(ok)return;
+    delete baseMap[tn];
+    poolSet[tn]=1;
+    n++;
+  });
+  return n;
+}
 function finalizePrevSeedAssignment(ctx, ex, baseMap, poolSet, prevMap, runSeed, poolAssignFn, zeroPriBySide){
   var seed=runSeed||Date.now();
   zeroPriBySide=zeroPriBySide||{};
   if(ctx.mode==='team'){
+    normalizeAssignmentCtxTeams(ctx);
+    /* baseMap に班外担当が残っていたら剥がしてプールへ（不変条件） */
+    scrubBaseMapToTeams(baseMap, poolSet, ctx);
     R={mode:'team',tA:ctx.tA,tB:ctx.tB,mA:ctx.mA,mB:ctx.mB,allTools:ctx.allTools,map:{},ex:ex,la:ctx.la,lb:ctx.lb,sA:{},sB:{},state:{}};
     Object.assign(R.map, baseMap);
     var poolA=ctx.tA.filter(function(t){return poolSet[t.name];});
@@ -6984,6 +7024,16 @@ function buildTbl(){
 function chAssign(toolName,newName){
   if(!R)return;
   /* 単独持ち帰り（noMul・極重・ベース一式等）は自動割振りのみ制約。STEP3の担当変更は手動で上書き可 */
+  if(newName&&R.mode==='team'&&!isManualCrossTeamEnabled()){
+    var toolRow=(R.allTools||[]).find(function(t){return t&&t.name===toolName;});
+    var toolTeam=toolRow&&(toolRow.team==='A'||toolRow.team==='B')?toolRow.team:null;
+    var memTeam=memberDisplayTeam(newName);
+    if(toolTeam&&memTeam&&toolTeam!==memTeam&&!exSet()[newName]){
+      tcbToast('別グループの人には割り当てられません。必要なら「班を問わず全員を担当候補に表示」をオンにしてください。','warn');
+      buildTbl();
+      return;
+    }
+  }
   /* 1道具まで：手動でも2本目を付けられるが警告を表示 */
   var warnNoMulti='';
   if(newName&&isMemberNoMultiByName(newName)&&countAssignMapToolsForPerson(R.map,newName,toolName)>=1){
@@ -8975,7 +9025,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.2';
+  if(vEl)vEl.textContent='v1.27.3';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9568,18 +9618,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.2"></script>
-<script src="html2canvas.min.js?v=1.27.2"></script>
-<script src="html2pdf.min.js?v=1.27.2"></script>
-<script src="tcb-print-pdf.js?v=1.27.2"></script>
-<script src="tcb-feedback.js?v=1.27.2"></script>
-<script src="tcb-sync-api.js?v=1.27.2"></script>
-<script src="tcb-swap-mgr.js?v=1.27.2"></script>
-<script src="tcb-push-mgr.js?v=1.27.2"></script>
-<script src="tcb-login.js?v=1.27.2"></script>
-<script src="tcb-pwa-install.js?v=1.27.2"></script>
-<script src="tcb-group-hold.js?v=1.27.2"></script>
-<script src="tcb-presummary.js?v=1.27.2"></script>
-<script src="tcb-p1-flow.js?v=1.27.2"></script>
+<script src="jspdf.umd.min.js?v=1.27.3"></script>
+<script src="html2canvas.min.js?v=1.27.3"></script>
+<script src="html2pdf.min.js?v=1.27.3"></script>
+<script src="tcb-print-pdf.js?v=1.27.3"></script>
+<script src="tcb-feedback.js?v=1.27.3"></script>
+<script src="tcb-sync-api.js?v=1.27.3"></script>
+<script src="tcb-swap-mgr.js?v=1.27.3"></script>
+<script src="tcb-push-mgr.js?v=1.27.3"></script>
+<script src="tcb-login.js?v=1.27.3"></script>
+<script src="tcb-pwa-install.js?v=1.27.3"></script>
+<script src="tcb-group-hold.js?v=1.27.3"></script>
+<script src="tcb-presummary.js?v=1.27.3"></script>
+<script src="tcb-p1-flow.js?v=1.27.3"></script>
 </body>
 </html>

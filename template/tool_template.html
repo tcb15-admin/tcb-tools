@@ -3955,18 +3955,36 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
   }
   return null;
 }
+/* 割振り時の道具班：片方試合は試合道具フラグが最優先（保有で練習組へ流さない）。
+   両方試合／練習分離は保有者のきょうの班 → なければルール。 */
+function resolveAllocationTeamForTool(t, snap, prevMap, ruleMap){
+  if(pat==='kata'&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t&&t.name))){
+    return toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
+  }
+  var g=resolveHoldingsTeamForTool(t, snap, prevMap);
+  if(g==='A'||g==='B')return g;
+  if(ruleMap&&(ruleMap[t.name]==='A'||ruleMap[t.name]==='B'))return ruleMap[t.name];
+  return 'A';
+}
 function buildHoldingsBasedToolLists(snap){
   var prevMap=(snap&&snap.map&&typeof snap.map==='object')?snap.map:{};
   var active=TL.filter(function(t){return !skipS[t.name];});
   var ruleMap=computeRuleTeamMap(active)||{};
   var tA=[], tB=[];
   active.forEach(function(t){
-    var g=resolveHoldingsTeamForTool(t, snap, prevMap);
-    if(g!=='A'&&g!=='B')g=(ruleMap[t.name]==='B')?'B':'A';
+    var g=resolveAllocationTeamForTool(t, snap, prevMap, ruleMap);
+    if(g!=='A'&&g!=='B')g='A';
     var copy=Object.assign({},t,{ls:lscore(t),team:g});
     if(g==='A')tA.push(copy); else tB.push(copy);
   });
   return {tA:tA,tB:tB};
+}
+function normalizeAssignmentCtxTeams(ctx){
+  if(!ctx||ctx.mode!=='team')return ctx;
+  ctx.tA=stampToolTeam(ctx.tA||[],'A');
+  ctx.tB=stampToolTeam(ctx.tB||[],'B');
+  ctx.allTools=ctx.tA.concat(ctx.tB);
+  return ctx;
 }
 function buildAssignmentContext(opts){
   opts=opts||{};
@@ -3994,7 +4012,7 @@ function buildAssignmentContext(opts){
   }
   var tA=lists.tA, tB=lists.tB;
   var mg=mergeTeamToolListsForFixed(tA,tB,mA,mB); tA=mg.tA; tB=mg.tB;
-  return {ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)};
+  return normalizeAssignmentCtxTeams({ex:ex,la:la,lb:lb,mode:'team',mA:mA,mB:mB,tA:tA,tB:tB,tools:null,members:null,allTools:tA.concat(tB)});
 }
 /* STEP3 表示時：STEP2 の欠席・お茶当番変更を R のメンバー一覧へ反映（道具リストは変えない） */
 function refreshResultMemberLists(){
@@ -4080,10 +4098,9 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
     var nA=memberNameSet(ctx.mA), nB=memberNameSet(ctx.mB);
     var baseMap={}, poolSet={};
     function placeTeamTool(t){
-      var tm=t.team||'';
-      /* ルール割振りのみ試合道具で組を強制。保有バケット済みは t.team を優先 */
-      if(!(seedFromPrev||carryAdjustMode)&&pat==='kata'&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t.name))){
-        tm=toolIsMatchTool(t)?kataMatchTeamId():kataPracticeTeamId();
+      var tm=(t.team==='B')?'B':(t.team==='A')?'A':'';
+      if(tm!=='A'&&tm!=='B'){
+        poolSet[t.name]=1;return;
       }
       var mem=(tm==='A')?nA:nB;
       if(!mem)return;
@@ -4683,10 +4700,33 @@ function mergePoolSideState(fullSt, memberList, sideObj){
     if(st&&(st.cnt|0)>0)sideObj[n]=st;
   });
 }
+/* baseMap の担当が道具班のメンバーでなければ剥がしてプールへ */
+function scrubBaseMapToTeams(baseMap, poolSet, ctx){
+  if(!ctx||ctx.mode!=='team')return 0;
+  var nA=memberNameSet(ctx.mA), nB=memberNameSet(ctx.mB);
+  var byName={};
+  (ctx.allTools||[]).forEach(function(t){if(t&&t.name)byName[t.name]=t;});
+  var n=0;
+  Object.keys(baseMap||{}).forEach(function(tn){
+    var t=byName[tn];
+    var p=baseMap[tn];
+    if(!t||!p)return;
+    var tm=t.team==='B'?'B':'A';
+    var ok=(tm==='A')?nA[p]:nB[p];
+    if(ok)return;
+    delete baseMap[tn];
+    poolSet[tn]=1;
+    n++;
+  });
+  return n;
+}
 function finalizePrevSeedAssignment(ctx, ex, baseMap, poolSet, prevMap, runSeed, poolAssignFn, zeroPriBySide){
   var seed=runSeed||Date.now();
   zeroPriBySide=zeroPriBySide||{};
   if(ctx.mode==='team'){
+    normalizeAssignmentCtxTeams(ctx);
+    /* baseMap に班外担当が残っていたら剥がしてプールへ（不変条件） */
+    scrubBaseMapToTeams(baseMap, poolSet, ctx);
     R={mode:'team',tA:ctx.tA,tB:ctx.tB,mA:ctx.mA,mB:ctx.mB,allTools:ctx.allTools,map:{},ex:ex,la:ctx.la,lb:ctx.lb,sA:{},sB:{},state:{}};
     Object.assign(R.map, baseMap);
     var poolA=ctx.tA.filter(function(t){return poolSet[t.name];});
@@ -7081,6 +7121,16 @@ function buildTbl(){
 function chAssign(toolName,newName){
   if(!R)return;
   /* 単独持ち帰り（noMul・極重・ベース一式等）は自動割振りのみ制約。STEP3の担当変更は手動で上書き可 */
+  if(newName&&R.mode==='team'&&!isManualCrossTeamEnabled()){
+    var toolRow=(R.allTools||[]).find(function(t){return t&&t.name===toolName;});
+    var toolTeam=toolRow&&(toolRow.team==='A'||toolRow.team==='B')?toolRow.team:null;
+    var memTeam=memberDisplayTeam(newName);
+    if(toolTeam&&memTeam&&toolTeam!==memTeam&&!exSet()[newName]){
+      tcbToast('別グループの人には割り当てられません。必要なら「班を問わず全員を担当候補に表示」をオンにしてください。','warn');
+      buildTbl();
+      return;
+    }
+  }
   /* 1道具まで：手動でも2本目を付けられるが警告を表示 */
   var warnNoMulti='';
   if(newName&&isMemberNoMultiByName(newName)&&countAssignMapToolsForPerson(R.map,newName,toolName)>=1){
