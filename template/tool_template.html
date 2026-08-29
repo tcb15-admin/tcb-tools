@@ -2885,6 +2885,9 @@ function clonePlainObj(o){
 function buildAllocationSnapshot(){
   if(!R)return null;
   var ad=document.getElementById('adate');
+  var map=cloneAssignMap(R.map);
+  var toolsRaw=(R.mode==='team')?R.allTools:R.tools;
+  var tools=reconcileToolsTeamWithHolders(toolsRaw, map, tmMap);
   var snap={
     date:ad?ad.value:'',
     savedAt:new Date().toISOString(),
@@ -2893,8 +2896,8 @@ function buildAllocationSnapshot(){
     ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
     memUnpublished:isMemUnpublished()?1:0,
     mode:R.mode,
-    map:cloneAssignMap(R.map),
-    tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools)),
+    map:map,
+    tools:JSON.parse(JSON.stringify(tools||[])),
     absS:clonePlainObj(absS),
     ochS:clonePlainObj(ochS),
     skipS:clonePlainObj(skipS),
@@ -2906,6 +2909,22 @@ function buildAllocationSnapshot(){
     snap.groupHoldMap=gh.groupHoldMap;
   }
   return snap;
+}
+/* 履歴の整合：担当者の班（tmMap）に道具.team を合わせる（班またぎ誤記の再発防止） */
+function reconcileToolsTeamWithHolders(tools, map, teamByPerson){
+  teamByPerson=teamByPerson||{};
+  map=map||{};
+  return (tools||[]).map(function(t){
+    if(!t||!t.name)return t;
+    var copy=Object.assign({},t);
+    var p=map[t.name];
+    if(p&&(teamByPerson[p]==='A'||teamByPerson[p]==='B')){
+      copy.team=teamByPerson[p];
+    }else if(copy.team!=='A'&&copy.team!=='B'){
+      copy.team='A';
+    }
+    return copy;
+  });
 }
 /* LS_PREV へ保存（ツールを閉じたあとも STEP1「前回」・再編集で使う） */
 function persistAllocationSnapshot(snap,opts){
@@ -3528,6 +3547,8 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
   if(!R)return;
   var mapCopy=JSON.parse(JSON.stringify(mapForCarryout));
   var nowIso=new Date().toISOString();
+  var toolsRaw=(R.mode==='team')?R.allTools:R.tools;
+  var toolsCopy=JSON.parse(JSON.stringify(reconcileToolsTeamWithHolders(toolsRaw, mapCopy, tmMap)));
   var hist=getHistoryCache().slice();
   var idx=-1;
   for(var i=0;i<hist.length;i++){
@@ -3538,7 +3559,8 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
     snap=hist[idx];
     snap.map=mapCopy;
     snap.confirmedAt=nowIso;
-    snap.tools=(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools));
+    snap.savedAt=nowIso;
+    snap.tools=toolsCopy;
     snap.mode=R.mode;
     snap.pat=pat;
     snap.la=R.la||tnA;
@@ -3560,7 +3582,7 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
       ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
       memUnpublished:isMemUnpublished()?1:0,
       mode:R.mode, map:mapCopy,
-      tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools)),
+      tools:toolsCopy,
       absS:clonePlainObj(absS),
       ochS:clonePlainObj(ochS),
       skipS:clonePlainObj(skipS),
@@ -3661,7 +3683,10 @@ function confirmCarryOutResult(opts){
     var mapForCarryout=cloneAssignMap(R.map);
     function finishOk(msg){
       var snapAfter=buildAllocationSnapshot();
-      if(snapAfter)persistAllocationSnapshot(snapAfter);
+      if(snapAfter){
+        snapAfter.confirmedAt=new Date().toISOString();
+        persistAllocationSnapshot(snapAfter);
+      }
       renderAll();
       if(!opts.silent){
         var aa=document.getElementById('aalert');
@@ -3994,15 +4019,15 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
       if(p===handoffGroupMarker('B'))return 'B';
     }
   }
-  /* 前回記録上の道具班（その2分けグループが保有していた印） */
+  /* 前回保有者の「前回の班」を最優先（履歴の tools.team が古い誤記でも保有実態を優先） */
+  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
+  /* 前回記録上の道具班 */
   if(snap&&Array.isArray(snap.tools)){
     for(var i=0;i<snap.tools.length;i++){
       var st=snap.tools[i];
       if(st&&st.name===t.name&&(st.team==='A'||st.team==='B'))return st.team;
     }
   }
-  /* 前回保有者の「前回の班」（きょうの班替えより、前回グループ保有を優先） */
-  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
   if(p&&(tmMap[p]==='A'||tmMap[p]==='B'))return tmMap[p];
   return null;
 }

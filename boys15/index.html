@@ -17,13 +17,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.7">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1120,14 +1120,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.6">
-<link rel="stylesheet" href="gear.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.6">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.6">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.7">
+<link rel="stylesheet" href="gear.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.7">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.7">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1695,12 +1695,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.6"></script>
-<script src="tcb-swap-list.js?v=1.27.6"></script>
-<script src="tcb-assign-board.js?v=1.27.6"></script>
-<script src="tcb-handoff-plan.js?v=1.27.6"></script>
-<script src="tcb-team-rules.js?v=1.27.6"></script>
-<script src="tcb-tool-images.js?v=1.27.6"></script>
+<script src="tcb-device.js?v=1.27.7"></script>
+<script src="tcb-swap-list.js?v=1.27.7"></script>
+<script src="tcb-assign-board.js?v=1.27.7"></script>
+<script src="tcb-handoff-plan.js?v=1.27.7"></script>
+<script src="tcb-team-rules.js?v=1.27.7"></script>
+<script src="tcb-tool-images.js?v=1.27.7"></script>
 <script>
 
 
@@ -2788,6 +2788,9 @@ function clonePlainObj(o){
 function buildAllocationSnapshot(){
   if(!R)return null;
   var ad=document.getElementById('adate');
+  var map=cloneAssignMap(R.map);
+  var toolsRaw=(R.mode==='team')?R.allTools:R.tools;
+  var tools=reconcileToolsTeamWithHolders(toolsRaw, map, tmMap);
   var snap={
     date:ad?ad.value:'',
     savedAt:new Date().toISOString(),
@@ -2796,8 +2799,8 @@ function buildAllocationSnapshot(){
     ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
     memUnpublished:isMemUnpublished()?1:0,
     mode:R.mode,
-    map:cloneAssignMap(R.map),
-    tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools)),
+    map:map,
+    tools:JSON.parse(JSON.stringify(tools||[])),
     absS:clonePlainObj(absS),
     ochS:clonePlainObj(ochS),
     skipS:clonePlainObj(skipS),
@@ -2809,6 +2812,22 @@ function buildAllocationSnapshot(){
     snap.groupHoldMap=gh.groupHoldMap;
   }
   return snap;
+}
+/* 履歴の整合：担当者の班（tmMap）に道具.team を合わせる（班またぎ誤記の再発防止） */
+function reconcileToolsTeamWithHolders(tools, map, teamByPerson){
+  teamByPerson=teamByPerson||{};
+  map=map||{};
+  return (tools||[]).map(function(t){
+    if(!t||!t.name)return t;
+    var copy=Object.assign({},t);
+    var p=map[t.name];
+    if(p&&(teamByPerson[p]==='A'||teamByPerson[p]==='B')){
+      copy.team=teamByPerson[p];
+    }else if(copy.team!=='A'&&copy.team!=='B'){
+      copy.team='A';
+    }
+    return copy;
+  });
 }
 /* LS_PREV へ保存（ツールを閉じたあとも STEP1「前回」・再編集で使う） */
 function persistAllocationSnapshot(snap,opts){
@@ -3431,6 +3450,8 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
   if(!R)return;
   var mapCopy=JSON.parse(JSON.stringify(mapForCarryout));
   var nowIso=new Date().toISOString();
+  var toolsRaw=(R.mode==='team')?R.allTools:R.tools;
+  var toolsCopy=JSON.parse(JSON.stringify(reconcileToolsTeamWithHolders(toolsRaw, mapCopy, tmMap)));
   var hist=getHistoryCache().slice();
   var idx=-1;
   for(var i=0;i<hist.length;i++){
@@ -3441,7 +3462,8 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
     snap=hist[idx];
     snap.map=mapCopy;
     snap.confirmedAt=nowIso;
-    snap.tools=(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools));
+    snap.savedAt=nowIso;
+    snap.tools=toolsCopy;
     snap.mode=R.mode;
     snap.pat=pat;
     snap.la=R.la||tnA;
@@ -3463,7 +3485,7 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
       ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
       memUnpublished:isMemUnpublished()?1:0,
       mode:R.mode, map:mapCopy,
-      tools:(R.mode==='team')?JSON.parse(JSON.stringify(R.allTools)):JSON.parse(JSON.stringify(R.tools)),
+      tools:toolsCopy,
       absS:clonePlainObj(absS),
       ochS:clonePlainObj(ochS),
       skipS:clonePlainObj(skipS),
@@ -3564,7 +3586,10 @@ function confirmCarryOutResult(opts){
     var mapForCarryout=cloneAssignMap(R.map);
     function finishOk(msg){
       var snapAfter=buildAllocationSnapshot();
-      if(snapAfter)persistAllocationSnapshot(snapAfter);
+      if(snapAfter){
+        snapAfter.confirmedAt=new Date().toISOString();
+        persistAllocationSnapshot(snapAfter);
+      }
       renderAll();
       if(!opts.silent){
         var aa=document.getElementById('aalert');
@@ -3897,15 +3922,15 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
       if(p===handoffGroupMarker('B'))return 'B';
     }
   }
-  /* 前回記録上の道具班（その2分けグループが保有していた印） */
+  /* 前回保有者の「前回の班」を最優先（履歴の tools.team が古い誤記でも保有実態を優先） */
+  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
+  /* 前回記録上の道具班 */
   if(snap&&Array.isArray(snap.tools)){
     for(var i=0;i<snap.tools.length;i++){
       var st=snap.tools[i];
       if(st&&st.name===t.name&&(st.team==='A'||st.team==='B'))return st.team;
     }
   }
-  /* 前回保有者の「前回の班」（きょうの班替えより、前回グループ保有を優先） */
-  if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B'))return snap.tmMap[p];
   if(p&&(tmMap[p]==='A'||tmMap[p]==='B'))return tmMap[p];
   return null;
 }
@@ -9094,7 +9119,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('adate').value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.6';
+  if(vEl)vEl.textContent='v1.27.7';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9689,18 +9714,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.6"></script>
-<script src="html2canvas.min.js?v=1.27.6"></script>
-<script src="html2pdf.min.js?v=1.27.6"></script>
-<script src="tcb-print-pdf.js?v=1.27.6"></script>
-<script src="tcb-feedback.js?v=1.27.6"></script>
-<script src="tcb-sync-api.js?v=1.27.6"></script>
-<script src="tcb-swap-mgr.js?v=1.27.6"></script>
-<script src="tcb-push-mgr.js?v=1.27.6"></script>
-<script src="tcb-login.js?v=1.27.6"></script>
-<script src="tcb-pwa-install.js?v=1.27.6"></script>
-<script src="tcb-group-hold.js?v=1.27.6"></script>
-<script src="tcb-presummary.js?v=1.27.6"></script>
-<script src="tcb-p1-flow.js?v=1.27.6"></script>
+<script src="jspdf.umd.min.js?v=1.27.7"></script>
+<script src="html2canvas.min.js?v=1.27.7"></script>
+<script src="html2pdf.min.js?v=1.27.7"></script>
+<script src="tcb-print-pdf.js?v=1.27.7"></script>
+<script src="tcb-feedback.js?v=1.27.7"></script>
+<script src="tcb-sync-api.js?v=1.27.7"></script>
+<script src="tcb-swap-mgr.js?v=1.27.7"></script>
+<script src="tcb-push-mgr.js?v=1.27.7"></script>
+<script src="tcb-login.js?v=1.27.7"></script>
+<script src="tcb-pwa-install.js?v=1.27.7"></script>
+<script src="tcb-group-hold.js?v=1.27.7"></script>
+<script src="tcb-presummary.js?v=1.27.7"></script>
+<script src="tcb-p1-flow.js?v=1.27.7"></script>
 </body>
 </html>
