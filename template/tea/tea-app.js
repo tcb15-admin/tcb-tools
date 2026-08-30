@@ -535,10 +535,12 @@
     tr.querySelectorAll('.tea-duty-box').forEach(bindDutyBox);
     tr.querySelector('.tea-d-date').addEventListener('change', function () {
       tr.querySelector('.tea-wd').textContent = weekdayLabel(this.value);
+      refreshDayTableOrder({ resequencePg: true });
       markDirty();
     });
     tr.querySelector('.tea-d-del').addEventListener('click', function () {
       tr.remove();
+      refreshDayTableOrder({ resequencePg: true });
       markDirty();
     });
     tr.querySelector('.tea-d-pg').addEventListener('change', function () {
@@ -552,6 +554,57 @@
         markDirty();
       });
     });
+    if (prefill.activityDate) {
+      refreshDayTableOrder({ resequencePg: false });
+    }
+  }
+
+  /** 日付のある行を日付昇順に並べ替え（日付未入力は末尾） */
+  function sortDayRowsByDate() {
+    var body = $('tea-day-body');
+    if (!body) return;
+    var rows = [].slice.call(body.querySelectorAll('.tea-day-row'));
+    rows.sort(function (a, b) {
+      var da = (a.querySelector('.tea-d-date') && a.querySelector('.tea-d-date').value) || '';
+      var db = (b.querySelector('.tea-d-date') && b.querySelector('.tea-d-date').value) || '';
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      if (da < db) return -1;
+      if (da > db) return 1;
+      return 0;
+    });
+    rows.forEach(function (tr) { body.appendChild(tr); });
+  }
+
+  /**
+   * 日付順の行に対し選手班を 1→6 の連続に振り直す。
+   * 起点は「最も早い日付行」に既にある班（無ければ1）。
+   */
+  function resequencePlayerGroups() {
+    var rows = [].slice.call(document.querySelectorAll('.tea-day-row')).filter(function (tr) {
+      var inp = tr.querySelector('.tea-d-date');
+      return inp && inp.value;
+    });
+    if (!rows.length) return;
+    var startPg = null;
+    var firstPg = rows[0].querySelector('.tea-d-pg');
+    if (firstPg && firstPg.value) {
+      var n0 = Number(firstPg.value);
+      if (Number.isFinite(n0) && n0 >= 1 && n0 <= 6) startPg = n0;
+    }
+    if (startPg === null) startPg = 1;
+    rows.forEach(function (tr, i) {
+      var pgSel = tr.querySelector('.tea-d-pg');
+      if (!pgSel) return;
+      pgSel.value = String(((startPg - 1 + i) % 6) + 1);
+    });
+  }
+
+  function refreshDayTableOrder(opts) {
+    opts = opts || {};
+    sortDayRowsByDate();
+    if (opts.resequencePg) resequencePlayerGroups();
   }
 
   function playerNamesForGroup(g) {
