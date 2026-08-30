@@ -12,7 +12,7 @@
 ※ビルド対象は boys15 のみ。
 """
 
-import json, os, sys, re, shutil
+import json, os, sys, re, shutil, hashlib
 from datetime import datetime, timezone, timedelta
 
 # ===== 設定 =====
@@ -34,7 +34,7 @@ CONFIGS = {
 ASSET_VER_RE = re.compile(r'\b(src|href)="([^"]+\.(?:js|css))"')
 
 def add_asset_version(html, version):
-    """ローカルのJS/CSS参照に ?v=TOOL_VERSION を付与する。
+    """ローカルのJS/CSS参照に ?v=… を付与する。
 
     デプロイ直後にブラウザのHTTPキャッシュが古いJS/CSSを返し、
     「新しいHTML＋古いJS」の食い違いが起きるのを防ぐ（キャッシュバスティング）。
@@ -52,6 +52,18 @@ def add_asset_version(html, version):
         return f'{attr}="{url}?v={v}"'
 
     return ASSET_VER_RE.sub(_rep, html)
+
+
+def asset_cache_key(paths):
+    """衛星ツール用のキャッシュキー（表示用バージョンではない）。ファイル内容の短いハッシュ。"""
+    h = hashlib.sha1()
+    for p in paths:
+        if os.path.isfile(p):
+            with open(p, 'rb') as f:
+                h.update(f.read())
+        else:
+            h.update(b'\0')
+    return h.hexdigest()[:10]
 
 
 def html_body_class(config):
@@ -250,7 +262,12 @@ def build_portal_and_attendance(target, config, out_dir):
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(portal): 未置換 {set(rem)}')
-        html = add_asset_version(html, config.get('TOOL_VERSION'))
+        portal_bust = asset_cache_key([
+            'template/portal/portal.css',
+            'template/portal/portal-summary.js',
+            os.path.join(os.path.dirname(TEMPLATE_FILE), 'tcb-shell.css'),
+        ])
+        html = add_asset_version(html, portal_bust)
         with open(os.path.join(portal_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(portal) → {portal_dir}/index.html')
@@ -268,13 +285,23 @@ def build_portal_and_attendance(target, config, out_dir):
         shutil.copy2(shell_css_src, os.path.join(out_dir, 'tcb-shell.css'))
 
     # 出欠スタッフ（トークン埋め込みあり・Git に平文を載せない運用は既存と同様）
+    att_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'attendance')
+    att_assets = (
+        'attendance.css',
+        'attendance-staff.js',
+        'attendance-parent.js',
+        'attendance-line.js',
+        'attendance-briefing.js',
+        'attendance-jp-calendar.js',
+    )
+    att_bust = asset_cache_key([os.path.join(att_src_dir, n) for n in att_assets])
     if os.path.exists(ATT_STAFF_TEMPLATE):
         with open(ATT_STAFF_TEMPLATE, encoding='utf-8') as f:
             html = f.read()
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(attendance staff): 未置換 {set(rem)}')
-        html = add_asset_version(html, config.get('TOOL_VERSION'))
+        html = add_asset_version(html, att_bust)
         with open(os.path.join(att_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(attendance) → {att_dir}/index.html')
@@ -289,21 +316,12 @@ def build_portal_and_attendance(target, config, out_dir):
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(attendance parent): 未置換 {set(rem)}')
-        html = add_asset_version(html, config.get('TOOL_VERSION'))
+        html = add_asset_version(html, att_bust)
         with open(os.path.join(att_dir, 'kaito.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(attendance parent) → {att_dir}/kaito.html')
 
     # 出欠アセット
-    att_assets = (
-        'attendance.css',
-        'attendance-staff.js',
-        'attendance-parent.js',
-        'attendance-line.js',
-        'attendance-briefing.js',
-        'attendance-jp-calendar.js',
-    )
-    att_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'attendance')
     for name in att_assets:
         src = os.path.join(att_src_dir, name)
         if os.path.isfile(src):
@@ -312,18 +330,19 @@ def build_portal_and_attendance(target, config, out_dir):
     # お茶当番
     tea_dir = os.path.join(out_dir, 'tea')
     os.makedirs(tea_dir, exist_ok=True)
+    tea_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tea')
+    tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js', 'tea-print.js', 'tea-seed-2026-08.js')
+    tea_bust = asset_cache_key([os.path.join(tea_src_dir, n) for n in tea_assets])
     if os.path.exists(TEA_TEMPLATE):
         with open(TEA_TEMPLATE, encoding='utf-8') as f:
             html = f.read()
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(tea): 未置換 {set(rem)}')
-        html = add_asset_version(html, config.get('TOOL_VERSION'))
+        html = add_asset_version(html, tea_bust)
         with open(os.path.join(tea_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(tea) → {tea_dir}/index.html')
-    tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js', 'tea-print.js', 'tea-seed-2026-08.js')
-    tea_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tea')
     for name in tea_assets:
         src = os.path.join(tea_src_dir, name)
         if os.path.isfile(src):
@@ -332,18 +351,19 @@ def build_portal_and_attendance(target, config, out_dir):
     # 配車
     carpool_dir = os.path.join(out_dir, 'carpool')
     os.makedirs(carpool_dir, exist_ok=True)
+    carpool_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'carpool')
+    carpool_assets = ('carpool.css', 'carpool-staff.js', 'carpool-validate.js', 'carpool-line.js')
+    carpool_bust = asset_cache_key([os.path.join(carpool_src_dir, n) for n in carpool_assets])
     if os.path.exists(CARPOOL_TEMPLATE):
         with open(CARPOOL_TEMPLATE, encoding='utf-8') as f:
             html = f.read()
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(carpool): 未置換 {set(rem)}')
-        html = add_asset_version(html, config.get('TOOL_VERSION'))
+        html = add_asset_version(html, carpool_bust)
         with open(os.path.join(carpool_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(carpool) → {carpool_dir}/index.html')
-    carpool_assets = ('carpool.css', 'carpool-staff.js', 'carpool-validate.js', 'carpool-line.js')
-    carpool_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'carpool')
     for name in carpool_assets:
         src = os.path.join(carpool_src_dir, name)
         if os.path.isfile(src):
