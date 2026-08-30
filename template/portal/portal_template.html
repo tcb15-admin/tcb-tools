@@ -31,7 +31,10 @@
   <div class="pt-hdr-titles tcb-shell-titles">
     <h1>ポータル<span>{{TEAM_NAME}}　｜　{{TEAM_SLOGAN}}</span></h1>
   </div>
-  <button type="button" class="tcb-shell-link pt-hdr-pwa" id="btn-pwa-install">ホーム画面に追加</button>
+  <div class="tcb-shell-hdr-end">
+    <button type="button" class="tcb-shell-link pt-hdr-pwa" id="btn-pwa-install">ホーム画面に追加</button>
+    <div class="tcb-shell-meta" id="pt-version">v{{PORTAL_VERSION}}</div>
+  </div>
 </header>
 
 <main class="pt-wrap">
@@ -71,6 +74,7 @@
           <span class="pt-tile-title">道具割り振り</span>
           <span class="pt-tile-sum" data-pt-sum="gear">—</span>
         </div>
+        <p class="pt-tile-ver">v{{TOOL_VERSION}}</p>
         <p class="pt-tile-desc">持ち帰り割振り・実施確定・保護者確認・交代報告・LINE／PDF展開</p>
       </div>
       <span class="pt-tile-arrow" aria-hidden="true">›</span>
@@ -86,6 +90,7 @@
           <span class="pt-tile-title">出欠管理</span>
           <span class="pt-tile-sum" data-pt-sum="attendance">—</span>
         </div>
+        <p class="pt-tile-ver">v{{ATT_VERSION}}</p>
         <p class="pt-tile-desc">{{ATT_TRACK_A_LABEL}}／{{ATT_TRACK_B_LABEL}} の2系統。複数日出欠・回答URL・投稿文生成</p>
       </div>
       <span class="pt-tile-arrow" aria-hidden="true">›</span>
@@ -101,6 +106,7 @@
           <span class="pt-tile-title">お茶当番</span>
           <span class="pt-tile-sum" data-pt-sum="tea">—</span>
         </div>
+        <p class="pt-tile-ver">v{{TEA_VERSION}}</p>
         <p class="pt-tile-desc">当番表作成・LINE／PDF展開・変更反映・道具STEP2反映</p>
       </div>
       <span class="pt-tile-arrow" aria-hidden="true">›</span>
@@ -116,6 +122,7 @@
           <span class="pt-tile-title">配車管理</span>
           <span class="pt-tile-sum" data-pt-sum="carpool">—</span>
         </div>
+        <p class="pt-tile-ver">v{{CARPOOL_VERSION}}</p>
         <p class="pt-tile-desc">手組み配車・出欠／お茶連携・確認依頼／承認・MG／親父LINE展開</p>
       </div>
       <span class="pt-tile-arrow" aria-hidden="true">›</span>

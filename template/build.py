@@ -12,7 +12,7 @@
 ※ビルド対象は boys15 のみ。
 """
 
-import json, os, sys, re, shutil, hashlib
+import json, os, sys, re, shutil
 from datetime import datetime, timezone, timedelta
 
 # ===== 設定 =====
@@ -34,7 +34,7 @@ CONFIGS = {
 ASSET_VER_RE = re.compile(r'\b(src|href)="([^"]+\.(?:js|css))"')
 
 def add_asset_version(html, version):
-    """ローカルのJS/CSS参照に ?v=… を付与する。
+    """ローカルのJS/CSS参照に ?v=… を付与する（ツールごとの VERSION）。
 
     デプロイ直後にブラウザのHTTPキャッシュが古いJS/CSSを返し、
     「新しいHTML＋古いJS」の食い違いが起きるのを防ぐ（キャッシュバスティング）。
@@ -54,16 +54,22 @@ def add_asset_version(html, version):
     return ASSET_VER_RE.sub(_rep, html)
 
 
-def asset_cache_key(paths):
-    """衛星ツール用のキャッシュキー（表示用バージョンではない）。ファイル内容の短いハッシュ。"""
-    h = hashlib.sha1()
-    for p in paths:
-        if os.path.isfile(p):
-            with open(p, 'rb') as f:
-                h.update(f.read())
-        else:
-            h.update(b'\0')
-    return h.hexdigest()[:10]
+def tool_versions(config):
+    """各ツールの表示用バージョン（config キー → 値）。"""
+    return {
+        'gear': str(config.get('TOOL_VERSION', '') or ''),
+        'tea': str(config.get('TEA_VERSION', '') or ''),
+        'attendance': str(config.get('ATT_VERSION', '') or ''),
+        'carpool': str(config.get('CARPOOL_VERSION', '') or ''),
+        'portal': str(config.get('PORTAL_VERSION', '') or ''),
+    }
+
+
+def print_tool_versions(config):
+    vers = tool_versions(config)
+    parts = [f'{k}=v{v}' for k, v in vers.items() if v]
+    if parts:
+        print('  versions: ' + '  '.join(parts))
 
 
 def html_body_class(config):
@@ -232,6 +238,10 @@ def build_portal_and_attendance(target, config, out_dir):
         'THEME_COLOR': str(config.get('THEME_COLOR', '#122050') or '#122050'),
         'SYNC_API_BASE_URL': str(config.get('SYNC_API_BASE_URL', '')),
         'TOOL_VERSION': str(config.get('TOOL_VERSION', '')),
+        'TEA_VERSION': str(config.get('TEA_VERSION', '')),
+        'ATT_VERSION': str(config.get('ATT_VERSION', '')),
+        'CARPOOL_VERSION': str(config.get('CARPOOL_VERSION', '')),
+        'PORTAL_VERSION': str(config.get('PORTAL_VERSION', '')),
         'INITIAL_PW': str(config.get('INITIAL_PW', '')),
         'LS_PREFIX': str(config.get('LS_PREFIX', '')),
         'PAGES_BASE_URL': pages_base,
@@ -262,15 +272,10 @@ def build_portal_and_attendance(target, config, out_dir):
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(portal): 未置換 {set(rem)}')
-        portal_bust = asset_cache_key([
-            'template/portal/portal.css',
-            'template/portal/portal-summary.js',
-            os.path.join(os.path.dirname(TEMPLATE_FILE), 'tcb-shell.css'),
-        ])
-        html = add_asset_version(html, portal_bust)
+        html = add_asset_version(html, mapping['PORTAL_VERSION'])
         with open(os.path.join(portal_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
-        print(f'[OK] {target}(portal) → {portal_dir}/index.html')
+        print(f'[OK] {target}(portal) → {portal_dir}/index.html  (v{mapping["PORTAL_VERSION"]})')
     portal_css_src = 'template/portal/portal.css'
     if os.path.exists(portal_css_src):
         shutil.copy2(portal_css_src, os.path.join(portal_dir, 'portal.css'))
@@ -294,17 +299,16 @@ def build_portal_and_attendance(target, config, out_dir):
         'attendance-briefing.js',
         'attendance-jp-calendar.js',
     )
-    att_bust = asset_cache_key([os.path.join(att_src_dir, n) for n in att_assets])
     if os.path.exists(ATT_STAFF_TEMPLATE):
         with open(ATT_STAFF_TEMPLATE, encoding='utf-8') as f:
             html = f.read()
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(attendance staff): 未置換 {set(rem)}')
-        html = add_asset_version(html, att_bust)
+        html = add_asset_version(html, mapping['ATT_VERSION'])
         with open(os.path.join(att_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
-        print(f'[OK] {target}(attendance) → {att_dir}/index.html')
+        print(f'[OK] {target}(attendance) → {att_dir}/index.html  (v{mapping["ATT_VERSION"]})')
 
     # 出欠保護者（トークンを絶対に埋め込まない）
     if os.path.exists(ATT_PARENT_TEMPLATE):
@@ -316,7 +320,7 @@ def build_portal_and_attendance(target, config, out_dir):
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(attendance parent): 未置換 {set(rem)}')
-        html = add_asset_version(html, att_bust)
+        html = add_asset_version(html, mapping['ATT_VERSION'])
         with open(os.path.join(att_dir, 'kaito.html'), 'w', encoding='utf-8') as f:
             f.write(html)
         print(f'[OK] {target}(attendance parent) → {att_dir}/kaito.html')
@@ -332,17 +336,16 @@ def build_portal_and_attendance(target, config, out_dir):
     os.makedirs(tea_dir, exist_ok=True)
     tea_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'tea')
     tea_assets = ('tea.css', 'tea-app.js', 'tea-line.js', 'tea-print.js', 'tea-seed-2026-08.js')
-    tea_bust = asset_cache_key([os.path.join(tea_src_dir, n) for n in tea_assets])
     if os.path.exists(TEA_TEMPLATE):
         with open(TEA_TEMPLATE, encoding='utf-8') as f:
             html = f.read()
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(tea): 未置換 {set(rem)}')
-        html = add_asset_version(html, tea_bust)
+        html = add_asset_version(html, mapping['TEA_VERSION'])
         with open(os.path.join(tea_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
-        print(f'[OK] {target}(tea) → {tea_dir}/index.html')
+        print(f'[OK] {target}(tea) → {tea_dir}/index.html  (v{mapping["TEA_VERSION"]})')
     for name in tea_assets:
         src = os.path.join(tea_src_dir, name)
         if os.path.isfile(src):
@@ -353,17 +356,16 @@ def build_portal_and_attendance(target, config, out_dir):
     os.makedirs(carpool_dir, exist_ok=True)
     carpool_src_dir = os.path.join(os.path.dirname(TEMPLATE_FILE), 'carpool')
     carpool_assets = ('carpool.css', 'carpool-staff.js', 'carpool-validate.js', 'carpool-line.js')
-    carpool_bust = asset_cache_key([os.path.join(carpool_src_dir, n) for n in carpool_assets])
     if os.path.exists(CARPOOL_TEMPLATE):
         with open(CARPOOL_TEMPLATE, encoding='utf-8') as f:
             html = f.read()
         html, rem = apply_placeholders(html, mapping)
         if rem:
             print(f'[WARN] {target}(carpool): 未置換 {set(rem)}')
-        html = add_asset_version(html, carpool_bust)
+        html = add_asset_version(html, mapping['CARPOOL_VERSION'])
         with open(os.path.join(carpool_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html)
-        print(f'[OK] {target}(carpool) → {carpool_dir}/index.html')
+        print(f'[OK] {target}(carpool) → {carpool_dir}/index.html  (v{mapping["CARPOOL_VERSION"]})')
     for name in carpool_assets:
         src = os.path.join(carpool_src_dir, name)
         if os.path.isfile(src):
@@ -543,6 +545,7 @@ def build(target):
 
     # 役割ポータル＋出欠アプリ
     build_portal_and_attendance(target, config, out_dir)
+    print_tool_versions(config)
     return True
 
 

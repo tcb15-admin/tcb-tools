@@ -109,6 +109,12 @@ a.tcb-shell-link:hover,
 .tcb-shell-meta{
   font-size:9px;color:var(--tcb-muted);text-align:right;
 }
+.tcb-shell-hdr-end{
+  margin-left:auto;
+  display:flex;flex-direction:column;align-items:flex-end;gap:2px;
+}
+.tcb-shell-hdr-end .tcb-shell-link{margin-left:0;}
+.tcb-shell-hdr-end .tcb-shell-meta{line-height:1.2;}
 
 @media (max-width:400px){
   .tcb-shell-hdr{padding:10px 12px;gap:8px;}

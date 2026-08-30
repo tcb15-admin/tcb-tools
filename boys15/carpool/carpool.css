@@ -19,7 +19,7 @@ body.cp-body{
 }
 .cp-svg-defs{position:absolute;width:0;height:0;overflow:hidden;}
 .cp-hdr h1{flex:1;}
-.cp-hdr-link{margin-left:auto;}
+.cp-hdr-link{/* 右寄せは .tcb-shell-hdr-end */}
 .cp-wrap{max-width:1100px;margin:0 auto;padding:14px 14px 48px;}
 .cp-card{
   background:var(--cp-card);border-radius:12px;border:1px solid var(--cp-bdr);

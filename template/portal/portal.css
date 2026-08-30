@@ -22,7 +22,7 @@ body{
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .pt-hdr-pwa{
-  margin-left:auto;flex:0 0 auto;
+  flex:0 0 auto;
   font-size:12px;padding:8px 10px;white-space:nowrap;
 }
 .pt-hdr-pwa.tcb-pwa-hbtn-on{
@@ -169,6 +169,7 @@ a.pt-tile:hover .pt-tile-title{border-bottom-color:var(--tcb-ink);}
 }
 
 .pt-tile-desc{font-size:12px;color:var(--tcb-muted);line-height:1.55;}
+.pt-tile-ver{font-size:10px;font-weight:700;color:var(--tcb-muted);margin:0 0 4px;letter-spacing:.02em;}
 .pt-tile-arrow{
   flex:0 0 auto;
   color:var(--tcb-ink);font-size:20px;font-weight:700;line-height:1;
