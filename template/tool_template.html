@@ -640,10 +640,17 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
   border-left:4px solid var(--ui-accent);
   box-shadow:0 1px 3px rgba(13,27,42,.07);
 }
+.master-tl-mrow.is-draft{
+  border-left-color:#ea580c;
+  box-shadow:0 0 0 2px rgba(234,88,12,.28),0 1px 3px rgba(13,27,42,.07);
+}
 .master-tl-mrow:nth-child(even){
   background:#f0f4fa;
   border-left-color:var(--blue2);
   border-color:#cfd8e6;
+}
+.master-tl-mrow.is-draft:nth-child(even){
+  border-left-color:#ea580c;
 }
 .master-tl-mrow:nth-child(even) .master-tl-name-ta{
   background:#fff;
@@ -1079,7 +1086,9 @@ html{color-scheme:light;}
   .tcb-tgh-bar.on{background:rgba(6,199,133,.16);}
   /* マスタ編集：白面/淡色面 → ダーク面 */
   .master-tl-mrow{background:var(--card);border-color:var(--bdr);border-left-color:#9fb4e8;}
+  .master-tl-mrow.is-draft{border-left-color:#fb923c;box-shadow:0 0 0 2px rgba(251,146,60,.28);}
   .master-tl-mrow:nth-child(even){background:var(--surface-2);border-color:var(--bdr);}
+  .master-tl-mrow.is-draft:nth-child(even){border-left-color:#fb923c;}
   .master-tl-mrow:nth-child(even) .master-tl-name-ta{background:var(--surface-2);}
   .master-desc-card{background:var(--card);border-color:var(--bdr);}
   .master-section h3{border-bottom-color:var(--bdr);}
@@ -2537,6 +2546,10 @@ window.addEventListener('resize',function(){
 });
 function sortMasterTools(){
   TL.sort(function(a,b){
+    /* 名称未設定（新規追加直後）は末尾に置き、編集中に迷子にならないようにする */
+    var sa0=String(a&&a.name||'').trim(), sb0=String(b&&b.name||'').trim();
+    if(!!sa0!==!!sb0)return sa0?-1:1;
+    if(!sa0&&!sb0)return (a.id||0)-(b.id||0);
     var pa=toolPrefixAndCircled(a.name), pb=toolPrefixAndCircled(b.name);
     var g=pa.prefix.localeCompare(pb.prefix,'ja',{numeric:true});
     if(g!==0)return g;
@@ -2680,6 +2693,7 @@ function syncMasterEditsFromDom(){
     var cards=del.querySelectorAll('.master-desc-card');
     var ci=0;
     TL.forEach(function(t){
+      if(!String((t&&t.name)||'').trim())return;
       if(ci>=cards.length)return;
       var card=cards[ci++];
       var tw=card.querySelector('.master-desc-text');
@@ -8585,6 +8599,32 @@ function buildMasterMembers(){
   });
 }
 
+function focusMasterToolByName(name){
+  name=String(name||'').trim();
+  if(!name)return;
+  var el=document.getElementById('m-tools');
+  if(!el)return;
+  var rows=el.querySelectorAll('.master-tl-mrow');
+  for(var i=0;i<rows.length;i++){
+    var ta=rows[i].querySelector('.master-tl-name-ta');
+    if(ta&&String(ta.value||'').trim()===name){
+      try{ta.focus(); rows[i].scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}
+      return;
+    }
+  }
+}
+function focusMasterToolDraft(){
+  var el=document.getElementById('m-tools');
+  if(!el)return;
+  var draft=el.querySelector('.master-tl-mrow.is-draft:last-of-type .master-tl-name-ta')
+    ||el.querySelector('.master-tl-mrow:last-child .master-tl-name-ta');
+  if(!draft)return;
+  try{
+    draft.focus();
+    draft.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }catch(e){}
+}
+
 function buildMasterTools(){
   sortMasterTools();
   var el=document.getElementById('m-tools'); el.innerHTML='';
@@ -8592,10 +8632,13 @@ function buildMasterTools(){
   el.style.overflowX='visible';
   el.style.WebkitOverflowScrolling='';
   TL.forEach(function(t,i){
-    var row=document.createElement('div'); row.className='mrow master-tl-mrow';
+    var isDraft=!String((t&&t.name)||'').trim();
+    var row=document.createElement('div'); row.className='mrow master-tl-mrow'+(isDraft?' is-draft':'');
     var nameWrap=document.createElement('div'); nameWrap.className='master-tl-name-wrap';
     /* 道具名（折り返し用 textarea・改行は保存時に除去） */
-    var ni=document.createElement('textarea'); ni.className='master-tl-name-ta'; ni.value=t.name; ni.placeholder='道具名'; ni.rows=2; ni.setAttribute('autocomplete','off');
+    var ni=document.createElement('textarea'); ni.className='master-tl-name-ta'; ni.value=t.name||'';
+    ni.placeholder=isDraft?'道具名を入力（未設定は一覧の末尾）':'道具名';
+    ni.rows=2; ni.setAttribute('autocomplete','off');
     nameWrap.appendChild(ni);
     var ctlRow=document.createElement('div'); ctlRow.className='master-tl-ctl-row';
     /* 長さ（積載尺） */
@@ -8640,17 +8683,20 @@ function buildMasterTools(){
         if(newName!==n2.value)n2.value=newName;
         /* 旧名のDESCSデータを新名にコピーして旧名を削除 */
         if(oldName!==newName){
-          if(DESCS[oldName]){
-            DESCS[newName]=DESCS[oldName];
+          if(oldName&&DESCS[oldName]){
+            if(newName){
+              DESCS[newName]=DESCS[oldName];
+            }
             delete DESCS[oldName];
-          } else {
-            if(!DESCS[newName])DESCS[newName]={text:'',img:''};
+          } else if(newName&&!DESCS[newName]){
+            DESCS[newName]={text:'',img:''};
           }
-          migrateToolNameRefs(oldName,newName);
+          if(oldName&&newName)migrateToolNameRefs(oldName,newName);
         }
         TL[idx].name=newName;
         TL[idx].fixed=0;TL[idx].note=null;
         buildMasterDescs();buildMasterTools();
+        if(newName)focusMasterToolByName(newName);
       });
       s2.addEventListener('change',function(){TL[idx].sz=normalizeToolLength(s2.value);});
       w2.addEventListener('change',function(){TL[idx].wt=w2.value;});
@@ -8692,6 +8738,7 @@ function buildMasterDescs(){
   el.appendChild(hint);
 
   TL.forEach(function(t){
+    if(!String((t&&t.name)||'').trim())return;
     var d=DESCS[t.name]||{text:'',img:''};
     var row=document.createElement('div');
     row.className='master-desc-card';
@@ -9742,12 +9789,11 @@ document.addEventListener('DOMContentLoaded',function(){
     MB.push({name:'新メンバー',v:'M',fix:null,rest:0,quit:0,coach:0,ac14:0,sibling:0,remote:0,noMulti:0}); buildMasterMembers();
   });
   document.getElementById('btn-add-tool').addEventListener('click',function(){
-    var maxId=TL.reduce(function(a,t){return Math.max(a,t.id);},0);
-    var newName='新道具';
-    TL.push({id:maxId+1,name:newName,sz:'M',wt:'Medium',note:null,fixed:0,broken:0,matchTool:0});
-    /* DESCSにも空エントリを追加 */
-    if(!DESCS[newName])DESCS[newName]={text:'',img:''};;
+    var maxId=TL.reduce(function(a,t){return Math.max(a,t.id||0);},0);
+    /* 名称は空のまま末尾に追加（「新道具」だと五十音整列で迷子になる） */
+    TL.push({id:maxId+1,name:'',sz:'M',wt:'Medium',note:null,fixed:0,broken:0,matchTool:0});
     buildMasterTools(); buildMasterDescs();
+    focusMasterToolDraft();
   });
   document.getElementById('btn-mbr-export').addEventListener('click',function(){exportJSON(MB,'members.json');});
   document.getElementById('btn-mbr-import').addEventListener('click',function(){
