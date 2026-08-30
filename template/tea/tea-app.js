@@ -573,12 +573,11 @@
   }
 
   function playerRosterNames() {
-    return state.members
-      .filter(function (m) { return m.name && isOn(m.playerOk); })
-      .map(function (m) { return m.name; })
-      .sort(function (a, b) {
-        return shortName(a).localeCompare(shortName(b), 'ja');
-      });
+    return sortNamesByRoster(
+      state.members
+        .filter(function (m) { return m.name && isOn(m.playerOk); })
+        .map(function (m) { return m.name; })
+    );
   }
 
   function normalizePlayerGroups(groups) {
@@ -597,9 +596,40 @@
     return out;
   }
 
+  /** 共有名簿（シード）のあいうえお順。未知の名前は末尾で localeCompare */
+  function teaRosterOrderIndex() {
+    if (teaRosterOrderIndex._map) return teaRosterOrderIndex._map;
+    var map = {};
+    var seed = window.TCB_TeaSeed;
+    var n = 0;
+    if (seed && seed.playerGroups) {
+      for (var i = 1; i <= 6; i++) {
+        (seed.playerGroups[String(i)] || []).forEach(function (name) {
+          var key = normalizeKey(name);
+          if (!key || map[key] !== undefined) return;
+          map[key] = n++;
+        });
+      }
+    }
+    teaRosterOrderIndex._map = map;
+    return map;
+  }
+
   function sortNamesByRoster(list) {
+    var order = teaRosterOrderIndex();
     return (list || []).slice().sort(function (a, b) {
-      return shortName(a).localeCompare(shortName(b), 'ja');
+      var sa = shortName(a);
+      var sb = shortName(b);
+      var ka = normalizeKey(sa);
+      var kb = normalizeKey(sb);
+      var ia = order[ka];
+      var ib = order[kb];
+      var aKnown = ia !== undefined;
+      var bKnown = ib !== undefined;
+      if (aKnown && bKnown && ia !== ib) return ia - ib;
+      if (aKnown && !bKnown) return -1;
+      if (!aKnown && bKnown) return 1;
+      return sa.localeCompare(sb, 'ja');
     });
   }
 
