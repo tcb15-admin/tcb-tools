@@ -109,7 +109,7 @@
       unpublishDay:function(){
         return req('/api/unpublish-day','POST',{cohort:cohort});
       },
-      /** 道具写真を R2 へアップロード（FormData・自動圧縮済み Blob 想定） */
+      /** 道具写真を GitHub images/ へアップロード（FormData・自動圧縮済み Blob 想定） */
       uploadToolImage:function(toolName, blob, contentType){
         var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
         var timer=ctrl?setTimeout(function(){ctrl.abort();},REQ_TIMEOUT_MS):null;

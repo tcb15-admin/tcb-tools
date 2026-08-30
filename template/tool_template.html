@@ -1692,7 +1692,7 @@ html{color-scheme:light;}
     <div class="card">
       <div class="master-section">
         <h3>&#128221; 道具の説明・写真</h3>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真を登録。写真は <code>boys15/images/</code> に保管し道具名へ紐付けます。割振り結果・保護者確認URLから参照できます。</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真を登録。写真はクラウド経由で <code>boys15/images/</code>（GitHub）に保管し道具名へ紐付けます。割振り結果・保護者確認URLから参照できます。</div>
         <div id="m-descs"></div>
       </div>
     </div>
@@ -1741,6 +1741,8 @@ html{color-scheme:light;}
 </div>
 
 <script src="tcb-device.js"></script>
+<script src="tcb-sync-api.js"></script>
+<script src="tcb-feedback.js"></script>
 <script src="tcb-swap-list.js"></script>
 <script src="tcb-assign-board.js"></script>
 <script src="tcb-handoff-plan.js"></script>
@@ -2229,8 +2231,18 @@ var _ls=(function(){
   };
 })();
 
+function ensureSyncClient(){
+  if(SYNC_CLIENT&&typeof SYNC_CLIENT.uploadToolImage==='function')return SYNC_CLIENT;
+  if(typeof TCB_createSyncClient!=='function'||!syncHeadersReady())return null;
+  SYNC_CLIENT=TCB_createSyncClient({
+    baseUrl:SYNC_API_BASE_URL,
+    token:SYNC_API_TOKEN,
+    cohort:COHORT_KEY
+  });
+  return SYNC_CLIENT;
+}
 function syncEnabled(){
-  return !!SYNC_CLIENT;
+  return !!ensureSyncClient();
 }
 /* 非ブロッキング通知（トースト）。モジュール未読込時は alert にフォールバック */
 function tcbToast(msg,type){
@@ -9337,13 +9349,6 @@ document.addEventListener('DOMContentLoaded',function(){
     var po=document.getElementById('print-overlay');
     if(po&&po.classList.contains('open'))closePrint();
   });
-  if(typeof TCB_createSyncClient==='function'&&syncHeadersReady()){
-    SYNC_CLIENT=TCB_createSyncClient({
-      baseUrl:SYNC_API_BASE_URL,
-      token:SYNC_API_TOKEN,
-      cohort:COHORT_KEY
-    });
-  }
   var teaRefBtn=document.getElementById('tcb-tea-reflect-btn');
   if(teaRefBtn){
     teaRefBtn.addEventListener('click',function(){
@@ -9363,7 +9368,7 @@ document.addEventListener('DOMContentLoaded',function(){
     adateEl.addEventListener('change',function(){scheduleTeaReflectRefresh();});
   }
   /* ヘッダーの同期状態インジケーター（クラウド同期が有効な環境のみ） */
-  if(syncEnabled()&&typeof TCB_Feedback!=='undefined'&&TCB_Feedback&&typeof TCB_Feedback.initSyncIndicator==='function'){
+  if(ensureSyncClient()&&typeof TCB_Feedback!=='undefined'&&TCB_Feedback&&typeof TCB_Feedback.initSyncIndicator==='function'){
     TCB_Feedback.initSyncIndicator('tcb-sync-ind');
   }
   /* オフラインキャッシュ用に SW を常時登録（push 通知の許可有無に関係なく有効） */
@@ -9983,8 +9988,6 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="html2canvas.min.js"></script>
 <script src="html2pdf.min.js"></script>
 <script src="tcb-print-pdf.js"></script>
-<script src="tcb-feedback.js"></script>
-<script src="tcb-sync-api.js"></script>
 <script src="tcb-swap-mgr.js"></script>
 <script src="tcb-push-mgr.js"></script>
 <script src="tcb-login.js"></script>

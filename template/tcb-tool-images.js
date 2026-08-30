@@ -1,4 +1,5 @@
-/* マスタ：道具写真の選択・圧縮・R2アップロード（道具名へ紐付け）
+/* マスタ：道具写真の選択・圧縮・アップロード（道具名へ紐付け）
+   保管先: Worker → GitHub boys{N}/images/（GitHub Pages で公開）
    依存: SYNC_CLIENT.uploadToolImage / deleteToolImage、DESCS、saveMaster、tcbToast/showMasterAlert */
 (function (global) {
   'use strict';
@@ -135,8 +136,9 @@
   }
 
   function uploadForTool(toolName, file, card) {
+    if (typeof global.ensureSyncClient === 'function') global.ensureSyncClient();
     if (!global.SYNC_CLIENT || typeof global.SYNC_CLIENT.uploadToolImage !== 'function') {
-      toast('クラウド同期が有効な環境でのみ写真を登録できます。', 'warn');
+      toast('クラウド同期の準備ができていません。ページを再読み込みしてから再度お試しください。', 'warn');
       return Promise.resolve();
     }
     if (!file) return Promise.resolve();
@@ -162,8 +164,8 @@
         var msg = String((err && err.message) || '');
         if (msg === 'unsupported_image_type') msg = '対応していない画像形式です（JPEG/PNG/WebP）';
         else if (msg === 'file_too_large') msg = '画像が大きすぎます';
-        else if (msg === 'github_not_configured') msg = '画像保管の設定が未完了です（GITHUB_TOKEN）';
-        else if (msg === 'github_auth_failed') msg = 'GitHub への書き込み権限がありません';
+        else if (msg === 'github_not_configured') msg = '画像保管の設定が未完了です（Worker の GITHUB_TOKEN）';
+        else if (msg === 'github_auth_failed') msg = 'GitHub への書き込み権限がありません（GITHUB_TOKEN）';
         else if (msg.indexOf('github_api_error') === 0) msg = 'GitHub への保存に失敗しました';
         else if (msg === 'r2_not_configured') msg = '画像保管の設定が未完了です';
         else if (!msg || msg === 'upload_failed') msg = 'アップロードに失敗しました';
