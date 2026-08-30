@@ -2232,18 +2232,44 @@ var _ls=(function(){
 })();
 
 function ensureSyncClient(){
-  if(SYNC_CLIENT&&typeof SYNC_CLIENT.uploadToolImage==='function')return SYNC_CLIENT;
-  if(typeof TCB_createSyncClient!=='function'||!syncHeadersReady())return null;
+  if(SYNC_CLIENT&&typeof SYNC_CLIENT.uploadToolImage==='function'){
+    try{window.SYNC_CLIENT=SYNC_CLIENT;}catch(e){}
+    return SYNC_CLIENT;
+  }
+  if(typeof TCB_createSyncClient!=='function'||!syncHeadersReady()){
+    try{window.SYNC_CLIENT=SYNC_CLIENT||null;}catch(e){}
+    return null;
+  }
   SYNC_CLIENT=TCB_createSyncClient({
     baseUrl:SYNC_API_BASE_URL,
     token:SYNC_API_TOKEN,
     cohort:COHORT_KEY
   });
+  try{window.SYNC_CLIENT=SYNC_CLIENT;}catch(e){}
   return SYNC_CLIENT;
 }
 function syncEnabled(){
   return !!ensureSyncClient();
 }
+/* 外部モジュール（tcb-tool-images 等）は window 経由で参照するため公開する */
+function publishGearBridge(){
+  try{
+    window.ensureSyncClient=ensureSyncClient;
+    window.syncEnabled=syncEnabled;
+    window.SYNC_CLIENT=SYNC_CLIENT;
+    if(typeof saveMaster==='function')window.saveMaster=saveMaster;
+    var desc=Object.getOwnPropertyDescriptor(window,'DESCS');
+    if(!desc||typeof desc.get!=='function'){
+      Object.defineProperty(window,'DESCS',{
+        configurable:true,
+        enumerable:true,
+        get:function(){return DESCS;},
+        set:function(v){DESCS=v;}
+      });
+    }
+  }catch(e){}
+}
+publishGearBridge();
 /* 非ブロッキング通知（トースト）。モジュール未読込時は alert にフォールバック */
 function tcbToast(msg,type){
   if(typeof TCB_Feedback!=='undefined'&&TCB_Feedback&&typeof TCB_Feedback.toast==='function'){
@@ -2935,6 +2961,7 @@ function saveMaster(){
     showMasterAlert('保存しました（ダウンロードは利用できない環境です）。','als');
   }
 }
+try{window.saveMaster=saveMaster;}catch(e){}
 function showMasterAlert(msg,cls){
   var el=document.getElementById('master-alert');
   if(!el)return;
@@ -9368,6 +9395,7 @@ document.addEventListener('DOMContentLoaded',function(){
     adateEl.addEventListener('change',function(){scheduleTeaReflectRefresh();});
   }
   /* ヘッダーの同期状態インジケーター（クラウド同期が有効な環境のみ） */
+  publishGearBridge();
   if(ensureSyncClient()&&typeof TCB_Feedback!=='undefined'&&TCB_Feedback&&typeof TCB_Feedback.initSyncIndicator==='function'){
     TCB_Feedback.initSyncIndicator('tcb-sync-ind');
   }
