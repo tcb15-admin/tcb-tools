@@ -230,6 +230,18 @@ body.tea-body{
   background:var(--tea-swap-bg);
 }
 .tea-duty-box.is-swapped select{font-weight:700;}
+/* 未定タイルの色は .tcb-val-tbd（シェル共通）。ピック／入れ替え中は上書き */
+.tea-duty-box.is-pick.tcb-val-tbd,
+.tea-duty-box.is-swapped.tcb-val-tbd,
+.tea-duty-box.is-drag-over.tcb-val-tbd{
+  background:var(--tea-pick-bg) !important;
+  border-color:var(--tea-pick) !important;
+  color:inherit !important;
+}
+.tea-duty-box.is-swapped.tcb-val-tbd{
+  background:var(--tea-swap-bg) !important;
+  border-color:var(--tea-swap) !important;
+}
 
 .tea-groups{display:flex;flex-direction:column;gap:8px;}
 .tea-gunassigned{

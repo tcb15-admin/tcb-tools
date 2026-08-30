@@ -7153,7 +7153,11 @@ function buildTbl(){
       opts+='<option value="'+esc(n)+'"'+(n===rawAsgn?' selected':'')+'>'+esc(n+suffix)+'</option>';
     });
     var sel=document.createElement('select'); sel.className='asel'; sel.setAttribute('data-tcb-assign-tool',t.name); sel.innerHTML=opts;
-    (function(tn,el2){el2.addEventListener('change',function(){chAssign(tn,el2.value);});})(t.name,sel);
+    if(!rawAsgn)sel.classList.add('tcb-val-tbd');
+    (function(tn,el2){el2.addEventListener('change',function(){
+      chAssign(tn,el2.value);
+      el2.classList.toggle('tcb-val-tbd',!el2.value);
+    });})(t.name,sel);
 
     var allT3=(R.mode==='team')?R.allTools:R.tools;
     var pCnt={};

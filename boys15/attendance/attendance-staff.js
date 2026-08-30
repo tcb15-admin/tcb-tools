@@ -351,6 +351,12 @@
       if([].some.call(kindEl.options, function(o){return o.value===kind;}))kindEl.value=kind;
     }
     if(prefill.place)row.querySelector('.att-d-place').value=prefill.place;
+    var kindEl0=row.querySelector('.att-d-kind');
+    function syncKindTbd(){
+      if(kindEl0)kindEl0.classList.toggle('tcb-val-tbd', kindEl0.value==='undecided');
+    }
+    syncKindTbd();
+    if(kindEl0)kindEl0.addEventListener('change', syncKindTbd);
     row.querySelector('.att-d-del').addEventListener('click', function(){
       if(box.querySelectorAll('.att-day-row').length<=1)return;
       row.remove();

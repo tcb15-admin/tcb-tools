@@ -116,6 +116,31 @@ a.tcb-shell-link:hover,
 .tcb-shell-hdr-end .tcb-shell-link{margin-left:0;}
 .tcb-shell-hdr-end .tcb-shell-meta{line-height:1.2;}
 
+/* 未定・未割当など、まだ埋まっていない選択の視認用（必須エラーではない） */
+.tcb-val-tbd,
+select.tcb-val-tbd{
+  background:#fff8e7 !important;
+  border-color:#e0b84e !important;
+  color:#7a5b14 !important;
+}
+.tcb-val-tbd select{
+  background:transparent !important;
+  color:#7a5b14 !important;
+}
+
+@media (prefers-color-scheme:dark){
+  .tcb-val-tbd,
+  select.tcb-val-tbd{
+    background:#3a3218 !important;
+    border-color:#c4a035 !important;
+    color:#f5e6b8 !important;
+  }
+  .tcb-val-tbd select{
+    background:transparent !important;
+    color:#f5e6b8 !important;
+  }
+}
+
 @media (max-width:400px){
   .tcb-shell-hdr{padding:10px 12px;gap:8px;}
   .tcb-shell-logo{width:36px;height:36px;}

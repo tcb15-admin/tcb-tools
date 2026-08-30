@@ -400,6 +400,23 @@
     return box ? box.querySelector('select') : null;
   }
 
+  /** （未定）＝空選択の枠を視認用に着色（必須ではない） */
+  function syncDutyTbd(box) {
+    var sel = selectOfBox(box);
+    if (!box || !sel) return;
+    box.classList.toggle('tcb-val-tbd', !String(sel.value || '').trim());
+  }
+
+  function syncPgTbd(sel) {
+    if (!sel) return;
+    sel.classList.toggle('tcb-val-tbd', !String(sel.value || '').trim());
+  }
+
+  function syncAllTbdFields() {
+    document.querySelectorAll('.tea-duty-box').forEach(syncDutyTbd);
+    document.querySelectorAll('.tea-d-pg').forEach(syncPgTbd);
+  }
+
   function swapDutyBoxes(srcBox, dstBox) {
     if (!srcBox || !dstBox || srcBox === dstBox) return false;
     var sa = selectOfBox(srcBox);
@@ -434,6 +451,7 @@
     setFlow('make');
     markDirty();
     setStatus('入れ替え: ' + shortName(fromName) + ' ↔ ' + shortName(toName) + '（未保存・戻す可）');
+    syncAllTbdFields();
     return true;
   }
 
@@ -450,6 +468,7 @@
     updateUndoBtn();
     markDirty();
     setStatus('直前の交代を戻しました（保存するまでサーバには未反映）');
+    syncAllTbdFields();
   }
 
   function bindDutyBox(box) {
@@ -536,24 +555,32 @@
     tr.querySelector('.tea-d-date').addEventListener('change', function () {
       tr.querySelector('.tea-wd').textContent = weekdayLabel(this.value);
       refreshDayTableOrder({ resequencePg: true });
+      syncAllTbdFields();
       markDirty();
     });
     tr.querySelector('.tea-d-del').addEventListener('click', function () {
       tr.remove();
       refreshDayTableOrder({ resequencePg: true });
+      syncAllTbdFields();
       markDirty();
     });
     tr.querySelector('.tea-d-pg').addEventListener('change', function () {
+      syncPgTbd(this);
       markDirty();
     });
     ['.tea-d-a', '.tea-d-b'].forEach(function (sel) {
       tr.querySelector(sel).addEventListener('change', function () {
         var box = this.closest('.tea-duty-box');
         // 手動変更はD&D交代ハイライトを外す（元に戻した場合もオレンジが残らないように）
-        if (box) box.classList.remove('is-swapped', 'is-pick');
+        if (box) {
+          box.classList.remove('is-swapped', 'is-pick');
+          syncDutyTbd(box);
+        }
         markDirty();
       });
     });
+    tr.querySelectorAll('.tea-duty-box').forEach(syncDutyTbd);
+    syncPgTbd(tr.querySelector('.tea-d-pg'));
     if (prefill.activityDate) {
       refreshDayTableOrder({ resequencePg: false });
     }
@@ -605,6 +632,7 @@
     opts = opts || {};
     sortDayRowsByDate();
     if (opts.resequencePg) resequencePlayerGroups();
+    syncAllTbdFields();
   }
 
   function playerNamesForGroup(g) {
@@ -1225,6 +1253,7 @@
         playerGroup: d.playerGroup
       });
     });
+    syncAllTbdFields();
     updateUndoBtn();
     var loadedNote = (res.month && res.month.note) || '';
     var oldShort = 'あいうえお順持ち回り（原則）。交代時のみ表を更新。';
@@ -1344,9 +1373,8 @@
     fillShareMsg(true);
     setFlow('make');
     markDirty();
+    syncAllTbdFields();
   }
-
-  async function savePlayerGroups() {
     var client = ensureSync();
     if (!client) return;
     setStatus('選手班を保存中…');
@@ -1467,6 +1495,7 @@
     }
     $('tea-btn-add-day').addEventListener('click', function () {
       addDayRow();
+      syncAllTbdFields();
       markDirty();
     });
     if ($('tea-btn-undo-swap')) {
