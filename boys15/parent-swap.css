@@ -2,110 +2,176 @@
    既存 pv- と衝突しないよう pvsw- プレフィクスで統一する。 */
 
 /* 氏名ピッカー */
-.pvsw-picker{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:20px 16px;margin-bottom:16px;}
-.pvsw-picker-title{font-weight:700;font-size:15px;color:var(--navy);margin-bottom:6px;}
-.pvsw-picker-desc{font-size:12.5px;color:var(--txt2);line-height:1.6;margin-bottom:14px;}
+.pvsw-picker{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:18px 14px;margin-bottom:12px;}
+.pvsw-picker-title{font-weight:700;font-size:16px;color:var(--navy);margin-bottom:6px;}
+.pvsw-picker-desc{font-size:13.5px;color:var(--txt2);line-height:1.55;margin-bottom:14px;}
 .pvsw-picker-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
-.pvsw-picker-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:10px 6px;background:var(--surface-2);border:1px solid var(--bdr);border-radius:12px;font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer;min-height:var(--tap);font-family:inherit;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pvsw-picker-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:12px 6px;background:var(--surface-2);border:1px solid var(--bdr);border-radius:12px;font-size:14px;font-weight:600;color:var(--txt);cursor:pointer;min-height:48px;font-family:inherit;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pvsw-picker-btn:hover{border-color:var(--navy);}
 @media (max-width:380px){
   .pvsw-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 
-/* ツールバー（自分のみ／全員 トグル＋氏名切替） */
-.pvsw-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:12px 14px;margin-bottom:16px;}
-.pvsw-toolbar-name{font-weight:700;font-size:14px;color:var(--navy);flex:1;min-width:0;}
-.pvsw-toolbar-name .pvsw-toolbar-me{display:inline-block;background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);margin-right:6px;}
-.pvsw-toggle-btn,.pvsw-switch-name{padding:8px 13px;border:1px solid var(--bdr);border-radius:var(--r-pill);background:var(--surface-2);font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer;min-height:38px;font-family:inherit;white-space:nowrap;}
+/* ツールバー（自分のみ／全員 トグル＋氏名切替）— sticky で常に操作可能 */
+.pvsw-toolbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);
+  padding:12px 14px;margin-bottom:12px;
+  position:sticky;top:64px;z-index:40;
+  border:1px solid var(--bdr);
+}
+.pvsw-toolbar-name{font-weight:700;font-size:15px;color:var(--navy);flex:1;min-width:0;}
+.pvsw-toolbar-name .pvsw-toolbar-me{display:inline-block;background:var(--navy);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill);margin-right:6px;}
+.pvsw-toolbar-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.pvsw-toggle-btn,.pvsw-switch-name{
+  padding:10px 14px;border:1px solid var(--bdr);border-radius:var(--r-pill);
+  background:var(--surface-2);font-size:13.5px;font-weight:700;color:var(--txt);
+  cursor:pointer;min-height:44px;font-family:inherit;white-space:nowrap;
+}
 .pvsw-toggle-btn.on{background:var(--navy);color:#fff;border-color:var(--navy);}
 
 /* 自分のカードを強調 */
 .pv-person.pvsw-me{border:2px solid var(--navy);box-shadow:0 0 0 3px rgba(18,32,80,.08);}
-.pvsw-me-badge{display:inline-block;background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);}
+.pvsw-me-badge{display:inline-block;background:var(--navy);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill);}
+
+/* 全員表示：コンパクト名簿 */
+.pvsw-compact-list{display:flex;flex-direction:column;gap:0;margin:0 -2px;}
+.pvsw-compact-row{
+  display:flex;flex-direction:column;gap:6px;
+  padding:12px 10px;border-bottom:1px solid var(--bdr);
+}
+.pvsw-compact-row:last-child{border-bottom:none;}
+.pvsw-compact-me{background:rgba(18,32,80,.06);border-radius:10px;border-bottom-color:transparent;margin:2px 0;padding:12px;}
+.pvsw-compact-name{font-weight:700;font-size:15px;color:var(--navy);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pvsw-compact-tools{display:flex;flex-wrap:wrap;gap:6px;}
+.pvsw-compact-chip{
+  font-size:13px;font-weight:600;line-height:1.3;
+  background:var(--surface-2);color:var(--txt);
+  border-radius:8px;padding:6px 10px;
+}
+.pvsw-compact-empty{font-size:13px;color:var(--txt2);}
+.pvsw-all-hint{font-size:12.5px;color:var(--txt2);margin:10px 2px 0;line-height:1.5;}
+.pvsw-day-count{font-size:12px;font-weight:700;color:var(--txt2);margin-left:auto;}
+
+/* 折りたたみ（前回・カタログ） */
+.pvsw-day-fold,.pvsw-catalog{padding:0;overflow:hidden;}
+.pvsw-day-summary,.pvsw-catalog-summary{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:14px 16px;min-height:52px;
+  -webkit-user-select:none;user-select:none;
+}
+.pvsw-day-summary::-webkit-details-marker,
+.pvsw-catalog-summary::-webkit-details-marker{display:none;}
+.pvsw-day-fold > *:not(summary),
+.pvsw-catalog > *:not(summary){padding:0 16px 14px;}
+.pvsw-fold-hint{font-size:12px;font-weight:600;color:var(--txt2);margin-left:auto;}
+.pvsw-day-fold[open] .pvsw-fold-hint,
+.pvsw-catalog[open] .pvsw-fold-hint{opacity:.55;}
+.pvsw-catalog-summary .pvsw-catalog-title{margin-bottom:0;}
 
 /* 交代報告フォーム（各道具行にインライン） */
-.pvsw-open{margin-top:6px;padding:6px 12px;background:none;border:1px solid var(--navy);color:var(--navy);border-radius:var(--r-pill);font-size:12px;font-weight:700;cursor:pointer;min-height:34px;font-family:inherit;}
-.pvsw-form{margin-top:10px;padding:12px;background:var(--surface-2);border-radius:12px;border:1px solid var(--bdr);}
+.pvsw-open{
+  margin-top:8px;width:100%;padding:12px 14px;
+  background:none;border:2px solid var(--navy);color:var(--navy);
+  border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;
+  min-height:48px;font-family:inherit;
+}
+.pvsw-form{margin-top:10px;padding:14px;background:var(--surface-2);border-radius:12px;border:1px solid var(--bdr);}
 .pvsw-form[hidden]{display:none;}
-.pvsw-field{margin-bottom:10px;}
-.pvsw-label{display:block;font-size:12px;font-weight:700;color:var(--txt);margin-bottom:5px;}
-.pvsw-select,.pvsw-comment{width:100%;font-family:inherit;font-size:14px;border:1px solid var(--bdr);border-radius:10px;padding:10px;background:var(--card);color:var(--txt);min-height:var(--tap);}
-.pvsw-comment{min-height:64px;resize:vertical;line-height:1.5;}
-.pvsw-counter{display:block;text-align:right;font-size:11px;color:var(--txt2);margin-top:3px;}
-.pvsw-warn{font-size:12px;color:var(--acc);line-height:1.5;margin:6px 0;}
+.pvsw-field{margin-bottom:12px;}
+.pvsw-label{display:block;font-size:13px;font-weight:700;color:var(--txt);margin-bottom:6px;}
+.pvsw-select,.pvsw-comment{width:100%;font-family:inherit;font-size:16px;border:1px solid var(--bdr);border-radius:10px;padding:12px;background:var(--card);color:var(--txt);min-height:48px;}
+.pvsw-comment{min-height:72px;resize:vertical;line-height:1.5;}
+.pvsw-counter{display:block;text-align:right;font-size:12px;color:var(--txt2);margin-top:3px;}
+.pvsw-warn{font-size:13px;color:var(--acc);line-height:1.5;margin:6px 0;}
 .pvsw-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-.pvsw-apply{flex:1;min-width:130px;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;}
+.pvsw-apply{flex:1;min-width:130px;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;min-height:48px;font-family:inherit;}
 .pvsw-apply:disabled{opacity:.5;cursor:default;}
-.pvsw-cancel{padding:11px 16px;background:none;border:1px solid var(--bdr);color:var(--txt2);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;min-height:var(--tap);font-family:inherit;}
+.pvsw-cancel{padding:14px 18px;background:none;border:1px solid var(--bdr);color:var(--txt2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;min-height:48px;font-family:inherit;}
 
 /* 受付状況 */
-.pvsw-status{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:16px;margin-bottom:16px;}
-.pvsw-status-title{font-weight:700;font-size:14px;color:var(--navy);margin-bottom:10px;}
-.pvsw-status-item{border:1px solid var(--bdr);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.55;}
+.pvsw-status{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:0;margin-bottom:12px;overflow:hidden;}
+.pvsw-status-summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:14px 16px;min-height:52px;font-weight:700;font-size:15px;color:var(--navy);
+  -webkit-user-select:none;user-select:none;
+}
+.pvsw-status-summary::-webkit-details-marker{display:none;}
+.pvsw-status > .pvsw-status-body{padding:0 16px 14px;}
+.pvsw-status-title{font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;}
+.pvsw-status-item{border:1px solid var(--bdr);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:14px;line-height:1.55;}
 .pvsw-status-item:last-child{margin-bottom:0;}
 .pvsw-status-main{color:var(--txt);}
-.pvsw-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:var(--r-pill);color:#fff;margin-left:6px;}
+.pvsw-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--r-pill);color:#fff;margin-left:6px;}
 .pvsw-badge.pending{background:#8e8e97;}
 .pvsw-badge.applied{background:var(--grn);}
 .pvsw-badge.dismissed{background:var(--red);}
-.pvsw-reject{margin-top:5px;font-size:12px;color:var(--acc);line-height:1.5;}
-.pvsw-status-empty{font-size:12.5px;color:var(--txt2);}
+.pvsw-reject{margin-top:5px;font-size:13px;color:var(--acc);line-height:1.5;}
+.pvsw-status-empty{font-size:13.5px;color:var(--txt2);}
 
 /* 受け渡しナビ（誰から受け取る／誰へ渡す） */
-.pvsw-handoff{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:16px;margin-bottom:16px;border:2px solid var(--ta-bd);}
-.pvsw-handoff-title{font-weight:700;font-size:14px;color:var(--navy);margin-bottom:10px;}
-.pvsw-handoff-group{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.pvsw-handoff{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:16px;margin-bottom:12px;border:2px solid var(--ta-bd);}
+.pvsw-handoff-title{font-weight:700;font-size:15px;color:var(--navy);margin-bottom:12px;}
+.pvsw-handoff-group{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
 .pvsw-handoff-group:last-child{margin-bottom:0;}
-.pvsw-handoff-tag{flex-shrink:0;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:var(--r-pill);color:#fff;margin-top:2px;}
+.pvsw-handoff-tag{flex-shrink:0;font-size:12px;font-weight:700;padding:5px 12px;border-radius:var(--r-pill);color:#fff;margin-top:2px;}
 .pvsw-ho-in{background:var(--grn);}
 .pvsw-ho-out{background:var(--acc);}
 .pvsw-ho-keep{background:#8e8e97;}
-.pvsw-handoff-list{list-style:none;margin:0;padding:0;font-size:13px;line-height:1.7;color:var(--txt);}
-.pvsw-handoff-keep{font-size:13px;line-height:1.7;color:var(--txt);}
-.pvsw-handoff-note{color:var(--txt2);font-size:12px;}
+.pvsw-handoff-list{list-style:none;margin:0;padding:0;font-size:14.5px;line-height:1.65;color:var(--txt);}
+.pvsw-handoff-keep{font-size:14.5px;line-height:1.65;color:var(--txt);}
+.pvsw-handoff-note{color:var(--txt2);font-size:13px;}
 
 /* 道具写真 */
-.pvsw-tool-line{display:flex;align-items:center;gap:8px;}
-.pvsw-tool-img{width:44px;height:33px;border-radius:6px;object-fit:cover;border:1px solid var(--bdr);cursor:zoom-in;flex-shrink:0;}
+.pvsw-tool-line{display:flex;align-items:center;gap:10px;}
+.pvsw-tool-img{width:56px;height:42px;border-radius:8px;object-fit:cover;border:1px solid var(--bdr);cursor:zoom-in;flex-shrink:0;}
 
 /* 道具カタログ（マスタ全道具） */
 .pvsw-catalog-title{font-weight:750;font-size:15px;color:var(--navy);margin-bottom:6px;}
-.pvsw-catalog-desc{font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:12px;}
+.pvsw-catalog-desc{font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:12px;}
 .pvsw-catalog-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
-.pvsw-catalog-item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--bdr);border-radius:12px;background:var(--surface-2);}
+.pvsw-catalog-item{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--bdr);border-radius:12px;background:var(--surface-2);}
 .pvsw-catalog-img{width:72px;height:54px;border-radius:8px;}
 .pvsw-catalog-ph{width:72px;height:54px;border-radius:8px;background:var(--card);border:1px dashed var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;opacity:.55;}
 .pvsw-catalog-body{flex:1;min-width:0;}
-.pvsw-catalog-name{font-weight:700;font-size:13.5px;color:var(--txt);margin-bottom:4px;line-height:1.35;}
-.pvsw-catalog-text{font-size:12px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;}
+.pvsw-catalog-name{font-weight:700;font-size:14.5px;color:var(--txt);margin-bottom:4px;line-height:1.35;}
+.pvsw-catalog-text{font-size:13px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;}
 .pvsw-catalog-muted{opacity:.75;}
 
 /* 申請種別（交代先あり／担当できない） */
-.pvsw-kind-field{display:flex;flex-direction:column;gap:6px;}
-.pvsw-kind-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt);min-height:32px;cursor:pointer;}
-.pvsw-kind-opt input{width:18px;height:18px;accent-color:var(--navy);}
-.pvsw-unav-note{font-size:12px;color:var(--ink-info);background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.6;}
+.pvsw-kind-field{display:flex;flex-direction:column;gap:8px;}
+.pvsw-kind-opt{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--txt);min-height:44px;cursor:pointer;padding:4px 0;}
+.pvsw-kind-opt input{width:20px;height:20px;accent-color:var(--navy);flex-shrink:0;}
+.pvsw-unav-note{font-size:13px;color:var(--ink-info);background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:10px;line-height:1.6;}
 .pvsw-unav-note[hidden],.pvsw-to-field[hidden],.pvsw-main[hidden],.pvsw-confirm[hidden],.pvsw-result[hidden]{display:none;}
 
 /* ページ内確認・結果表示（confirm/alert の置き換え） */
-.pvsw-confirm-text{font-size:13.5px;font-weight:600;line-height:1.7;color:var(--txt);margin-bottom:10px;}
-.pvsw-confirm-yes{flex:1;min-width:130px;padding:11px;background:var(--grn);color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;min-height:var(--tap);font-family:inherit;}
+.pvsw-confirm-text{font-size:14.5px;font-weight:600;line-height:1.7;color:var(--txt);margin-bottom:10px;}
+.pvsw-confirm-yes{flex:1;min-width:130px;padding:14px;background:var(--grn);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;min-height:48px;font-family:inherit;}
 .pvsw-confirm-yes:disabled{opacity:.6;cursor:default;}
-.pvsw-confirm-no{padding:11px 16px;background:none;border:1px solid var(--bdr);color:var(--txt2);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;min-height:var(--tap);font-family:inherit;}
-.pvsw-result{font-size:13px;font-weight:600;line-height:1.6;border-radius:10px;padding:10px 12px;}
+.pvsw-confirm-no{padding:14px 18px;background:none;border:1px solid var(--bdr);color:var(--txt2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;min-height:48px;font-family:inherit;}
+.pvsw-result{font-size:14px;font-weight:600;line-height:1.6;border-radius:10px;padding:12px 14px;}
 .pvsw-result-ok{background:var(--grn-l);color:var(--grn);}
 
 /* 受付状況の変化ハイライト */
 .pvsw-status-changed{border-color:var(--grn);box-shadow:0 0 0 2px rgba(46,125,50,.15);}
-.pvsw-changed-chip{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);background:var(--grn);color:#fff;margin-left:6px;}
+.pvsw-changed-chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill);background:var(--grn);color:#fff;margin-left:6px;}
 
 /* オフライン表示バナー */
-.pvsw-offline{background:#fff6e5;border:1px solid #e8c884;color:#7a5200;border-radius:12px;padding:10px 14px;font-size:12.5px;line-height:1.65;margin-bottom:16px;}
+.pvsw-offline{background:#fff6e5;border:1px solid #e8c884;color:#7a5200;border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.6;margin-bottom:12px;}
 
 /* 班タグの形状差別化（色弱対応：A=●＋実線 / B=▲＋破線） */
 .pv-team-tag.A::before{content:'\25CF';font-size:7px;margin-right:3px;vertical-align:1px;}
 .pv-team-tag.B::before{content:'\25B2';font-size:7px;margin-right:3px;vertical-align:1px;}
 .pv-team-tag.B{border-style:dashed;}
+
+@media (max-width:520px){
+  .pvsw-toolbar{top:56px;padding:10px 12px;gap:8px;}
+  .pvsw-toolbar-name{font-size:14px;width:100%;flex:1 1 100%;}
+  .pvsw-toolbar-actions{width:100%;}
+  .pvsw-toggle-btn,.pvsw-switch-name{flex:1;text-align:center;padding:10px 8px;font-size:13px;}
+}
 
 /* ダークモード追従 */
 @media (prefers-color-scheme:dark){
@@ -114,13 +180,13 @@
   .pvsw-unav-note{color:#9fb4e8;background:#1c1c1e;}
   .pvsw-result-ok{background:rgba(48,209,88,.15);color:#30d158;}
   .pvsw-offline{background:#3a2f14;border-color:#7a5200;color:#ffd88a;}
-}
-@media (prefers-color-scheme:dark){
   .pvsw-picker,.pvsw-toolbar,.pvsw-status{border:1px solid var(--bdr);}
-  .pvsw-picker-title,.pvsw-toolbar-name,.pvsw-status-title{color:#f5f5f7;}
+  .pvsw-picker-title,.pvsw-toolbar-name,.pvsw-status-title,.pvsw-status-summary,.pvsw-compact-name{color:#f5f5f7;}
   .pvsw-open{border-color:#5b6cff;color:#9fb0ff;}
   .pv-person.pvsw-me{border-color:#5b6cff;box-shadow:0 0 0 3px rgba(91,108,255,.18);}
+  .pvsw-compact-me{background:rgba(91,108,255,.12);}
   .pvsw-me-badge,.pvsw-toolbar-name .pvsw-toolbar-me,.pvsw-toggle-btn.on,.pvsw-apply{background:#3a4a8a;border-color:#3a4a8a;}
   .pvsw-form{background:#2c2c2e;}
   .pvsw-select,.pvsw-comment{background:#1c1c1e;color:#f5f5f7;}
+  .pvsw-compact-chip{background:#2c2c2e;}
 }

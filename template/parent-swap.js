@@ -258,6 +258,7 @@
     var tc = teamClass(info.team);
     var tagTxt = info.teamLabel || (info.team ? (info.team + '組') : '');
     var meCls = isMe ? ' pvsw-me' : '';
+    var allowSwap = isMe && Array.isArray(day.members) && day.members.length;
     var html = '<div class="pv-person' + meCls + '">'
       + '<div class="pv-person-name">' + esc(person)
       + (isMe ? '<span class="pvsw-me-badge">あなた</span>' : '')
@@ -271,7 +272,7 @@
         + '<span>' + esc(t.tool)
         + (t.desc ? '<span class="pv-tool-desc">' + esc(t.desc) + '</span>' : '')
         + '</span></div>';
-      if (Array.isArray(day.members) && day.members.length) {
+      if (allowSwap) {
         html += '<div><button type="button" class="pvsw-open">交代・担当できない連絡</button></div>'
           + renderToolSwapForm(day, t.tool, person);
       }
@@ -279,6 +280,22 @@
     });
     html += '</ul></div>';
     return html;
+  }
+
+  /** 全員表示用：1人1行のコンパクト名簿（交代ボタンなし） */
+  function renderCompactPerson(person, info, isMe) {
+    var tc = teamClass(info.team);
+    var tagTxt = info.teamLabel || (info.team ? (info.team + '組') : '');
+    var tools = (info.tools || []).map(function (t) { return esc(t.tool || ''); }).filter(Boolean);
+    return '<div class="pvsw-compact-row' + (isMe ? ' pvsw-compact-me' : '') + '">'
+      + '<div class="pvsw-compact-name">' + esc(person)
+      + (isMe ? '<span class="pvsw-me-badge">あなた</span>' : '')
+      + (tagTxt ? '<span class="pv-team-tag ' + tc + '">' + esc(tagTxt) + '</span>' : '')
+      + '</div>'
+      + (tools.length
+        ? '<div class="pvsw-compact-tools">' + tools.map(function (n) { return '<span class="pvsw-compact-chip">' + n + '</span>'; }).join('') + '</div>'
+        : '<div class="pvsw-compact-tools pvsw-compact-empty">担当なし</div>')
+      + '</div>';
   }
 
   function renderDay(day, idx) {
@@ -301,31 +318,50 @@
 
     var role = day.role || (idx === 0 ? 'today' : 'prev');
     var isToday = role === 'today';
+    var isAll = state.mode === 'all';
     var badge = isToday
       ? '<span class="pv-day-badge pv-day-badge-today">当日</span>'
       : '<span class="pv-day-badge prev">前回</span>';
-    var html = '<div class="pv-card' + (isToday ? ' pv-card-today' : ' pv-card-prev') + '">'
-      + '<div class="pv-day-head">' + badge
+    var headInner = badge
       + '<span class="pv-day-label">' + esc(day.label || ('活動日 ' + (idx + 1))) + '</span>'
       + (day.date ? '<span class="pv-day-date">' + esc(day.date) + '</span>' : '')
-      + '</div>';
+      + (isAll ? '<span class="pvsw-day-count">' + order.length + '名</span>' : '');
 
     var shownNames = order;
     if (state.mode === 'self' && state.selectedName) {
       shownNames = order.filter(function (p) { return p === state.selectedName; });
     }
 
+    var body = '';
     if (!order.length) {
-      html += '<div class="pv-empty">担当の登録がありません。</div>';
+      body = '<div class="pv-empty">担当の登録がありません。</div>';
     } else if (!shownNames.length) {
-      html += '<div class="pv-empty">この日の担当はありません。</div>';
+      body = '<div class="pv-empty">この日の担当はありません。</div>';
+    } else if (isAll) {
+      body = '<div class="pvsw-compact-list">';
+      shownNames.forEach(function (person) {
+        body += renderCompactPerson(person, byPerson[person], person === state.selectedName);
+      });
+      body += '</div>';
+      if (state.selectedName) {
+        body += '<p class="pvsw-all-hint">交代・担当できない連絡は「自分のみ」に切り替えて行えます。</p>';
+      }
     } else {
       shownNames.forEach(function (person) {
-        html += renderPersonCard(day, person, byPerson[person], person === state.selectedName);
+        body += renderPersonCard(day, person, byPerson[person], person === state.selectedName);
       });
     }
-    html += '</div>';
-    return html;
+
+    // 前回分はデフォルト閉じ（当日の受け渡し確認を優先）
+    if (!isToday) {
+      return '<details class="pv-card pv-card-prev pvsw-day-fold">'
+        + '<summary class="pv-day-head pvsw-day-summary">' + headInner
+        + '<span class="pvsw-fold-hint">タップで開く</span></summary>'
+        + body + '</details>';
+    }
+    return '<div class="pv-card pv-card-today">'
+      + '<div class="pv-day-head">' + headInner + '</div>'
+      + body + '</div>';
   }
 
   function renderToolbar() {
@@ -333,10 +369,11 @@
     var allOn = state.mode === 'all' ? ' on' : '';
     return '<div class="pvsw-toolbar">'
       + '<span class="pvsw-toolbar-name"><span class="pvsw-toolbar-me">あなた</span>' + esc(state.selectedName) + '</span>'
+      + '<div class="pvsw-toolbar-actions">'
       + '<button type="button" class="pvsw-toggle-btn' + selfOn + '" data-mode="self">自分のみ</button>'
-      + '<button type="button" class="pvsw-toggle-btn' + allOn + '" data-mode="all">全員を表示</button>'
-      + '<button type="button" class="pvsw-switch-name">氏名を変更</button>'
-      + '</div>';
+      + '<button type="button" class="pvsw-toggle-btn' + allOn + '" data-mode="all">全員</button>'
+      + '<button type="button" class="pvsw-switch-name">氏名変更</button>'
+      + '</div></div>';
   }
 
   function renderOfflineBanner() {
@@ -351,22 +388,27 @@
   }
 
   function renderStatusSection() {
-    return '<div class="pvsw-status" id="pvsw-status">'
-      + '<div class="pvsw-status-title">&#128236; あなたの交代報告の受付状況</div>'
+    return '<details class="pvsw-status" id="pvsw-status" open>'
+      + '<summary class="pvsw-status-summary">&#128236; 交代報告の受付状況'
+      + '<span class="pvsw-fold-hint">開閉</span></summary>'
       + '<div class="pvsw-status-body pvsw-status-empty">読み込み中…</div>'
-      + '</div>';
+      + '</details>';
   }
 
   function renderToolCatalog() {
     var tools = Array.isArray(state.toolCatalog) ? state.toolCatalog : [];
+    var head = '<summary class="pvsw-catalog-summary">'
+      + '<span class="pvsw-catalog-title">&#128247; 道具カタログ</span>'
+      + '<span class="pvsw-fold-hint">' + (tools.length ? tools.length + '点・タップで開く' : 'タップで開く') + '</span>'
+      + '</summary>';
     if (!tools.length) {
-      return '<div class="pv-card pvsw-catalog">'
-        + '<div class="pvsw-catalog-title">&#128247; 道具カタログ（全道具）</div>'
+      return '<details class="pv-card pvsw-catalog">'
+        + head
         + '<div class="pv-empty">道具一覧を取得できませんでした。最新に更新してください。</div>'
-        + '</div>';
+        + '</details>';
     }
-    var html = '<div class="pv-card pvsw-catalog">'
-      + '<div class="pvsw-catalog-title">&#128247; 道具カタログ（全道具）</div>'
+    var html = '<details class="pv-card pvsw-catalog">'
+      + head
       + '<div class="pvsw-catalog-desc">割振りの有無に関係なく、マスタに登録された道具の写真・説明を確認できます。</div>'
       + '<ul class="pvsw-catalog-list">';
     tools.forEach(function (t) {
@@ -383,7 +425,7 @@
         + (t.desc ? '<div class="pvsw-catalog-text">' + esc(t.desc) + '</div>' : '<div class="pvsw-catalog-text pvsw-catalog-muted">説明未登録</div>')
         + '</div></li>';
     });
-    html += '</ul></div>';
+    html += '</ul></details>';
     return html;
   }
 
@@ -395,7 +437,7 @@
     var html = renderOfflineBanner()
       + '<div class="pvsw-picker">'
       + '<div class="pvsw-picker-title">お名前を選択してください</div>'
-      + '<div class="pvsw-picker-desc">選択すると、あなたの担当だけを表示します。あとで「全員を表示」に切り替えできます。</div>'
+      + '<div class="pvsw-picker-desc">選ぶと受け渡しと担当がすぐ分かります。名簿を見たいときは「全員」に切り替えできます。</div>'
       + '<div class="pvsw-picker-grid">' + (btns || '<span class="pvsw-status-empty">表示できる氏名がありません。</span>') + '</div>'
       + '</div>';
     document.getElementById('pv-content').innerHTML = html;
