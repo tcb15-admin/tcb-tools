@@ -163,14 +163,24 @@ def build_manifest(target, config, out_dir):
         'icons': [
             {'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any'},
             {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any'},
-            {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'},
+            {
+                'src': 'icon-512-maskable.png',
+                'sizes': '512x512',
+                'type': 'image/png',
+                'purpose': 'maskable',
+            },
         ],
     }
     out_path = os.path.join(out_dir or '.', 'manifest.webmanifest')
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
-    missing = [n for n in ('icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-32.png')
-               if not os.path.isfile(os.path.join(out_dir or '.', n))]
+    missing = [
+        n for n in (
+            'icon-192.png', 'icon-512.png', 'icon-512-maskable.png',
+            'apple-touch-icon.png', 'favicon-32.png',
+        )
+        if not os.path.isfile(os.path.join(out_dir or '.', n))
+    ]
     if missing:
         print(f'[WARN] {target}: アイコン未配置 {missing}（python3 template/gen_icons.py で生成してください）')
     print(f'[OK] {target}(manifest) → {out_path}')
