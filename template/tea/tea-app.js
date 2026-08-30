@@ -1375,6 +1375,8 @@
     markDirty();
     syncAllTbdFields();
   }
+
+  async function savePlayerGroups() {
     var client = ensureSync();
     if (!client) return;
     setStatus('選手班を保存中…');
