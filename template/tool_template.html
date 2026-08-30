@@ -1153,7 +1153,8 @@ html{color-scheme:light;}
   <symbol id="i-info" viewBox="0 0 24 24"><g class="ic-mono"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/></g></symbol>
 </svg>
 <!-- パスワード画面 -->
-<div id="pw-screen" class="tcb-pw-screen" style="display:none;">
+<!-- 初期は表示（CSS display:flex）。未ログイン時に隠れたままになるのを防ぐ。認証済みなら initPw で非表示 -->
+<div id="pw-screen" class="tcb-pw-screen">
   <p class="tcb-pw-cohort-banner" role="status">{{COHORT_LABEL}} 専用・ログイン</p>
   <div class="tcb-pw-login-card">
     <img class="tcb-pw-logo" src="team-logo.png" width="80" height="80" alt="東海中央ボーイズ">
@@ -8772,37 +8773,43 @@ function sha256(str){
 }
 
 function initPw(){
-  var stored=_ls.get(PW_LS_KEY);
-  if(!stored){
-    /* 初期パスワード {{INITIAL_PW}} をハッシュ化して保存 */
-    stored=sha256('{{INITIAL_PW}}');
-    _ls.set(PW_LS_KEY,stored);
-  }
-  /* sessionStorage でログイン済みか確認 */
-  if(sessionStorage.getItem('{{LS_PREFIX}}Auth')==='1'){
-    document.getElementById('pw-screen').style.display='none';
-    return;
-  }
-  /* パスワード画面を表示 */
-  document.getElementById('pw-screen').style.display='flex';
+  var screen=document.getElementById('pw-screen');
   var inp=document.getElementById('pw-inp');
   var btn=document.getElementById('pw-btn');
   var err=document.getElementById('pw-err');
+  try{
+    var stored=_ls.get(PW_LS_KEY);
+    if(!stored){
+      /* 初期パスワード {{INITIAL_PW}} をハッシュ化して保存 */
+      stored=sha256('{{INITIAL_PW}}');
+      _ls.set(PW_LS_KEY,stored);
+    }
+    /* sessionStorage でログイン済みか確認 */
+    if(sessionStorage.getItem('{{LS_PREFIX}}Auth')==='1'){
+      if(screen)screen.style.display='none';
+      return;
+    }
+  }catch(e){
+    console.error(e);
+  }
+  /* パスワード画面を表示（HTML初期も表示だが、明示的に flex） */
+  if(screen)screen.style.display='flex';
+  if(!inp||!btn)return;
   function tryLogin(){
-    var hash=sha256(inp.value);
+    var hash=sha256(String(inp.value||'').trim());
     var correct=_ls.get(PW_LS_KEY);
     if(hash===correct){
-      sessionStorage.setItem('{{LS_PREFIX}}Auth','1');
-      document.getElementById('pw-screen').style.display='none';
-      err.textContent='';
+      try{sessionStorage.setItem('{{LS_PREFIX}}Auth','1');}catch(e){}
+      if(screen)screen.style.display='none';
+      if(err)err.textContent='';
     }else{
-      err.textContent='パスワードが違います。';
+      if(err)err.textContent='パスワードが違います。';
       inp.value=''; inp.focus();
     }
   }
   btn.addEventListener('click',function(){tryLogin();});
   inp.addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
-  inp.focus();
+  try{inp.focus();}catch(e){}
 }
 
 
@@ -9190,6 +9197,8 @@ function execHistMonthPdf(){
 }
 
 document.addEventListener('DOMContentLoaded',function(){
+  /* ログイン画面を最優先（後続処理が落ちてもゲートは出す） */
+  try{initPw();}catch(e){console.error(e);}
   document.addEventListener('touchmove',function(e){
     if(!document.body.classList.contains('tcb-modal-open'))return;
     if(e.target.closest('.tcb-scroll-modal-body,.tcb-hist-mo-scroll,.modal,#print-overlay'))return;
@@ -9254,8 +9263,8 @@ document.addEventListener('DOMContentLoaded',function(){
     }
   });
   loadMaster();
-  initPw();
-  document.getElementById('adate').value=localIsoDateFromDate();
+  var adateBoot=document.getElementById('adate');
+  if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
   if(vEl)vEl.textContent='v{{TOOL_VERSION}}';

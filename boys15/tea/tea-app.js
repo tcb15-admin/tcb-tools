@@ -252,13 +252,18 @@
   }
 
   function tryLogin() {
-    var v = ($('tea-pw-inp') && $('tea-pw-inp').value) || '';
+    var v = (($('tea-pw-inp') && $('tea-pw-inp').value) || '').trim();
     if (sha256(v) === effectivePwHash()) {
       setGateOk();
       $('tea-pw').classList.add('tea-hidden');
       bootApp();
     } else {
-      $('tea-pw-err').textContent = 'パスワードが違います';
+      var err = $('tea-pw-err');
+      if (err) err.textContent = 'パスワードが違います';
+      if ($('tea-pw-inp')) {
+        $('tea-pw-inp').value = '';
+        try { $('tea-pw-inp').focus(); } catch (e) {}
+      }
     }
   }
 
@@ -1636,17 +1641,15 @@
       bootApp();
       return;
     }
-    if (pwBtn) pwBtn.disabled = true;
+    /* 設定取得待ちでボタンを無効にしない（遅い回線で「パスワードが通らない」ように見えるため）。
+       passwordHash 未取得中は initialPw で照合できる。取得後にクラウド側ハッシュへ切り替わる。 */
+    if (pwBtn) pwBtn.disabled = false;
     var client = ensureSync();
-    if (!client) {
-      if (pwBtn) pwBtn.disabled = false;
-      return;
-    }
+    if (!client) return;
     client.getTeaSettings().then(function (s) {
       state.passwordHash = s.passwordHash || '';
-      if (pwBtn) pwBtn.disabled = false;
     }).catch(function () {
-      if (pwBtn) pwBtn.disabled = false;
+      /* 初期パスワードで続行可能 */
     });
   });
 })();
