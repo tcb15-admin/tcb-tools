@@ -8,9 +8,9 @@
 <meta name="theme-color" content="#f3f3f5">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.1.1">
-<link rel="stylesheet" href="../tcb-login.css?v=1.1.1">
-<link rel="stylesheet" href="tea.css?v=1.1.1">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.1.2">
+<link rel="stylesheet" href="../tcb-login.css?v=1.1.2">
+<link rel="stylesheet" href="tea.css?v=1.1.2">
 </head>
 <body class="tea-body">
 <svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
@@ -26,7 +26,7 @@
   <h1>お茶当番<span>東海中央ボーイズ 15期 · 月次表／LINE展開</span></h1>
   <div class="tcb-shell-hdr-end">
     <a class="tea-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
-    <div class="tcb-shell-meta" id="tea-version">v1.1.1</div>
+    <div class="tcb-shell-meta" id="tea-version">v1.1.2</div>
   </div>
 </header>
 
@@ -69,7 +69,7 @@
       <span id="tea-ym-label" class="tea-ym-label"></span>
       <span class="tea-toolbar-gap"></span>
       <button type="button" id="tea-btn-from-prev" class="tea-btn tea-btn-ghost">前月から作成</button>
-      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ico tea-btn-ghost" title="日付を1行追加" aria-label="日付を1行追加">
+      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ico tea-btn-ghost" title="日付を1行追加（平日・臨時など）" aria-label="日付を1行追加">
         <svg viewBox="0 0 24 24"><use href="#tea-i-plus"/></svg>
       </button>
       <button type="button" id="tea-btn-undo-swap" class="tea-btn tea-btn-ico tea-btn-ghost" disabled title="交代を戻す" aria-label="交代を戻す">
@@ -79,6 +79,7 @@
     </div>
 
     <p id="tea-month-badge" class="tea-meta tea-no-print"></p>
+    <p class="tea-hint tea-no-print">当番の修正：リストから選び直すか、<strong>⇄の枠をドラッグ</strong>してもう一方へ落とす／枠をタップ→入れ替え先をタップでも入れ替えできます。</p>
 
     <div class="tea-tbl-wrap" id="tea-print-area">
       <table class="tea-tbl" id="tea-day-tbl">
@@ -187,17 +188,17 @@ window.TCB_TEA_CFG={
   teamName:"東海中央ボーイズ 15期"
 };
 </script>
-<script src="../tcb-login.js?v=1.1.1"></script>
-<script src="../tcb-sync-api.js?v=1.1.1"></script>
-<script src="../tcb-device.js?v=1.1.1"></script>
-<script src="../jspdf.umd.min.js?v=1.1.1"></script>
-<script src="../html2canvas.min.js?v=1.1.1"></script>
-<script src="../html2pdf.min.js?v=1.1.1"></script>
-<script src="../tcb-print-pdf.js?v=1.1.1"></script>
-<script src="../attendance/attendance-jp-calendar.js?v=1.1.1"></script>
-<script src="tea-line.js?v=1.1.1"></script>
-<script src="tea-print.js?v=1.1.1"></script>
-<script src="tea-seed-2026-08.js?v=1.1.1"></script>
-<script src="tea-app.js?v=1.1.1"></script>
+<script src="../tcb-login.js?v=1.1.2"></script>
+<script src="../tcb-sync-api.js?v=1.1.2"></script>
+<script src="../tcb-device.js?v=1.1.2"></script>
+<script src="../jspdf.umd.min.js?v=1.1.2"></script>
+<script src="../html2canvas.min.js?v=1.1.2"></script>
+<script src="../html2pdf.min.js?v=1.1.2"></script>
+<script src="../tcb-print-pdf.js?v=1.1.2"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.1.2"></script>
+<script src="tea-line.js?v=1.1.2"></script>
+<script src="tea-print.js?v=1.1.2"></script>
+<script src="tea-seed-2026-08.js?v=1.1.2"></script>
+<script src="tea-app.js?v=1.1.2"></script>
 </body>
 </html>

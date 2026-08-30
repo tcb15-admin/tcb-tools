@@ -69,7 +69,7 @@
       <span id="tea-ym-label" class="tea-ym-label"></span>
       <span class="tea-toolbar-gap"></span>
       <button type="button" id="tea-btn-from-prev" class="tea-btn tea-btn-ghost">前月から作成</button>
-      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ico tea-btn-ghost" title="日付を1行追加" aria-label="日付を1行追加">
+      <button type="button" id="tea-btn-add-day" class="tea-btn tea-btn-ico tea-btn-ghost" title="日付を1行追加（平日・臨時など）" aria-label="日付を1行追加">
         <svg viewBox="0 0 24 24"><use href="#tea-i-plus"/></svg>
       </button>
       <button type="button" id="tea-btn-undo-swap" class="tea-btn tea-btn-ico tea-btn-ghost" disabled title="交代を戻す" aria-label="交代を戻す">
@@ -79,6 +79,7 @@
     </div>
 
     <p id="tea-month-badge" class="tea-meta tea-no-print"></p>
+    <p class="tea-hint tea-no-print">当番の修正：リストから選び直すか、<strong>⇄の枠をドラッグ</strong>してもう一方へ落とす／枠をタップ→入れ替え先をタップでも入れ替えできます。</p>
 
     <div class="tea-tbl-wrap" id="tea-print-area">
       <table class="tea-tbl" id="tea-day-tbl">
