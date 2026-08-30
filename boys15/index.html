@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.18">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.19">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -525,6 +525,26 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
 .master-section{margin-bottom:20px;}
 .master-section h3{font-size:14px;font-weight:900;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
 .master-section-h3-title{font-weight:900;color:var(--ink-heading);}
+/* マスタ：タブで縦スクロールを短縮 */
+.tcb-master-top{position:sticky;top:0;z-index:40;margin-bottom:10px;}
+.tcb-master-tabs{
+  display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;
+}
+.tcb-master-tab{
+  flex:1 1 calc(50% - 6px);min-width:0;min-height:40px;
+  padding:8px 10px;border-radius:8px;border:1.5px solid var(--bdr,#d4d4d8);
+  background:var(--card,#fff);color:var(--txt2,#71717a);
+  font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;
+}
+.tcb-master-tab.is-on{
+  border-color:var(--ink-heading,#141416);background:var(--ink-heading,#141416);color:#fff;
+}
+.tcb-master-panel{display:none;}
+.tcb-master-panel.is-on{display:block;}
+.tcb-master-panel[hidden]{display:none!important;}
+@media(min-width:560px){
+  .tcb-master-tab{flex:1 1 0;}
+}
 .mrow{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
 .master-mbr-row{
   width:100%;
@@ -1092,6 +1112,8 @@ html{color-scheme:light;}
   .master-tl-mrow:nth-child(even) .master-tl-name-ta{background:var(--surface-2);}
   .master-desc-card{background:var(--card);border-color:var(--bdr);}
   .master-section h3{border-bottom-color:var(--bdr);}
+  .tcb-master-tab{background:var(--card);border-color:var(--bdr);color:var(--txt2);}
+  .tcb-master-tab.is-on{background:var(--ink-heading,#e4e4e7);border-color:var(--ink-heading,#e4e4e7);color:#0c0c0e;}
   .minp,.msel,.master-tl-name-ta,.master-desc-text,.master-desc-url-inp{
     background:var(--surface-2);color:var(--txt);border-color:var(--bdr);}
   .master-desc-preview,.img-placeholder{background:var(--surface-2);border-color:var(--bdr);}
@@ -1140,14 +1162,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.18">
-<link rel="stylesheet" href="gear.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.18">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.18">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.19">
+<link rel="stylesheet" href="gear.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.19">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.19">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1611,7 +1633,7 @@ html{color-scheme:light;}
   </div>
   <!-- マスタ設定 -->
   <div class="pnl" id="p-master">
-    <div class="card">
+    <div class="card tcb-master-top">
       <div class="master-hdr">
         <div class="rt">&#9881; マスタ設定</div>
         <div class="master-hdr-btns">
@@ -1620,16 +1642,74 @@ html{color-scheme:light;}
         </div>
       </div>
       <div id="master-alert" style="display:none;"></div>
-      <div class="card tcb-master-restore-card" style="margin-top:10px;">
-        <div class="ct" style="margin-bottom:8px;">&#128260; マスタの元に戻す</div>
-        <p class="tcb-master-restore-note"><strong>開いた時点に戻す</strong>＝この画面での編集を破棄。<strong>端末の保存を読み直す</strong>＝最後に保存した内容へ。<strong>初期マスタに戻す</strong>＝同梱の初期データへ。いずれも<strong>「保存」するまで反映されません</strong>。</p>
-        <div class="tcb-master-restore-btns">
-          <button type="button" class="nb nbs" id="btn-master-revert-session">&#8630; 開いた時点に戻す</button>
-          <button type="button" class="nb nbs" id="btn-master-reload-ls">&#128190; 端末の保存を読み直す</button>
-          <button type="button" class="nb nbs tcb-master-revert-danger" id="btn-master-revert-default">&#9888; 初期マスタに戻す</button>
-        </div>
+      <nav class="tcb-master-tabs" role="tablist" aria-label="マスタの区分">
+        <button type="button" class="tcb-master-tab is-on" role="tab" aria-selected="true" data-master-tab="mbr" id="tcb-master-tab-mbr">メンバー</button>
+        <button type="button" class="tcb-master-tab" role="tab" aria-selected="false" data-master-tab="tools" id="tcb-master-tab-tools">道具</button>
+        <button type="button" class="tcb-master-tab" role="tab" aria-selected="false" data-master-tab="descs" id="tcb-master-tab-descs">説明・写真</button>
+        <button type="button" class="tcb-master-tab" role="tab" aria-selected="false" data-master-tab="misc" id="tcb-master-tab-misc">設定</button>
+      </nav>
+    </div>
+
+    <div class="tcb-master-panel is-on" data-master-panel="mbr" role="tabpanel" aria-labelledby="tcb-master-tab-mbr">
+    <div class="card">
+      <div class="master-section">
+        <h3>
+          <span class="master-section-h3-title">&#128101; メンバー一覧</span>
+          <span class="master-section-h3-btns" style="display:flex;gap:6px;">
+            <button class="io-btn imp" id="btn-mbr-import">&#11014; 読込</button>
+            <button class="io-btn exp" id="btn-mbr-export">&#11015; 書出</button>
+          </span>
+        </h3>
+        <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">背番号の昇順で表示（番号なしは末尾）。</div>
+        <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分：S＝軽 / M＝普通車 / L＝ミニバン / LL＝大型ワゴン。</div>
+        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部・退部・コーチ・14期帯同・兄弟所属</strong>。<strong>遠方</strong>は割振り対象のまま、事前の入れ替え案のみ対象外。</div>
+        <div id="m-members"></div>
+        <button class="madd" id="btn-add-mbr">&#65291; メンバー追加</button>
       </div>
-      <div class="tcb-master-pw-box">
+    </div>
+    </div>
+
+    <div class="tcb-master-panel" data-master-panel="tools" role="tabpanel" aria-labelledby="tcb-master-tab-tools" hidden>
+    <div class="card">
+      <div class="master-section">
+        <h3>
+          <span class="master-section-h3-title">&#129520; 道具一覧</span>
+          <span class="master-section-h3-btns" style="display:flex;gap:6px;">
+            <button class="io-btn imp" id="btn-tool-import">&#11014; 読込</button>
+            <button class="io-btn exp" id="btn-tool-export">&#11015; 書出</button>
+          </span>
+        </h3>
+        <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示順：まず<strong>丸数字（①…）より前の同じ名前</strong>ごとにまとめ、その中で<strong>①→②→③…</strong>の順です。丸数字が無い行は同じグループ内では後ろになります。グループ同士は辞書順、同順位は道具ID（id）です。</div>
+        <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
+        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">片方試合では、<strong>試合道具</strong>にチェックした道具だけが試合組へ、チェックしない道具は練習組へ割り当てます。両方試合・練習場所分離では、従来どおり道具名の割振りルールです。</div>
+        <div id="m-tools"></div>
+        <button class="madd" id="btn-add-tool">&#65291; 道具追加</button>
+      </div>
+    </div>
+    </div>
+
+    <div class="tcb-master-panel" data-master-panel="descs" role="tabpanel" aria-labelledby="tcb-master-tab-descs" hidden>
+    <div class="card">
+      <div class="master-section">
+        <h3>&#128221; 道具の説明・写真</h3>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真を登録。写真は <code>boys15/images/</code> に保管し道具名へ紐付けます。割振り結果・保護者確認URLから参照できます。</div>
+        <div id="m-descs"></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="tcb-master-panel" data-master-panel="misc" role="tabpanel" aria-labelledby="tcb-master-tab-misc" hidden>
+    <div class="card tcb-master-restore-card" style="margin-top:0;">
+      <div class="ct" style="margin-bottom:8px;">&#128260; マスタの元に戻す</div>
+      <p class="tcb-master-restore-note"><strong>開いた時点に戻す</strong>＝この画面での編集を破棄。<strong>端末の保存を読み直す</strong>＝最後に保存した内容へ。<strong>初期マスタに戻す</strong>＝同梱の初期データへ。いずれも<strong>「保存」するまで反映されません</strong>。</p>
+      <div class="tcb-master-restore-btns">
+        <button type="button" class="nb nbs" id="btn-master-revert-session">&#8630; 開いた時点に戻す</button>
+        <button type="button" class="nb nbs" id="btn-master-reload-ls">&#128190; 端末の保存を読み直す</button>
+        <button type="button" class="nb nbs tcb-master-revert-danger" id="btn-master-revert-default">&#9888; 初期マスタに戻す</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px;">
+      <div class="tcb-master-pw-box" style="margin-top:0;">
         <div class="tcb-master-pw-title">&#128274; パスワード変更</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <div style="position:relative;flex:1;min-width:140px;">
@@ -1651,45 +1731,8 @@ html{color-scheme:light;}
       <p style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:10px;">道具の重さ・長さに応じた<strong>負荷ポイント</strong>の累計です。リセットすると実施確定の記録も消えます。続けて<strong>保存</strong>で反映してください。</p>
       <button type="button" class="nb nbs" id="btn-past-reset" style="font-size:13px;">PAST をゼロにリセット</button>
     </div>
-    <div class="card">
-      <div class="master-section">
-        <h3>
-          <span class="master-section-h3-title">&#128101; メンバー一覧</span>
-          <span class="master-section-h3-btns" style="display:flex;gap:6px;">
-            <button class="io-btn imp" id="btn-mbr-import">&#11014; 読込</button>
-            <button class="io-btn exp" id="btn-mbr-export">&#11015; 書出</button>
-          </span>
-        </h3>
-        <div class="master-mbr-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">背番号の昇順で表示（番号なしは末尾）。</div>
-        <div class="master-mbr-vehicle-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">積載区分：S＝軽 / M＝普通車 / L＝ミニバン / LL＝大型ワゴン。</div>
-        <div class="master-mbr-excl-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">割振り対象外：<strong>休部・退部・コーチ・14期帯同・兄弟所属</strong>。<strong>遠方</strong>は割振り対象のまま、事前の入れ替え案のみ対象外。</div>
-        <div id="m-members"></div>
-        <button class="madd" id="btn-add-mbr">&#65291; メンバー追加</button>
-      </div>
     </div>
-    <div class="card">
-      <div class="master-section">
-        <h3>
-          <span class="master-section-h3-title">&#129520; 道具一覧</span>
-          <span class="master-section-h3-btns" style="display:flex;gap:6px;">
-            <button class="io-btn imp" id="btn-tool-import">&#11014; 読込</button>
-            <button class="io-btn exp" id="btn-tool-export">&#11015; 書出</button>
-          </span>
-        </h3>
-        <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">表示順：まず<strong>丸数字（①…）より前の同じ名前</strong>ごとにまとめ、その中で<strong>①→②→③…</strong>の順です。丸数字が無い行は同じグループ内では後ろになります。グループ同士は辞書順、同順位は道具ID（id）です。</div>
-        <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
-        <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">片方試合では、<strong>試合道具</strong>にチェックした道具だけが試合組へ、チェックしない道具は練習組へ割り当てます。両方試合・練習場所分離では、従来どおり道具名の割振りルールです。</div>
-        <div id="m-tools"></div>
-        <button class="madd" id="btn-add-tool">&#65291; 道具追加</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="master-section">
-        <h3>&#128221; 道具の説明・写真</h3>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">説明文と写真を登録。写真は <code>boys15/images/</code> に保管し道具名へ紐付けます。割振り結果・保護者確認URLから参照できます。</div>
-        <div id="m-descs"></div>
-      </div>
-    </div>
+
     <div class="tcb-master-foot-btns" style="padding-bottom:16px;display:flex;gap:8px;">
       <button type="button" class="nb nbp" id="btn-master-save2" style="flex:1;padding:14px;font-size:15px;">&#128190; 保存</button>
       <button type="button" class="nb nbs" id="btn-master-back2" style="flex:0 0 auto;padding:14px 16px;font-size:15px;">&#10005; 閉じる</button>
@@ -1697,12 +1740,12 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.18"></script>
-<script src="tcb-swap-list.js?v=1.27.18"></script>
-<script src="tcb-assign-board.js?v=1.27.18"></script>
-<script src="tcb-handoff-plan.js?v=1.27.18"></script>
-<script src="tcb-team-rules.js?v=1.27.18"></script>
-<script src="tcb-tool-images.js?v=1.27.18"></script>
+<script src="tcb-device.js?v=1.27.19"></script>
+<script src="tcb-swap-list.js?v=1.27.19"></script>
+<script src="tcb-assign-board.js?v=1.27.19"></script>
+<script src="tcb-handoff-plan.js?v=1.27.19"></script>
+<script src="tcb-team-rules.js?v=1.27.19"></script>
+<script src="tcb-tool-images.js?v=1.27.19"></script>
 <script>
 
 
@@ -6362,6 +6405,26 @@ function goStep(n){
   }
   updateSeedModeBanners();
 }
+function setMasterTab(tab, opts){
+  opts=opts||{};
+  var allowed={mbr:1,tools:1,descs:1,misc:1};
+  if(!allowed[tab])tab='mbr';
+  document.querySelectorAll('.tcb-master-tab').forEach(function(btn){
+    var on=btn.getAttribute('data-master-tab')===tab;
+    btn.classList.toggle('is-on',on);
+    btn.setAttribute('aria-selected',on?'true':'false');
+  });
+  document.querySelectorAll('.tcb-master-panel').forEach(function(panel){
+    var on=panel.getAttribute('data-master-panel')===tab;
+    panel.classList.toggle('is-on',on);
+    if(on)panel.removeAttribute('hidden');
+    else panel.setAttribute('hidden','');
+  });
+  try{_ls.set('tcb15MasterTab',tab);}catch(e){}
+  if(!opts.noScroll){
+    try{window.scrollTo(0,0);}catch(e){}
+  }
+}
 function goMaster(){
   ['p1','p2','p3','p-master'].forEach(function(id){
     var el=document.getElementById(id); if(el)el.className='pnl';
@@ -6370,6 +6433,9 @@ function goMaster(){
   window.scrollTo(0,0);
   buildMasterUI();
   markMasterSnapshotClean();
+  var tab='mbr';
+  try{tab=_ls.get('tcb15MasterTab')||'mbr';}catch(e){}
+  setMasterTab(tab,{noScroll:true});
 }
 
 /* ========== タブ ========== */
@@ -9219,7 +9285,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.18';
+  if(vEl)vEl.textContent='v1.27.19';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9689,14 +9755,21 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnPastReset=document.getElementById('btn-past-reset');
   if(btnPastReset)btnPastReset.addEventListener('click',function(){resetPastToZero();});
   document.getElementById('btn-add-mbr').addEventListener('click',function(){
+    setMasterTab('mbr',{noScroll:true});
     MB.push({name:'新メンバー',v:'M',fix:null,rest:0,quit:0,coach:0,ac14:0,sibling:0,remote:0,noMulti:0}); buildMasterMembers();
   });
   document.getElementById('btn-add-tool').addEventListener('click',function(){
+    setMasterTab('tools',{noScroll:true});
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id||0);},0);
     /* 名称は空のまま末尾に追加（「新道具」だと五十音整列で迷子になる） */
     TL.push({id:maxId+1,name:'',sz:'M',wt:'Medium',note:null,fixed:0,broken:0,matchTool:0});
     buildMasterTools(); buildMasterDescs();
     focusMasterToolDraft();
+  });
+  document.querySelectorAll('.tcb-master-tab').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      setMasterTab(btn.getAttribute('data-master-tab')||'mbr');
+    });
   });
   document.getElementById('btn-mbr-export').addEventListener('click',function(){exportJSON(MB,'members.json');});
   document.getElementById('btn-mbr-import').addEventListener('click',function(){
@@ -9806,18 +9879,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.18"></script>
-<script src="html2canvas.min.js?v=1.27.18"></script>
-<script src="html2pdf.min.js?v=1.27.18"></script>
-<script src="tcb-print-pdf.js?v=1.27.18"></script>
-<script src="tcb-feedback.js?v=1.27.18"></script>
-<script src="tcb-sync-api.js?v=1.27.18"></script>
-<script src="tcb-swap-mgr.js?v=1.27.18"></script>
-<script src="tcb-push-mgr.js?v=1.27.18"></script>
-<script src="tcb-login.js?v=1.27.18"></script>
-<script src="tcb-pwa-install.js?v=1.27.18"></script>
-<script src="tcb-group-hold.js?v=1.27.18"></script>
-<script src="tcb-presummary.js?v=1.27.18"></script>
-<script src="tcb-p1-flow.js?v=1.27.18"></script>
+<script src="jspdf.umd.min.js?v=1.27.19"></script>
+<script src="html2canvas.min.js?v=1.27.19"></script>
+<script src="html2pdf.min.js?v=1.27.19"></script>
+<script src="tcb-print-pdf.js?v=1.27.19"></script>
+<script src="tcb-feedback.js?v=1.27.19"></script>
+<script src="tcb-sync-api.js?v=1.27.19"></script>
+<script src="tcb-swap-mgr.js?v=1.27.19"></script>
+<script src="tcb-push-mgr.js?v=1.27.19"></script>
+<script src="tcb-login.js?v=1.27.19"></script>
+<script src="tcb-pwa-install.js?v=1.27.19"></script>
+<script src="tcb-group-hold.js?v=1.27.19"></script>
+<script src="tcb-presummary.js?v=1.27.19"></script>
+<script src="tcb-p1-flow.js?v=1.27.19"></script>
 </body>
 </html>
