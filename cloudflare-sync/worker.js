@@ -1741,7 +1741,7 @@ async function listTeaMembers(env, cohortRaw) {
   }
   const mb = Array.isArray(master.MB) ? master.MB : [];
   // お茶当番A/Bは保護者（コーチ保護者含む）世帯。名簿は選手名で識別する。
-  // 選手当番は選手のみ（コーチ・休部等は入れない）。
+  // 選手班名簿は退部以外の全選手（コーチの子供・休部・14期帯同・兄弟所属も含む）。
   return {
     members: mb
       .map((m) => {
@@ -1757,7 +1757,7 @@ async function listTeaMembers(env, cohortRaw) {
           rest: rest ? 1 : 0,
           quit: quit ? 1 : 0,
           teaOk: name && !rest && !quit ? 1 : 0,
-          playerOk: name && !rest && !quit && !coach && !ac14 && !sibling ? 1 : 0,
+          playerOk: name && !quit ? 1 : 0,
         };
       })
       .filter((m) => m.name),
