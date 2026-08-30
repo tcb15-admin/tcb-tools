@@ -96,21 +96,42 @@
     var u = String(url || '').trim();
     if (!u) {
       el.textContent = '\ud83d\udcf7';
+      el.removeAttribute('title');
       return;
     }
     var ni = document.createElement('img');
-    ni.src = u;
     ni.alt = '';
-    ni.loading = 'lazy';
     ni.decoding = 'async';
     ni.width = 48;
     ni.height = 36;
-    ni.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-    ni.onerror = function () {
+    ni.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:zoom-in;';
+    var attempt = 0;
+    var maxTries = 4;
+    function showWarn() {
       el.innerHTML = '';
       el.textContent = '\u26a0\ufe0f';
-    };
+      el.title = '画像を表示できません。少し待ってマスタを開き直すか、再読み込みしてください。';
+    }
+    function tryLoad() {
+      attempt += 1;
+      ni.onload = function () {
+        el.title = 'タップで拡大';
+      };
+      ni.onerror = function () {
+        /* GitHub Pages 反映直後は一時的に 404 になることがあるため再試行 */
+        if (attempt < maxTries) {
+          setTimeout(tryLoad, 1000 * attempt);
+          return;
+        }
+        showWarn();
+      };
+      ni.src = attempt === 1 ? u : u + (u.indexOf('?') >= 0 ? '&' : '?') + '_r=' + Date.now();
+    }
+    ni.addEventListener('click', function () {
+      if (/^https:\/\//.test(u)) window.open(u, '_blank', 'noopener');
+    });
     el.appendChild(ni);
+    tryLoad();
   }
 
   function setDescImg(toolName, url) {
