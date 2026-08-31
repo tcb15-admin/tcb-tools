@@ -109,13 +109,15 @@
       unpublishDay:function(){
         return req('/api/unpublish-day','POST',{cohort:cohort});
       },
-      /** 道具写真を GitHub images/ へアップロード（FormData・自動圧縮済み Blob 想定） */
-      uploadToolImage:function(toolName, blob, contentType){
+      /** 道具写真を GitHub images/ へアップロード（FormData・自動圧縮済み Blob 想定）
+       *  uniqueId を付けると同一道具で複数枚保存できる（省略時はサーバ側で採番） */
+      uploadToolImage:function(toolName, blob, contentType, uniqueId){
         var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
         var timer=ctrl?setTimeout(function(){ctrl.abort();},REQ_TIMEOUT_MS):null;
         var fd=new FormData();
         fd.append('cohort',cohort);
         fd.append('toolName',String(toolName||''));
+        if(uniqueId)fd.append('uniqueId',String(uniqueId));
         fd.append('file',blob,String(toolName||'tool').replace(/[^\w\u3040-\u30ff\u4e00-\u9fff-]+/g,'_').slice(0,40)+'.jpg');
         notifySync('start');
         return fetch(base+'/api/tool-image',{
@@ -142,8 +144,11 @@
           if(timer)clearTimeout(timer);
         });
       },
-      deleteToolImage:function(toolName){
-        return req('/api/tool-image','DELETE',{cohort:cohort,toolName:toolName});
+      /** url 指定で1枚削除。省略時は道具名ハッシュの旧単一ファイルを削除 */
+      deleteToolImage:function(toolName, url){
+        var body={cohort:cohort,toolName:toolName};
+        if(url)body.url=String(url);
+        return req('/api/tool-image','DELETE',body);
       },
       fetchSwapReports:function(){
         return req('/api/swap-reports?cohort='+encodeURIComponent(cohort),'GET');

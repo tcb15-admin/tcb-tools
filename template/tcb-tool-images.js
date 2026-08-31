@@ -1,5 +1,6 @@
-/* マスタ：道具写真の選択・圧縮・アップロード（道具名へ紐付け）
+/* マスタ：道具写真の選択・圧縮・アップロード（道具名へ紐付け・最大5枚）
    保管先: Worker → GitHub boys{N}/images/（GitHub Pages で公開）
+   DESCS[name] = { text, img, imgs[] }  （img は互換用の代表＝imgs[0]）
    依存: SYNC_CLIENT.uploadToolImage / deleteToolImage、DESCS、saveMaster、tcbToast/showMasterAlert */
 (function (global) {
   'use strict';
@@ -7,6 +8,7 @@
   var MAX_EDGE = 1200;
   var JPEG_QUALITY = 0.82;
   var MAX_BYTES = 1.5 * 1024 * 1024;
+  var MAX_IMGS = 5;
 
   function toast(msg, type) {
     if (global.TCB_Feedback && typeof global.TCB_Feedback.toast === 'function') {
@@ -18,6 +20,66 @@
       return;
     }
     window.alert(msg);
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /** DESCS エントリから画像URL配列を得る（旧 img のみも互換） */
+  function listImgsFromDesc(d) {
+    var out = [];
+    var seen = {};
+    function push(u) {
+      u = String(u || '').trim();
+      if (!u || seen[u]) return;
+      if (!/^https:\/\//i.test(u)) return;
+      seen[u] = 1;
+      out.push(u);
+    }
+    if (d && typeof d === 'object') {
+      if (Array.isArray(d.imgs) && d.imgs.length) {
+        d.imgs.forEach(push);
+      } else {
+        push(d.img);
+      }
+    }
+    return out.slice(0, MAX_IMGS);
+  }
+
+  function writeDescImgs(toolName, urls) {
+    if (!global.DESCS) global.DESCS = {};
+    if (!global.DESCS[toolName] || typeof global.DESCS[toolName] !== 'object') {
+      global.DESCS[toolName] = { text: '', img: '', imgs: [] };
+    }
+    var cleaned = [];
+    var seen = {};
+    (urls || []).forEach(function (u) {
+      u = String(u || '').trim();
+      if (!u || seen[u] || !/^https:\/\//i.test(u)) return;
+      seen[u] = 1;
+      cleaned.push(u);
+    });
+    cleaned = cleaned.slice(0, MAX_IMGS);
+    global.DESCS[toolName].imgs = cleaned;
+    global.DESCS[toolName].img = cleaned[0] || '';
+  }
+
+  function newUniqueId() {
+    try {
+      if (global.crypto && crypto.getRandomValues) {
+        var a = new Uint8Array(4);
+        crypto.getRandomValues(a);
+        return Array.prototype.map.call(a, function (b) {
+          return ('0' + b.toString(16)).slice(-2);
+        }).join('');
+      }
+    } catch (e) {}
+    return String(Date.now()).slice(-8);
   }
 
   function loadImageFromFile(file) {
@@ -61,7 +123,6 @@
     });
   }
 
-  /** 端末の写真／ファイルを JPEG に圧縮（横長辺 MAX_EDGE） */
   function compressImageFile(file) {
     return loadImageFromFile(file).then(function (img) {
       var w = img.naturalWidth || img.width;
@@ -90,40 +151,31 @@
     });
   }
 
-  function fillPreview(el, url) {
+  function fillThumb(el, url) {
     if (!el) return;
     el.innerHTML = '';
     var u = String(url || '').trim();
     if (!u) {
       el.textContent = '\ud83d\udcf7';
-      el.removeAttribute('title');
       return;
     }
     var ni = document.createElement('img');
     ni.alt = '';
     ni.decoding = 'async';
-    ni.width = 48;
-    ni.height = 36;
+    ni.width = 56;
+    ni.height = 42;
     ni.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:zoom-in;';
     var attempt = 0;
-    var maxTries = 4;
-    function showWarn() {
-      el.innerHTML = '';
-      el.textContent = '\u26a0\ufe0f';
-      el.title = '画像を表示できません。少し待ってマスタを開き直すか、再読み込みしてください。';
-    }
     function tryLoad() {
       attempt += 1;
-      ni.onload = function () {
-        el.title = 'タップで拡大';
-      };
       ni.onerror = function () {
-        /* GitHub Pages 反映直後は一時的に 404 になることがあるため再試行 */
-        if (attempt < maxTries) {
+        if (attempt < 4) {
           setTimeout(tryLoad, 1000 * attempt);
           return;
         }
-        showWarn();
+        el.innerHTML = '';
+        el.textContent = '\u26a0\ufe0f';
+        el.title = '画像を表示できません';
       };
       ni.src = attempt === 1 ? u : u + (u.indexOf('?') >= 0 ? '&' : '?') + '_r=' + Date.now();
     }
@@ -134,13 +186,8 @@
     tryLoad();
   }
 
-  function setDescImg(toolName, url) {
-    if (!global.DESCS) global.DESCS = {};
-    if (!global.DESCS[toolName]) global.DESCS[toolName] = { text: '', img: '' };
-    global.DESCS[toolName].img = String(url || '').trim();
-  }
-
   function persistAfterImgChange() {
+    if (typeof global.ensureSyncClient === 'function') global.ensureSyncClient();
     if (typeof global.syncEnabled === 'function' && global.syncEnabled() && typeof global.saveMaster === 'function') {
       global.saveMaster();
       return;
@@ -151,9 +198,41 @@
   function setBusy(card, on) {
     if (!card) return;
     card.classList.toggle('tcb-tool-img-busy', !!on);
-    card.querySelectorAll('.tcb-tool-img-pick, .tcb-tool-img-clear').forEach(function (b) {
+    card.querySelectorAll('.tcb-tool-img-pick, .tcb-tool-img-del').forEach(function (b) {
       b.disabled = !!on;
     });
+  }
+
+  function renderGallery(card, toolName) {
+    var gallery = card.querySelector('.tcb-tool-img-gallery');
+    var pickBtn = card.querySelector('.tcb-tool-img-pick');
+    if (!gallery) return;
+    var urls = listImgsFromDesc(global.DESCS && global.DESCS[toolName]);
+    gallery.innerHTML = '';
+    urls.forEach(function (u) {
+      var cell = document.createElement('div');
+      cell.className = 'tcb-tool-img-cell';
+      var thumb = document.createElement('div');
+      thumb.className = 'master-desc-preview tcb-tool-img-thumb';
+      fillThumb(thumb, u);
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'tcb-tool-img-del';
+      del.setAttribute('aria-label', 'この写真を削除');
+      del.textContent = '×';
+      del.addEventListener('click', function () {
+        removeOne(toolName, u, card);
+      });
+      cell.appendChild(thumb);
+      cell.appendChild(del);
+      gallery.appendChild(cell);
+    });
+    if (pickBtn) {
+      pickBtn.disabled = urls.length >= MAX_IMGS;
+      pickBtn.textContent = urls.length >= MAX_IMGS
+        ? '上限' + MAX_IMGS + '枚'
+        : (urls.length ? '写真を追加' : '写真を選ぶ');
+    }
   }
 
   function uploadForTool(toolName, file, card) {
@@ -163,22 +242,26 @@
       return Promise.resolve();
     }
     if (!file) return Promise.resolve();
+    var cur = listImgsFromDesc(global.DESCS && global.DESCS[toolName]);
+    if (cur.length >= MAX_IMGS) {
+      toast('1つの道具につき写真は最大' + MAX_IMGS + '枚までです。', 'warn');
+      return Promise.resolve();
+    }
+    var uniqueId = newUniqueId();
     setBusy(card, true);
     toast('写真を登録中…', 'info');
     return compressImageFile(file)
       .then(function (blob) {
-        return global.SYNC_CLIENT.uploadToolImage(toolName, blob, 'image/jpeg');
+        return global.SYNC_CLIENT.uploadToolImage(toolName, blob, 'image/jpeg', uniqueId);
       })
       .then(function (res) {
         var url = res && res.url ? String(res.url) : '';
         if (!url) throw new Error('upload_failed');
-        setDescImg(toolName, url);
-        var pv = card && card.querySelector('.master-desc-preview');
-        fillPreview(pv, url);
-        var clearBtn = card && card.querySelector('.tcb-tool-img-clear');
-        if (clearBtn) clearBtn.hidden = false;
+        var next = listImgsFromDesc(global.DESCS && global.DESCS[toolName]).concat([url]);
+        writeDescImgs(toolName, next);
+        renderGallery(card, toolName);
         persistAfterImgChange();
-        toast('「' + toolName + '」に写真を紐付けました。', 'success');
+        toast('「' + toolName + '」に写真を追加しました（' + Math.min(next.length, MAX_IMGS) + '/' + MAX_IMGS + '）。', 'success');
       })
       .catch(function (err) {
         console.error(err);
@@ -188,7 +271,7 @@
         else if (msg === 'github_not_configured') msg = '画像保管の設定が未完了です（Worker の GITHUB_TOKEN）';
         else if (msg === 'github_auth_failed') msg = 'GitHub への書き込み権限がありません（GITHUB_TOKEN）';
         else if (msg.indexOf('github_api_error') === 0) msg = 'GitHub への保存に失敗しました';
-        else if (msg === 'r2_not_configured') msg = '画像保管の設定が未完了です';
+        else if (msg === 'too_many_images') msg = '1つの道具につき写真は最大' + MAX_IMGS + '枚までです';
         else if (!msg || msg === 'upload_failed') msg = 'アップロードに失敗しました';
         toast(msg, 'error');
       })
@@ -197,21 +280,22 @@
       });
   }
 
-  function clearForTool(toolName, card) {
-    if (!confirm('「' + toolName + '」の写真を削除しますか？')) return;
+  function removeOne(toolName, url, card) {
+    if (!confirm('この写真を削除しますか？')) return;
     var run = Promise.resolve();
     if (global.SYNC_CLIENT && typeof global.SYNC_CLIENT.deleteToolImage === 'function') {
       setBusy(card, true);
-      run = global.SYNC_CLIENT.deleteToolImage(toolName).catch(function (err) {
+      run = global.SYNC_CLIENT.deleteToolImage(toolName, url).catch(function (err) {
         console.warn(err);
       });
     }
     run
       .then(function () {
-        setDescImg(toolName, '');
-        fillPreview(card && card.querySelector('.master-desc-preview'), '');
-        var clearBtn = card && card.querySelector('.tcb-tool-img-clear');
-        if (clearBtn) clearBtn.hidden = true;
+        var next = listImgsFromDesc(global.DESCS && global.DESCS[toolName]).filter(function (u) {
+          return u !== url;
+        });
+        writeDescImgs(toolName, next);
+        renderGallery(card, toolName);
         persistAfterImgChange();
         toast('写真を削除しました。', 'info');
       })
@@ -220,17 +304,25 @@
       });
   }
 
-  /** マスタ説明カードに「写真を選ぶ／削除」UIを付ける */
-  function enhanceDescCard(card, toolName, currentImg) {
+  function enhanceDescCard(card, toolName, currentImgOrDesc) {
     if (!card || !toolName) return;
     var urlRow = card.querySelector('.master-desc-url-row');
     if (!urlRow) return;
     urlRow.innerHTML = '';
     urlRow.className = 'master-desc-url-row tcb-tool-img-row';
 
-    var preview = document.createElement('div');
-    preview.className = 'master-desc-preview';
-    fillPreview(preview, currentImg || '');
+    var seed = [];
+    if (currentImgOrDesc && typeof currentImgOrDesc === 'object') {
+      seed = listImgsFromDesc(currentImgOrDesc);
+    } else if (currentImgOrDesc) {
+      seed = listImgsFromDesc({ img: currentImgOrDesc });
+    } else {
+      seed = listImgsFromDesc(global.DESCS && global.DESCS[toolName]);
+    }
+    writeDescImgs(toolName, seed);
+
+    var gallery = document.createElement('div');
+    gallery.className = 'tcb-tool-img-gallery';
 
     var actions = document.createElement('div');
     actions.className = 'tcb-tool-img-actions';
@@ -245,14 +337,11 @@
     var pickBtn = document.createElement('button');
     pickBtn.type = 'button';
     pickBtn.className = 'tcb-tool-img-pick';
-    pickBtn.textContent = '写真を選ぶ';
-    pickBtn.title = 'フォルダやアルバムから画像を選んで登録（スマホは撮影も可）';
+    pickBtn.title = 'フォルダやアルバムから画像を選んで登録（スマホは撮影も可）。最大' + MAX_IMGS + '枚';
 
-    var clearBtn = document.createElement('button');
-    clearBtn.type = 'button';
-    clearBtn.className = 'tcb-tool-img-clear';
-    clearBtn.textContent = '削除';
-    clearBtn.hidden = !String(currentImg || '').trim();
+    var note = document.createElement('span');
+    note.className = 'tcb-tool-img-cap';
+    note.textContent = '最大' + MAX_IMGS + '枚';
 
     pickBtn.addEventListener('click', function () {
       fileInp.click();
@@ -262,21 +351,21 @@
       fileInp.value = '';
       if (f) uploadForTool(toolName, f, card);
     });
-    clearBtn.addEventListener('click', function () {
-      clearForTool(toolName, card);
-    });
 
     actions.appendChild(pickBtn);
-    actions.appendChild(clearBtn);
-    urlRow.appendChild(preview);
+    actions.appendChild(note);
+    urlRow.appendChild(gallery);
     urlRow.appendChild(actions);
     urlRow.appendChild(fileInp);
+    renderGallery(card, toolName);
   }
 
   global.TCB_ToolImages = {
+    MAX_IMGS: MAX_IMGS,
     compressImageFile: compressImageFile,
     enhanceDescCard: enhanceDescCard,
-    fillPreview: fillPreview,
+    listImgsFromDesc: listImgsFromDesc,
+    writeDescImgs: writeDescImgs,
     uploadForTool: uploadForTool
   };
 })(typeof window !== 'undefined' ? window : this);

@@ -1,41 +1,82 @@
-/* マスタ：道具写真の選択・プレビュー（tcb-tool-img-*） */
+/* マスタ：道具写真の選択・プレビュー（tcb-tool-img-*）・最大5枚 */
 .tcb-tool-img-row{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:stretch;
+  width:100%;
+}
+.tcb-tool-img-gallery{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:flex-start;
+}
+.tcb-tool-img-cell{
+  position:relative;
+  width:72px;
+  flex:0 0 auto;
+}
+.tcb-tool-img-thumb,
+.master-desc-preview.tcb-tool-img-thumb{
+  width:72px;
+  height:54px;
+  border-radius:10px;
+  border:1px solid var(--bdr,#e5e5ea);
+  background:var(--surface-2,#f2f2f5);
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+}
+.tcb-tool-img-del{
+  position:absolute;
+  top:-8px;
+  right:-8px;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:1px solid var(--bdr,#e5e5ea);
+  background:#fff;
+  color:var(--acc,#c0000a);
+  font-size:16px;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+  font-family:inherit;
+  box-shadow:0 1px 4px rgba(0,0,0,.12);
+}
+.tcb-tool-img-actions{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
   align-items:center;
   width:100%;
 }
-.tcb-tool-img-actions{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  align-items:center;
-  flex:1;
-  min-width:0;
-}
-.tcb-tool-img-pick,
-.tcb-tool-img-clear{
-  font-family:inherit;
-  font-size:12px;
-  font-weight:700;
-  padding:8px 12px;
-  min-height:var(--tap,44px);
-  border-radius:10px;
-  border:1px solid var(--bdr,#e5e5ea);
-  background:var(--surface-2,#f2f2f5);
-  color:var(--txt,#1c1c22);
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
 .tcb-tool-img-pick{
+  font-family:inherit;
+  font-size:14px;
+  font-weight:700;
+  padding:12px 14px;
+  min-height:48px;
+  border-radius:12px;
+  border:1px solid var(--navy,#122050);
   background:var(--navy,#122050);
   color:#fff;
-  border-color:var(--navy,#122050);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  flex:1;
+  min-width:140px;
 }
-.tcb-tool-img-clear{
-  color:var(--acc,#c0000a);
-  background:#fff;
+.tcb-tool-img-pick:disabled{
+  opacity:.55;
+  cursor:default;
+}
+.tcb-tool-img-cap{
+  font-size:12px;
+  color:var(--txt2,#6e6e78);
+  font-weight:600;
 }
 .tcb-tool-img-file{
   position:absolute;
@@ -62,6 +103,8 @@
 }
 @media (prefers-color-scheme:dark){
   .tcb-tool-img-pick{background:#3a4a8a;border-color:#3a4a8a;}
-  .tcb-tool-img-clear{background:var(--card,#1c1c1e);color:#ff9ea2;}
+  .tcb-tool-img-del{background:#1c1c1e;color:#ff9ea2;border-color:#38383a;}
   .tcb-tool-img-hint code{background:#2c2c2e;}
+  .tcb-tool-img-thumb,
+  .master-desc-preview.tcb-tool-img-thumb{background:#2c2c2e;border-color:#38383a;}
 }

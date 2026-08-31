@@ -347,6 +347,9 @@ tr.p3-multi-row{background:#fff8e1;}
 .modal-img{display:block;}
 /* 道具写真モーダル（tcb-desc-*：他セレクタとの衝突回避） */
 #modal-img.tcb-desc-modal-img{width:100%;max-width:100%;border-radius:10px;margin:0 auto 12px;max-height:min(55vh,420px);height:auto;object-fit:contain;object-position:center top;background:#f2f4f7;}
+.modal-imgs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
+.modal-imgs[hidden]{display:none;}
+.modal-img-multi{width:calc(50% - 4px);max-width:180px;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--bdr);cursor:zoom-in;background:var(--surface-2);}
 .modal p{font-size:14px;color:var(--txt);line-height:1.8;}
 .tcb-hist-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
 .tcb-hist-detail-cond{margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6;}
@@ -1248,6 +1251,7 @@ html{color-scheme:light;}
   <div class="modal">
     <button class="mclose" id="modal-close">&#10005;</button>
     <h2 id="modal-title"></h2>
+    <div id="modal-imgs" class="modal-imgs" hidden></div>
     <img id="modal-img" class="modal-img tcb-desc-modal-img" src="" alt="" decoding="async" style="display:none;">
     <p id="modal-body"></p>
   </div>
@@ -7051,22 +7055,46 @@ function isSafeDescImgUrl(u){
 }
 /* ========== 道具詳細 ========== */
 function showInfo(name){
-  var d=DESCS[name]||{text:'説明が登録されていません。',img:''};
+  var d=DESCS[name]||{text:'説明が登録されていません。',img:'',imgs:[]};
   document.getElementById('modal-title').textContent=name;
   document.getElementById('modal-body').textContent=d.text||'説明が登録されていません。';
   var img=document.getElementById('modal-img');
-  var raw=(d.img&&String(d.img).trim())||'';
-  if(raw&&isSafeDescImgUrl(raw)){
-    img.onload=function(){img.style.display='block';};
-    img.onerror=function(){img.style.display='none';img.src='';};
-    img.style.display='none';
-    img.removeAttribute('src');
-    img.src=raw;
+  var wrap=document.getElementById('modal-imgs');
+  var urls=[];
+  if(window.TCB_ToolImages&&typeof window.TCB_ToolImages.listImgsFromDesc==='function'){
+    urls=window.TCB_ToolImages.listImgsFromDesc(d);
   }else{
-    img.onload=null;
-    img.onerror=null;
-    img.removeAttribute('src');
-    img.style.display='none';
+    var raw=(d.img&&String(d.img).trim())||'';
+    if(raw)urls=[raw];
+  }
+  if(wrap){
+    wrap.innerHTML='';
+    wrap.hidden=!urls.length;
+    urls.forEach(function(u){
+      if(!isSafeDescImgUrl(u))return;
+      var ni=document.createElement('img');
+      ni.className='modal-img-multi';
+      ni.alt='';
+      ni.loading='lazy';
+      ni.src=u;
+      ni.addEventListener('click',function(){window.open(u,'_blank','noopener');});
+      wrap.appendChild(ni);
+    });
+    if(img){img.style.display='none';img.removeAttribute('src');}
+  }else{
+    var raw=urls[0]||'';
+    if(raw&&isSafeDescImgUrl(raw)){
+      img.onload=function(){img.style.display='block';};
+      img.onerror=function(){img.style.display='none';img.src='';};
+      img.style.display='none';
+      img.removeAttribute('src');
+      img.src=raw;
+    }else{
+      img.onload=null;
+      img.onerror=null;
+      img.removeAttribute('src');
+      img.style.display='none';
+    }
   }
   openModal('info-modal');
 }
@@ -8352,11 +8380,18 @@ function buildParentViewItems(map,tools,la,lb,opts){
     var teamLabel=hideTeam?'':(team==='A'?(la||''):team==='B'?(lb||''):'');
     var dRec=DESCS&&DESCS[toolName];
     var descTxt=dRec?((typeof dRec==='object')?String(dRec.text||''):String(dRec)):'';
-    var imgUrl=(dRec&&typeof dRec==='object')?String(dRec.img||'').trim():'';
+    var imgs=[];
+    if(window.TCB_ToolImages&&typeof window.TCB_ToolImages.listImgsFromDesc==='function'){
+      imgs=window.TCB_ToolImages.listImgsFromDesc(dRec);
+    }else if(dRec&&typeof dRec==='object'){
+      if(Array.isArray(dRec.imgs))imgs=dRec.imgs.map(function(u){return String(u||'').trim();}).filter(Boolean);
+      else if(dRec.img)imgs=[String(dRec.img).trim()];
+    }
     items.push({
       tool:toolName,
       desc:descTxt,
-      img:imgUrl,
+      img:imgs[0]||'',
+      imgs:imgs,
       person:person,
       team:team,
       teamLabel:teamLabel
@@ -8840,9 +8875,9 @@ function buildMasterDescs(){
   el.className='master-desc-list';
   var hint=document.createElement('div');
   hint.className='tcb-tool-img-hint';
-  hint.innerHTML='<strong>写真の登録：</strong>各道具の「写真を選ぶ」から、PCのフォルダ／スマホ・タブレットのアルバム（または撮影）の画像を指定します。<br>'
-    +'選んだ画像はリポジトリの<strong>boys15/images/</strong>（期ごとの画像フォルダ）に保管され、道具名に自動で紐付きます。保護者確認URLからも全道具の写真を参照できます。<br>'
-    +'登録時に自動で軽量化します（目安：横800〜1200px・JPEG）。追加の有料ストレージは使いません。';
+  hint.innerHTML='<strong>写真の登録：</strong>各道具の「写真を選ぶ／追加」から登録します（<strong>1道具あたり最大5枚</strong>）。PCのフォルダ／スマホ・タブレットのアルバム（または撮影）に対応。<br>'
+    +'選んだ画像はリポジトリの<strong>boys15/images/</strong>に保管され、道具名に紐付きます。保護者確認URLからも参照できます。<br>'
+    +'登録時に自動で軽量化します（目安：横800〜1200px・JPEG）。';
   el.appendChild(hint);
 
   TL.forEach(function(t){
@@ -8863,7 +8898,7 @@ function buildMasterDescs(){
     urlRow.className='master-desc-url-row';
     row.appendChild(urlRow); el.appendChild(row);
     if(window.TCB_ToolImages&&typeof window.TCB_ToolImages.enhanceDescCard==='function'){
-      window.TCB_ToolImages.enhanceDescCard(row,t.name,d.img||'');
+      window.TCB_ToolImages.enhanceDescCard(row,t.name,d);
     }
     (function(tn,tw){
       tw.addEventListener('change',function(){

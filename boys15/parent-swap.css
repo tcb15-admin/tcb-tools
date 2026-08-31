@@ -124,8 +124,11 @@
 .pvsw-handoff-note{color:var(--txt2);font-size:13px;}
 
 /* 道具写真 */
-.pvsw-tool-line{display:flex;align-items:center;gap:10px;}
+.pvsw-tool-line{display:flex;align-items:flex-start;gap:10px;}
+.pvsw-tool-imgs{display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;max-width:120px;}
 .pvsw-tool-img{width:56px;height:42px;border-radius:8px;object-fit:cover;border:1px solid var(--bdr);cursor:zoom-in;flex-shrink:0;}
+.pvsw-catalog-imgs{max-width:160px;}
+.pvsw-catalog-imgs .pvsw-tool-img{width:72px;height:54px;}
 
 /* 道具カタログ（マスタ全道具） */
 .pvsw-catalog-title{font-weight:750;font-size:15px;color:var(--navy);margin-bottom:6px;}

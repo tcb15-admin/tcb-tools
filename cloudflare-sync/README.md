@@ -73,7 +73,9 @@ API 概要:
 - `DELETE /api/tool-image`（Bearer）… 画像ファイル削除
 - `GET /api/public/tool-descs?sid=` … 保護者向け・マスタ全道具の説明・写真
 
-公開URL例: `https://tcb15-admin.github.io/tcb-tools/boys15/images/<hash>.jpg`
+公開URL例: `https://tcb15-admin.github.io/tcb-tools/boys15/images/<hash>[_unique].jpg`
+
+1道具あたり最大5枚（マスタの `DESCS[name].imgs[]`。旧 `img` 単一も互換）。
 
 ## 5. 共有トークン（シークレット）
 

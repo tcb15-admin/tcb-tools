@@ -93,6 +93,27 @@
     if (!/^https:\/\//.test(s) || s.length > 500) return '';
     return s;
   }
+  function listSafeImgs(obj) {
+    var out = [];
+    var seen = {};
+    function push(u) {
+      u = safeImgUrl(u);
+      if (!u || seen[u]) return;
+      seen[u] = 1;
+      out.push(u);
+    }
+    if (obj && Array.isArray(obj.imgs)) obj.imgs.forEach(push);
+    if (!out.length && obj) push(obj.img);
+    return out.slice(0, 5);
+  }
+  function imgsHtml(urls, extraClass) {
+    if (!urls || !urls.length) return '';
+    return '<div class="pvsw-tool-imgs' + (extraClass ? ' ' + extraClass : '') + '">'
+      + urls.map(function (u) {
+        return '<img class="pvsw-tool-img" src="' + esc(u) + '" alt="" loading="lazy" data-imgurl="' + esc(u) + '">';
+      }).join('')
+      + '</div>';
+  }
 
   function showState(emoji, msg) {
     var el = document.getElementById('pv-content');
@@ -265,10 +286,10 @@
       + (tagTxt ? '<span class="pv-team-tag ' + tc + '">' + esc(tagTxt) + '</span>' : '')
       + '</div><ul class="pv-tools">';
     info.tools.forEach(function (t) {
-      var img = safeImgUrl(t.img);
+      var imgs = listSafeImgs(t);
       html += '<li class="pv-tool" data-tool="' + esc(t.tool) + '" data-from="' + esc(person) + '" data-daykey="' + esc(day.role || '') + '">'
         + '<div class="pvsw-tool-line">'
-        + (img ? '<img class="pvsw-tool-img" src="' + esc(img) + '" alt="' + esc(t.tool) + 'の写真" loading="lazy" data-imgurl="' + esc(img) + '">' : '')
+        + imgsHtml(imgs)
         + '<span>' + esc(t.tool)
         + (t.desc ? '<span class="pv-tool-desc">' + esc(t.desc) + '</span>' : '')
         + '</span></div>';
@@ -308,7 +329,12 @@
       if (!byPerson[person]) { byPerson[person] = { team: it.team || '', teamLabel: it.teamLabel || '', tools: [] }; order.push(person); }
       if (it.team && !byPerson[person].team) byPerson[person].team = it.team;
       if (it.teamLabel && !byPerson[person].teamLabel) byPerson[person].teamLabel = it.teamLabel;
-      byPerson[person].tools.push({ tool: it.tool || '', desc: it.desc || '', img: it.img || '' });
+      byPerson[person].tools.push({
+        tool: it.tool || '',
+        desc: it.desc || '',
+        img: it.img || '',
+        imgs: Array.isArray(it.imgs) ? it.imgs : undefined
+      });
     });
     order.sort(function (a, b) {
       var na = jerseyNumFromName(a), nb = jerseyNumFromName(b);
@@ -412,11 +438,11 @@
       + '<div class="pvsw-catalog-desc">割振りの有無に関係なく、マスタに登録された道具の写真・説明を確認できます。</div>'
       + '<ul class="pvsw-catalog-list">';
     tools.forEach(function (t) {
-      var img = safeImgUrl(t.img);
+      var imgs = listSafeImgs(t);
       var tc = teamClass(t.team);
       html += '<li class="pvsw-catalog-item">'
-        + (img
-          ? '<img class="pvsw-tool-img pvsw-catalog-img" src="' + esc(img) + '" alt="' + esc(t.name) + 'の写真" loading="lazy" data-imgurl="' + esc(img) + '">'
+        + (imgs.length
+          ? imgsHtml(imgs, 'pvsw-catalog-imgs')
           : '<div class="pvsw-catalog-ph" aria-hidden="true">&#128247;</div>')
         + '<div class="pvsw-catalog-body">'
         + '<div class="pvsw-catalog-name">' + esc(t.name || '')

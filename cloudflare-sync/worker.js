@@ -491,15 +491,71 @@ function toolImagesPagesBase(env) {
     .replace(/\/+$/, "");
 }
 
-async function toolImageFileName(toolName, ext) {
+async function toolImageHashPrefix(toolName) {
   const enc = new TextEncoder().encode(String(toolName || ""));
   const digest = await crypto.subtle.digest("SHA-256", enc);
-  const hex = [...new Uint8Array(digest)]
+  return [...new Uint8Array(digest)]
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("")
     .slice(0, 24);
+}
+
+async function toolImageFileName(toolName, ext, uniqueId) {
+  const hex = await toolImageHashPrefix(toolName);
   const e = String(ext || "jpg").replace(/[^a-z0-9]/gi, "") || "jpg";
+  const uid = String(uniqueId || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 16);
+  if (uid) return `${hex}_${uid}.${e}`;
   return `${hex}.${e}`;
+}
+
+function randomUniqueId() {
+  const a = new Uint8Array(4);
+  crypto.getRandomValues(a);
+  return [...a].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** 公開URLから images/ 配下のファイル名だけを取り出す */
+function toolImageFileNameFromUrl(env, cohort, urlRaw) {
+  const s = String(urlRaw || "").trim();
+  if (!s) return "";
+  let path = "";
+  try {
+    path = new URL(s).pathname;
+  } catch {
+    return "";
+  }
+  const dir = toolImagesDir(env, cohort);
+  const marker = `/${dir}/`;
+  const idx = path.indexOf(marker);
+  if (idx < 0) return "";
+  const name = path.slice(idx + marker.length).split("/").pop() || "";
+  if (!/^[a-f0-9]{24}(_[a-z0-9]{1,16})?\.(jpg|jpeg|png|webp)$/i.test(name)) return "";
+  return name;
+}
+
+function sanitizeImgUrlList(v) {
+  const arr = Array.isArray(v) ? v : [];
+  const out = [];
+  const seen = {};
+  for (const x of arr) {
+    const u = sanitizeImgUrl(x);
+    if (!u || seen[u]) continue;
+    seen[u] = 1;
+    out.push(u);
+    if (out.length >= 5) break;
+  }
+  return out;
+}
+
+function descImgsFromRecord(d) {
+  if (!d || typeof d !== "object") return [];
+  const fromArr = sanitizeImgUrlList(d.imgs);
+  if (fromArr.length) return fromArr;
+  const one = sanitizeImgUrl(d.img);
+  return one ? [one] : [];
 }
 
 function toolImagePublicUrl(env, cohort, fileName) {
@@ -593,6 +649,7 @@ async function parseToolImageUpload(request) {
   const ct = String(request.headers.get("content-type") || "");
   let cohort = "";
   let toolName = "";
+  let uniqueId = "";
   let bytes = null;
   let mime = "";
 
@@ -600,6 +657,7 @@ async function parseToolImageUpload(request) {
     const form = await request.formData();
     cohort = String(form.get("cohort") || "").trim();
     toolName = String(form.get("toolName") || "").trim();
+    uniqueId = String(form.get("uniqueId") || "").trim();
     const file = form.get("file");
     if (!file || typeof file.arrayBuffer !== "function") throw new Error("file_required");
     mime = String(file.type || "").toLowerCase();
@@ -608,6 +666,7 @@ async function parseToolImageUpload(request) {
     const body = await request.json();
     cohort = String((body && body.cohort) || "").trim();
     toolName = String((body && body.toolName) || "").trim();
+    uniqueId = String((body && body.uniqueId) || "").trim();
     const b64 = String((body && body.dataBase64) || "").replace(/^data:image\/[a-z0-9+.-]+;base64,/i, "");
     mime = String((body && body.contentType) || "image/jpeg").toLowerCase();
     if (!b64) throw new Error("file_required");
@@ -624,13 +683,19 @@ async function parseToolImageUpload(request) {
   if (bytes.length > TOOL_IMAGE_MAX_BYTES) throw new Error("file_too_large");
   const ext = TOOL_IMAGE_ALLOWED_TYPES[mime];
   if (!ext) throw new Error("unsupported_image_type");
-  return { cohort, toolName, bytes, ext };
+  if (!uniqueId) uniqueId = randomUniqueId();
+  uniqueId = String(uniqueId)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 16);
+  if (!uniqueId) uniqueId = randomUniqueId();
+  return { cohort, toolName, bytes, ext, uniqueId };
 }
 
 async function uploadToolImage(env, request) {
   mustGithubToken(env);
-  const { cohort, toolName, bytes, ext } = await parseToolImageUpload(request);
-  const fileName = await toolImageFileName(toolName, ext);
+  const { cohort, toolName, bytes, ext, uniqueId } = await parseToolImageUpload(request);
+  const fileName = await toolImageFileName(toolName, ext, uniqueId);
   const dir = toolImagesDir(env, cohort);
   const path = `${dir}/${fileName}`;
   const put = await githubPutFile(
@@ -645,7 +710,7 @@ async function uploadToolImage(env, request) {
       Date.now()
   ).slice(0, 12);
   const publicUrl = `${toolImagePublicUrl(env, cohort, fileName)}?v=${bust}`;
-  return { ok: true, path, url: publicUrl, toolName, bytes: bytes.length };
+  return { ok: true, path, url: publicUrl, toolName, bytes: bytes.length, uniqueId };
 }
 
 async function deleteToolImage(env, body) {
@@ -654,9 +719,17 @@ async function deleteToolImage(env, body) {
   const toolName = sliceStr(body && body.toolName, 80);
   if (!toolName) throw new Error("tool_name_required");
   const dir = toolImagesDir(env, cohort);
+  const urlName = toolImageFileNameFromUrl(env, cohort, body && body.url);
   const results = [];
+  if (urlName) {
+    const path = `${dir}/${urlName}`;
+    const r = await githubDeleteFile(env, path, `chore(${dir}): remove tool image for ${toolName}`);
+    results.push({ path, missing: !!r.missing });
+    return { ok: true, toolName, results };
+  }
+  /* URL なし：旧形式の単一ファイル（hash.ext）を削除 */
   for (const ext of ["jpg", "png", "webp"]) {
-    const fileName = await toolImageFileName(toolName, ext);
+    const fileName = await toolImageFileName(toolName, ext, "");
     const path = `${dir}/${fileName}`;
     const r = await githubDeleteFile(env, path, `chore(${dir}): remove tool image for ${toolName}`);
     results.push({ path, missing: !!r.missing });
@@ -682,13 +755,14 @@ async function getPublicToolDescs(env, sidRaw) {
     const d = DESCS[name];
     const text =
       d && typeof d === "object" ? String(d.text || "") : d != null ? String(d) : "";
-    const img =
-      d && typeof d === "object" ? sanitizeImgUrl(d.img) : "";
+    const imgs = descImgsFromRecord(d);
+    const img = imgs[0] || "";
     const team = t && (t.team === "A" || t.team === "B") ? t.team : "";
     return {
       name,
       desc: text.slice(0, 500),
       img,
+      imgs,
       team,
     };
   }).filter(Boolean);
@@ -710,14 +784,20 @@ function sanitizePublishDays(daysRaw) {
       date: String((d && d.date) || ""),
       label: String((d && d.label) || ""),
       role: role,
-      items: items.map((it) => ({
-        tool: String((it && it.tool) || ""),
-        desc: String((it && it.desc) || ""),
-        img: sanitizeImgUrl(it && it.img),
-        person: String((it && it.person) || ""),
-        team: String((it && it.team) || ""),
-        teamLabel: String((it && it.teamLabel) || ""),
-      })),
+      items: items.map((it) => {
+        const imgs = sanitizeImgUrlList(it && it.imgs);
+        const img = sanitizeImgUrl(it && it.img) || imgs[0] || "";
+        const imgsOut = imgs.length ? imgs : img ? [img] : [];
+        return {
+          tool: String((it && it.tool) || ""),
+          desc: String((it && it.desc) || ""),
+          img,
+          imgs: imgsOut,
+          person: String((it && it.person) || ""),
+          team: String((it && it.team) || ""),
+          teamLabel: String((it && it.teamLabel) || ""),
+        };
+      }),
       // 交代報告フォームの「新担当」候補（当日の割振り対象メンバー＋お茶当番フラグ）
       members: members
         .slice(0, 80)
