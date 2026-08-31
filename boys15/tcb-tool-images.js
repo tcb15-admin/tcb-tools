@@ -88,6 +88,54 @@
     return t.indexOf('heic') >= 0 || t.indexOf('heif') >= 0 || /\.heic$|\.heif$/i.test(n);
   }
 
+  var _heicLibPromise = null;
+  function heicScriptUrl() {
+    var ver = '';
+    try {
+      var cur = document.querySelector('script[src*="tcb-tool-images.js"]');
+      var src = cur && cur.getAttribute('src');
+      var m = src && src.match(/\?v=([^&]+)/);
+      if (m) ver = '?v=' + encodeURIComponent(m[1]);
+    } catch (e) {}
+    return 'heic-to.js' + ver;
+  }
+
+  /** HEIC変換ライブラリは初回だけ遅延読込（約3MB・普段は読み込まない） */
+  function loadHeicLib() {
+    if (global.HeicTo) return Promise.resolve(global.HeicTo);
+    if (_heicLibPromise) return _heicLibPromise;
+    _heicLibPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = heicScriptUrl();
+      s.async = true;
+      s.onload = function () {
+        if (global.HeicTo) resolve(global.HeicTo);
+        else reject(new Error('heic_lib_missing'));
+      };
+      s.onerror = function () {
+        _heicLibPromise = null;
+        reject(new Error('heic_lib_missing'));
+      };
+      document.head.appendChild(s);
+    });
+    return _heicLibPromise;
+  }
+
+  function convertHeicToJpegBlob(file) {
+    toast('HEIC写真をJPEGに変換しています…', 'info');
+    return loadHeicLib().then(function (HeicTo) {
+      var check = typeof HeicTo.isHeic === 'function' ? HeicTo.isHeic(file) : Promise.resolve(true);
+      return Promise.resolve(check).then(function (isH) {
+        if (!isH && !isLikelyHeic(file)) throw new Error('image_decode_failed');
+        return HeicTo({ blob: file, type: 'image/jpeg', quality: 0.92 });
+      }).then(function (out) {
+        if (!out) throw new Error('heic_convert_failed');
+        if (out instanceof Blob) return out;
+        return new Blob([out], { type: 'image/jpeg' });
+      });
+    });
+  }
+
   function loadViaImageElement(file) {
     return new Promise(function (resolve, reject) {
       var url = URL.createObjectURL(file);
@@ -98,18 +146,15 @@
       };
       img.onerror = function () {
         URL.revokeObjectURL(url);
-        reject(new Error(isLikelyHeic(file) ? 'heic_unsupported' : 'image_decode_failed'));
+        reject(new Error('image_decode_failed'));
       };
       img.src = url;
     });
   }
 
-  /** JPEG/PNG/WebP 等をデコード（HEIC は多くのブラウザで不可） */
+  /** JPEG/PNG/WebP 等をデコード */
   function loadImageFromFile(file) {
     if (!file) return Promise.reject(new Error('image_decode_failed'));
-    if (isLikelyHeic(file)) {
-      return Promise.reject(new Error('heic_unsupported'));
-    }
     if (typeof createImageBitmap === 'function') {
       return createImageBitmap(file)
         .then(function (bmp) {
@@ -150,34 +195,49 @@
     });
   }
 
+  function compressDecodedImage(img) {
+    var w = img.naturalWidth || img.width;
+    var h = img.naturalHeight || img.height;
+    if (!w || !h) throw new Error('画像サイズを取得できませんでした');
+    var scale = 1;
+    var longEdge = Math.max(w, h);
+    if (longEdge > MAX_EDGE) scale = MAX_EDGE / longEdge;
+    var cw = Math.max(1, Math.round(w * scale));
+    var ch = Math.max(1, Math.round(h * scale));
+    var canvas = document.createElement('canvas');
+    canvas.width = cw;
+    canvas.height = ch;
+    var ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('canvas が使えません');
+    ctx.drawImage(img, 0, 0, cw, ch);
+    return canvasToJpegBlob(canvas, JPEG_QUALITY).then(function (blob) {
+      if (typeof img.close === 'function') {
+        try { img.close(); } catch (e) {}
+      }
+      if (blob.size > MAX_BYTES) {
+        return canvasToJpegBlob(canvas, 0.7).then(function (blob2) {
+          if (blob2.size > MAX_BYTES) throw new Error('画像が大きすぎます（圧縮後も上限超過）');
+          return blob2;
+        });
+      }
+      return blob;
+    });
+  }
+
+  /** 端末の写真／ファイルを JPEG に圧縮（HEIC はツール内で自動変換） */
   function compressImageFile(file) {
-    return loadImageFromFile(file).then(function (img) {
-      var w = img.naturalWidth || img.width;
-      var h = img.naturalHeight || img.height;
-      if (!w || !h) throw new Error('画像サイズを取得できませんでした');
-      var scale = 1;
-      var longEdge = Math.max(w, h);
-      if (longEdge > MAX_EDGE) scale = MAX_EDGE / longEdge;
-      var cw = Math.max(1, Math.round(w * scale));
-      var ch = Math.max(1, Math.round(h * scale));
-      var canvas = document.createElement('canvas');
-      canvas.width = cw;
-      canvas.height = ch;
-      var ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('canvas が使えません');
-      ctx.drawImage(img, 0, 0, cw, ch);
-      return canvasToJpegBlob(canvas, JPEG_QUALITY).then(function (blob) {
-        if (typeof img.close === 'function') {
-          try { img.close(); } catch (e) {}
-        }
-        if (blob.size > MAX_BYTES) {
-          return canvasToJpegBlob(canvas, 0.7).then(function (blob2) {
-            if (blob2.size > MAX_BYTES) throw new Error('画像が大きすぎます（圧縮後も上限超過）');
-            return blob2;
-          });
-        }
-        return blob;
-      });
+    function run(f) {
+      return loadImageFromFile(f).then(compressDecodedImage);
+    }
+    if (isLikelyHeic(file)) {
+      return convertHeicToJpegBlob(file).then(run);
+    }
+    return run(file).catch(function (err) {
+      var msg = String((err && err.message) || '');
+      if (msg === 'image_decode_failed') {
+        return convertHeicToJpegBlob(file).then(run);
+      }
+      throw err;
     });
   }
 
@@ -297,8 +357,9 @@
         console.error(err);
         var msg = String((err && err.message) || '');
         if (msg === 'unsupported_image_type') msg = '対応していない画像形式です（JPEG/PNG/WebP）';
-        else if (msg === 'heic_unsupported') msg = 'この写真形式（HEIC）には未対応です。iPhoneは「設定→カメラ→フォーマット→互換性優先」にするか、JPEG/PNGで選び直してください。';
-        else if (msg === 'image_decode_failed' || msg === '画像を読み込めませんでした') msg = '画像を開けませんでした。JPEG/PNGの写真でもう一度お試しください。';
+        else if (msg === 'heic_unsupported' || msg === 'heic_convert_failed') msg = 'HEIC写真の変換に失敗しました。JPEG/PNGで選び直すか、時間をおいて再度お試しください。';
+        else if (msg === 'heic_lib_missing') msg = 'HEIC変換機能の読み込みに失敗しました。通信状況を確認して再読み込みしてください。';
+        else if (msg === 'image_decode_failed' || msg === '画像を読み込めませんでした') msg = '画像を開けませんでした。別の写真かJPEG/PNGでもう一度お試しください。';
         else if (msg === 'file_too_large') msg = '画像が大きすぎます';
         else if (msg === 'github_not_configured') msg = '画像保管の設定が未完了です（Worker の GITHUB_TOKEN）';
         else if (msg === 'github_auth_failed') msg = 'GitHub への書き込み権限がありません（GITHUB_TOKEN）';
@@ -369,7 +430,7 @@
     var pickBtn = document.createElement('button');
     pickBtn.type = 'button';
     pickBtn.className = 'tcb-tool-img-pick';
-    pickBtn.title = 'フォルダやアルバムから画像を選んで登録（スマホは撮影も可）。最大' + MAX_IMGS + '枚';
+    pickBtn.title = 'フォルダやアルバムから画像を選んで登録（スマホは撮影も可）。HEICも自動変換。最大' + MAX_IMGS + '枚';
 
     var note = document.createElement('span');
     note.className = 'tcb-tool-img-cap';

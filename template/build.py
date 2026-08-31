@@ -537,6 +537,7 @@ def build(target):
         'tcb-assign-board.js', 'tcb-assign-board.css',
         'tcb-team-rules.js',
         'tcb-tool-images.js', 'tcb-tool-images.css',
+        'heic-to.js',
         'sw.js',
         'parent-swap.js', 'parent-swap.css',
     )

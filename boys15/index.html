@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.26">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.27">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1165,14 +1165,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.26">
-<link rel="stylesheet" href="gear.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.26">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.26">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.27">
+<link rel="stylesheet" href="gear.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.27">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.27">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1744,14 +1744,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.26"></script>
-<script src="tcb-sync-api.js?v=1.27.26"></script>
-<script src="tcb-feedback.js?v=1.27.26"></script>
-<script src="tcb-swap-list.js?v=1.27.26"></script>
-<script src="tcb-assign-board.js?v=1.27.26"></script>
-<script src="tcb-handoff-plan.js?v=1.27.26"></script>
-<script src="tcb-team-rules.js?v=1.27.26"></script>
-<script src="tcb-tool-images.js?v=1.27.26"></script>
+<script src="tcb-device.js?v=1.27.27"></script>
+<script src="tcb-sync-api.js?v=1.27.27"></script>
+<script src="tcb-feedback.js?v=1.27.27"></script>
+<script src="tcb-swap-list.js?v=1.27.27"></script>
+<script src="tcb-assign-board.js?v=1.27.27"></script>
+<script src="tcb-handoff-plan.js?v=1.27.27"></script>
+<script src="tcb-team-rules.js?v=1.27.27"></script>
+<script src="tcb-tool-images.js?v=1.27.27"></script>
 <script>
 
 
@@ -8779,7 +8779,7 @@ function buildMasterDescs(){
   var hint=document.createElement('div');
   hint.className='tcb-tool-img-hint';
   hint.innerHTML='<strong>写真の登録：</strong>各道具の「写真を選ぶ／追加」から登録します（<strong>1道具あたり最大5枚</strong>）。PCのフォルダ／スマホ・タブレットのアルバム（または撮影）に対応。<br>'
-    +'選んだ画像はリポジトリの<strong>boys15/images/</strong>に保管され、道具名に紐付きます。保護者確認URLからも参照できます。<br>'
+    +'iPhoneのHEIC写真も<strong>ツール内で自動的にJPEGへ変換</strong>します。画像は<strong>boys15/images/</strong>に保管され、保護者確認URLからも参照できます。<br>'
     +'登録時に自動で軽量化します（目安：横800〜1200px・JPEG）。';
   el.appendChild(hint);
 
@@ -9356,7 +9356,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.26';
+  if(vEl)vEl.textContent='v1.27.27';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9950,16 +9950,16 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.26"></script>
-<script src="html2canvas.min.js?v=1.27.26"></script>
-<script src="html2pdf.min.js?v=1.27.26"></script>
-<script src="tcb-print-pdf.js?v=1.27.26"></script>
-<script src="tcb-swap-mgr.js?v=1.27.26"></script>
-<script src="tcb-push-mgr.js?v=1.27.26"></script>
-<script src="tcb-login.js?v=1.27.26"></script>
-<script src="tcb-pwa-install.js?v=1.27.26"></script>
-<script src="tcb-group-hold.js?v=1.27.26"></script>
-<script src="tcb-presummary.js?v=1.27.26"></script>
-<script src="tcb-p1-flow.js?v=1.27.26"></script>
+<script src="jspdf.umd.min.js?v=1.27.27"></script>
+<script src="html2canvas.min.js?v=1.27.27"></script>
+<script src="html2pdf.min.js?v=1.27.27"></script>
+<script src="tcb-print-pdf.js?v=1.27.27"></script>
+<script src="tcb-swap-mgr.js?v=1.27.27"></script>
+<script src="tcb-push-mgr.js?v=1.27.27"></script>
+<script src="tcb-login.js?v=1.27.27"></script>
+<script src="tcb-pwa-install.js?v=1.27.27"></script>
+<script src="tcb-group-hold.js?v=1.27.27"></script>
+<script src="tcb-presummary.js?v=1.27.27"></script>
+<script src="tcb-p1-flow.js?v=1.27.27"></script>
 </body>
 </html>
