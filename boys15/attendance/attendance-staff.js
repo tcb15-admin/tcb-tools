@@ -171,7 +171,7 @@
   var FLOW_HINTS={
     make:'土日祝を仮登録 → 締切設定 → 作成。完了後は「2. 回答確認」でURL発行・LINE案内',
     check:'一覧から出欠を選ぶ → URL発行 → MG／親父案内をコピー。催促・受付終了もここで',
-    brief:'活動パターンを選び、確定案内を生成してMG／親父LINEへそれぞれコピー'
+    brief:'活動パターンを選び、確定案内を生成してLINEへコピー（MG／親父共通）'
   };
   var FLOW_EMPTY={
     check:'一覧から出欠を選ぶと、回答状況・URL発行・LINE案内が表示されます。',
@@ -850,12 +850,6 @@
         return;
       }
       copyText(t);
-    }
-    if($('att-br-copy-a')){
-      $('att-br-copy-a').addEventListener('click', copyBriefingToLine);
-    }
-    if($('att-br-copy-b')){
-      $('att-br-copy-b').addEventListener('click', copyBriefingToLine);
     }
     if($('att-br-copy')){
       $('att-br-copy').addEventListener('click', copyBriefingToLine);
