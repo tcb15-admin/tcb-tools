@@ -171,7 +171,7 @@
   var FLOW_HINTS={
     make:'土日祝を仮登録 → 締切設定 → 作成。完了後は「2. 回答確認」でURL発行・LINE案内',
     check:'一覧から出欠を選ぶ → URL発行 → MG／親父案内をコピー。催促・受付終了もここで',
-    brief:'活動パターンを選び、確定案内を生成して親父LINEへコピー'
+    brief:'活動パターンを選び、確定案内を生成してMG／親父LINEへそれぞれコピー'
   };
   var FLOW_EMPTY={
     check:'一覧から出欠を選ぶと、回答状況・URL発行・LINE案内が表示されます。',
@@ -839,15 +839,26 @@
         setStatus('案内文を再生成しました');
       });
     }
+    function copyBriefingToLine(){
+      var t=($('att-br-preview')&&$('att-br-preview').value)||'';
+      if(!t.trim()){
+        rebuildBriefingPreview();
+        t=($('att-br-preview')&&$('att-br-preview').value)||'';
+      }
+      if(!t.trim()){
+        setStatus('案内文が空です。再生成してからコピーしてください', true);
+        return;
+      }
+      copyText(t);
+    }
+    if($('att-br-copy-a')){
+      $('att-br-copy-a').addEventListener('click', copyBriefingToLine);
+    }
+    if($('att-br-copy-b')){
+      $('att-br-copy-b').addEventListener('click', copyBriefingToLine);
+    }
     if($('att-br-copy')){
-      $('att-br-copy').addEventListener('click', function(){
-        var t=($('att-br-preview')&&$('att-br-preview').value)||'';
-        if(!t.trim()){
-          rebuildBriefingPreview();
-          t=($('att-br-preview')&&$('att-br-preview').value)||'';
-        }
-        copyText(t);
-      });
+      $('att-br-copy').addEventListener('click', copyBriefingToLine);
     }
     ['att-br-meet-time','att-br-meet-place','att-br-act-place','att-br-address','att-br-map',
      'att-br-gear-title','att-br-gear','att-br-route','att-br-meet-note','att-br-opponent',

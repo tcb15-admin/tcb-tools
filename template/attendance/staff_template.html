@@ -186,7 +186,7 @@
 
     <div class="att-card" id="att-panel-brief">
       <h2>週末の確定案内</h2>
-      <p class="att-act-meta" style="margin-bottom:10px">活動パターンに合わせて案内文を作り、{{ATT_TRACK_B_SHORT}}LINEへコピーします。</p>
+      <p class="att-act-meta" style="margin-bottom:10px">活動パターンに合わせて案内文を作り、{{ATT_TRACK_A_SHORT}}／{{ATT_TRACK_B_SHORT}}LINEへそれぞれコピーします。</p>
       <div class="att-row">
         <div class="att-field" style="flex:1 1 150px">
           <label for="att-br-day">対象日</label>
@@ -259,7 +259,11 @@
           <svg class="att-btn-svg" viewBox="0 0 24 24"><use href="#att-i-refresh"/></svg>
           再生成
         </button>
-        <button type="button" id="att-br-copy" class="att-btn att-btn-line">
+        <button type="button" id="att-br-copy-a" class="att-btn att-btn-line" title="{{ATT_TRACK_A_LABEL}}へコピー">
+          <svg class="att-btn-svg att-btn-svg-line" viewBox="0 0 24 24"><use href="#att-i-line"/></svg>
+          {{ATT_TRACK_A_SHORT}}へコピー
+        </button>
+        <button type="button" id="att-br-copy-b" class="att-btn att-btn-line" title="{{ATT_TRACK_B_LABEL}}へコピー">
           <svg class="att-btn-svg att-btn-svg-line" viewBox="0 0 24 24"><use href="#att-i-line"/></svg>
           {{ATT_TRACK_B_SHORT}}へコピー
         </button>
