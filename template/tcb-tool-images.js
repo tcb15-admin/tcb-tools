@@ -82,7 +82,13 @@
     return String(Date.now()).slice(-8);
   }
 
-  function loadImageFromFile(file) {
+  function isLikelyHeic(file) {
+    var t = String((file && file.type) || '').toLowerCase();
+    var n = String((file && file.name) || '').toLowerCase();
+    return t.indexOf('heic') >= 0 || t.indexOf('heif') >= 0 || /\.heic$|\.heif$/i.test(n);
+  }
+
+  function loadViaImageElement(file) {
     return new Promise(function (resolve, reject) {
       var url = URL.createObjectURL(file);
       var img = new Image();
@@ -92,10 +98,31 @@
       };
       img.onerror = function () {
         URL.revokeObjectURL(url);
-        reject(new Error('画像を読み込めませんでした'));
+        reject(new Error(isLikelyHeic(file) ? 'heic_unsupported' : 'image_decode_failed'));
       };
       img.src = url;
     });
+  }
+
+  /** JPEG/PNG/WebP 等をデコード（HEIC は多くのブラウザで不可） */
+  function loadImageFromFile(file) {
+    if (!file) return Promise.reject(new Error('image_decode_failed'));
+    if (isLikelyHeic(file)) {
+      return Promise.reject(new Error('heic_unsupported'));
+    }
+    if (typeof createImageBitmap === 'function') {
+      return createImageBitmap(file)
+        .then(function (bmp) {
+          if (!bmp || !(bmp.width > 0) || !(bmp.height > 0)) {
+            throw new Error('image_decode_failed');
+          }
+          return bmp;
+        })
+        .catch(function () {
+          return loadViaImageElement(file);
+        });
+    }
+    return loadViaImageElement(file);
   }
 
   function canvasToJpegBlob(canvas, quality) {
@@ -140,6 +167,9 @@
       if (!ctx) throw new Error('canvas が使えません');
       ctx.drawImage(img, 0, 0, cw, ch);
       return canvasToJpegBlob(canvas, JPEG_QUALITY).then(function (blob) {
+        if (typeof img.close === 'function') {
+          try { img.close(); } catch (e) {}
+        }
         if (blob.size > MAX_BYTES) {
           return canvasToJpegBlob(canvas, 0.7).then(function (blob2) {
             if (blob2.size > MAX_BYTES) throw new Error('画像が大きすぎます（圧縮後も上限超過）');
@@ -267,6 +297,8 @@
         console.error(err);
         var msg = String((err && err.message) || '');
         if (msg === 'unsupported_image_type') msg = '対応していない画像形式です（JPEG/PNG/WebP）';
+        else if (msg === 'heic_unsupported') msg = 'この写真形式（HEIC）には未対応です。iPhoneは「設定→カメラ→フォーマット→互換性優先」にするか、JPEG/PNGで選び直してください。';
+        else if (msg === 'image_decode_failed' || msg === '画像を読み込めませんでした') msg = '画像を開けませんでした。JPEG/PNGの写真でもう一度お試しください。';
         else if (msg === 'file_too_large') msg = '画像が大きすぎます';
         else if (msg === 'github_not_configured') msg = '画像保管の設定が未完了です（Worker の GITHUB_TOKEN）';
         else if (msg === 'github_auth_failed') msg = 'GitHub への書き込み権限がありません（GITHUB_TOKEN）';
@@ -329,7 +361,7 @@
 
     var fileInp = document.createElement('input');
     fileInp.type = 'file';
-    fileInp.accept = 'image/*';
+    fileInp.accept = 'image/jpeg,image/png,image/webp,image/*';
     fileInp.className = 'tcb-tool-img-file';
     fileInp.setAttribute('aria-hidden', 'true');
     fileInp.tabIndex = -1;
