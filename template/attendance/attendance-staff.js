@@ -28,7 +28,7 @@
     memo:''
   };
   var sync=null;
-  var state={campaigns:[], detail:null, selectedId:'', unanswered:{a:[],b:[]}};
+  var state={campaigns:[], detail:null, selectedId:'', unanswered:{a:[],b:[]}, flow:'make'};
 
   var ERR_JA={
     unauthorized:'認証に失敗しました（トークン設定を確認してください）',
@@ -169,27 +169,69 @@
   }
 
   var FLOW_HINTS={
-    make:'土日祝を仮登録 → 締切 → 作成 → URL発行 → LINEへ案内コピー',
-    check:'回答状況と未回答を確認。催促コピーでフォロー。訂正は保護者が同じURLから可能。',
+    make:'土日祝を仮登録 → 締切設定 → 作成。完了後は「2. 回答確認」でURL発行・LINE案内',
+    check:'一覧から出欠を選ぶ → URL発行 → MG／親父案内をコピー。催促・受付終了もここで',
     brief:'活動パターンを選び、確定案内を生成して親父LINEへコピー'
   };
+  var FLOW_EMPTY={
+    check:'一覧から出欠を選ぶと、回答状況・URL発行・LINE案内が表示されます。',
+    brief:'一覧から出欠を選ぶと、確定案内を作成できます。'
+  };
+
+  function setPanelVisible(el, on){
+    if(!el)return;
+    if(on)el.classList.remove('att-hidden');
+    else el.classList.add('att-hidden');
+  }
 
   function setAttFlow(mode, opts){
     mode=mode||'make';
     opts=opts||{};
+    if(mode!=='make'&&mode!=='check'&&mode!=='brief')mode='make';
+    state.flow=mode;
     document.querySelectorAll('.att-flow-btn').forEach(function(btn){
       btn.classList.toggle('is-active', btn.getAttribute('data-att-flow')===mode);
     });
     if($('att-flow-hint'))$('att-flow-hint').textContent=FLOW_HINTS[mode]||FLOW_HINTS.make;
-    if(!opts.scroll)return;
-    var map={make:'att-panel-make', check:'att-panel-check', brief:'att-panel-brief'};
-    var id=map[mode];
-    if(mode==='check'||mode==='brief'){
-      if(!state.detail||!state.detail.campaign){
-        id='att-panel-list';
-      }
+
+    var hasDetail=!!(state.detail&&state.detail.campaign);
+    var make=$('att-panel-make');
+    var list=$('att-panel-list');
+    var detail=$('att-detail');
+    var empty=$('att-detail-empty');
+    var check=$('att-panel-check');
+    var brief=$('att-panel-brief');
+
+    if(mode==='make'){
+      setPanelVisible(make, true);
+      setPanelVisible(list, true);
+      setPanelVisible(detail, false);
+      setPanelVisible(empty, false);
+      setPanelVisible(check, false);
+      setPanelVisible(brief, false);
+    }else if(mode==='check'){
+      setPanelVisible(make, false);
+      setPanelVisible(list, true);
+      setPanelVisible(check, true);
+      setPanelVisible(brief, false);
+      setPanelVisible(detail, hasDetail);
+      setPanelVisible(empty, !hasDetail);
+      if(empty&&!hasDetail)empty.textContent=FLOW_EMPTY.check;
+    }else{
+      setPanelVisible(make, false);
+      setPanelVisible(list, true);
+      setPanelVisible(check, false);
+      setPanelVisible(brief, true);
+      setPanelVisible(detail, hasDetail);
+      setPanelVisible(empty, !hasDetail);
+      if(empty&&!hasDetail)empty.textContent=FLOW_EMPTY.brief;
     }
-    var el=$(id);
+
+    if(!opts.scroll)return;
+    var scrollId='att-panel-list';
+    if(mode==='make')scrollId='att-panel-make';
+    else if(hasDetail)scrollId=mode==='brief'?'att-panel-brief':'att-panel-check';
+    var el=$(scrollId);
     if(el){
       try{el.scrollIntoView({behavior:'smooth', block:'start'});}catch(e){}
     }
@@ -463,15 +505,10 @@
 
   function renderDetail(){
     var d=state.detail;
-    var panel=$('att-detail');
-    var empty=$('att-detail-empty');
     if(!d||!d.campaign){
-      if(panel)panel.classList.add('att-hidden');
-      if(empty)empty.classList.remove('att-hidden');
+      setAttFlow(state.flow||'make');
       return;
     }
-    if(empty)empty.classList.add('att-hidden');
-    if(panel)panel.classList.remove('att-hidden');
     var c=d.campaign;
     var ans=d.answered||{};
     $('att-d-title').textContent=c.title||'出欠';
@@ -540,6 +577,7 @@
       }
     }
     renderBriefingPanel();
+    setAttFlow(state.flow||'check');
   }
 
   async function refreshList(){
@@ -552,15 +590,18 @@
     setStatus('一覧を更新しました');
   }
 
-  async function openCampaign(id){
+  async function openCampaign(id, opts){
+    opts=opts||{};
     var client=ensureSync();
     if(!client)return;
     state.selectedId=id;
     setStatus('詳細を読込中…');
     state.detail=await client.getCampaign(id);
     renderList();
+    var flow=opts.flow!=null?opts.flow:(state.flow==='make'?'check':(state.flow||'check'));
+    state.flow=flow;
     renderDetail();
-    setAttFlow('check');
+    if(opts.scroll)setAttFlow(flow, {scroll:true});
     setStatus('詳細を更新しました');
   }
 
@@ -581,7 +622,11 @@
       days:days
     });
     await refreshList();
-    if(res.campaign&&res.campaign.id)await openCampaign(res.campaign.id);
+    if(res.campaign&&res.campaign.id){
+      await openCampaign(res.campaign.id, {flow:'check', scroll:true});
+      setStatus('出欠確認を作成しました。次に URL発行 → LINEへ案内コピー');
+      return;
+    }
     setStatus('出欠確認を作成しました');
   }
 
@@ -590,7 +635,7 @@
     if(!client||!state.selectedId)return;
     setStatus('URL発行中…');
     await client.publishAttendance({id:state.selectedId, track:'both'});
-    await openCampaign(state.selectedId);
+    await openCampaign(state.selectedId, {flow:'check'});
     setStatus('回答URLを発行しました（'+TRACKS.a.short+'／'+TRACKS.b.short+'）');
   }
 
@@ -695,7 +740,8 @@
     $('att-list').addEventListener('click', function(ev){
       var item=ev.target.closest('.att-act-item');
       if(!item)return;
-      openCampaign(item.getAttribute('data-id')).catch(function(e){setStatus(jaErr(e), true);});
+      var nextFlow=state.flow==='brief'?'brief':'check';
+      openCampaign(item.getAttribute('data-id'), {flow:nextFlow, scroll:true}).catch(function(e){setStatus(jaErr(e), true);});
     });
     $('att-btn-publish').addEventListener('click', function(){
       publish().catch(function(e){setStatus(jaErr(e), true);});
@@ -727,7 +773,7 @@
       var next=cur==='closed'?'open':'closed';
       setStatus(next==='closed'?'受付を終了しています…':'受付を再開しています…');
       client.setCampaignStatus({id:state.selectedId, status:next})
-        .then(function(){return openCampaign(state.selectedId);})
+        .then(function(){return openCampaign(state.selectedId, {flow:state.flow||'check'});})
         .then(function(){return refreshList();})
         .then(function(){
           setStatus(next==='closed'?'受付を終了しました':'受付を再開しました');
@@ -735,7 +781,12 @@
         .catch(function(e){setStatus(jaErr(e), true);});
     });
     $('att-btn-refresh').addEventListener('click', function(){
-      var p=state.selectedId?openCampaign(state.selectedId):refreshList();
+      var p;
+      if(state.selectedId && state.flow!=='make'){
+        p=openCampaign(state.selectedId, {flow:state.flow});
+      }else{
+        p=refreshList();
+      }
       Promise.resolve(p).catch(function(e){setStatus(jaErr(e), true);});
     });
 
@@ -765,7 +816,7 @@
           memo:c.memo||'',
           deadlineAt:($('att-d-deadline')&&$('att-d-deadline').value)||'',
           days:c.days||[]
-        }).then(function(){return openCampaign(c.id);})
+        }).then(function(){return openCampaign(c.id, {flow:state.flow||'check'});})
           .then(function(){setStatus('締切を更新しました');})
           .catch(function(e){setStatus(jaErr(e), true);});
       });

@@ -10,9 +10,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="../icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.0.2">
-<link rel="stylesheet" href="../tcb-login.css?v=1.0.2">
-<link rel="stylesheet" href="attendance.css?v=1.0.2">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.1.0">
+<link rel="stylesheet" href="../tcb-login.css?v=1.1.0">
+<link rel="stylesheet" href="attendance.css?v=1.1.0">
 </head>
 <body class="att-body">
 <svg width="0" height="0" class="att-svg-defs" aria-hidden="true" focusable="false">
@@ -35,7 +35,7 @@
   <h1>出欠管理<span>東海中央ボーイズ 15期</span></h1>
   <div class="tcb-shell-hdr-end">
     <a class="att-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
-    <div class="tcb-shell-meta" id="att-version">v1.0.2</div>
+    <div class="tcb-shell-meta" id="att-version">v1.1.0</div>
   </div>
 </header>
 
@@ -67,7 +67,7 @@
       <span class="att-flow-num">3</span><span class="att-flow-lab">確定案内</span>
     </button>
   </nav>
-  <p id="att-flow-hint" class="att-flow-hint">土日祝を仮登録 → 締切設定 → 作成 → URL発行 → LINEへ案内コピー</p>
+  <p id="att-flow-hint" class="att-flow-hint">土日祝を仮登録 → 締切設定 → 作成。完了後は「2. 回答確認」でURL発行・LINE案内</p>
 
   <section class="att-card" id="att-panel-make">
     <h2>週次の出欠を作成</h2>
@@ -126,7 +126,7 @@
     <div id="att-list"></div>
   </section>
 
-  <p id="att-detail-empty" class="att-act-meta">一覧を選ぶと、展開・回答状況・確定案内が表示されます。</p>
+  <p id="att-detail-empty" class="att-act-meta att-hidden">一覧から出欠を選ぶと、回答状況・URL発行・LINE案内が表示されます。</p>
 
   <section id="att-detail" class="att-hidden">
     <div class="att-card" id="att-panel-check">
@@ -283,11 +283,11 @@ window.TCB_ATT_CFG={
   tracks:{"a": {"label": "MG LINE", "short": "MG", "form": "family", "role": "", "note": ""}, "b": {"label": "親父 LINE", "short": "親父", "form": "marks", "role": "", "note": "フォーム回答が正です（LINEスケジュールの代わり）。送信後も同じURLから訂正できます。"}}
 };
 </script>
-<script src="../tcb-login.js?v=1.0.2"></script>
-<script src="../tcb-sync-api.js?v=1.0.2"></script>
-<script src="attendance-jp-calendar.js?v=1.0.2"></script>
-<script src="attendance-line.js?v=1.0.2"></script>
-<script src="attendance-briefing.js?v=1.0.2"></script>
-<script src="attendance-staff.js?v=1.0.2"></script>
+<script src="../tcb-login.js?v=1.1.0"></script>
+<script src="../tcb-sync-api.js?v=1.1.0"></script>
+<script src="attendance-jp-calendar.js?v=1.1.0"></script>
+<script src="attendance-line.js?v=1.1.0"></script>
+<script src="attendance-briefing.js?v=1.1.0"></script>
+<script src="attendance-staff.js?v=1.1.0"></script>
 </body>
 </html>
