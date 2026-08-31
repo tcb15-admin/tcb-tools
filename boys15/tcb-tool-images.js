@@ -90,33 +90,49 @@
 
   var _heicLibPromise = null;
   function heicScriptUrl() {
-    var ver = '';
     try {
       var cur = document.querySelector('script[src*="tcb-tool-images.js"]');
-      var src = cur && cur.getAttribute('src');
-      var m = src && src.match(/\?v=([^&]+)/);
-      if (m) ver = '?v=' + encodeURIComponent(m[1]);
+      if (cur && cur.src) {
+        return cur.src.replace(/tcb-tool-images\.js(\?[^#]*)?/, function (_, q) {
+          return 'heic-to.js' + (q || '');
+        });
+      }
     } catch (e) {}
-    return 'heic-to.js' + ver;
+    try {
+      return new URL('heic-to.js', global.location.href).href;
+    } catch (e2) {
+      return 'heic-to.js';
+    }
   }
 
-  /** HEIC変換ライブラリは初回だけ遅延読込（約3MB・普段は読み込まない） */
+  /** HEIC変換ライブラリは必要なときだけ遅延読込（約3MB） */
   function loadHeicLib() {
     if (global.HeicTo) return Promise.resolve(global.HeicTo);
     if (_heicLibPromise) return _heicLibPromise;
     _heicLibPromise = new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = heicScriptUrl();
-      s.async = true;
-      s.onload = function () {
-        if (global.HeicTo) resolve(global.HeicTo);
-        else reject(new Error('heic_lib_missing'));
-      };
-      s.onerror = function () {
-        _heicLibPromise = null;
-        reject(new Error('heic_lib_missing'));
-      };
-      document.head.appendChild(s);
+      var primary = heicScriptUrl();
+      var triedCdn = false;
+      function attach(src) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        s.onload = function () {
+          if (global.HeicTo) resolve(global.HeicTo);
+          else reject(new Error('heic_lib_missing'));
+        };
+        s.onerror = function () {
+          if (!triedCdn) {
+            triedCdn = true;
+            /* ローカル読込失敗時の予備（CDN） */
+            attach('https://cdn.jsdelivr.net/npm/heic-to@1.5.2/dist/iife/heic-to.js');
+            return;
+          }
+          _heicLibPromise = null;
+          reject(new Error('heic_lib_missing'));
+        };
+        document.head.appendChild(s);
+      }
+      attach(primary);
     });
     return _heicLibPromise;
   }
@@ -152,7 +168,7 @@
     });
   }
 
-  /** JPEG/PNG/WebP 等をデコード */
+  /** JPEG/PNG/WebP（および Safari の HEIC）をデコード */
   function loadImageFromFile(file) {
     if (!file) return Promise.reject(new Error('image_decode_failed'));
     if (typeof createImageBitmap === 'function') {
@@ -224,17 +240,18 @@
     });
   }
 
-  /** 端末の写真／ファイルを JPEG に圧縮（HEIC はツール内で自動変換） */
+  /**
+   * 端末の写真を JPEG に圧縮。
+   * 1) まずブラウザ標準で読込（iPhone Safari は HEIC をそのまま読めることが多い）
+   * 2) 失敗時のみ heic-to で JPEG 化して再試行
+   */
   function compressImageFile(file) {
     function run(f) {
       return loadImageFromFile(f).then(compressDecodedImage);
     }
-    if (isLikelyHeic(file)) {
-      return convertHeicToJpegBlob(file).then(run);
-    }
     return run(file).catch(function (err) {
       var msg = String((err && err.message) || '');
-      if (msg === 'image_decode_failed') {
+      if (msg === 'image_decode_failed' || isLikelyHeic(file)) {
         return convertHeicToJpegBlob(file).then(run);
       }
       throw err;
