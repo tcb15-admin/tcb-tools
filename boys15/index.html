@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.28">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.29">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1165,14 +1165,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.28">
-<link rel="stylesheet" href="gear.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.28">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.28">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.29">
+<link rel="stylesheet" href="gear.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.29">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.29">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1744,14 +1744,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.28"></script>
-<script src="tcb-sync-api.js?v=1.27.28"></script>
-<script src="tcb-feedback.js?v=1.27.28"></script>
-<script src="tcb-swap-list.js?v=1.27.28"></script>
-<script src="tcb-assign-board.js?v=1.27.28"></script>
-<script src="tcb-handoff-plan.js?v=1.27.28"></script>
-<script src="tcb-team-rules.js?v=1.27.28"></script>
-<script src="tcb-tool-images.js?v=1.27.28"></script>
+<script src="tcb-device.js?v=1.27.29"></script>
+<script src="tcb-sync-api.js?v=1.27.29"></script>
+<script src="tcb-feedback.js?v=1.27.29"></script>
+<script src="tcb-swap-list.js?v=1.27.29"></script>
+<script src="tcb-assign-board.js?v=1.27.29"></script>
+<script src="tcb-handoff-plan.js?v=1.27.29"></script>
+<script src="tcb-team-rules.js?v=1.27.29"></script>
+<script src="tcb-tool-images.js?v=1.27.29"></script>
 <script>
 
 
@@ -2088,10 +2088,13 @@ function isActivityDateConfirmed(d){
   }
   return false;
 }
-function recordLocalCarryoutMetaOnly(d, mapForCarryout){
+function recordLocalCarryoutMetaOnly(d, mapForCarryout, confirmedAt){
   if(!d||!mapForCarryout)return;
   var meta=loadCarryoutMeta();
-  meta.byDate[d]={map:JSON.parse(JSON.stringify(mapForCarryout))};
+  meta.byDate[d]={
+    map:JSON.parse(JSON.stringify(mapForCarryout)),
+    confirmedAt:confirmedAt||new Date().toISOString()
+  };
   meta.lastMap=JSON.parse(JSON.stringify(mapForCarryout));
   saveCarryoutMeta(meta);
 }
@@ -2796,6 +2799,7 @@ function loadMaster(){
           }
           applyMasterObj(obj.master);
           MASTER_VERSION=parseMasterVersion(obj.version);
+          if(obj.carryoutMeta)syncCarryoutMetaFromServer(obj.carryoutMeta);
           try{ _ls.set(LS_KEY,JSON.stringify({MB:MB,TL:TL,DESCS:DESCS,PAST:PAST,DEF_TM:obj.master.DEF_TM||null})); }catch(e){}
           markMasterSnapshotClean();
           return refreshHistoryFromServer();
@@ -3052,6 +3056,21 @@ function findLatestConfirmedHoldingsSnap(){
     return tb-ta;
   });
   if(hist.length)return enrichStoredSnap(hist[0]);
+  /* carryout_meta のみ確定済み（履歴が試行のまま／confirmedAt 欠落）の救済 */
+  var meta=loadCarryoutMeta();
+  var bestDate='', bestEntry=null, bestTs=-1;
+  Object.keys(meta.byDate||{}).forEach(function(d){
+    var entry=meta.byDate[d];
+    if(!entry||!entry.map||typeof entry.map!=='object')return;
+    var ts=Date.parse(entry.confirmedAt||d+'T23:59:59.000Z')||0;
+    if(!bestDate||ts>=bestTs){bestDate=d;bestEntry=entry;bestTs=ts;}
+  });
+  if(bestDate){
+    var histSnap=null;
+    getHistoryCache().forEach(function(h){if(h&&h.date===bestDate)histSnap=h;});
+    var fromCarry=snapFromCarryoutMetaEntry(bestDate,bestEntry,histSnap);
+    if(fromCarry)return fromCarry;
+  }
   var prev=loadStoredAllocationSnap();
   if(prev&&prev.confirmedAt&&prev.map&&typeof prev.map==='object')return prev;
   return null;
@@ -3459,8 +3478,8 @@ function savePrevResult(){
 }
 /* 実施確定時：同じ活動日の履歴の map を確定後の担当に差し替え（試行のまま残さない） */
 function applyConfirmedMapToHistory(activityDate, mapForCarryout){
-  if(!activityDate||!mapForCarryout||typeof mapForCarryout!=='object')return;
-  if(!R)return;
+  if(!activityDate||!mapForCarryout||typeof mapForCarryout!=='object')return Promise.resolve(null);
+  if(!R)return Promise.resolve(null);
   var mapCopy=JSON.parse(JSON.stringify(mapForCarryout));
   var nowIso=new Date().toISOString();
   var toolsRaw=(R.mode==='team')?R.allTools:R.tools;
@@ -3507,15 +3526,14 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
     hist.unshift(snap);
     while(hist.length>50)hist.pop();
   }
-  try{ _ls.set(LS_HIST,JSON.stringify(hist)); }catch(e){console.error(e);return;}
-  if(syncEnabled()){
-    SYNC_CLIENT.appendHistory(snap)
-      .then(function(res){
-        var nh=(res&&res.history&&Array.isArray(res.history))?res.history:null;
-        if(nh)setHistoryCache(nh);
-      })
-      .catch(function(err){console.error(err);});
-  }
+  try{ _ls.set(LS_HIST,JSON.stringify(hist)); }catch(e){console.error(e);return Promise.reject(e);}
+  if(!syncEnabled())return Promise.resolve(snap);
+  return SYNC_CLIENT.appendHistory(snap)
+    .then(function(res){
+      var nh=(res&&res.history&&Array.isArray(res.history))?res.history:null;
+      if(nh)setHistoryCache(nh);
+      return snap;
+    });
 }
 function loadCarryoutMeta(){
   try{
@@ -3528,6 +3546,32 @@ function loadCarryoutMeta(){
 }
 function saveCarryoutMeta(o){
   try{ _ls.set(LS_CARRYOUT_CONFIRMED,JSON.stringify(o)); }catch(e){}
+}
+/** クラウド tool_state.carryout_meta_json → 端末 LS（保有基準の端末間同期） */
+function syncCarryoutMetaFromServer(carryoutMeta){
+  if(!carryoutMeta||typeof carryoutMeta!=='object')return;
+  var meta={byDate:{}};
+  if(carryoutMeta.byDate&&typeof carryoutMeta.byDate==='object'){
+    Object.keys(carryoutMeta.byDate).forEach(function(d){
+      var entry=carryoutMeta.byDate[d];
+      if(!entry||!entry.map||typeof entry.map!=='object')return;
+      meta.byDate[d]={
+        map:clonePlainObj(entry.map),
+        confirmedAt:entry.confirmedAt||null
+      };
+    });
+  }
+  if(carryoutMeta.lastMap&&typeof carryoutMeta.lastMap==='object'){
+    meta.lastMap=clonePlainObj(carryoutMeta.lastMap);
+  }
+  saveCarryoutMeta(meta);
+}
+function snapFromCarryoutMetaEntry(activityDate, entry, histSnap){
+  if(!activityDate||!entry||!entry.map||typeof entry.map!=='object')return null;
+  var snap=histSnap&&histSnap.date===activityDate?clonePlainObj(histSnap):{date:activityDate,mode:'team'};
+  snap.map=clonePlainObj(entry.map);
+  snap.confirmedAt=entry.confirmedAt||activityDate+'T12:00:00.000Z';
+  return enrichStoredSnap(snap);
 }
 function revertPastFromMap(oldMap){
   if(!oldMap||typeof oldMap!=='object')return;
@@ -3625,8 +3669,9 @@ function confirmCarryOutResult(opts){
         if(res&&res.past&&typeof res.past==='object'&&!Array.isArray(res.past))PAST=normalizePastObj(res.past);
         if(res&&res.version!==undefined)MASTER_VERSION=parseMasterVersion(res.version);
         persistPastToMaster();
-        recordLocalCarryoutMetaOnly(d, mapForCarryout);
-        applyConfirmedMapToHistory(d, mapForCarryout);
+        recordLocalCarryoutMetaOnly(d, mapForCarryout, res&&res.confirmedAt);
+        return applyConfirmedMapToHistory(d, mapForCarryout);
+      }).then(function(){
         finishOk('実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。');
       }).catch(function(err){
         console.error(err);
@@ -9356,7 +9401,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.28';
+  if(vEl)vEl.textContent='v1.27.29';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9950,16 +9995,16 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.28"></script>
-<script src="html2canvas.min.js?v=1.27.28"></script>
-<script src="html2pdf.min.js?v=1.27.28"></script>
-<script src="tcb-print-pdf.js?v=1.27.28"></script>
-<script src="tcb-swap-mgr.js?v=1.27.28"></script>
-<script src="tcb-push-mgr.js?v=1.27.28"></script>
-<script src="tcb-login.js?v=1.27.28"></script>
-<script src="tcb-pwa-install.js?v=1.27.28"></script>
-<script src="tcb-group-hold.js?v=1.27.28"></script>
-<script src="tcb-presummary.js?v=1.27.28"></script>
-<script src="tcb-p1-flow.js?v=1.27.28"></script>
+<script src="jspdf.umd.min.js?v=1.27.29"></script>
+<script src="html2canvas.min.js?v=1.27.29"></script>
+<script src="html2pdf.min.js?v=1.27.29"></script>
+<script src="tcb-print-pdf.js?v=1.27.29"></script>
+<script src="tcb-swap-mgr.js?v=1.27.29"></script>
+<script src="tcb-push-mgr.js?v=1.27.29"></script>
+<script src="tcb-login.js?v=1.27.29"></script>
+<script src="tcb-pwa-install.js?v=1.27.29"></script>
+<script src="tcb-group-hold.js?v=1.27.29"></script>
+<script src="tcb-presummary.js?v=1.27.29"></script>
+<script src="tcb-p1-flow.js?v=1.27.29"></script>
 </body>
 </html>

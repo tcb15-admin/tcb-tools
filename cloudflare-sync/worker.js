@@ -418,16 +418,38 @@ async function confirmCarryout(env, body) {
   const toolLoadMap = buildToolLoadMap(body.tools);
   if (old && old.map) revertMapFromPast(master.PAST, old.map, toolLoadMap);
   applyMapToPast(master.PAST, map, toolLoadMap);
-  carry.byDate[activityDate] = { map: clone(map) };
+  const confirmedAt = new Date().toISOString();
+  carry.byDate[activityDate] = { map: clone(map), confirmedAt };
   carry.lastMap = clone(map);
 
   const nextVersion = version + 1;
+  const updatedAt = confirmedAt;
   await env.DB.prepare(
     "UPDATE tool_state SET version = ?, master_json = ?, carryout_meta_json = ?, updated_at = ? WHERE cohort = ?"
   )
-    .bind(nextVersion, JSON.stringify(master), JSON.stringify(carry), new Date().toISOString(), cohort)
+    .bind(nextVersion, JSON.stringify(master), JSON.stringify(carry), updatedAt, cohort)
     .run();
-  return { ok: true, version: nextVersion, past: master.PAST };
+
+  /* 実施確定時は history_events も同期（carryout_meta のみ更新で履歴が試行のまま残る事故防止） */
+  const histRow = await env.DB.prepare(
+    "SELECT snap_json FROM history_events WHERE cohort = ? AND activity_date = ?"
+  )
+    .bind(cohort, activityDate)
+    .first();
+  let snap = histRow ? JSON.parse(histRow.snap_json || "{}") : { date: activityDate, mode: "team" };
+  if (!snap || typeof snap !== "object") snap = { date: activityDate, mode: "team" };
+  snap.date = activityDate;
+  snap.map = clone(map);
+  snap.confirmedAt = confirmedAt;
+  snap.savedAt = confirmedAt;
+  await env.DB.prepare(
+    "INSERT INTO history_events (cohort, activity_date, saved_at, snap_json) VALUES (?, ?, ?, ?) " +
+      "ON CONFLICT(cohort, activity_date) DO UPDATE SET saved_at = excluded.saved_at, snap_json = excluded.snap_json"
+  )
+    .bind(cohort, activityDate, confirmedAt, JSON.stringify(snap))
+    .run();
+
+  return { ok: true, version: nextVersion, past: master.PAST, confirmedAt };
 }
 
 // ===== 保護者向け確認ページ（案2 Step2-1） =====
