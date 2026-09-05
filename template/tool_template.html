@@ -1451,8 +1451,8 @@ html{color-scheme:light;}
 <div class="wrap">
   <nav class="steps" aria-label="作業の流れ">
     <button type="button" class="si si0" id="st0" style="display:none;" title="急な2分け・メンバー直前確定のときの道具入れ替え依頼"><span class="sn">0</span><span class="sl">入替依頼</span></button>
-    <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・班分け</span></button>
-    <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">欠席・当番</span></button>
+    <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・パターン</span></button>
+    <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">班分け・欠席</span></button>
     <button type="button" class="si" id="st3"><span class="sn">3</span><span class="sl">割振り・展開</span></button>
   </nav>
   <!-- STEP1 -->
@@ -1476,7 +1476,7 @@ html{color-scheme:light;}
       </div>
       <div id="p1-flow-host" style="display:none;"></div>
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>。保有の確認・修正はSTEP2で。
+        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>。保有の確認・修正はSTEP2のグループ振り分けで。
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">新規の割り振りに切り替える</button>
         </div>
@@ -1493,13 +1493,53 @@ html{color-scheme:light;}
       </div>
     </div>
     <div class="nav">
-      <button class="nb nbp" id="btn-s2" style="flex:1;">次へ：欠席・当番 &#9654;</button>
+      <button class="nb nbp" id="btn-s2" style="flex:1;">次へ：班分け・欠席 &#9654;</button>
     </div>
   </div>
-  <!-- STEP2 -->
+  <!-- STEP2：班分け → 欠席・お茶 → 除外 → 実行 -->
   <div class="pnl" id="p2">
-    <div class="card">
-      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席など、<strong>この日の道具持ち帰りから外す人</strong>をタップ。班所属はそのまま残ります。" aria-label="説明"></button></div>
+    <div class="card" id="tcard" style="display:none;">
+      <div class="ct" id="tcard-hd">グループ振り分け <span class="bdg">STEP 2</span></div>
+      <div class="tcrow">
+        <div class="tcb A" id="cntA">-</div>
+        <div class="tcb B" id="cntB">-</div>
+      </div>
+      <div class="dfrow tcb-ui-advanced">
+        <button class="dfbtn" id="btn-df-save">&#128190; デフォルト保存</button>
+        <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
+      </div>
+      <div class="mgrid" id="tgrid"></div>
+    </div>
+    <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
+      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。
+      <div class="tcb-seedalloc-box">
+        <div class="tcb-seedalloc-title">配り方</div>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・当番の分だけ変更</span></label>
+      </div>
+      <p class="tcb-seed-hold-hint">保有の確認・修正は上の<strong>グループ振り分け</strong>で（班なしの日は名簿の保有から）。</p>
+      <div class="tcb-seed-mode-banner-btns">
+        <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
+      </div>
+    </div>
+    <div class="card tcb-ghold-card" id="tcb-ghold-card">
+      <details class="tcb-fold" id="tcb-ghold-details">
+        <summary>
+          <div class="ct">いま道具を持っているグループ（控え）<button type="button" class="tcb-tip" data-tip="確定保有の記録がないとき用の控え。登録するとグループ内で割り振ります。" aria-label="説明"></button></div>
+          <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
+          <span class="tcb-fold-arrow">&#9660;</span>
+        </summary>
+        <div class="tcb-fold-body">
+          <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（割振りルールでグループ分け）。</p>
+          <div class="tcb-ghold-actions">
+            <button type="button" class="rbtn" id="btn-tcb-ghold-edit">持っているグループを登録／確認</button>
+            <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="card" id="p2-abs-card">
+      <div class="ct">割振り対象外を選択 <span class="bdg" id="p2-step-badge">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席など、<strong>この日の道具持ち帰りから外す人</strong>をタップ。班は先に決めた所属のまま残ります。" aria-label="説明"></button></div>
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
@@ -1519,46 +1559,6 @@ html{color-scheme:light;}
         </summary>
         <div class="tcb-fold-body">
           <div class="mgrid" id="skipgrid"></div>
-        </div>
-      </details>
-    </div>
-    <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。
-      <div class="tcb-seedalloc-box">
-        <div class="tcb-seedalloc-title">配り方</div>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・当番の分だけ変更</span></label>
-      </div>
-      <p class="tcb-seed-hold-hint">保有の確認・修正は下の<strong>グループ振り分け</strong>で。</p>
-      <div class="tcb-seed-mode-banner-btns">
-        <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
-      </div>
-    </div>
-    <div class="card" id="tcard" style="display:none;">
-      <div class="ct" id="tcard-hd">グループ振り分け</div>
-      <div class="tcrow">
-        <div class="tcb A" id="cntA">-</div>
-        <div class="tcb B" id="cntB">-</div>
-      </div>
-      <div class="dfrow tcb-ui-advanced">
-        <button class="dfbtn" id="btn-df-save">&#128190; デフォルト保存</button>
-        <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
-      </div>
-      <div class="mgrid" id="tgrid"></div>
-    </div>
-    <div class="card tcb-ghold-card" id="tcb-ghold-card">
-      <details class="tcb-fold" id="tcb-ghold-details">
-        <summary>
-          <div class="ct">いま道具を持っているグループ（控え）<button type="button" class="tcb-tip" data-tip="確定保有の記録がないとき用の控え。登録するとグループ内で割り振ります。" aria-label="説明"></button></div>
-          <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
-          <span class="tcb-fold-arrow">&#9660;</span>
-        </summary>
-        <div class="tcb-fold-body">
-          <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（割振りルールでグループ分け）。</p>
-          <div class="tcb-ghold-actions">
-            <button type="button" class="rbtn" id="btn-tcb-ghold-edit">持っているグループを登録／確認</button>
-            <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
-          </div>
         </div>
       </details>
     </div>
@@ -2651,7 +2651,7 @@ function fitStep2Grids(){
 }
 function scheduleStep2GridFit(){
   requestAnimationFrame(function(){requestAnimationFrame(fitStep2Grids);});
-  /* STEP2の操作（欠席・当番・除外・グループ切替）のたびに実行前サマリーを更新 */
+  /* STEP2の操作（班分け・欠席・当番・除外）のたびに実行前サマリーを更新 */
   if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 window.addEventListener('resize',function(){
@@ -6547,6 +6547,8 @@ function updDesc(){
   if(h1){h1.style.display='none';h1.textContent='';}
   var tc=document.getElementById('tcard');
   if(tc)tc.style.display=effectiveNeedsTeamUI()?'':'none';
+  var p2badge=document.getElementById('p2-step-badge');
+  if(p2badge)p2badge.style.display=effectiveNeedsTeamUI()?'none':'';
   updateMemUnpublishedWrap();
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
@@ -6636,9 +6638,12 @@ function goStep(n){
     window.scrollTo(0,0);
   }
   if(n===2){
-    document.getElementById('tcard').style.display=effectiveNeedsTeamUI()?'':'none';
+    var needTeam=effectiveNeedsTeamUI();
+    document.getElementById('tcard').style.display=needTeam?'':'none';
+    var p2badge=document.getElementById('p2-step-badge');
+    if(p2badge)p2badge.style.display=needTeam?'none':'';
     buildAGrid(); buildOGrid(); buildSkipGrid();
-    if(effectiveNeedsTeamUI())buildTGrid();
+    if(needTeam)buildTGrid();
     scheduleStep2GridFit();
     if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
       TCB_GroupHold.updateStatusUI();
@@ -7011,7 +7016,7 @@ function buildTGrid(opts){
       +(holdMap
         ?'名前の下＝保有道具。道具→人の順にタップで修正できます。'
         :'当日の班分けに合わせてください。');
-    hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
+    hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg">STEP 2</span> <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
       +'<button type="button" class="tcb-tip" data-tip="'+tipText.replace(/"/g,'&quot;')+'" aria-label="説明"></button>';
   }
   if(holdMap){

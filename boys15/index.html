@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.33">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1165,14 +1165,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.32">
-<link rel="stylesheet" href="gear.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.32">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.33">
+<link rel="stylesheet" href="gear.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.33">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.33">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1451,8 +1451,8 @@ html{color-scheme:light;}
 <div class="wrap">
   <nav class="steps" aria-label="作業の流れ">
     <button type="button" class="si si0" id="st0" style="display:none;" title="急な2分け・メンバー直前確定のときの道具入れ替え依頼"><span class="sn">0</span><span class="sl">入替依頼</span></button>
-    <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・班分け</span></button>
-    <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">欠席・当番</span></button>
+    <button type="button" class="si on" id="st1"><span class="sn">1</span><span class="sl">活動・パターン</span></button>
+    <button type="button" class="si" id="st2"><span class="sn">2</span><span class="sl">班分け・欠席</span></button>
     <button type="button" class="si" id="st3"><span class="sn">3</span><span class="sl">割振り・展開</span></button>
   </nav>
   <!-- STEP1 -->
@@ -1476,7 +1476,7 @@ html{color-scheme:light;}
       </div>
       <div id="p1-flow-host" style="display:none;"></div>
       <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>。保有の確認・修正はSTEP2で。
+        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>。保有の確認・修正はSTEP2のグループ振り分けで。
         <div class="tcb-seed-mode-banner-btns">
           <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">新規の割り振りに切り替える</button>
         </div>
@@ -1493,13 +1493,53 @@ html{color-scheme:light;}
       </div>
     </div>
     <div class="nav">
-      <button class="nb nbp" id="btn-s2" style="flex:1;">次へ：欠席・当番 &#9654;</button>
+      <button class="nb nbp" id="btn-s2" style="flex:1;">次へ：班分け・欠席 &#9654;</button>
     </div>
   </div>
-  <!-- STEP2 -->
+  <!-- STEP2：班分け → 欠席・お茶 → 除外 → 実行 -->
   <div class="pnl" id="p2">
-    <div class="card">
-      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席など、<strong>この日の道具持ち帰りから外す人</strong>をタップ。班所属はそのまま残ります。" aria-label="説明"></button></div>
+    <div class="card" id="tcard" style="display:none;">
+      <div class="ct" id="tcard-hd">グループ振り分け <span class="bdg">STEP 2</span></div>
+      <div class="tcrow">
+        <div class="tcb A" id="cntA">-</div>
+        <div class="tcb B" id="cntB">-</div>
+      </div>
+      <div class="dfrow tcb-ui-advanced">
+        <button class="dfbtn" id="btn-df-save">&#128190; デフォルト保存</button>
+        <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
+      </div>
+      <div class="mgrid" id="tgrid"></div>
+    </div>
+    <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
+      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。
+      <div class="tcb-seedalloc-box">
+        <div class="tcb-seedalloc-title">配り方</div>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り</span></label>
+        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・当番の分だけ変更</span></label>
+      </div>
+      <p class="tcb-seed-hold-hint">保有の確認・修正は上の<strong>グループ振り分け</strong>で（班なしの日は名簿の保有から）。</p>
+      <div class="tcb-seed-mode-banner-btns">
+        <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
+      </div>
+    </div>
+    <div class="card tcb-ghold-card" id="tcb-ghold-card">
+      <details class="tcb-fold" id="tcb-ghold-details">
+        <summary>
+          <div class="ct">いま道具を持っているグループ（控え）<button type="button" class="tcb-tip" data-tip="確定保有の記録がないとき用の控え。登録するとグループ内で割り振ります。" aria-label="説明"></button></div>
+          <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
+          <span class="tcb-fold-arrow">&#9660;</span>
+        </summary>
+        <div class="tcb-fold-body">
+          <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（割振りルールでグループ分け）。</p>
+          <div class="tcb-ghold-actions">
+            <button type="button" class="rbtn" id="btn-tcb-ghold-edit">持っているグループを登録／確認</button>
+            <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="card" id="p2-abs-card">
+      <div class="ct">割振り対象外を選択 <span class="bdg" id="p2-step-badge">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席など、<strong>この日の道具持ち帰りから外す人</strong>をタップ。班は先に決めた所属のまま残ります。" aria-label="説明"></button></div>
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
@@ -1519,46 +1559,6 @@ html{color-scheme:light;}
         </summary>
         <div class="tcb-fold-body">
           <div class="mgrid" id="skipgrid"></div>
-        </div>
-      </details>
-    </div>
-    <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。
-      <div class="tcb-seedalloc-box">
-        <div class="tcb-seedalloc-title">配り方</div>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り</span></label>
-        <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・当番の分だけ変更</span></label>
-      </div>
-      <p class="tcb-seed-hold-hint">保有の確認・修正は下の<strong>グループ振り分け</strong>で。</p>
-      <div class="tcb-seed-mode-banner-btns">
-        <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
-      </div>
-    </div>
-    <div class="card" id="tcard" style="display:none;">
-      <div class="ct" id="tcard-hd">グループ振り分け</div>
-      <div class="tcrow">
-        <div class="tcb A" id="cntA">-</div>
-        <div class="tcb B" id="cntB">-</div>
-      </div>
-      <div class="dfrow tcb-ui-advanced">
-        <button class="dfbtn" id="btn-df-save">&#128190; デフォルト保存</button>
-        <button class="dfbtn" id="btn-df-load">&#8617; デフォルト読込</button>
-      </div>
-      <div class="mgrid" id="tgrid"></div>
-    </div>
-    <div class="card tcb-ghold-card" id="tcb-ghold-card">
-      <details class="tcb-fold" id="tcb-ghold-details">
-        <summary>
-          <div class="ct">いま道具を持っているグループ（控え）<button type="button" class="tcb-tip" data-tip="確定保有の記録がないとき用の控え。登録するとグループ内で割り振ります。" aria-label="説明"></button></div>
-          <span class="tcb-fold-state" id="tcb-ghold-sumstate">未使用</span>
-          <span class="tcb-fold-arrow">&#9660;</span>
-        </summary>
-        <div class="tcb-fold-body">
-          <p class="tcb-ghold-status" id="tcb-ghold-status">未使用（割振りルールでグループ分け）。</p>
-          <div class="tcb-ghold-actions">
-            <button type="button" class="rbtn" id="btn-tcb-ghold-edit">持っているグループを登録／確認</button>
-            <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
-          </div>
         </div>
       </details>
     </div>
@@ -1744,14 +1744,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.32"></script>
-<script src="tcb-sync-api.js?v=1.27.32"></script>
-<script src="tcb-feedback.js?v=1.27.32"></script>
-<script src="tcb-swap-list.js?v=1.27.32"></script>
-<script src="tcb-assign-board.js?v=1.27.32"></script>
-<script src="tcb-handoff-plan.js?v=1.27.32"></script>
-<script src="tcb-team-rules.js?v=1.27.32"></script>
-<script src="tcb-tool-images.js?v=1.27.32"></script>
+<script src="tcb-device.js?v=1.27.33"></script>
+<script src="tcb-sync-api.js?v=1.27.33"></script>
+<script src="tcb-feedback.js?v=1.27.33"></script>
+<script src="tcb-swap-list.js?v=1.27.33"></script>
+<script src="tcb-assign-board.js?v=1.27.33"></script>
+<script src="tcb-handoff-plan.js?v=1.27.33"></script>
+<script src="tcb-team-rules.js?v=1.27.33"></script>
+<script src="tcb-tool-images.js?v=1.27.33"></script>
 <script>
 
 
@@ -2554,7 +2554,7 @@ function fitStep2Grids(){
 }
 function scheduleStep2GridFit(){
   requestAnimationFrame(function(){requestAnimationFrame(fitStep2Grids);});
-  /* STEP2の操作（欠席・当番・除外・グループ切替）のたびに実行前サマリーを更新 */
+  /* STEP2の操作（班分け・欠席・当番・除外）のたびに実行前サマリーを更新 */
   if(window.TCB_PreSummary)TCB_PreSummary.update();
 }
 window.addEventListener('resize',function(){
@@ -6450,6 +6450,8 @@ function updDesc(){
   if(h1){h1.style.display='none';h1.textContent='';}
   var tc=document.getElementById('tcard');
   if(tc)tc.style.display=effectiveNeedsTeamUI()?'':'none';
+  var p2badge=document.getElementById('p2-step-badge');
+  if(p2badge)p2badge.style.display=effectiveNeedsTeamUI()?'none':'';
   updateMemUnpublishedWrap();
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
@@ -6539,9 +6541,12 @@ function goStep(n){
     window.scrollTo(0,0);
   }
   if(n===2){
-    document.getElementById('tcard').style.display=effectiveNeedsTeamUI()?'':'none';
+    var needTeam=effectiveNeedsTeamUI();
+    document.getElementById('tcard').style.display=needTeam?'':'none';
+    var p2badge=document.getElementById('p2-step-badge');
+    if(p2badge)p2badge.style.display=needTeam?'none':'';
     buildAGrid(); buildOGrid(); buildSkipGrid();
-    if(effectiveNeedsTeamUI())buildTGrid();
+    if(needTeam)buildTGrid();
     scheduleStep2GridFit();
     if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
       TCB_GroupHold.updateStatusUI();
@@ -6914,7 +6919,7 @@ function buildTGrid(opts){
       +(holdMap
         ?'名前の下＝保有道具。道具→人の順にタップで修正できます。'
         :'当日の班分けに合わせてください。');
-    hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
+    hd.innerHTML=esc(la)+' / '+esc(lb)+' グループ振り分け <span class="bdg">STEP 2</span> <span class="bdg" style="background:var(--tb);">'+hint+'</span>'
       +'<button type="button" class="tcb-tip" data-tip="'+tipText.replace(/"/g,'&quot;')+'" aria-label="説明"></button>';
   }
   if(holdMap){
@@ -9435,7 +9440,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.32';
+  if(vEl)vEl.textContent='v1.27.33';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -10029,16 +10034,16 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.32"></script>
-<script src="html2canvas.min.js?v=1.27.32"></script>
-<script src="html2pdf.min.js?v=1.27.32"></script>
-<script src="tcb-print-pdf.js?v=1.27.32"></script>
-<script src="tcb-swap-mgr.js?v=1.27.32"></script>
-<script src="tcb-push-mgr.js?v=1.27.32"></script>
-<script src="tcb-login.js?v=1.27.32"></script>
-<script src="tcb-pwa-install.js?v=1.27.32"></script>
-<script src="tcb-group-hold.js?v=1.27.32"></script>
-<script src="tcb-presummary.js?v=1.27.32"></script>
-<script src="tcb-p1-flow.js?v=1.27.32"></script>
+<script src="jspdf.umd.min.js?v=1.27.33"></script>
+<script src="html2canvas.min.js?v=1.27.33"></script>
+<script src="html2pdf.min.js?v=1.27.33"></script>
+<script src="tcb-print-pdf.js?v=1.27.33"></script>
+<script src="tcb-swap-mgr.js?v=1.27.33"></script>
+<script src="tcb-push-mgr.js?v=1.27.33"></script>
+<script src="tcb-login.js?v=1.27.33"></script>
+<script src="tcb-pwa-install.js?v=1.27.33"></script>
+<script src="tcb-group-hold.js?v=1.27.33"></script>
+<script src="tcb-presummary.js?v=1.27.33"></script>
+<script src="tcb-p1-flow.js?v=1.27.33"></script>
 </body>
 </html>
