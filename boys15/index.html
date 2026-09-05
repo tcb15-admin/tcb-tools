@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.31">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.32">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -205,7 +205,7 @@ html[data-cohort="15"] header{
 .tc2:active{opacity:.7;}
 .tc2.tA{border-color:var(--ta-bd);background:var(--ta-bg);}
 .tc2.tB{border-color:var(--tb-bd);background:var(--tb-bg);}
-.tc2.ex{opacity:.4;cursor:default;}
+.tc2.ex{opacity:.4;cursor:pointer;}
 .tbdg{font-size:9px;font-weight:900;min-width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;background:#b0bec5;padding:0 3px;white-space:nowrap;overflow:hidden;max-width:52px;text-overflow:ellipsis;}
 .tbdg.A{background:var(--ta);}.tbdg.B{background:var(--tb);}
 .tcrow{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
@@ -1165,14 +1165,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.31">
-<link rel="stylesheet" href="gear.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.31">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.31">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.32">
+<link rel="stylesheet" href="gear.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.32">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.32">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1499,11 +1499,11 @@ html{color-scheme:light;}
   <!-- STEP2 -->
   <div class="pnl" id="p2">
     <div class="card">
-      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席など、<strong>この日の割振りから外す人</strong>をタップ。" aria-label="説明"></button></div>
+      <div class="ct">割振り対象外を選択 <span class="bdg">STEP 2</span><button type="button" class="tcb-tip" data-tip="欠席など、<strong>この日の道具持ち帰りから外す人</strong>をタップ。班所属はそのまま残ります。" aria-label="説明"></button></div>
       <div class="mgrid" id="agrid"></div>
     </div>
     <div class="card">
-      <div class="ct">お茶当番（翌活動日分・保護者）<button type="button" class="tcb-tip" data-tip="<strong>翌活動日分</strong>の当番。当番道具を持ち帰るため割振りから外します。" aria-label="説明"></button></div>
+      <div class="ct">お茶当番（翌活動日分・保護者）<button type="button" class="tcb-tip" data-tip="<strong>翌活動日分</strong>の当番。当番道具を持ち帰るため<strong>この日の道具割振り</strong>から外します（班所属は残ります）。" aria-label="説明"></button></div>
       <div id="tcb-tea-reflect" class="tcb-tea-reflect" hidden>
         <span id="tcb-tea-reflect-msg" class="tcb-tea-reflect-msg"></span>
         <button type="button" id="tcb-tea-reflect-btn" class="nb" style="min-height:36px;padding:6px 12px;font-size:12px;">表から取込</button>
@@ -1744,14 +1744,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.31"></script>
-<script src="tcb-sync-api.js?v=1.27.31"></script>
-<script src="tcb-feedback.js?v=1.27.31"></script>
-<script src="tcb-swap-list.js?v=1.27.31"></script>
-<script src="tcb-assign-board.js?v=1.27.31"></script>
-<script src="tcb-handoff-plan.js?v=1.27.31"></script>
-<script src="tcb-team-rules.js?v=1.27.31"></script>
-<script src="tcb-tool-images.js?v=1.27.31"></script>
+<script src="tcb-device.js?v=1.27.32"></script>
+<script src="tcb-sync-api.js?v=1.27.32"></script>
+<script src="tcb-feedback.js?v=1.27.32"></script>
+<script src="tcb-swap-list.js?v=1.27.32"></script>
+<script src="tcb-assign-board.js?v=1.27.32"></script>
+<script src="tcb-handoff-plan.js?v=1.27.32"></script>
+<script src="tcb-team-rules.js?v=1.27.32"></script>
+<script src="tcb-tool-images.js?v=1.27.32"></script>
 <script>
 
 
@@ -6910,7 +6910,7 @@ function buildTGrid(opts){
   var hint=pat==='kata'?'片方試合':(pat==='renshu'?(renshuSplit?'両方練習・場所分離':'グループ保有'):'両方試合');
   var hd=document.getElementById(opts.hdId||'tcard-hd');
   if(hd){
-    var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>／<strong>'+esc(lb)+'</strong>を切替。'
+    var tipText='メンバーをタップで<strong>'+esc(la)+'</strong>／<strong>'+esc(lb)+'</strong>を切替。欠席・お茶当番も班は残し、次回に備えて切替できます。'
       +(holdMap
         ?'名前の下＝保有道具。道具→人の順にタップで修正できます。'
         :'当日の班分けに合わせてください。');
@@ -6933,14 +6933,13 @@ function buildTGrid(opts){
   }
   MB.filter(function(m){return !memberMasterExcluded(m);}).forEach(function(m){
     var isEx=!!ex[m.name];
-    if(isEx){
-      tmMap[m.name]=null;
-    }else if(tmMap[m.name]===null||tmMap[m.name]===undefined){
+    /* 欠席・お茶当番は「今日の持ち帰り対象外」のみ。班所属(A/B)は次回のため残す */
+    if(tmMap[m.name]===null||tmMap[m.name]===undefined){
       tmMap[m.name]='B';
     }
-    var tm=isEx?null:tmMap[m.name];
+    var tm=tmMap[m.name];
     var c=document.createElement('div');
-    c.className='tc2'+(isEx?' ex':(tm?' t'+tm:''))+(holdMap?' tcb-tgh-cell':'');
+    c.className='tc2'+(tm?' t'+tm:'')+(isEx?' ex':'')+(holdMap?' tcb-tgh-cell':'');
     c.innerHTML=tcHtml(m,tm,la,lb)+(holdMap?tgridHoldChipsHtml(holdByPerson[m.name]):'');
     (function(mm,cc,mmEx){
       cc.addEventListener('click',function(ev){
@@ -6965,10 +6964,9 @@ function buildTGrid(opts){
             return;
           }
         }
-        if(mmEx)return;
         tmMap[mm.name]=(tmMap[mm.name]==='B')?'A':'B';
         var nt=tmMap[mm.name];
-        cc.className='tc2 t'+nt+(holdMap?' tcb-tgh-cell':'');
+        cc.className='tc2 t'+nt+(mmEx?' ex':'')+(holdMap?' tcb-tgh-cell':'');
         cc.innerHTML=tcHtml(mm,nt,tnA||'試合組',tnB||'練習組')+(holdMap?tgridHoldChipsHtml(holdByPerson[mm.name]):'');
         scheduleStep2GridFit();
         updTC();
@@ -9437,7 +9435,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.31';
+  if(vEl)vEl.textContent='v1.27.32';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -10031,16 +10029,16 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.31"></script>
-<script src="html2canvas.min.js?v=1.27.31"></script>
-<script src="html2pdf.min.js?v=1.27.31"></script>
-<script src="tcb-print-pdf.js?v=1.27.31"></script>
-<script src="tcb-swap-mgr.js?v=1.27.31"></script>
-<script src="tcb-push-mgr.js?v=1.27.31"></script>
-<script src="tcb-login.js?v=1.27.31"></script>
-<script src="tcb-pwa-install.js?v=1.27.31"></script>
-<script src="tcb-group-hold.js?v=1.27.31"></script>
-<script src="tcb-presummary.js?v=1.27.31"></script>
-<script src="tcb-p1-flow.js?v=1.27.31"></script>
+<script src="jspdf.umd.min.js?v=1.27.32"></script>
+<script src="html2canvas.min.js?v=1.27.32"></script>
+<script src="html2pdf.min.js?v=1.27.32"></script>
+<script src="tcb-print-pdf.js?v=1.27.32"></script>
+<script src="tcb-swap-mgr.js?v=1.27.32"></script>
+<script src="tcb-push-mgr.js?v=1.27.32"></script>
+<script src="tcb-login.js?v=1.27.32"></script>
+<script src="tcb-pwa-install.js?v=1.27.32"></script>
+<script src="tcb-group-hold.js?v=1.27.32"></script>
+<script src="tcb-presummary.js?v=1.27.32"></script>
+<script src="tcb-p1-flow.js?v=1.27.32"></script>
 </body>
 </html>
