@@ -303,11 +303,37 @@ async function historyUpsert(env, body) {
   const activityDate = String(snap.date || "").trim();
   if (!activityDate) throw new Error("activity_date_required");
   const savedAt = String(snap.savedAt || new Date().toISOString());
+  const incomingConfirmed = !!snap.confirmedAt;
+
+  const existing = await env.DB.prepare(
+    "SELECT snap_json FROM history_events WHERE cohort = ? AND activity_date = ?"
+  )
+    .bind(cohort, activityDate)
+    .first();
+  if (existing) {
+    let oldSnap = {};
+    try {
+      oldSnap = JSON.parse(existing.snap_json || "{}") || {};
+    } catch {
+      oldSnap = {};
+    }
+    /* 実施確定済みの同日を、試行（confirmedAt なし）で潰さない */
+    if (oldSnap.confirmedAt && !incomingConfirmed) {
+      return { ok: true, preserved: true, history: await listHistory(env, cohort, 365) };
+    }
+  }
+
+  const toStore = Object.assign({}, snap);
+  if (incomingConfirmed) {
+    /* 活動の実施確定では入れ替え確定フラグを外す */
+    toStore.handoff = 0;
+  }
+
   await env.DB.prepare(
     "INSERT INTO history_events (cohort, activity_date, saved_at, snap_json) VALUES (?, ?, ?, ?) " +
       "ON CONFLICT(cohort, activity_date) DO UPDATE SET saved_at = excluded.saved_at, snap_json = excluded.snap_json"
   )
-    .bind(cohort, activityDate, savedAt, JSON.stringify(snap))
+    .bind(cohort, activityDate, savedAt, JSON.stringify(toStore))
     .run();
   return { ok: true, history: await listHistory(env, cohort, 365) };
 }
@@ -442,6 +468,7 @@ async function confirmCarryout(env, body) {
   snap.map = clone(map);
   snap.confirmedAt = confirmedAt;
   snap.savedAt = confirmedAt;
+  snap.handoff = 0;
   await env.DB.prepare(
     "INSERT INTO history_events (cohort, activity_date, saved_at, snap_json) VALUES (?, ?, ?, ?) " +
       "ON CONFLICT(cohort, activity_date) DO UPDATE SET saved_at = excluded.saved_at, snap_json = excluded.snap_json"

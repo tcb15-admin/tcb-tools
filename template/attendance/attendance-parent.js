@@ -297,6 +297,7 @@
     }
     syncParentMarkSlots();
     var pick=$('att-pick');
+    syncFormLock();
     if(pick&&pick.value){
       fillExisting(pick.value);
       applyPrefsToForm();
@@ -582,6 +583,18 @@
   function fillExisting(name){
     var prev=data.responses&&data.responses[name];
     if(!prev)return;
+    /* プログラム復元はロック中でも通す（ユーザー操作の click ガードとは分離） */
+    var panel=$('att-form-panel');
+    var wasLocked=!!(panel&&panel.classList.contains('att-form-locked'));
+    if(wasLocked)panel.classList.remove('att-form-locked');
+    try{
+      fillExistingBody(prev);
+    }finally{
+      if(wasLocked&&panel)panel.classList.add('att-form-locked');
+    }
+  }
+
+  function fillExistingBody(prev){
     if(prev.respondentRole){
       var allowed=respondentsForForm(trackInfo().form).map(function(r){return r.id;});
       if(allowed.indexOf(prev.respondentRole)>=0){
@@ -810,6 +823,7 @@
     var name=pick?pick.value:'';
     if(name){
       savePrefs({memberName:name});
+      syncFormLock();
       fillExisting(name);
       applyPrefsToForm();
     }
@@ -833,8 +847,15 @@
     syncParentMarkSlots();
     syncFormLock();
     var name=($('att-pick')&&$('att-pick').value)||'';
-    if(name)setStatus(name+' の回答を入力できます');
-    else setStatus('選手名を選んでください');
+    if(name){
+      fillExisting(name);
+      applyPrefsToForm();
+      syncFormLock();
+      if(data.responses&&data.responses[name])setStatus(name+' の回答を表示しています。内容を直して「訂正して送信」できます');
+      else setStatus(name+' の回答を入力できます');
+    }else{
+      setStatus('選手名を選んでください');
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function(){

@@ -3053,11 +3053,25 @@ function reconcileToolsTeamWithHolders(tools, map, teamByPerson){
   });
 }
 /* LS_PREV へ保存（ツールを閉じたあとも STEP1「前回」・再編集で使う） */
+function findHistorySnapForDate(activityDate){
+  var d=String(activityDate||'');
+  if(!d)return null;
+  var hist=getHistoryCache();
+  for(var i=0;i<hist.length;i++){
+    if(hist[i]&&hist[i].date===d)return hist[i];
+  }
+  return null;
+}
 function persistAllocationSnapshot(snap,opts){
   if(!snap||typeof snap.map!=='object')return;
   opts=opts||{};
   try{ _ls.set(LS_PREV,JSON.stringify(snap)); }catch(e){}
   if(!opts.appendHistory)return;
+  /* 実施確定済みの同日を試行で上書きしない（LS_PREV の試行保存は上で実施済み） */
+  if(!snap.confirmedAt&&!opts.forceHistoryOverwrite){
+    var existing=findHistorySnapForDate(snap.date);
+    if(existing&&existing.confirmedAt)return;
+  }
   try{
     var hist=[];
     var raw=_ls.get(LS_HIST);
@@ -3624,6 +3638,7 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
     snap.map=mapCopy;
     snap.confirmedAt=nowIso;
     snap.savedAt=nowIso;
+    snap.handoff=0;
     snap.tools=toolsCopy;
     snap.mode=R.mode;
     snap.pat=pat;
@@ -3641,6 +3656,7 @@ function applyConfirmedMapToHistory(activityDate, mapForCarryout){
       date:activityDate,
       savedAt:nowIso,
       confirmedAt:nowIso,
+      handoff:0,
       pat:pat, la:R.la||tnA, lb:R.lb||tnB,
       renshuSplit:(pat==='renshu'&&renshuSplit)?1:0,
       ryohoSameVenue:(pat==='ryoho'&&ryohoSameVenue)?1:0,
