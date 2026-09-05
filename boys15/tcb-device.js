@@ -180,9 +180,9 @@
     return '本文をコピーしました。LINEに貼り付けて送信してください。';
   }
 
+  /** 「PDFを保存」は端末を問わず Blob ダウンロード（Mac の print() ダイアログを避ける） */
   function preferPdfBlobSave() {
-    if (isMobile()) return true;
-    return false;
+    return true;
   }
 
   function pwaGuideKind() {
