@@ -1,7 +1,7 @@
 /* 保護者確認画面 メインスクリプト
    - 割振り閲覧（当日／前回）＋道具写真の表示
    - 氏名選択で「自分のみ表示」／「全員を表示」トグル
-   - 持ち帰り担当ナビ（前回保有者の明示／直接引き取りではない旨）
+   - 持ち帰り担当ナビ（前回保有者の明示）
    - 各道具の交代報告（申請）＋「担当できない（後任未定）」連絡
    - 受付状況（反映／見送り＋却下理由）の表示と変化ハイライト
    - オフライン時は前回取得分を表示（最終更新時刻つき）
@@ -176,7 +176,7 @@
     return map;
   }
 
-  /* ========== 持ち帰り担当ナビ（前回保有は明示。会場集約後の持ち帰りであり直接引き取りではない） ========== */
+  /* ========== 持ち帰り担当ナビ（前回保有は参考表示） ========== */
   function renderHandoffNav() {
     var me = state.selectedName;
     if (!me) return '';
@@ -200,8 +200,7 @@
     if (!receive.length && !give.length && !keep.length) return '';
 
     var html = '<div class="pvsw-handoff">'
-      + '<div class="pvsw-handoff-title">&#128230; あなたの持ち帰り担当（' + esc(today.label || '当日') + '）</div>'
-      + '<p class="pvsw-handoff-lead">活動後、会場に集まった道具を持ち帰る担当です。前回の方から<strong>直接引き取る必要はありません</strong>（前回保有者は参考表示）。</p>';
+      + '<div class="pvsw-handoff-title">&#128230; あなたの持ち帰り担当（' + esc(today.label || '当日') + '）</div>';
     if (receive.length) {
       html += '<div class="pvsw-handoff-group"><span class="pvsw-handoff-tag pvsw-ho-in">今日持ち帰り</span><ul class="pvsw-handoff-list">';
       receive.forEach(function (r) {
@@ -218,7 +217,7 @@
       give.forEach(function (g) {
         html += '<li>「' + esc(g.tool) + '」'
           + (g.to
-            ? '→ 今日の持ち帰りは <strong>' + esc(g.to) + '</strong> さん<span class="pvsw-handoff-note">（直接渡す必要なし）</span>'
+            ? '→ 今日の持ち帰りは <strong>' + esc(g.to) + '</strong> さん'
             : '<span class="pvsw-handoff-note">→ 次の持ち帰り担当は未定（案内をお待ちください）</span>')
           + '</li>';
       });
