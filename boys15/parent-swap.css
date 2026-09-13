@@ -110,9 +110,10 @@
 .pvsw-reject{margin-top:5px;font-size:13px;color:var(--acc);line-height:1.5;}
 .pvsw-status-empty{font-size:13.5px;color:var(--txt2);}
 
-/* 受け渡しナビ（誰から受け取る／誰へ渡す） */
+/* 持ち帰り担当ナビ（前回保有の明示／直接引き取りではない） */
 .pvsw-handoff{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:16px;margin-bottom:12px;border:2px solid var(--ta-bd);}
-.pvsw-handoff-title{font-weight:700;font-size:15px;color:var(--navy);margin-bottom:12px;}
+.pvsw-handoff-title{font-weight:700;font-size:15px;color:var(--navy);margin-bottom:6px;}
+.pvsw-handoff-lead{margin:0 0 12px;font-size:13px;line-height:1.55;color:var(--txt2);}
 .pvsw-handoff-group{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
 .pvsw-handoff-group:last-child{margin-bottom:0;}
 .pvsw-handoff-tag{flex-shrink:0;font-size:12px;font-weight:700;padding:5px 12px;border-radius:var(--r-pill);color:#fff;margin-top:2px;}
