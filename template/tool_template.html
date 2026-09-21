@@ -8004,11 +8004,10 @@ function buildPrintHTML(opts){
     'html.tcb-pdf-export,html.tcb-pdf-export body{height:auto!important;max-height:none!important;overflow:visible!important;}',
     'html.tcb-pdf-export .page{height:auto!important;max-height:none!important;overflow:visible!important;}',
     'html.tcb-pdf-export .tcb-print-team-stack,html.tcb-pdf-export .tcb-print-team-section{flex:0 0 auto!important;overflow:visible!important;}',
-    /* html2canvas は CSS grid+fr が崩れやすいので flex wrap + 固定幅％にする */
-    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{display:flex!important;flex-wrap:wrap!important;align-content:flex-start!important;gap:5px!important;overflow:visible!important;max-height:none!important;}',
-    'html.tcb-pdf-export .tcb-print-cols-3.tcb-print-team-cards>.card,html.tcb-pdf-export .tcb-print-cols-3.cards>.card{width:calc(33.333% - 4px)!important;box-sizing:border-box!important;flex:0 0 calc(33.333% - 4px)!important;overflow:visible!important;height:auto!important;max-height:none!important;}',
-    'html.tcb-pdf-export .tcb-print-cols-4.tcb-print-team-cards>.card,html.tcb-pdf-export .tcb-print-cols-4.cards>.card{width:calc(25% - 4px)!important;box-sizing:border-box!important;flex:0 0 calc(25% - 4px)!important;overflow:visible!important;height:auto!important;max-height:none!important;}',
-    'html.tcb-pdf-export .card-body,html.tcb-pdf-export .tool-list{overflow:visible!important;max-height:none!important;height:auto!important;min-height:0!important;}',
+    /* PDFキャプチャ時（tcb-print-pdf.js がカード位置を px 絶対配置に固定する）。
+       ここでは overflow 解除のみ。レイアウトを !important で強制しない（inline px 指定を優先させる） */
+    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{overflow:visible!important;max-height:none!important;}',
+    'html.tcb-pdf-export .card,html.tcb-pdf-export .card-body,html.tcb-pdf-export .tool-list{overflow:visible!important;max-height:none!important;}',
     'html.tcb-pdf-export .tool-name{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}'
   ].join('');
   /* mmdd形式のファイル名生成（前回ベース再割当時は当日日付・ローカル日付） */

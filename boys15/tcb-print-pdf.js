@@ -174,38 +174,45 @@
       el.style.maxHeight = 'none';
       el.style.height = 'auto';
     });
-    /* html2canvas 対策：flex wrap + 固定幅％（grid+fr は欠けることがある） */
-    doc.querySelectorAll('.tcb-print-team-cards,.cards').forEach(function (el) {
-      var cols = el.classList.contains('tcb-print-cols-3') ? 3 : 4;
-      var gap = 5;
-      var cardW = 'calc(' + (100 / cols).toFixed(4) + '% - ' + (gap * (cols - 1) / cols).toFixed(2) + 'px)';
-      el.style.display = 'flex';
-      el.style.flexWrap = 'wrap';
-      el.style.alignContent = 'flex-start';
-      el.style.gap = gap + 'px';
-      el.style.gridTemplateColumns = '';
-      Array.prototype.forEach.call(el.children, function (card) {
-        if (!card || !card.classList || !card.classList.contains('card')) return;
-        card.style.boxSizing = 'border-box';
-        card.style.width = cardW;
-        card.style.flex = '0 0 ' + cardW;
-        card.style.maxWidth = cardW;
-        card.style.overflow = 'visible';
-        card.style.height = 'auto';
-        card.style.minHeight = '0';
-        card.style.maxHeight = 'none';
-      });
-    });
-    /* カード内 overflow:hidden は説明文を切るのでキャプチャ時は解除 */
-    doc.querySelectorAll('.card-body,.tool-list,.tool-item,.tool-desc,.tool-name').forEach(function (el) {
+    /* カード内 overflow:hidden は説明文を切るのでキャプチャ時は解除（位置計測の前に行う） */
+    doc.querySelectorAll('.card,.card-body,.tool-list,.tool-item,.tool-desc,.tool-name').forEach(function (el) {
       el.style.overflow = 'visible';
       el.style.maxHeight = 'none';
-      el.style.height = 'auto';
-      el.style.minHeight = '0';
       if (el.classList.contains('tool-name')) {
         el.style.whiteSpace = 'normal';
         el.style.textOverflow = 'clip';
       }
+    });
+    /* html2canvas は grid の fr や flex の calc() 幅を正しく描画できないため、
+       実ブラウザ（非表示iframe）のレイアウト結果を px の絶対配置に固定してから渡す */
+    doc.querySelectorAll('.tcb-print-team-cards,.cards').forEach(function (el) {
+      if (el.getAttribute('data-tcb-abs') === '1') return;
+      el.style.position = 'relative';
+      /* リフローさせて確定座標を取得 */
+      void el.offsetHeight;
+      var cards = Array.prototype.filter.call(el.children, function (c) {
+        return c && c.classList && c.classList.contains('card');
+      });
+      var rects = cards.map(function (c) {
+        return { left: c.offsetLeft, top: c.offsetTop, width: c.offsetWidth, height: c.offsetHeight };
+      });
+      var totalH = el.scrollHeight;
+      el.style.display = 'block';
+      el.style.height = totalH + 'px';
+      el.style.minHeight = totalH + 'px';
+      el.style.gridTemplateColumns = 'none';
+      el.style.gap = '0';
+      cards.forEach(function (c, i) {
+        var r = rects[i];
+        c.style.position = 'absolute';
+        c.style.boxSizing = 'border-box';
+        c.style.left = r.left + 'px';
+        c.style.top = r.top + 'px';
+        c.style.width = r.width + 'px';
+        c.style.minHeight = r.height + 'px';
+        c.style.margin = '0';
+      });
+      el.setAttribute('data-tcb-abs', '1');
     });
   }
 
