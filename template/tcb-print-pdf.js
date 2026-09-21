@@ -217,7 +217,8 @@
   }
 
   /**
-   * キャプチャ結果を A4 1 ページに収めて Blob 化（印刷の @page margin 6mm に合わせる）
+   * キャプチャ結果を A4 に載せる。1枚に収まればそのまま、
+   * 高さが余る場合は幅を合わせて縦に分割（見切れ防止）。
    */
   function assignPortraitCanvasToBlob(canvas, usedScale) {
     var JsPDF = getJsPDF();
@@ -238,12 +239,48 @@
     var availH = A4_H_MM - margin * 2;
     var wMm = canvas.width / usedScale / PX_PER_MM;
     var hMm = canvas.height / usedScale / PX_PER_MM;
-    var fit = Math.min(availW / wMm, availH / hMm);
-    var drawW = wMm * fit;
-    var drawH = hMm * fit;
-    var x = margin + (availW - drawW) / 2;
-    var y = margin;
-    pdf.addImage(dataUrl, 'JPEG', x, y, drawW, drawH);
+    if (!(wMm > 0) || !(hMm > 0)) {
+      return Promise.reject(new Error('キャプチャサイズが不正です'));
+    }
+
+    /* 1ページに収まるなら従来どおり縮小して1枚 */
+    if (hMm / wMm <= availH / availW * 1.01) {
+      var fit = Math.min(availW / wMm, availH / hMm);
+      var drawW = wMm * fit;
+      var drawH = hMm * fit;
+      var x = margin + (availW - drawW) / 2;
+      pdf.addImage(dataUrl, 'JPEG', x, margin, drawW, drawH);
+      return Promise.resolve(pdf.output('blob'));
+    }
+
+    /* 幅をページ幅に合わせ、縦は複数ページへスライス */
+    var pageScale = availW / wMm;
+    var fullHmm = hMm * pageScale;
+    var pxPerContentMm = canvas.height / fullHmm;
+    var pagePx = Math.max(1, Math.floor(availH * pxPerContentMm));
+    var pageCount = Math.max(1, Math.ceil(canvas.height / pagePx - 1e-6));
+    var sliceCanvas = document.createElement('canvas');
+    sliceCanvas.width = canvas.width;
+    var ctx = sliceCanvas.getContext('2d');
+    if (!ctx) {
+      return Promise.reject(new Error('キャンバスを作成できませんでした'));
+    }
+    var i;
+    for (i = 0; i < pageCount; i++) {
+      var sy = i * pagePx;
+      var sh = Math.max(1, Math.min(pagePx, canvas.height - sy));
+      sliceCanvas.height = sh;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, sliceCanvas.width, sh);
+      ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
+      var sliceUrl = canvasToJpegDataUrl(sliceCanvas);
+      if (!sliceUrl) {
+        return Promise.reject(new Error('ページ分割画像の変換に失敗しました'));
+      }
+      if (i > 0) pdf.addPage();
+      var sliceHmm = sh / pxPerContentMm;
+      pdf.addImage(sliceUrl, 'JPEG', margin, margin, availW, Math.min(sliceHmm, availH));
+    }
     return Promise.resolve(pdf.output('blob'));
   }
 
