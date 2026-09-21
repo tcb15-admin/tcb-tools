@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.36">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.37">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1165,14 +1165,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.36">
-<link rel="stylesheet" href="gear.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.36">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.36">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.37">
+<link rel="stylesheet" href="gear.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.37">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.37">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1744,14 +1744,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.36"></script>
-<script src="tcb-sync-api.js?v=1.27.36"></script>
-<script src="tcb-feedback.js?v=1.27.36"></script>
-<script src="tcb-swap-list.js?v=1.27.36"></script>
-<script src="tcb-assign-board.js?v=1.27.36"></script>
-<script src="tcb-handoff-plan.js?v=1.27.36"></script>
-<script src="tcb-team-rules.js?v=1.27.36"></script>
-<script src="tcb-tool-images.js?v=1.27.36"></script>
+<script src="tcb-device.js?v=1.27.37"></script>
+<script src="tcb-sync-api.js?v=1.27.37"></script>
+<script src="tcb-feedback.js?v=1.27.37"></script>
+<script src="tcb-swap-list.js?v=1.27.37"></script>
+<script src="tcb-assign-board.js?v=1.27.37"></script>
+<script src="tcb-handoff-plan.js?v=1.27.37"></script>
+<script src="tcb-team-rules.js?v=1.27.37"></script>
+<script src="tcb-tool-images.js?v=1.27.37"></script>
 <script>
 
 
@@ -7617,10 +7617,11 @@ function buildPrintHTML(opts){
     });
   }
   var printToolsList=hideTeam?(R.allTools||R.tools):(R.tools||[]);
-  if(R.mode==='team'&&!hideTeam){scanMaxTools(R.tA);scanMaxTools(R.tB);}
+  /* 2グループPDFはメンバー別と同じく「人の班」でまとめる（道具の班で分けると同一人物が両方に出る） */
+  if(R.mode==='team'&&!hideTeam){scanMaxTools((R.tA||[]).concat(R.tB||[]));}
   else scanMaxTools(printToolsList);
-  var pcA=(R.mode==='team'&&!hideTeam)?printPersonCount(R.tA):0;
-  var pcB=(R.mode==='team'&&!hideTeam)?printPersonCount(R.tB):0;
+  var pcA=(R.mode==='team'&&!hideTeam)?(R.mA||[]).length:0;
+  var pcB=(R.mode==='team'&&!hideTeam)?(R.mB||[]).length:0;
   var pcSingle=(R.mode!=='team'||hideTeam)?printPersonCount(printToolsList):0;
   var maxPersonCount=Math.max(pcA,pcB,pcSingle);
   var maxGridRows4=Math.ceil(maxPersonCount/4)||1;
@@ -7641,6 +7642,36 @@ function buildPrintHTML(opts){
   var headerMb=12;
   if(densityLevel>=3)headerMb=8;
   else if(densityLevel>=2)headerMb=10;
+  function renderPersonCard(asgn, toolObjs, teamCode){
+    var tm=teamCode||'';
+    var isMulti=toolObjs.length>=2;
+    var multiStyle=isMulti?' style="border-left-color:#e65100;background:#fff8e1;"':'';
+    var tc=Math.max(toolObjs.length,1);
+    var toolListHtml;
+    if(!toolObjs.length){
+      toolListHtml='<div class="tool-item"><span class="tool-name" style="font-size:12px;color:#78909c;">（なし）</span></div>';
+    }else{
+      toolListHtml=toolObjs.map(function(t){
+        var d=DESCS[t.name];
+        var nl=(t.name||'').length;
+        var tfs=(tc<=1?14:tc<=2?13:tc<=3?12:tc<=4?11:10)-densOff;
+        if(nl>8)tfs-=1;
+        if(nl>12)tfs-=1;
+        if(tfs<8)tfs=8;
+        var dfs=(tc<=1?10:tc<=2?9:tc<=3?8:7)-densOff;
+        if(dfs<6)dfs=6;
+        var desc='';
+        if(d&&d.text)desc='<div class="tool-desc" style="font-size:'+dfs+'px">'+esc(d.text)+'</div>';
+        return '<div class="tool-item"><span class="tool-name" style="font-size:'+tfs+'px">'+esc(t.name)+'</span>'+desc+'</div>';
+      }).join('');
+    }
+    var cardCls='card'+(tm?' pr'+tm:'');
+    return '<div class="'+cardCls+'"'+multiStyle+'>'
+      +'<div class="card-body">'
+      +'<div class="person-name">'+esc(asgn)+'</div>'
+      +'<div class="tool-list">'+toolListHtml+'</div>'
+      +'</div></div>';
+  }
   function cardRows(tools,neutralTeam){
     /* 担当者ごとに道具をグループ化 */
     var personTools={};
@@ -7659,39 +7690,60 @@ function buildPrintHTML(opts){
     var h='';
     personList.forEach(function(asgn){
       var grp=personTools[asgn];
-      var tm=grp.team;
-      var isMulti=grp.tools.length>=2;
-      var multiStyle=isMulti?' style="border-left-color:#e65100;background:#fff8e1;"':'';
-      var tc=grp.tools.length;
-      var toolListHtml=grp.tools.map(function(t){
-        var d=DESCS[t.name];
-        var nl=(t.name||'').length;
-        var tfs=(tc<=1?14:tc<=2?13:tc<=3?12:tc<=4?11:10)-densOff;
-        if(nl>8)tfs-=1;
-        if(nl>12)tfs-=1;
-        if(tfs<8)tfs=8;
-        var dfs=(tc<=1?10:tc<=2?9:tc<=3?8:7)-densOff;
-        if(dfs<6)dfs=6;
-        var desc='';
-        if(d&&d.text)desc='<div class="tool-desc" style="font-size:'+dfs+'px">'+esc(d.text)+'</div>';
-        return '<div class="tool-item"><span class="tool-name" style="font-size:'+tfs+'px">'+esc(t.name)+'</span>'+desc+'</div>';
-      }).join('');
-      var cardCls='card'+(tm?' pr'+tm:'');
-      h+='<div class="'+cardCls+'"'+multiStyle+'>'
-        +'<div class="card-body">'
-        +'<div class="person-name">'+esc(asgn)+'</div>'
-        +'<div class="tool-list">'+toolListHtml+'</div>'
-        +'</div></div>';
+      h+=renderPersonCard(asgn, grp.tools, grp.team);
     });
+    return h;
+  }
+  function toolObjByName(name){
+    var all=(R.allTools||[]).concat(R.tools||[]);
+    for(var i=0;i<all.length;i++){if(all[i]&&all[i].name===name)return all[i];}
+    return {name:name};
+  }
+  /* メンバー別タブと同じ並び：人の所属班に、その人の持ち帰りをすべて載せる */
+  function memberTeamCards(members, teamCode){
+    var tbm=getTBM();
+    var list=(members||[]).slice().sort(function(a,b){
+      var numA=parseInt(String(a&&a.name||'').split('：')[0],10);
+      var numB=parseInt(String(b&&b.name||'').split('：')[0],10);
+      if(isNaN(numA))numA=9999; if(isNaN(numB))numB=9999;
+      return numA-numB;
+    });
+    var h='';
+    list.forEach(function(m){
+      if(!m||!m.name)return;
+      var names=tbm[m.name]||[];
+      h+=renderPersonCard(m.name, names.map(toolObjByName), teamCode);
+    });
+    var unassigned=(R.allTools||[]).filter(function(t){
+      return t&&t.name&&!R.map[t.name]&&((t.team==='B'?'B':'A')===teamCode);
+    });
+    if(unassigned.length)h+=renderPersonCard('未割当', unassigned, teamCode);
     return h;
   }
   var bodyHTML='';
   if(R.mode==='team'&&!hideTeam){
+    var inTeam={};
+    (R.mA||[]).forEach(function(m){if(m&&m.name)inTeam[m.name]=1;});
+    (R.mB||[]).forEach(function(m){if(m&&m.name)inTeam[m.name]=1;});
+    var tbmAll=getTBM();
+    var extraNames=Object.keys(tbmAll).filter(function(n){return !inTeam[n];}).sort(function(a,b){
+      var numA=parseInt(String(a).split('：')[0],10), numB=parseInt(String(b).split('：')[0],10);
+      if(isNaN(numA))numA=9999; if(isNaN(numB))numB=9999;
+      return numA-numB;
+    });
+    var extraHtml='';
+    if(extraNames.length){
+      extraHtml='<div class="tcb-print-team-section">'
+        +'<div class="gh">その他</div><div class="tcb-print-team-cards'+gridColsCls+'">'
+        +extraNames.map(function(n){return renderPersonCard(n,(tbmAll[n]||[]).map(toolObjByName),'');}).join('')
+        +'</div></div>';
+    }
     bodyHTML='<div class="tcb-print-team-stack">'
       +'<div class="tcb-print-team-section">'
-      +'<div class="gh ghA">'+esc(la)+'グループ</div><div class="tcb-print-team-cards'+gridColsCls+'">'+cardRows(R.tA,false)+'</div></div>'
+      +'<div class="gh ghA">'+esc(la)+'グループ（'+(R.mA||[]).length+'名）</div><div class="tcb-print-team-cards'+gridColsCls+'">'+memberTeamCards(R.mA,'A')+'</div></div>'
       +'<div class="tcb-print-team-section">'
-      +'<div class="gh ghB">'+esc(lb)+'グループ</div><div class="tcb-print-team-cards'+gridColsCls+'">'+cardRows(R.tB,false)+'</div></div>'
+      +'<div class="gh ghB">'+esc(lb)+'グループ（'+(R.mB||[]).length+'名）</div><div class="tcb-print-team-cards'+gridColsCls+'">'+memberTeamCards(R.mB,'B')+'</div></div>'
+      +extraHtml
       +'</div>';
   }else{
     var printTools=hideTeam?R.allTools:R.tools;
@@ -9424,7 +9476,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.36';
+  if(vEl)vEl.textContent='v1.27.37';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -10018,16 +10070,16 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.36"></script>
-<script src="html2canvas.min.js?v=1.27.36"></script>
-<script src="html2pdf.min.js?v=1.27.36"></script>
-<script src="tcb-print-pdf.js?v=1.27.36"></script>
-<script src="tcb-swap-mgr.js?v=1.27.36"></script>
-<script src="tcb-push-mgr.js?v=1.27.36"></script>
-<script src="tcb-login.js?v=1.27.36"></script>
-<script src="tcb-pwa-install.js?v=1.27.36"></script>
-<script src="tcb-group-hold.js?v=1.27.36"></script>
-<script src="tcb-presummary.js?v=1.27.36"></script>
-<script src="tcb-p1-flow.js?v=1.27.36"></script>
+<script src="jspdf.umd.min.js?v=1.27.37"></script>
+<script src="html2canvas.min.js?v=1.27.37"></script>
+<script src="html2pdf.min.js?v=1.27.37"></script>
+<script src="tcb-print-pdf.js?v=1.27.37"></script>
+<script src="tcb-swap-mgr.js?v=1.27.37"></script>
+<script src="tcb-push-mgr.js?v=1.27.37"></script>
+<script src="tcb-login.js?v=1.27.37"></script>
+<script src="tcb-pwa-install.js?v=1.27.37"></script>
+<script src="tcb-group-hold.js?v=1.27.37"></script>
+<script src="tcb-presummary.js?v=1.27.37"></script>
+<script src="tcb-p1-flow.js?v=1.27.37"></script>
 </body>
 </html>
