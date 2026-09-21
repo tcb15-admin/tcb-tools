@@ -7891,8 +7891,8 @@ function buildPrintHTML(opts){
     '.tcb-print-team-stack{display:flex;flex:0 0 auto;flex-direction:column;min-height:0;gap:var(--tcb-print-stack-gap);width:100%;overflow:visible;justify-content:flex-start;}',
     '.tcb-print-team-section{display:flex;flex:0 0 auto;flex-direction:column;min-height:0;overflow:visible;width:100%;}',
     '.tcb-print-team-cards,.cards{flex:0 0 auto;display:grid;gap:6px;grid-auto-rows:auto;align-content:start;min-height:0;overflow:visible;}',
-    '.tcb-print-cols-3.tcb-print-team-cards,.tcb-print-cols-3.cards{grid-template-columns:repeat(3,1fr);}',
-    '.tcb-print-cols-4.tcb-print-team-cards,.tcb-print-cols-4.cards{grid-template-columns:repeat(4,1fr);}',
+    '.tcb-print-cols-3.tcb-print-team-cards,.tcb-print-cols-3.cards{grid-template-columns:repeat(3,minmax(0,1fr));}',
+    '.tcb-print-cols-4.tcb-print-team-cards,.tcb-print-cols-4.cards{grid-template-columns:repeat(4,minmax(0,1fr));}',
     '.card{background:#fff;border-radius:5px;overflow:hidden;border:1px solid #e0e0e0;border-left:3px solid #cfd8dc;display:flex;flex-direction:column;min-height:0;}',
     '.card-body{padding:7px 9px;flex:1;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;}',
     '.prA{border-left-color:'+_pl+';}.prB{border-left-color:#6a1b9a;}',
@@ -7909,7 +7909,7 @@ function buildPrintHTML(opts){
     '.tcb-print-density-3 .header{padding:8px 12px;}.tcb-print-density-3 .header h1{font-size:12px;}.tcb-print-density-3 .header-logo{width:30px;height:30px;}',
     '.tcb-print-density-3 .header p{font-size:9px;}.tcb-print-density-3 .gh{font-size:10px;padding:3px 10px;margin:4px 0 4px;}',
     '.tcb-print-density-3 .tcb-print-team-cards,.tcb-print-density-3 .cards{gap:4px;}',
-    '.tcb-print-density-3 .person-name{font-size:12px;margin-bottom:4px;padding-bottom:2px;}.tcb-print-density-3 .card-body{padding:5px 7px;}.tcb-print-density-3 .tool-item+.tool-item{margin-top:4px;padding-top:3px;border-top-style:dotted;}.tcb-print-density-3 p.pex{font-size:8px;margin-top:4px;}',
+    '.tcb-print-density-3 .person-name{font-size:12px;margin-bottom:4px;padding-bottom:2px;}.tcb-print-density-3 .card-body{padding:5px 7px;}.tcb-print-density-3 .tool-item+.tool-item{margin-top:3px;padding-top:2px;border-top-style:dotted;}.tcb-print-density-3 p.pex{font-size:8px;margin-top:4px;}',
     '.tcb-print-change-page{padding:8mm 6mm 6mm;box-sizing:border-box;}',
     '.tcb-print-change-h{font-size:14px;font-weight:900;color:#4a148c;margin:0 0 8px;padding-bottom:6px;border-bottom:2px solid #ce93d8;}',
     '.tcb-print-change-body{font-size:11px;line-height:1.65;color:#333;white-space:pre-wrap;word-break:break-word;}',
@@ -7917,8 +7917,10 @@ function buildPrintHTML(opts){
     '@media print{.header,.ghA,.ghB,.card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}',
     'html.tcb-pdf-export,html.tcb-pdf-export body{height:auto!important;max-height:none!important;overflow:visible!important;}',
     'html.tcb-pdf-export .page{height:auto!important;max-height:none!important;overflow:visible!important;}',
-    'html.tcb-pdf-export .tcb-print-team-stack,html.tcb-pdf-export .tcb-print-team-section{flex:0 0 auto!important;}',
-    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{overflow:visible!important;max-height:none!important;}'
+    'html.tcb-pdf-export .tcb-print-team-stack,html.tcb-pdf-export .tcb-print-team-section{flex:0 0 auto!important;overflow:visible!important;}',
+    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{overflow:visible!important;max-height:none!important;}',
+    'html.tcb-pdf-export .tcb-print-cols-3.tcb-print-team-cards,html.tcb-pdf-export .tcb-print-cols-3.cards{grid-template-columns:repeat(3,33.333%)!important;}',
+    'html.tcb-pdf-export .tcb-print-cols-4.tcb-print-team-cards,html.tcb-pdf-export .tcb-print-cols-4.cards{grid-template-columns:repeat(4,25%)!important;}'
   ].join('');
   /* mmdd形式のファイル名生成（前回ベース再割当時は当日日付・ローカル日付） */
   var fnDate='';

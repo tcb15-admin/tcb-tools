@@ -148,7 +148,7 @@
 
   /**
    * 担当表（縦A4）の共有PDF用。
-   * html2canvas は grid の fr 単位を正しく描画できないため、CSS クラスで auto レイアウトに切替える。
+   * html2canvas は grid の fr 単位を正しく描画できないため、% 列に切替える。
    */
   function prepareAssignPdfExport(doc) {
     if (!doc || !doc.documentElement) return;
@@ -172,7 +172,40 @@
     doc.querySelectorAll('.tcb-print-team-stack,.tcb-print-team-section,.tcb-print-team-cards,.cards').forEach(function (el) {
       el.style.overflow = 'visible';
       el.style.maxHeight = 'none';
+      el.style.height = 'auto';
     });
+    /* fr → %（html2canvas 対策）。4列優先 */
+    doc.querySelectorAll('.tcb-print-team-cards,.cards').forEach(function (el) {
+      var cols = el.classList.contains('tcb-print-cols-3') ? 3 : 4;
+      el.style.display = 'grid';
+      el.style.gridTemplateColumns = 'repeat(' + cols + ', ' + (100 / cols).toFixed(4) + '%)';
+      el.style.gridAutoRows = 'auto';
+      el.style.alignContent = 'start';
+    });
+  }
+
+  function expandFrameForCapture(iframe, doc, capH) {
+    if (!iframe) return null;
+    var prev = {
+      height: iframe.style.height,
+      minHeight: iframe.style.minHeight,
+      maxHeight: iframe.style.maxHeight,
+      overflow: iframe.style.overflow
+    };
+    var h = Math.max(capH || 0, (doc && doc.documentElement && doc.documentElement.scrollHeight) || 0, 800);
+    iframe.style.height = h + 'px';
+    iframe.style.minHeight = h + 'px';
+    iframe.style.maxHeight = 'none';
+    iframe.style.overflow = 'visible';
+    return prev;
+  }
+
+  function restoreFrameAfterCapture(iframe, prev) {
+    if (!iframe || !prev) return;
+    iframe.style.height = prev.height || '';
+    iframe.style.minHeight = prev.minHeight || '';
+    iframe.style.maxHeight = prev.maxHeight || '';
+    iframe.style.overflow = prev.overflow || '';
   }
 
   function waitForExportReady(doc) {
@@ -200,13 +233,22 @@
 
   function measureCaptureSize(doc, pageEl) {
     prepareAssignPdfExport(doc);
+    /* レイアウト再計算してから高さ計測 */
+    void doc.body.offsetHeight;
     var capEl = pageEl || doc.querySelector('.page') || doc.body;
-    var capW = capEl.scrollWidth || capEl.offsetWidth || doc.documentElement.scrollWidth;
-    var capH = capEl.scrollHeight || capEl.offsetHeight || doc.documentElement.scrollHeight;
-    if (!capW || !capH) {
-      capW = Math.round(A4_W_MM * PX_PER_MM);
-      capH = capW;
-    }
+    var capW = Math.max(
+      capEl.scrollWidth || 0,
+      capEl.offsetWidth || 0,
+      doc.documentElement.scrollWidth || 0,
+      Math.round(A4_W_MM * PX_PER_MM)
+    );
+    var capH = Math.max(
+      capEl.scrollHeight || 0,
+      capEl.offsetHeight || 0,
+      doc.documentElement.scrollHeight || 0,
+      doc.body ? doc.body.scrollHeight : 0
+    );
+    if (!capH) capH = capW;
     return { capEl: capEl, capW: capW, capH: capH };
   }
 
@@ -264,7 +306,17 @@
       var capEl = measured.capEl;
       var capW = measured.capW;
       var capH = measured.capH;
-      if (opts.iframe) syncHiddenIframeSize(opts.iframe, doc, capW, capH);
+      var framePrev = null;
+      if (opts.iframe) {
+        framePrev = expandFrameForCapture(opts.iframe, doc, capH);
+        syncHiddenIframeSize(opts.iframe, doc, capW, capH);
+        /* iframe 拡張後にもう一度計測 */
+        measured = measureCaptureSize(doc, pageEl);
+        capEl = measured.capEl;
+        capW = measured.capW;
+        capH = measured.capH;
+        syncHiddenIframeSize(opts.iframe, doc, capW, capH);
+      }
       var scale = computeSafeCanvasScale(capW, capH, opts.scale || CANVAS_SCALE);
       return html2canvasFn(capEl, {
         scale: scale,
@@ -279,7 +331,11 @@
         windowHeight: capH,
         backgroundColor: '#ffffff'
       }).then(function (canvas) {
+        restoreFrameAfterCapture(opts.iframe, framePrev);
         return assignPortraitCanvasToBlob(canvas, scale);
+      }).catch(function (err) {
+        restoreFrameAfterCapture(opts.iframe, framePrev);
+        throw err;
       });
     });
   }
@@ -418,7 +474,7 @@
     }
     var doc = printFrame.contentDocument;
     var pageEl = doc.querySelector('.page') || doc.body;
-    return captureAssignPortraitBlob(doc, pageEl);
+    return captureAssignPortraitBlob(doc, pageEl, { iframe: printFrame });
   }
 
   /** 担当表（縦A4） */
