@@ -7725,7 +7725,7 @@ function buildPrintHTML(opts){
   }
   if(R.mode==='team'&&!hideTeam){scanMaxTools((R.tA||[]).concat(R.tB||[]));}
   else scanMaxTools(printToolsList);
-  /* A4 1枚前提：担当ありの人だけ数える（「なし」はPDFに出さない＝以前の密度に近い） */
+  /* A4 1枚・4列・道具説明あり（9/19相当）。班分けは人の所属（画面のメンバー別と同じ） */
   var pcA=(R.mode==='team'&&!hideTeam)?countHolders(R.mA):0;
   var pcB=(R.mode==='team'&&!hideTeam)?countHolders(R.mB):0;
   var pcSingle=(R.mode!=='team'||hideTeam)?printPersonCount(printToolsList):0;
@@ -7734,23 +7734,21 @@ function buildPrintHTML(opts){
   var totalTeamPc=(R.mode==='team'&&!hideTeam)?(pcA+pcB):pcSingle;
   var densityLevel=0;
   if(maxGridRows4>=6||maxToolsPerPerson>=6||totalTeamPc>28)densityLevel=3;
-  else if(maxGridRows4>=4||maxToolsPerPerson>=4||totalTeamPc>16)densityLevel=2;
-  else if(maxGridRows4>=3||maxToolsPerPerson>=3||totalTeamPc>10)densityLevel=1;
-  /* 班またぎ修正後はカードが増えやすいので、2グループ時は説明を出さず高密度で1枚に寄せる */
-  var showToolDesc=!(R.mode==='team'&&!hideTeam);
-  if(R.mode==='team'&&!hideTeam)densityLevel=Math.max(densityLevel, totalTeamPc>14?3:2);
+  else if(maxGridRows4>=4||maxToolsPerPerson>=4||totalTeamPc>20)densityLevel=2;
+  else if(maxGridRows4>=3||maxToolsPerPerson>=3||totalTeamPc>12)densityLevel=1;
+  var showToolDesc=true;
   var densOff=densityLevel>=3?2:(densityLevel>=2?1:0);
-  var printColCount=(densityLevel>=1||maxPersonCount>12||(R.mode==='team'&&!hideTeam))?4:3;
+  var printColCount=(R.mode==='team'&&!hideTeam)?4:((densityLevel>=1||maxPersonCount>12)?4:3);
   var gridColsCls=' tcb-print-cols-'+printColCount;
   var rowsA=(R.mode==='team'&&!hideTeam)?(Math.ceil(pcA/printColCount)||0):0;
   var rowsB=(R.mode==='team'&&!hideTeam)?(Math.ceil(pcB/printColCount)||0):0;
   var stackGap=14;
-  if(densityLevel>=3)stackGap=6;
-  else if(densityLevel>=2)stackGap=9;
+  if(densityLevel>=3)stackGap=8;
+  else if(densityLevel>=2)stackGap=10;
   else if(densityLevel>=1)stackGap=12;
   var headerMb=12;
-  if(densityLevel>=3)headerMb=6;
-  else if(densityLevel>=2)headerMb=8;
+  if(densityLevel>=3)headerMb=8;
+  else if(densityLevel>=2)headerMb=10;
   function renderPersonCard(asgn, toolObjs, teamCode){
     var tm=teamCode||'';
     var isMulti=toolObjs.length>=2;
@@ -7918,9 +7916,12 @@ function buildPrintHTML(opts){
     'html.tcb-pdf-export,html.tcb-pdf-export body{height:auto!important;max-height:none!important;overflow:visible!important;}',
     'html.tcb-pdf-export .page{height:auto!important;max-height:none!important;overflow:visible!important;}',
     'html.tcb-pdf-export .tcb-print-team-stack,html.tcb-pdf-export .tcb-print-team-section{flex:0 0 auto!important;overflow:visible!important;}',
-    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{overflow:visible!important;max-height:none!important;}',
-    'html.tcb-pdf-export .tcb-print-cols-3.tcb-print-team-cards,html.tcb-pdf-export .tcb-print-cols-3.cards{grid-template-columns:repeat(3,33.333%)!important;}',
-    'html.tcb-pdf-export .tcb-print-cols-4.tcb-print-team-cards,html.tcb-pdf-export .tcb-print-cols-4.cards{grid-template-columns:repeat(4,25%)!important;}'
+    /* html2canvas は CSS grid+fr が崩れやすいので flex wrap + 固定幅％にする */
+    'html.tcb-pdf-export .tcb-print-team-cards,html.tcb-pdf-export .cards{display:flex!important;flex-wrap:wrap!important;align-content:flex-start!important;gap:5px!important;overflow:visible!important;max-height:none!important;}',
+    'html.tcb-pdf-export .tcb-print-cols-3.tcb-print-team-cards>.card,html.tcb-pdf-export .tcb-print-cols-3.cards>.card{width:calc(33.333% - 4px)!important;box-sizing:border-box!important;flex:0 0 calc(33.333% - 4px)!important;overflow:visible!important;height:auto!important;max-height:none!important;}',
+    'html.tcb-pdf-export .tcb-print-cols-4.tcb-print-team-cards>.card,html.tcb-pdf-export .tcb-print-cols-4.cards>.card{width:calc(25% - 4px)!important;box-sizing:border-box!important;flex:0 0 calc(25% - 4px)!important;overflow:visible!important;height:auto!important;max-height:none!important;}',
+    'html.tcb-pdf-export .card-body,html.tcb-pdf-export .tool-list{overflow:visible!important;max-height:none!important;height:auto!important;min-height:0!important;}',
+    'html.tcb-pdf-export .tool-name{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}'
   ].join('');
   /* mmdd形式のファイル名生成（前回ベース再割当時は当日日付・ローカル日付） */
   var fnDate='';
@@ -8241,22 +8242,11 @@ function warmAssignPdfBlob(html){
     if(_assignPdfCache.html===html){_assignPdfCache.html=null;_assignPdfCache.pending=null;}
   });
 }
-/** PDF Blob を取得（キャッシュ利用・プレビュー iframe 優先） */
+/** PDF Blob を取得（キャッシュ優先。本文HTMLから生成＝プレビューiframeの見切れを避ける） */
 function resolveAssignPdfBlob(out){
   if(!out||!out.html)return Promise.reject(new Error('no_output'));
   if(_assignPdfCache.html===out.html&&_assignPdfCache.blob)return Promise.resolve(_assignPdfCache.blob);
-  var frame=document.getElementById('print-frame');
-  var overlay=document.getElementById('print-overlay');
-  if(typeof TCB_generateAssignPdfBlobFromFrame==='function'&&frame&&overlay&&overlay.classList.contains('open')&&frame.contentDocument&&frame.contentDocument.body){
-    return TCB_generateAssignPdfBlobFromFrame(frame).catch(function(frameErr){
-      /* プレビューiframeからのキャプチャ失敗時は非表示iframeで作り直す */
-      console.warn('プレビューからのPDF生成に失敗。作り直します。',frameErr);
-      return TCB_generateAssignPdfBlob(out.html);
-    }).then(function(blob){
-      _assignPdfCache.html=out.html;_assignPdfCache.blob=blob;
-      return blob;
-    });
-  }
+  if(typeof TCB_generateAssignPdfBlob!=='function')return Promise.reject(new Error('no_pdf_module'));
   var gen=(_assignPdfCache.html===out.html&&_assignPdfCache.pending)?_assignPdfCache.pending:TCB_generateAssignPdfBlob(out.html);
   return gen.then(function(blob){
     _assignPdfCache.html=out.html;_assignPdfCache.blob=blob;
@@ -8692,43 +8682,39 @@ function copyTextToClipboard(text,okMsg){
   document.addEventListener('keydown',function(e){if(e.key==='Escape')hideTip();});
 })();
 function execAssignPdfBlobSave(out){
-  if(typeof TCB_generateAssignPdfBlob!=='function'&&typeof TCB_generateAssignPdfBlobFromFrame!=='function'){
+  if(typeof TCB_generateAssignPdfBlob!=='function'){
     alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
     return;
   }
   var btn=document.getElementById('print-exec');
   var orig=btn?btn.innerHTML:'';
   if(btn){btn.disabled=true;btn.innerHTML='<svg class="ic"><use href="#i-printer"/></svg>PDF作成中…';}
-  var frame=document.getElementById('print-frame');
-  var overlay=document.getElementById('print-overlay');
   var htmlOut=out||prepareAssignPdfOutput(true);
   out=htmlOut||out;
-  /* 事前生成済み（キャッシュ）があれば即使う：iOSの共有シートはボタン押下直後でないと開けないため */
+  if(!out||!out.html){
+    if(btn){btn.disabled=false;btn.innerHTML=orig;}
+    return;
+  }
+  /* 本文HTMLから生成（プレビューiframeは高さ制限で欠けるため使わない） */
   var blobGen;
-  if(out&&_assignPdfCache.html===out.html&&_assignPdfCache.blob){
+  if(_assignPdfCache.html===out.html&&_assignPdfCache.blob){
     blobGen=Promise.resolve(_assignPdfCache.blob);
-  }else if(typeof TCB_generateAssignPdfBlobFromFrame==='function'&&frame&&overlay&&overlay.classList.contains('open')&&frame.contentDocument&&frame.contentDocument.body){
-    /* プレビューiframeからの取得に失敗したら、非表示iframeで作り直す */
-    blobGen=TCB_generateAssignPdfBlobFromFrame(frame).catch(function(frameErr){
-      console.warn('プレビューからのPDF生成に失敗。作り直します。',frameErr);
-      if(out&&typeof TCB_generateAssignPdfBlob==='function')return TCB_generateAssignPdfBlob(out.html);
-      throw frameErr;
-    });
+  }else if(_assignPdfCache.html===out.html&&_assignPdfCache.pending){
+    blobGen=_assignPdfCache.pending;
   }else{
-    if(!out){
-      if(btn){btn.disabled=false;btn.innerHTML=orig;}
-      return;
-    }
-    blobGen=TCB_generateAssignPdfBlob(out.html);
+    _assignPdfCache.html=out.html;
+    _assignPdfCache.blob=null;
+    blobGen=_assignPdfCache.pending=TCB_generateAssignPdfBlob(out.html);
   }
   blobGen.then(function(blob){
-    if(out){_assignPdfCache.html=out.html;_assignPdfCache.blob=blob;}
+    _assignPdfCache.html=out.html;_assignPdfCache.blob=blob;_assignPdfCache.pending=null;
     return deliverAssignPdfBlob(blob,{
-      fileName:(out&&out.fileName)||getAssignPdfFileName(),
-      baseName:(out&&out.baseName)||getAssignPdfBaseName(),
+      fileName:out.fileName||getAssignPdfFileName(),
+      baseName:out.baseName||getAssignPdfBaseName(),
       useShareFirst:isIosLikeBrowser()
     });
   }).catch(function(err){
+    if(_assignPdfCache.html===out.html)_assignPdfCache.pending=null;
     if(err&&err.name==='AbortError')return;
     if(err&&err.name==='NotAllowedError'){
       /* iOS: 生成に時間がかかり共有シートを開く権限が切れた。PDFはキャッシュ済みなので次タップで即共有 */
