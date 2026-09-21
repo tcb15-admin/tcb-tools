@@ -7715,10 +7715,19 @@ function buildPrintHTML(opts){
   }
   var printToolsList=hideTeam?(R.allTools||R.tools):(R.tools||[]);
   /* 2グループPDFはメンバー別と同じく「人の班」でまとめる（道具の班で分けると同一人物が両方に出る） */
+  var tbmPrint=getTBM();
+  function countHolders(members){
+    var n=0;
+    (members||[]).forEach(function(m){
+      if(m&&m.name&&tbmPrint[m.name]&&tbmPrint[m.name].length)n++;
+    });
+    return n;
+  }
   if(R.mode==='team'&&!hideTeam){scanMaxTools((R.tA||[]).concat(R.tB||[]));}
   else scanMaxTools(printToolsList);
-  var pcA=(R.mode==='team'&&!hideTeam)?(R.mA||[]).length:0;
-  var pcB=(R.mode==='team'&&!hideTeam)?(R.mB||[]).length:0;
+  /* A4 1枚前提：担当ありの人だけ数える（「なし」はPDFに出さない＝以前の密度に近い） */
+  var pcA=(R.mode==='team'&&!hideTeam)?countHolders(R.mA):0;
+  var pcB=(R.mode==='team'&&!hideTeam)?countHolders(R.mB):0;
   var pcSingle=(R.mode!=='team'||hideTeam)?printPersonCount(printToolsList):0;
   var maxPersonCount=Math.max(pcA,pcB,pcSingle);
   var maxGridRows4=Math.ceil(maxPersonCount/4)||1;
@@ -7727,21 +7736,21 @@ function buildPrintHTML(opts){
   if(maxGridRows4>=6||maxToolsPerPerson>=6||totalTeamPc>28)densityLevel=3;
   else if(maxGridRows4>=4||maxToolsPerPerson>=4||totalTeamPc>16)densityLevel=2;
   else if(maxGridRows4>=3||maxToolsPerPerson>=3||totalTeamPc>10)densityLevel=1;
-  /* 班ごとに全員を出すと説明文付きでは1枚に収まらないため、混み合う日は説明を省く（メンバー別と同じ） */
-  var showToolDesc=!(R.mode==='team'&&!hideTeam&&totalTeamPc>12)&&densityLevel<2;
-  if(R.mode==='team'&&!hideTeam&&totalTeamPc>18&&densityLevel<3)densityLevel=3;
+  /* 班またぎ修正後はカードが増えやすいので、2グループ時は説明を出さず高密度で1枚に寄せる */
+  var showToolDesc=!(R.mode==='team'&&!hideTeam);
+  if(R.mode==='team'&&!hideTeam)densityLevel=Math.max(densityLevel, totalTeamPc>14?3:2);
   var densOff=densityLevel>=3?2:(densityLevel>=2?1:0);
-  var printColCount=(densityLevel>=1||maxPersonCount>12||(R.mode==='team'&&!hideTeam&&totalTeamPc>10))?4:3;
+  var printColCount=(densityLevel>=1||maxPersonCount>12||(R.mode==='team'&&!hideTeam))?4:3;
   var gridColsCls=' tcb-print-cols-'+printColCount;
   var rowsA=(R.mode==='team'&&!hideTeam)?(Math.ceil(pcA/printColCount)||0):0;
   var rowsB=(R.mode==='team'&&!hideTeam)?(Math.ceil(pcB/printColCount)||0):0;
   var stackGap=14;
-  if(densityLevel>=3)stackGap=8;
-  else if(densityLevel>=2)stackGap=11;
+  if(densityLevel>=3)stackGap=6;
+  else if(densityLevel>=2)stackGap=9;
   else if(densityLevel>=1)stackGap=12;
   var headerMb=12;
-  if(densityLevel>=3)headerMb=8;
-  else if(densityLevel>=2)headerMb=10;
+  if(densityLevel>=3)headerMb=6;
+  else if(densityLevel>=2)headerMb=8;
   function renderPersonCard(asgn, toolObjs, teamCode){
     var tm=teamCode||'';
     var isMulti=toolObjs.length>=2;
@@ -7799,9 +7808,9 @@ function buildPrintHTML(opts){
     for(var i=0;i<all.length;i++){if(all[i]&&all[i].name===name)return all[i];}
     return {name:name};
   }
-  /* メンバー別タブと同じ並び：人の所属班に、その人の持ち帰りをすべて載せる */
+  /* メンバー別と同じ班分け。PDFは担当ありの人だけ（A4 1枚密度のため「なし」は出さない） */
   function memberTeamCards(members, teamCode){
-    var tbm=getTBM();
+    var tbm=tbmPrint;
     var list=(members||[]).slice().sort(function(a,b){
       var numA=parseInt(String(a&&a.name||'').split('：')[0],10);
       var numB=parseInt(String(b&&b.name||'').split('：')[0],10);
@@ -7812,6 +7821,7 @@ function buildPrintHTML(opts){
     list.forEach(function(m){
       if(!m||!m.name)return;
       var names=tbm[m.name]||[];
+      if(!names.length)return;
       h+=renderPersonCard(m.name, names.map(toolObjByName), teamCode);
     });
     var unassigned=(R.allTools||[]).filter(function(t){
@@ -7825,8 +7835,9 @@ function buildPrintHTML(opts){
     var inTeam={};
     (R.mA||[]).forEach(function(m){if(m&&m.name)inTeam[m.name]=1;});
     (R.mB||[]).forEach(function(m){if(m&&m.name)inTeam[m.name]=1;});
-    var tbmAll=getTBM();
-    var extraNames=Object.keys(tbmAll).filter(function(n){return !inTeam[n];}).sort(function(a,b){
+    var extraNames=Object.keys(tbmPrint).filter(function(n){
+      return !inTeam[n]&&tbmPrint[n]&&tbmPrint[n].length;
+    }).sort(function(a,b){
       var numA=parseInt(String(a).split('：')[0],10), numB=parseInt(String(b).split('：')[0],10);
       if(isNaN(numA))numA=9999; if(isNaN(numB))numB=9999;
       return numA-numB;
@@ -7835,14 +7846,14 @@ function buildPrintHTML(opts){
     if(extraNames.length){
       extraHtml='<div class="tcb-print-team-section">'
         +'<div class="gh">その他</div><div class="tcb-print-team-cards'+gridColsCls+'">'
-        +extraNames.map(function(n){return renderPersonCard(n,(tbmAll[n]||[]).map(toolObjByName),'');}).join('')
+        +extraNames.map(function(n){return renderPersonCard(n,(tbmPrint[n]||[]).map(toolObjByName),'');}).join('')
         +'</div></div>';
     }
     bodyHTML='<div class="tcb-print-team-stack">'
       +'<div class="tcb-print-team-section">'
-      +'<div class="gh ghA">'+esc(la)+'グループ（'+(R.mA||[]).length+'名）</div><div class="tcb-print-team-cards'+gridColsCls+'">'+memberTeamCards(R.mA,'A')+'</div></div>'
+      +'<div class="gh ghA">'+esc(la)+'グループ（'+pcA+'名）</div><div class="tcb-print-team-cards'+gridColsCls+'">'+memberTeamCards(R.mA,'A')+'</div></div>'
       +'<div class="tcb-print-team-section">'
-      +'<div class="gh ghB">'+esc(lb)+'グループ（'+(R.mB||[]).length+'名）</div><div class="tcb-print-team-cards'+gridColsCls+'">'+memberTeamCards(R.mB,'B')+'</div></div>'
+      +'<div class="gh ghB">'+esc(lb)+'グループ（'+pcB+'名）</div><div class="tcb-print-team-cards'+gridColsCls+'">'+memberTeamCards(R.mB,'B')+'</div></div>'
       +extraHtml
       +'</div>';
   }else{
