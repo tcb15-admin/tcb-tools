@@ -174,6 +174,9 @@
       el.style.maxHeight = 'none';
       el.style.height = 'auto';
     });
+    /* html2canvas は letter-spacing:0 だと単語単位で再配置し不自然な空きが出るため、
+       微小な letter-spacing を与えて文字単位で描画させる（レイアウトへの影響は無視できる） */
+    if (doc.body) doc.body.style.letterSpacing = '0.01px';
     /* カード内 overflow:hidden は説明文を切るのでキャプチャ時は解除（位置計測の前に行う） */
     doc.querySelectorAll('.card,.card-body,.tool-list,.tool-item,.tool-desc,.tool-name').forEach(function (el) {
       el.style.overflow = 'visible';
