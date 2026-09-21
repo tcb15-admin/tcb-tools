@@ -6453,6 +6453,94 @@ function getTBM(){
   return m;
 }
 
+/** 画面メンバー別と同じ担当スナップショット（PDF突合用。担当ありのみ） */
+function buildAssignScreenSnapshotForPdf(){
+  var empty={mode:'none',hideTeam:true,groups:{all:{label:'',people:[]}}};
+  if(!R)return empty;
+  var tbm=getTBM();
+  var hideTeam=shareHidesTeamSplit();
+  function peopleFromMembers(members){
+    var list=(members||[]).slice().sort(function(a,b){
+      var numA=parseInt(String(a&&a.name||'').split('：')[0],10);
+      var numB=parseInt(String(b&&b.name||'').split('：')[0],10);
+      if(isNaN(numA))numA=9999; if(isNaN(numB))numB=9999;
+      return numA-numB;
+    });
+    var out=[];
+    list.forEach(function(m){
+      if(!m||!m.name)return;
+      var tools=tbm[m.name]||[];
+      if(!tools.length)return;
+      out.push({name:m.name,tools:tools.slice()});
+    });
+    return out;
+  }
+  if(R.mode==='team'&&!hideTeam){
+    var inTeam={};
+    (R.mA||[]).forEach(function(m){if(m&&m.name)inTeam[m.name]=1;});
+    (R.mB||[]).forEach(function(m){if(m&&m.name)inTeam[m.name]=1;});
+    var extra=[];
+    Object.keys(tbm).filter(function(n){
+      return !inTeam[n]&&tbm[n]&&tbm[n].length;
+    }).sort(function(a,b){
+      var numA=parseInt(String(a).split('：')[0],10), numB=parseInt(String(b).split('：')[0],10);
+      if(isNaN(numA))numA=9999; if(isNaN(numB))numB=9999;
+      return numA-numB;
+    }).forEach(function(n){extra.push({name:n,tools:(tbm[n]||[]).slice()});});
+    /* 未割当道具（班付き）も PDF と同様に含める */
+    function unassignedFor(teamCode){
+      var tools=(R.allTools||[]).filter(function(t){
+        return t&&t.name&&!R.map[t.name]&&((t.team==='B'?'B':'A')===teamCode);
+      }).map(function(t){return t.name;});
+      if(!tools.length)return null;
+      return {name:'未割当',tools:tools};
+    }
+    var gA=peopleFromMembers(R.mA);
+    var gB=peopleFromMembers(R.mB);
+    var uA=unassignedFor('A'); if(uA)gA.push(uA);
+    var uB=unassignedFor('B'); if(uB)gB.push(uB);
+    return{
+      mode:'team',
+      hideTeam:false,
+      groups:{
+        A:{label:(R.la||'A'),people:gA},
+        B:{label:(R.lb||'B'),people:gB},
+        extra:{label:'その他',people:extra}
+      }
+    };
+  }
+  var people=[];
+  Object.keys(tbm).sort(function(a,b){
+    var numA=parseInt(String(a).split('：')[0],10), numB=parseInt(String(b).split('：')[0],10);
+    if(isNaN(numA))numA=9999; if(isNaN(numB))numB=9999;
+    return numA-numB;
+  }).forEach(function(n){
+    if(tbm[n]&&tbm[n].length)people.push({name:n,tools:tbm[n].slice()});
+  });
+  return{mode:'flat',hideTeam:true,groups:{all:{label:'',people:people}}};
+}
+
+/**
+ * 割振結果と PDF HTML の担当内容を突合。
+ * コンソール: TCB_checkAssignPdf()
+ * @param {string} [html]
+ * @returns {{ok:boolean, diffs:Array, summary:string}|null}
+ */
+function checkAssignPdfConsistency(html){
+  if(typeof TCB_AssignPdfCheck==='undefined')return null;
+  if(!html)html=buildPrintHTML({preview:false});
+  if(!html)return null;
+  var expected=buildAssignScreenSnapshotForPdf();
+  var parsed=TCB_AssignPdfCheck.parseHtml(html);
+  var report=TCB_AssignPdfCheck.compare(expected, parsed);
+  try{
+    if(report.ok)console.info('[TCB PDF check]', report.summary);
+    else console.warn('[TCB PDF check]\n'+TCB_AssignPdfCheck.formatReport(report));
+  }catch(e){}
+  return report;
+}
+window.TCB_checkAssignPdf=function(){return checkAssignPdfConsistency();};
+
 /* ========== パターン切替 ========== */
 function setPat(p){
   pat=p;
@@ -8732,11 +8820,16 @@ function execAssignPdfBlobSave(out){
 function prepareAssignPdfOutput(forPreview){
   var html=buildPrintHTML({preview:!!forPreview});
   if(!html)return null;
+  var report=checkAssignPdfConsistency(html);
+  if(report&&!report.ok){
+    setSharePanelStatus('割振結果とPDF内容に差異があります。詳細はコンソール（TCB_checkAssignPdf）を確認してください。');
+  }
   return{
     html:html,
     baseName:getAssignPdfBaseName(),
     fileName:getAssignPdfFileName(),
-    preview:!!forPreview
+    preview:!!forPreview,
+    check:report||null
   };
 }
 function syncAssignPdfPreview(frame){
@@ -10173,6 +10266,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="html2canvas.min.js"></script>
 <script src="html2pdf.min.js"></script>
 <script src="tcb-print-pdf.js"></script>
+<script src="tcb-assign-pdf-check.js"></script>
 <script src="tcb-swap-mgr.js"></script>
 <script src="tcb-push-mgr.js"></script>
 <script src="tcb-login.js"></script>

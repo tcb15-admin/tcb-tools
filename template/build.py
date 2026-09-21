@@ -518,7 +518,7 @@ def build(target):
     # index.html（道具MGR）用アセット＋保護者確認ページ（kakunin.html）用アセット
     assets = (
         'jspdf.umd.min.js', 'html2canvas.min.js', 'html2pdf.min.js',
-        'tcb-print-pdf.js', 'tcb-sync-api.js',
+        'tcb-print-pdf.js', 'tcb-assign-pdf-check.js', 'tcb-sync-api.js',
         'tcb-swap-mgr.js', 'tcb-swap-mgr.css',
         'tcb-push-mgr.js', 'tcb-push-mgr.css',
         'tcb-pwa-install.js', 'tcb-pwa-install.css',
