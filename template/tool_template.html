@@ -1475,12 +1475,6 @@ html{color-scheme:light;}
         <label class="p1-renshu-split-lbl" for="chk-ryoho-same-venue"><input type="checkbox" id="chk-ryoho-same-venue" autocomplete="off">同一会場で試合する<button type="button" class="tcb-tip" data-tip="両試合が同じ会場のときだけチェック（グループ分けなしになります）。" aria-label="説明"></button></label>
       </div>
       <div id="p1-flow-host" style="display:none;"></div>
-      <div class="tcb-seed-mode-banner" id="p1-seed-mode-banner" role="status">
-        <strong>いまの保有で割振り</strong><span id="p1-seed-mode-banner-base"></span>。保有の確認・修正はSTEP2のグループ振り分けで。
-        <div class="tcb-seed-mode-banner-btns">
-          <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p1">新規の割り振りに切り替える</button>
-        </div>
-      </div>
       <div id="tnarea" style="display:block;">
         <div class="ct" style="margin-bottom:8px;margin-top:14px;">&#127991; グループ名（名称変更可）</div>
         <div class="tnrow">
@@ -1511,16 +1505,13 @@ html{color-scheme:light;}
       <div class="mgrid" id="tgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。
+      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。変更はSTEP1の「割り振り方」から。
       <div class="tcb-seedalloc-box">
         <div class="tcb-seedalloc-title">配り方</div>
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="fair" checked><span><strong>公平に分散</strong>：グループ内で持ち回り</span></label>
         <label class="tcb-seedalloc-opt"><input type="radio" name="p2-seedalloc" value="min"><span><strong>前回のまま維持</strong>：欠席・当番の分だけ変更</span></label>
       </div>
       <p class="tcb-seed-hold-hint">保有の確認・修正は上の<strong>グループ振り分け</strong>で（班なしの日は名簿の保有から）。</p>
-      <div class="tcb-seed-mode-banner-btns">
-        <button type="button" class="nb nbs" id="btn-seed-mode-cancel-p2">新規の割り振りに切り替える</button>
-      </div>
     </div>
     <div class="card tcb-ghold-card" id="tcb-ghold-card">
       <details class="tcb-fold" id="tcb-ghold-details">
@@ -3221,6 +3212,11 @@ function setHoldingsBaseFromSnap(snap){
     return false;
   }
   holdingsBaseOverride=clonePlainObj(enriched);
+  var wantHoldings=(window.TCB_P1Flow&&typeof TCB_P1Flow.getSelectedMode==='function'&&TCB_P1Flow.getSelectedMode()==='holdings')
+    ||!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
+  if(wantHoldings){
+    beginReeditFromSnap(enriched,{skipGoStep:true, restoreTeamLabels:true, clearAbsOch:false});
+  }
   if(window.TCB_P1Flow)TCB_P1Flow.update();
   tcbToast('保有の基準を「'+holdingsBaseLabel(holdingsBaseOverride)+'」にしました。','success');
   return true;
@@ -3397,11 +3393,37 @@ function clearReeditMode(){
   carryAdjustMode=false;
   var chkCross=document.getElementById('chk-manual-cross-team');
   if(chkCross){chkCross.checked=false;chkCross.disabled=false;}
+  if(window.TCB_P1Flow&&typeof TCB_P1Flow.setUserPick==='function')TCB_P1Flow.setUserPick('fresh');
   updateSeedModeBanners();
 }
 function clearSeedFromPrevMode(){
   clearReeditMode();
   clearCarryAdjustRef();
+}
+/** STEP1で「今の保有」を選んだとき：シード開始（画面遷移なし） */
+function activateHoldingsModeFromP1(){
+  var snap=getHoldingsBaseSnap();
+  if(!snap||typeof snap.map!=='object'){
+    tcbToast('確定済みの保有記録がありません。いちから割り振ります。','warn');
+    clearSeedFromPrevMode();
+    if(window.TCB_P1Flow)TCB_P1Flow.update();
+    return false;
+  }
+  if(!snap.confirmedAt&&!(seedFromPrev||carryAdjustMode)){
+    tcbToast('試行結果は基準にできません。いちから割り振ります。','warn');
+    clearSeedFromPrevMode();
+    if(window.TCB_P1Flow)TCB_P1Flow.update();
+    return false;
+  }
+  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&seedBaseSnap.date===snap.date&&seedBaseSnap.confirmedAt===snap.confirmedAt){
+    if(window.TCB_P1Flow&&typeof TCB_P1Flow.setUserPick==='function')TCB_P1Flow.setUserPick('holdings');
+    if(window.TCB_P1Flow)TCB_P1Flow.update();
+    return true;
+  }
+  if(!beginReeditFromSnap(snap,{goStep2:false, skipGoStep:true, restoreTeamLabels:true, clearAbsOch:true}))return false;
+  if(window.TCB_P1Flow&&typeof TCB_P1Flow.setUserPick==='function')TCB_P1Flow.setUserPick('holdings');
+  if(window.TCB_P1Flow)TCB_P1Flow.update();
+  return true;
 }
 /* 前回基準モード中の活動パターン変更：持ち帰り調整（map基準）で引き継げるためモードは維持する。
    seedFromPrev のみ（互換なし）の経路があっても carryAdjustMode に昇格させる。 */
@@ -3423,14 +3445,10 @@ function confirmPatChangeInSeedMode(newPat,newSplit,newSameVenue){
 function updateSeedModeBanners(){
   var on=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap);
   var baseTxt=on?holdingsBaseLabel(seedBaseSnap):'';
-  ['p1-seed-mode-banner','p2-seed-mode-banner'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el)el.className='tcb-seed-mode-banner'+(on?' on':'');
-  });
-  ['p1-seed-mode-banner-base','p2-seed-mode-banner-base'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el)el.textContent=baseTxt?('（基準：'+baseTxt+'）'):'';
-  });
+  var el=document.getElementById('p2-seed-mode-banner');
+  if(el)el.className='tcb-seed-mode-banner'+(on?' on':'');
+  var baseEl=document.getElementById('p2-seed-mode-banner-base');
+  if(baseEl)baseEl.textContent=baseTxt?('（基準：'+baseTxt+'）'):'';
   if(on)syncSeedAllocRadioUI();
   var hint=document.getElementById('p3-reedit-hint');
   if(hint)hint.style.display=(R&&!on)?'block':'none';
@@ -3508,14 +3526,22 @@ function beginReeditFromSnap(snap, opts){
     restoreTeamLabels:!!opts.restoreTeamLabels
   });
   restoreExclusionStateFromSnap(enriched);
+  if(opts.clearAbsOch){
+    absS={};ochS={};
+    buildAGrid(); buildOGrid();
+    if(effectiveNeedsTeamUI())buildTGrid();
+  }
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.restoreFromSnap==='function'){
     TCB_GroupHold.restoreFromSnap(enriched);
   }
+  if(window.TCB_P1Flow&&typeof TCB_P1Flow.setUserPick==='function')TCB_P1Flow.setUserPick('holdings');
   updateSeedModeBanners();
   closeModal('hist-detail-modal');
   closeModal('hist-modal');
-  if(opts.goStep2)goStep(2);
-  else goStep(1);
+  if(!opts.skipGoStep){
+    if(opts.goStep2)goStep(2);
+    else goStep(1);
+  }
   if(enriched.pat){
     var baseLbl={kata:'片方試合',ryoho:'両方試合',renshu:'両方練習'}[enriched.pat]||enriched.pat;
     var curLbl={kata:'片方試合',ryoho:'両方試合',renshu:'両方練習'}[pat]||pat;
@@ -3529,7 +3555,8 @@ function beginReeditFromStoredPrev(){
   return beginReeditFromSnap(loadStoredAllocationSnap());
 }
 /* いまの保有でグループごとに割り振る（2分けの通常経路） */
-function beginHoldingsGroupAllocation(){
+function beginHoldingsGroupAllocation(opts){
+  opts=opts||{};
   var snap=getHoldingsBaseSnap();
   if(!snap||typeof snap.map!=='object'){
     tcbToast('確定済みの保有記録がありません。いちから割り振ります。','warn');
@@ -3541,11 +3568,12 @@ function beginHoldingsGroupAllocation(){
     clearReeditMode();
     return true;
   }
-  if(!beginReeditFromSnap(snap,{goStep2:true, restoreTeamLabels:true}))return false;
-  /* きょうの欠席・お茶は選び直す。班分け（tmMap）とグループ名は基準日を維持 */
-  absS={};ochS={};
-  buildAGrid(); buildOGrid();
-  if(effectiveNeedsTeamUI())buildTGrid();
+  if(!beginReeditFromSnap(snap,{
+    goStep2:!!opts.goStep2,
+    skipGoStep:!!opts.skipGoStep,
+    restoreTeamLabels:true,
+    clearAbsOch:true
+  }))return false;
   var baseTxt=holdingsBaseLabel(snap);
   var nA=0, nB=0;
   Object.keys(tmMap||{}).forEach(function(n){
@@ -3558,9 +3586,13 @@ function beginHoldingsGroupAllocation(){
   return true;
 }
 function proceedP1ToStep2(){
-  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap)return true;
-  /* 2分け or グループ保有＝グループ内割振り */
-  if(effectiveNeedsTeamUI())return beginHoldingsGroupAllocation();
+  var mode=(window.TCB_P1Flow&&typeof TCB_P1Flow.getSelectedMode==='function')
+    ?TCB_P1Flow.getSelectedMode()
+    :(((seedFromPrev||carryAdjustMode)&&seedBaseSnap)?'holdings':'fresh');
+  if(mode==='holdings'&&effectiveNeedsTeamUI()){
+    if((seedFromPrev||carryAdjustMode)&&seedBaseSnap)return true;
+    return beginHoldingsGroupAllocation({skipGoStep:true, goStep2:false});
+  }
   clearReeditMode();
   return true;
 }
@@ -9701,7 +9733,13 @@ document.addEventListener('DOMContentLoaded',function(){
     if(typeof TCB_HandoffPlan!=='undefined'&&TCB_HandoffPlan&&typeof TCB_HandoffPlan.open==='function')TCB_HandoffPlan.open();
   });
   document.getElementById('st1').addEventListener('click',function(){goStep(1);});
-  document.getElementById('st2').addEventListener('click',function(){goStep(2);});
+  document.getElementById('st2').addEventListener('click',function(){
+    var p1=document.getElementById('p1');
+    if(p1&&p1.className.indexOf('on')>=0){
+      if(!proceedP1ToStep2())return;
+    }
+    goStep(2);
+  });
   document.getElementById('st3').addEventListener('click',function(){goStep(3);});
 
   /* STEP1 */
@@ -9795,15 +9833,6 @@ document.addEventListener('DOMContentLoaded',function(){
   /* 前回モーダル */
   var btnReedit=document.getElementById('btn-reedit-from-prev');
   if(btnReedit)btnReedit.addEventListener('click',function(){beginReeditFromCurrentResult();});
-  ['btn-seed-mode-cancel-p1','btn-seed-mode-cancel-p2'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el)el.addEventListener('click',function(){
-      if(confirm('基準モードをやめます。次の「割振りを実行」は通常の全割振りになります。よろしいですか？')){
-        clearSeedFromPrevMode();
-        pdfFileNameUseTodayDate=false;
-      }
-    });
-  });
   window.addEventListener('pagehide',function(){
     if(!R)return;
     var tb=document.getElementById('tbody');
@@ -9981,6 +10010,14 @@ document.addEventListener('DOMContentLoaded',function(){
       onPickOther:function(){
         window._histPreferConfirmedOnly=true;
         showHistory();
+      },
+      onSelectHoldings:function(){
+        activateHoldingsModeFromP1();
+      },
+      onSelectFresh:function(){
+        clearSeedFromPrevMode();
+        pdfFileNameUseTodayDate=false;
+        if(window.TCB_P1Flow)TCB_P1Flow.update();
       }
     });
   }
