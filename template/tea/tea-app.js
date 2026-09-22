@@ -862,13 +862,15 @@
 
   function getShareKind() {
     var rev = $('tea-share-kind-revision');
-    return (rev && rev.checked) ? 'revision' : 'initial';
+    return (rev && rev.classList && rev.classList.contains('on')) ? 'revision' : 'initial';
   }
 
   function setShareKind(kind, silent) {
     var isRev = kind === 'revision';
-    if ($('tea-share-kind-revision')) $('tea-share-kind-revision').checked = isRev;
-    if ($('tea-share-kind-initial')) $('tea-share-kind-initial').checked = !isRev;
+    var ini = $('tea-share-kind-initial');
+    var rev = $('tea-share-kind-revision');
+    if (ini) ini.className = 'tb2' + (isRev ? '' : ' on');
+    if (rev) rev.className = 'tb2' + (isRev ? ' on' : '');
     if (!silent) fillShareMsg(true);
   }
 
@@ -1537,11 +1539,14 @@
         });
       });
     }
-    document.querySelectorAll('input[name="tea-share-kind"]').forEach(function (inp) {
-      inp.addEventListener('change', function () {
-        fillShareMsg(true);
+    ['tea-share-kind-initial', 'tea-share-kind-revision'].forEach(function (id) {
+      var btn = $(id);
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var kind = btn.getAttribute('data-tea-share-kind') || 'initial';
+        setShareKind(kind);
         setShareStatus(
-          getShareKind() === 'revision'
+          kind === 'revision'
             ? '変更送付の定型に切り替えました（変更内容を本文に掲載）'
             : '初回送付の定型に切り替えました'
         );

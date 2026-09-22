@@ -10,9 +10,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="../icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="stylesheet" href="../tcb-shell.css?v=1.1.8">
-<link rel="stylesheet" href="../tcb-login.css?v=1.1.8">
-<link rel="stylesheet" href="tea.css?v=1.1.8">
+<link rel="stylesheet" href="../tcb-shell.css?v=1.1.9">
+<link rel="stylesheet" href="../tcb-login.css?v=1.1.9">
+<link rel="stylesheet" href="tea.css?v=1.1.9">
 </head>
 <body class="tea-body">
 <svg width="0" height="0" class="tea-svg-defs" aria-hidden="true" focusable="false">
@@ -28,7 +28,7 @@
   <h1>お茶当番<span>東海中央ボーイズ 15期 · 月次表／LINE展開</span></h1>
   <div class="tcb-shell-hdr-end">
     <a class="tea-hdr-link tcb-shell-link" href="../portal/">ポータル</a>
-    <div class="tcb-shell-meta" id="tea-version">v1.1.8</div>
+    <div class="tcb-shell-meta" id="tea-version">v1.1.9</div>
   </div>
 </header>
 
@@ -121,15 +121,12 @@
   <section class="tea-card tea-no-print tea-card-compact" id="tea-panel-share">
     <h2>LINEで展開</h2>
     <p class="tea-hint">案内文を編集してから送信します。スマホは共有シートからLINEへ。PCは案内文をコピー＋PDFダウンロード後、LINEに貼り付け・添付してください。</p>
-    <div class="tea-share-kind" role="radiogroup" aria-label="展開の種類">
-      <label class="tea-share-kind-opt">
-        <input type="radio" name="tea-share-kind" id="tea-share-kind-initial" value="initial" checked>
-        初回送付
-      </label>
-      <label class="tea-share-kind-opt">
-        <input type="radio" name="tea-share-kind" id="tea-share-kind-revision" value="revision">
-        変更送付
-      </label>
+    <div class="tea-share-kind-block">
+      <div class="tea-share-kind-hd">展開の種類を選択</div>
+      <div class="tgg tea-share-kind" role="group" aria-label="展開の種類">
+        <button type="button" class="tb2 on" id="tea-share-kind-initial" data-tea-share-kind="initial">初回送付</button>
+        <button type="button" class="tb2" id="tea-share-kind-revision" data-tea-share-kind="revision">変更送付</button>
+      </div>
     </div>
     <div class="tea-field tea-share-msg-field">
       <label for="tea-share-msg">案内文（LINE本文）</label>
@@ -190,17 +187,17 @@ window.TCB_TEA_CFG={
   teamName:"東海中央ボーイズ 15期"
 };
 </script>
-<script src="../tcb-login.js?v=1.1.8"></script>
-<script src="../tcb-sync-api.js?v=1.1.8"></script>
-<script src="../tcb-device.js?v=1.1.8"></script>
-<script src="../jspdf.umd.min.js?v=1.1.8"></script>
-<script src="../html2canvas.min.js?v=1.1.8"></script>
-<script src="../html2pdf.min.js?v=1.1.8"></script>
-<script src="../tcb-print-pdf.js?v=1.1.8"></script>
-<script src="../attendance/attendance-jp-calendar.js?v=1.1.8"></script>
-<script src="tea-line.js?v=1.1.8"></script>
-<script src="tea-print.js?v=1.1.8"></script>
-<script src="tea-seed-2026-08.js?v=1.1.8"></script>
-<script src="tea-app.js?v=1.1.8"></script>
+<script src="../tcb-login.js?v=1.1.9"></script>
+<script src="../tcb-sync-api.js?v=1.1.9"></script>
+<script src="../tcb-device.js?v=1.1.9"></script>
+<script src="../jspdf.umd.min.js?v=1.1.9"></script>
+<script src="../html2canvas.min.js?v=1.1.9"></script>
+<script src="../html2pdf.min.js?v=1.1.9"></script>
+<script src="../tcb-print-pdf.js?v=1.1.9"></script>
+<script src="../attendance/attendance-jp-calendar.js?v=1.1.9"></script>
+<script src="tea-line.js?v=1.1.9"></script>
+<script src="tea-print.js?v=1.1.9"></script>
+<script src="tea-seed-2026-08.js?v=1.1.9"></script>
+<script src="tea-app.js?v=1.1.9"></script>
 </body>
 </html>

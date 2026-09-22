@@ -151,3 +151,37 @@ select.tcb-val-tbd{
     font-size:10px;white-space:normal;overflow:visible;text-overflow:unset;
   }
 }
+
+/* ============================================================
+   本選択（排他的 1 択）— 全ツール共通
+   使い方: 見出し「○○を選択」＋ .tgg > .tb2（選中は .on）
+   チェックボックスは複数ON／補助トグル専用。ラジオは使わない。
+   ============================================================ */
+.tgg{
+  display:flex;border-radius:14px;overflow:hidden;border:none;
+  background:var(--tcb-paper,#f3f3f5);padding:4px;gap:4px;width:100%;margin-bottom:10px;
+}
+.tb2{
+  flex:1;padding:10px 6px;font-size:14px;font-weight:600;cursor:pointer;border:none;
+  background:transparent;color:var(--tcb-ink-soft,#3f3f46);border-radius:10px;
+  min-height:var(--tcb-tap,46px);letter-spacing:-.1px;font-family:inherit;
+}
+.tb2.on{
+  background:var(--tcb-surface,#fff);color:var(--tcb-ink,#141416);
+  box-shadow:0 1px 3px rgba(18,32,80,.12);
+}
+.tb2:disabled,
+.tb2[aria-disabled="true"]{
+  opacity:.45;cursor:not-allowed;box-shadow:none;
+}
+.tb2:focus-visible{
+  outline:2px solid var(--tcb-focus,#0f766e);outline-offset:2px;
+}
+@media (prefers-color-scheme:dark){
+  .tgg{background:var(--tcb-paper,#0c0c0e);}
+  .tb2{color:var(--tcb-ink-soft,#d4d4d8);}
+  .tb2.on{
+    background:var(--tcb-surface,#18181b);color:var(--tcb-ink,#f4f4f5);
+    box-shadow:none;border:1px solid var(--tcb-line,#3f3f46);
+  }
+}
