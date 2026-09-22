@@ -8317,7 +8317,7 @@ function assignShareFilesSupported(){
 }
 /** 印刷プレビューを開いた時点でPDFを先に作っておき、共有ボタンのタップ時に即共有できるようにする */
 function warmAssignPdfBlob(html){
-  if(!html||typeof TCB_generateAssignPdfBlob!=='function')return;
+  if(!html||!assignPdfModuleReady())return;
   if(_assignPdfCache.html===html&&(_assignPdfCache.blob||_assignPdfCache.pending))return;
   _assignPdfCache.html=html;
   _assignPdfCache.blob=null;
@@ -8333,7 +8333,7 @@ function warmAssignPdfBlob(html){
 function resolveAssignPdfBlob(out){
   if(!out||!out.html)return Promise.reject(new Error('no_output'));
   if(_assignPdfCache.html===out.html&&_assignPdfCache.blob)return Promise.resolve(_assignPdfCache.blob);
-  if(typeof TCB_generateAssignPdfBlob!=='function')return Promise.reject(new Error('no_pdf_module'));
+  if(!assignPdfModuleReady())return Promise.reject(new Error('no_pdf_module'));
   var gen=(_assignPdfCache.html===out.html&&_assignPdfCache.pending)?_assignPdfCache.pending:TCB_generateAssignPdfBlob(out.html);
   return gen.then(function(blob){
     _assignPdfCache.html=out.html;_assignPdfCache.blob=blob;
@@ -8768,9 +8768,15 @@ function copyTextToClipboard(text,okMsg){
   window.addEventListener('resize',hideTip);
   document.addEventListener('keydown',function(e){if(e.key==='Escape')hideTip();});
 })();
+/** PDF生成モジュールの版ずれ検知（古いJSがキャッシュされたままPDFを作るのを防ぐ） */
+var TCB_PRINT_PDF_REV_REQUIRED=3;
+function assignPdfModuleReady(){
+  if(typeof TCB_generateAssignPdfBlob!=='function')return false;
+  return (window.TCB_PRINT_PDF_REV||0)>=TCB_PRINT_PDF_REV_REQUIRED;
+}
 function execAssignPdfBlobSave(out){
-  if(typeof TCB_generateAssignPdfBlob!=='function'){
-    alert('PDF生成モジュールが読み込まれていません。ページを再読み込みしてください。');
+  if(!assignPdfModuleReady()){
+    alert('PDF生成モジュールが古いか読み込まれていません。\nページを完全に再読み込み（アプリの場合は一度終了して開き直し）してから、もう一度お試しください。');
     return;
   }
   var btn=document.getElementById('print-exec');

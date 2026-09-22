@@ -4,7 +4,7 @@
    - API（別オリジン）には一切触れない */
 'use strict';
 
-var CACHE_NAME = 'tcb-shell-v6';
+var CACHE_NAME = 'tcb-shell-v7';
 
 self.addEventListener('install', function () {
   self.skipWaiting();

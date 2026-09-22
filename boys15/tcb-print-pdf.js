@@ -150,6 +150,9 @@
    * 担当表（縦A4）の共有PDF用。
    * html2canvas は grid の fr 単位を正しく描画できないため、% 列に切替える。
    */
+  /* 版ずれ検知用リビジョン（HTML側がこの値を確認し、古いモジュールなら生成を止める） */
+  global.TCB_PRINT_PDF_REV = 3;
+
   function prepareAssignPdfExport(doc) {
     if (!doc || !doc.documentElement) return;
     doc.documentElement.classList.add('tcb-pdf-export');
