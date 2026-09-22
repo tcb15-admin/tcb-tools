@@ -1,15 +1,13 @@
 # ============================================================
 # GitHub Pages を Actions で明示的にデプロイする
 #
-# 目的: 「Deploy from a branch」方式で過去に起きた
-# 　　　デプロイ詰まり（push しても反映されない）を防ぐ。
+# 公開物は boys15/ のみ（URL は /tcb-tools/boys15/... を維持）。
+# cloudflare-sync/・fix_*.sql・ソース一式は載せない。
 #
 # 有効化の手順（ユーザー操作が必要）:
 #   1. PAT（Personal Access Token）に workflow スコープを追加する
-#      （このファイルを main へ push するのに必要）
-#   2. リポジトリ Settings → Pages → Source を
-#      「GitHub Actions」に切り替える
-#   3. このブランチを main へマージして push する
+#   2. リポジトリ Settings → Pages → Source を「GitHub Actions」に切替
+#   3. main へ push
 # ============================================================
 name: Deploy GitHub Pages
 
@@ -36,12 +34,56 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare public site (boys15 only)
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site/boys15
+          # 既存ブックマーク／LINE／PWA の /boys15/ パスを維持
+          cp -a boys15/. _site/boys15/
+          # ルートはポータルへ誘導
+          cat > _site/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="ja">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0;url=boys15/portal/">
+            <title>TCB Tools</title>
+          </head>
+          <body>
+            <p><a href="boys15/portal/">15期ポータルへ</a></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Guard — refuse ops dumps / Worker tree / placeholder token
+        run: |
+          set -euo pipefail
+          if [ -e _site/cloudflare-sync ] || [ -e _site/template ]; then
+            echo 'ERROR: non-public tree leaked into _site' >&2
+            exit 1
+          fi
+          if find _site -iname 'fix_*.sql' | grep -q .; then
+            echo 'ERROR: fix_*.sql must not be published' >&2
+            find _site -iname 'fix_*.sql' >&2
+            exit 1
+          fi
+          if grep -R --include='*.html' --include='*.js' -l '__SYNC_API_TOKEN__' _site/boys15 >/dev/null 2>&1; then
+            echo 'ERROR: SYNC_API_TOKEN placeholder still present. Build with SYNC_API_TOKEN before push.' >&2
+            grep -R --include='*.html' --include='*.js' -n '__SYNC_API_TOKEN__' _site/boys15 | head -20 >&2
+            exit 1
+          fi
+          echo 'Public site guards OK'
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

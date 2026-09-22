@@ -7,6 +7,10 @@
 # 一時アーカイブ（配布は index.html + *.js）
 **/index.zip
 
+# 本番修復用ダンプ（実名・担当を含む。Pages には載せない。git に残す場合も運用限定）
+cloudflare-sync/fix_*.sql
+cloudflare-sync/tmp_pdf/
+
 # ローカルE2Eテスト用（devトークンを含むためコミットしない）
 .test-local/
 .tmp-*

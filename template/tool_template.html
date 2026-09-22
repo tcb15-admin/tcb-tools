@@ -2964,7 +2964,12 @@ function saveMaster(){
       })
       .catch(function(err){
         console.error(err);
-        showMasterAlert('クラウド同期の保存に失敗しました。通信状況を確認してください。','alw');
+        var msg=(err&&err.message)?String(err.message):'';
+        if(msg==='version_conflict'){
+          showMasterAlert('他の端末でマスタが更新されています。ページを再読み込みしてから保存し直してください。','alw');
+        }else{
+          showMasterAlert('クラウド同期の保存に失敗しました。通信状況を確認してください。','alw');
+        }
       });
     return;
   }
@@ -3073,7 +3078,17 @@ function persistAllocationSnapshot(snap,opts){
         var hist=(res&&res.history&&Array.isArray(res.history))?res.history:null;
         if(hist)setHistoryCache(hist);
       })
-      .catch(function(err){console.error(err);});
+      .catch(function(err){
+        console.error(err);
+        var msg=(err&&err.message)?String(err.message):'';
+        if(msg==='confirmed_conflict'){
+          tcbToast('確定済みの履歴と担当内容が食い違います。ページを再読み込みしてから確認してください。','error');
+        }else if(msg==='version_conflict'){
+          tcbToast('他の端末と競合しました。ページを再読み込みしてください。','error');
+        }else{
+          tcbToast('割振り履歴のクラウド保存に失敗しました。この端末のみに保存されています。','error');
+        }
+      });
   }
 }
 function inferTmMapFromSnap(snap){
@@ -3831,7 +3846,8 @@ function confirmCarryOutResult(opts){
       SYNC_CLIENT.confirmCarryout({
         activityDate:d,
         map:mapForCarryout,
-        tools:allTools
+        tools:allTools,
+        expectedVersion:MASTER_VERSION
       }).then(function(res){
         if(res&&res.past&&typeof res.past==='object'&&!Array.isArray(res.past))PAST=normalizePastObj(res.past);
         if(res&&res.version!==undefined)MASTER_VERSION=parseMasterVersion(res.version);
@@ -3842,7 +3858,16 @@ function confirmCarryOutResult(opts){
         finishOk('実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。');
       }).catch(function(err){
         console.error(err);
-        if(!opts.silent)tcbToast('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。','error');
+        var msg=(err&&err.message)?String(err.message):'';
+        if(!opts.silent){
+          if(msg==='version_conflict'){
+            tcbToast('他の端末でマスタ／確定が更新されています。ページを再読み込みしてから実施確定し直してください。','error');
+          }else if(msg==='confirmed_conflict'){
+            tcbToast('この日は別内容で実施確定済みです。再読み込みして確認してください。','error');
+          }else{
+            tcbToast('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。','error');
+          }
+        }
         reject(err||new Error('confirm_failed'));
       });
       return;

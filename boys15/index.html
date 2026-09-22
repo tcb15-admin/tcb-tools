@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.48">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.49">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1165,14 +1165,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.48">
-<link rel="stylesheet" href="gear.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.48">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.48">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.49">
+<link rel="stylesheet" href="gear.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.49">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1738,14 +1738,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.48"></script>
-<script src="tcb-sync-api.js?v=1.27.48"></script>
-<script src="tcb-feedback.js?v=1.27.48"></script>
-<script src="tcb-swap-list.js?v=1.27.48"></script>
-<script src="tcb-assign-board.js?v=1.27.48"></script>
-<script src="tcb-handoff-plan.js?v=1.27.48"></script>
-<script src="tcb-team-rules.js?v=1.27.48"></script>
-<script src="tcb-tool-images.js?v=1.27.48"></script>
+<script src="tcb-device.js?v=1.27.49"></script>
+<script src="tcb-sync-api.js?v=1.27.49"></script>
+<script src="tcb-feedback.js?v=1.27.49"></script>
+<script src="tcb-swap-list.js?v=1.27.49"></script>
+<script src="tcb-assign-board.js?v=1.27.49"></script>
+<script src="tcb-handoff-plan.js?v=1.27.49"></script>
+<script src="tcb-team-rules.js?v=1.27.49"></script>
+<script src="tcb-tool-images.js?v=1.27.49"></script>
 <script>
 
 
@@ -1846,7 +1846,7 @@ function saveTeamNamesIfVenueContext(){
 /* GitHub上のマスタJSONのURL（設定後は全端末で自動同期） */
 var GITHUB_MASTER_URL='';
 var SYNC_API_BASE_URL='https://tcb-tools-sync.kazoo-matsu.workers.dev';
-var SYNC_API_TOKEN='__SYNC_API_TOKEN__';
+var SYNC_API_TOKEN='local-dev-token-e2e';
 /* 保護者向け確認ページのURL（空なら同フォルダの kakunin.html を自ページ位置から導出） */
 var PARENT_VIEW_URL='';
 var COHORT_KEY='15';
@@ -2867,7 +2867,12 @@ function saveMaster(){
       })
       .catch(function(err){
         console.error(err);
-        showMasterAlert('クラウド同期の保存に失敗しました。通信状況を確認してください。','alw');
+        var msg=(err&&err.message)?String(err.message):'';
+        if(msg==='version_conflict'){
+          showMasterAlert('他の端末でマスタが更新されています。ページを再読み込みしてから保存し直してください。','alw');
+        }else{
+          showMasterAlert('クラウド同期の保存に失敗しました。通信状況を確認してください。','alw');
+        }
       });
     return;
   }
@@ -2976,7 +2981,17 @@ function persistAllocationSnapshot(snap,opts){
         var hist=(res&&res.history&&Array.isArray(res.history))?res.history:null;
         if(hist)setHistoryCache(hist);
       })
-      .catch(function(err){console.error(err);});
+      .catch(function(err){
+        console.error(err);
+        var msg=(err&&err.message)?String(err.message):'';
+        if(msg==='confirmed_conflict'){
+          tcbToast('確定済みの履歴と担当内容が食い違います。ページを再読み込みしてから確認してください。','error');
+        }else if(msg==='version_conflict'){
+          tcbToast('他の端末と競合しました。ページを再読み込みしてください。','error');
+        }else{
+          tcbToast('割振り履歴のクラウド保存に失敗しました。この端末のみに保存されています。','error');
+        }
+      });
   }
 }
 function inferTmMapFromSnap(snap){
@@ -3734,7 +3749,8 @@ function confirmCarryOutResult(opts){
       SYNC_CLIENT.confirmCarryout({
         activityDate:d,
         map:mapForCarryout,
-        tools:allTools
+        tools:allTools,
+        expectedVersion:MASTER_VERSION
       }).then(function(res){
         if(res&&res.past&&typeof res.past==='object'&&!Array.isArray(res.past))PAST=normalizePastObj(res.past);
         if(res&&res.version!==undefined)MASTER_VERSION=parseMasterVersion(res.version);
@@ -3745,7 +3761,16 @@ function confirmCarryOutResult(opts){
         finishOk('実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。');
       }).catch(function(err){
         console.error(err);
-        if(!opts.silent)tcbToast('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。','error');
+        var msg=(err&&err.message)?String(err.message):'';
+        if(!opts.silent){
+          if(msg==='version_conflict'){
+            tcbToast('他の端末でマスタ／確定が更新されています。ページを再読み込みしてから実施確定し直してください。','error');
+          }else if(msg==='confirmed_conflict'){
+            tcbToast('この日は別内容で実施確定済みです。再読み込みして確認してください。','error');
+          }else{
+            tcbToast('クラウドへの実施確定に失敗しました。通信状況を確認して再実行してください。','error');
+          }
+        }
         reject(err||new Error('confirm_failed'));
       });
       return;
@@ -9624,7 +9649,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.48';
+  if(vEl)vEl.textContent='v1.27.49';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -10227,17 +10252,17 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.48"></script>
-<script src="html2canvas.min.js?v=1.27.48"></script>
-<script src="html2pdf.min.js?v=1.27.48"></script>
-<script src="tcb-print-pdf.js?v=1.27.48"></script>
-<script src="tcb-assign-pdf-check.js?v=1.27.48"></script>
-<script src="tcb-swap-mgr.js?v=1.27.48"></script>
-<script src="tcb-push-mgr.js?v=1.27.48"></script>
-<script src="tcb-login.js?v=1.27.48"></script>
-<script src="tcb-pwa-install.js?v=1.27.48"></script>
-<script src="tcb-group-hold.js?v=1.27.48"></script>
-<script src="tcb-presummary.js?v=1.27.48"></script>
-<script src="tcb-p1-flow.js?v=1.27.48"></script>
+<script src="jspdf.umd.min.js?v=1.27.49"></script>
+<script src="html2canvas.min.js?v=1.27.49"></script>
+<script src="html2pdf.min.js?v=1.27.49"></script>
+<script src="tcb-print-pdf.js?v=1.27.49"></script>
+<script src="tcb-assign-pdf-check.js?v=1.27.49"></script>
+<script src="tcb-swap-mgr.js?v=1.27.49"></script>
+<script src="tcb-push-mgr.js?v=1.27.49"></script>
+<script src="tcb-login.js?v=1.27.49"></script>
+<script src="tcb-pwa-install.js?v=1.27.49"></script>
+<script src="tcb-group-hold.js?v=1.27.49"></script>
+<script src="tcb-presummary.js?v=1.27.49"></script>
+<script src="tcb-p1-flow.js?v=1.27.49"></script>
 </body>
 </html>

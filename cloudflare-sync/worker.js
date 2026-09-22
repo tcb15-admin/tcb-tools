@@ -213,7 +213,9 @@ export default {
       }
       return json({ error: "not_found" }, 404);
     } catch (e) {
-      return json({ error: e.message || "server_error" }, 400);
+      const msg = e && e.message ? String(e.message) : "server_error";
+      const status = msg === "version_conflict" || msg === "confirmed_conflict" ? 409 : 400;
+      return json({ error: msg }, status);
     }
   },
 };
@@ -291,10 +293,31 @@ async function saveMaster(env, body) {
     throw new Error("version_conflict");
   }
   const nextVersion = currentVersion + 1;
-  await env.DB.prepare("UPDATE tool_state SET version = ?, master_json = ?, updated_at = ? WHERE cohort = ?")
-    .bind(nextVersion, JSON.stringify(master), new Date().toISOString(), cohort)
+  const updatedAt = new Date().toISOString();
+  /* CAS: 読み取り後に他端末が更新していたら changes=0 */
+  const result = await env.DB.prepare(
+    "UPDATE tool_state SET version = ?, master_json = ?, updated_at = ? WHERE cohort = ? AND version = ?"
+  )
+    .bind(nextVersion, JSON.stringify(master), updatedAt, cohort, expectedVersion)
     .run();
+  const changes = Number((result && result.meta && result.meta.changes) || 0);
+  if (changes < 1) {
+    throw new Error("version_conflict");
+  }
   return { ok: true, version: nextVersion };
+}
+
+function assignMapsEqualLoose(a, b) {
+  a = a && typeof a === "object" ? a : {};
+  b = b && typeof b === "object" ? b : {};
+  const keys = {};
+  Object.keys(a).forEach((k) => {
+    if (a[k]) keys[k] = 1;
+  });
+  Object.keys(b).forEach((k) => {
+    if (b[k]) keys[k] = 1;
+  });
+  return Object.keys(keys).every((k) => String(a[k] || "") === String(b[k] || ""));
 }
 
 async function historyUpsert(env, body) {
@@ -304,6 +327,7 @@ async function historyUpsert(env, body) {
   if (!activityDate) throw new Error("activity_date_required");
   const savedAt = String(snap.savedAt || new Date().toISOString());
   const incomingConfirmed = !!snap.confirmedAt;
+  const force = !!body.force;
 
   const existing = await env.DB.prepare(
     "SELECT snap_json FROM history_events WHERE cohort = ? AND activity_date = ?"
@@ -320,6 +344,12 @@ async function historyUpsert(env, body) {
     /* 実施確定済みの同日を、試行（confirmedAt なし）で潰さない */
     if (oldSnap.confirmedAt && !incomingConfirmed) {
       return { ok: true, preserved: true, history: await listHistory(env, cohort, 365) };
+    }
+    /* 確定どうしで担当 map が食い違う場合は黙って上書きしない */
+    if (oldSnap.confirmedAt && incomingConfirmed && !force) {
+      if (!assignMapsEqualLoose(oldSnap.map, snap.map)) {
+        throw new Error("confirmed_conflict");
+      }
     }
   }
 
@@ -435,6 +465,14 @@ async function confirmCarryout(env, body) {
 
   const cur = await ensureState(env, cohort);
   const version = Number(cur.version) || 0;
+  const expectedVersion =
+    body.expectedVersion !== undefined && body.expectedVersion !== null && body.expectedVersion !== ""
+      ? Number(body.expectedVersion)
+      : version;
+  if (expectedVersion !== version) {
+    throw new Error("version_conflict");
+  }
+
   const master = JSON.parse(cur.master_json || "{}");
   const carry = JSON.parse(cur.carryout_meta_json || '{"byDate":{}}');
   if (!carry.byDate || typeof carry.byDate !== "object") carry.byDate = {};
@@ -450,11 +488,15 @@ async function confirmCarryout(env, body) {
 
   const nextVersion = version + 1;
   const updatedAt = confirmedAt;
-  await env.DB.prepare(
-    "UPDATE tool_state SET version = ?, master_json = ?, carryout_meta_json = ?, updated_at = ? WHERE cohort = ?"
+  const result = await env.DB.prepare(
+    "UPDATE tool_state SET version = ?, master_json = ?, carryout_meta_json = ?, updated_at = ? WHERE cohort = ? AND version = ?"
   )
-    .bind(nextVersion, JSON.stringify(master), JSON.stringify(carry), updatedAt, cohort)
+    .bind(nextVersion, JSON.stringify(master), JSON.stringify(carry), updatedAt, cohort, version)
     .run();
+  const changes = Number((result && result.meta && result.meta.changes) || 0);
+  if (changes < 1) {
+    throw new Error("version_conflict");
+  }
 
   /* 実施確定時は history_events も同期（carryout_meta のみ更新で履歴が試行のまま残る事故防止） */
   const histRow = await env.DB.prepare(
