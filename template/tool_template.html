@@ -6517,6 +6517,10 @@ function buildAssignScreenSnapshotForPdf(){
   }).forEach(function(n){
     if(tbm[n]&&tbm[n].length)people.push({name:n,tools:tbm[n].slice()});
   });
+  /* PDF側（cardRows）は未割当道具を「未割当」カードで出すため、突合用にも含める */
+  var flatTools=hideTeam?(R.allTools||R.tools||[]):(R.tools||[]);
+  var flatUnassigned=flatTools.filter(function(t){return t&&t.name&&!R.map[t.name];}).map(function(t){return t.name;});
+  if(flatUnassigned.length)people.push({name:'未割当',tools:flatUnassigned});
   return{mode:'flat',hideTeam:true,groups:{all:{label:'',people:people}}};
 }
 
@@ -8825,10 +8829,14 @@ function execAssignPdfBlobSave(out){
 function prepareAssignPdfOutput(forPreview){
   var html=buildPrintHTML({preview:!!forPreview});
   if(!html)return null;
-  var report=checkAssignPdfConsistency(html);
-  if(report&&!report.ok){
-    setSharePanelStatus('割振結果とPDF内容に差異があります。詳細はコンソール（TCB_checkAssignPdf）を確認してください。');
-  }
+  /* 突合チェックは補助機能。万一失敗してもPDF生成は止めない */
+  var report=null;
+  try{
+    report=checkAssignPdfConsistency(html);
+    if(report&&!report.ok){
+      setSharePanelStatus('割振結果とPDF内容に差異があります。詳細はコンソール（TCB_checkAssignPdf）を確認してください。');
+    }
+  }catch(eChk){try{console.warn('PDF突合チェック失敗',eChk);}catch(e2){}}
   return{
     html:html,
     baseName:getAssignPdfBaseName(),
