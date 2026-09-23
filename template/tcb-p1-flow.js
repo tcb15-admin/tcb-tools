@@ -61,7 +61,6 @@
     if (userPick === 'fresh') return 'fresh';
     if (userPick === 'holdings') return 'holdings';
     if (holdingsAvailable()) return 'holdings';
-    if (groupHoldOn()) return 'holdings';
     return 'fresh';
   }
 

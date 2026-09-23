@@ -2087,12 +2087,27 @@ function isGroupHoldEnabled(){
 function effectiveNeedsTeamUI(){
   return needsTeamUI();
 }
-/* 1グループの日では、端末に残った2グループ用の保有登録を消す（次の2グループ日に持ち出さない） */
-function discardStaleGroupHoldForSingleDay(){
+/* 1グループの実施確定後：グループ別保有（次の割振りの前提）を解除する。
+   個人の所持記録は残す（入れ替え案用）。パターンを選んだだけでは消さない。 */
+function releaseGroupHoldingsAfterSingleConfirm(){
   if(needsTeamUI())return;
-  if(typeof TCB_GroupHold==='undefined'||!TCB_GroupHold||typeof TCB_GroupHold.discardIfAny!=='function')return;
-  if(!TCB_GroupHold.discardIfAny())return;
-  tcbToast('1グループの日のため、以前のグループ保有登録を解除しました。','info');
+  var cleared=false;
+  if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.discardIfAny==='function'){
+    cleared=!!TCB_GroupHold.discardIfAny();
+  }
+  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap){
+    clearSeedFromPrevMode();
+    cleared=true;
+  }
+  if(cleared){
+    tcbToast('1グループの実施確定により、グループ別の保有を解除しました。次の2グループは活動パターンのルールで割り振ります。','info');
+  }
+}
+function venueSplitNeedsManualTools(){
+  return (pat==='renshu'&&!!renshuSplit)||(pat==='ryoho'&&!ryohoSameVenue);
+}
+function holdingsGroupModeActive(){
+  return !!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap));
 }
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
@@ -3586,8 +3601,8 @@ function beginReeditFromStoredPrev(){
 function beginHoldingsGroupAllocation(opts){
   opts=opts||{};
   var snap=getHoldingsBaseSnap();
-  if(!snap||typeof snap.map!=='object'){
-    tcbToast('確定済みの保有記録がありません。いちから割り振ります。','warn');
+  if(!snap||typeof snap.map!=='object'||!snapIsTwoSplit(snap)){
+    tcbToast('グループ別の保有はないため、活動パターンのルールで割り振ります。','info');
     clearReeditMode();
     return true;
   }
@@ -3860,6 +3875,7 @@ function confirmCarryOutResult(opts){
         recordLocalCarryoutMetaOnly(d, mapForCarryout, res&&res.confirmedAt);
         return applyConfirmedMapToHistory(d, mapForCarryout);
       }).then(function(){
+        if(!needsTeamUI())releaseGroupHoldingsAfterSingleConfirm();
         finishOk('実施確定をクラウドへ記録しました（PAST・履歴に反映済み）。');
       }).catch(function(err){
         console.error(err);
@@ -3884,6 +3900,7 @@ function confirmCarryOutResult(opts){
     recordLocalCarryoutMetaOnly(d, mapForCarryout);
     persistPastToMaster();
     applyConfirmedMapToHistory(d, mapForCarryout);
+    if(!needsTeamUI())releaseGroupHoldingsAfterSingleConfirm();
     finishOk('実施確定を記録しました（PAST・履歴に反映済み）。マスタを GitHub 等へ同期する場合はマスタ画面の「保存」も実行してください。');
   });
 }
@@ -6657,7 +6674,6 @@ function setPat(p){
   }
   updDesc();
   updateMemUnpublishedWrap();
-  discardStaleGroupHoldForSingleDay();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
 }
 function updDesc(){
@@ -6715,7 +6731,6 @@ function applyRenshuSplit(on){
   updateMemUnpublishedWrap();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
   if(window.TCB_PreSummary)TCB_PreSummary.update();
-  discardStaleGroupHoldForSingleDay();
   if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
     buildTGrid();
   }
@@ -6745,7 +6760,6 @@ function applyRyohoSameVenue(on){
   updateMemUnpublishedWrap();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
   if(window.TCB_PreSummary)TCB_PreSummary.update();
-  discardStaleGroupHoldForSingleDay();
   if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
     buildTGrid();
   }
@@ -7345,6 +7359,10 @@ function showInfo(name){
 /* ========== 割振り実行 ========== */
 function runAlgo(){
   invalidateShareCaches();
+  if(venueSplitNeedsManualTools()&&!holdingsGroupModeActive()&&!isGroupHoldEnabled()){
+    alert('練習場所または試合会場が分かれています。\n固定担当以外のチーム道具は、「持っているグループを登録／確認」で行き先を決めてから実行してください。');
+    return;
+  }
   var mapSnapBeforeRun=(R&&R.map)?cloneAssignMap(R.map):null;
   var ctx=buildAssignmentContext();
   if(!ctx)return;
@@ -10040,7 +10058,10 @@ document.addEventListener('DOMContentLoaded',function(){
   /* STEP1：きょうの割り振り方 */
   if(typeof TCB_P1Flow!=='undefined'&&TCB_P1Flow&&typeof TCB_P1Flow.init==='function'){
     TCB_P1Flow.init({
-      getHoldingsSnap:getHoldingsBaseSnap,
+      getHoldingsSnap:function(){
+        var s=getHoldingsBaseSnap();
+        return (s&&snapIsTwoSplit(s))?s:null;
+      },
       getHoldingsLabel:function(){return holdingsBaseLabel();},
       needsTeamUI:needsTeamUI,
       effectiveNeedsTeamUI:effectiveNeedsTeamUI,

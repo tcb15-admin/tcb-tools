@@ -253,7 +253,7 @@
     if (global.TCB_Feedback) global.TCB_Feedback.toast('保有登録をやめました。従来どおりの割振りに戻ります。', 'info');
   }
 
-  /* 1グループの日を挟んだら、前の2グループ用の控えは実態と合わないので確認なしで消す */
+  /* 1グループを実施確定したあと、次の割振り用のグループ保有だけ消す（個人の所持は残す） */
   function discardIfAny() {
     if (!enabled && !Object.keys(holdMap).length && !heldLabels.la && !heldLabels.lb) return false;
     wipeHold();
