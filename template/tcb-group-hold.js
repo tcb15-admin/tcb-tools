@@ -236,9 +236,7 @@
     if (global.TCB_Feedback) global.TCB_Feedback.toast('グループ保有を保存しました。各グループの保有道具をメンバー内で割り振ります。', 'success');
   }
 
-  function clearHold() {
-    if (!enabled) return;
-    if (!confirm('「いま道具を持っているグループ」の登録をやめます。次の割振りは活動パターンのルールに従います。よろしいですか？')) return;
+  function wipeHold() {
     enabled = false;
     holdMap = {};
     draftMap = {};
@@ -246,7 +244,20 @@
     persist();
     updateStatusUI();
     notifyEnabledChange();
+  }
+
+  function clearHold() {
+    if (!enabled) return;
+    if (!confirm('「いま道具を持っているグループ」の登録をやめます。次の割振りは活動パターンのルールに従います。よろしいですか？')) return;
+    wipeHold();
     if (global.TCB_Feedback) global.TCB_Feedback.toast('保有登録をやめました。従来どおりの割振りに戻ります。', 'info');
+  }
+
+  /* 1グループの日を挟んだら、前の2グループ用の控えは実態と合わないので確認なしで消す */
+  function discardIfAny() {
+    if (!enabled && !Object.keys(holdMap).length && !heldLabels.la && !heldLabels.lb) return false;
+    wipeHold();
+    return true;
   }
 
   function fillDraftFromPrev() {
@@ -302,7 +313,10 @@
     }
     var on = snap.groupHoldEnabled == 1 || snap.groupHoldEnabled === '1' || snap.groupHoldEnabled === true;
     var map = cloneMap(snap.groupHoldMap);
-    if (on && Object.keys(map).length) {
+    var twoSplit = true;
+    try { twoSplit = !(ctx && ctx.needsTeamUI) || !!ctx.needsTeamUI(); } catch (e2) { twoSplit = true; }
+    /* きょうが1グループなら、過去スナップの2グループ保有で控えを復活させない */
+    if (on && Object.keys(map).length && twoSplit) {
       holdMap = map;
       enabled = true;
       if (snap.la || snap.lb) {
@@ -364,6 +378,7 @@
     toSnapFields: toSnapFields,
     restoreFromSnap: restoreFromSnap,
     reset: reset,
+    discardIfAny: discardIfAny,
     updateStatusUI: updateStatusUI,
     openEditor: openEditor
   };

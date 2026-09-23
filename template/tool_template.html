@@ -2087,6 +2087,13 @@ function isGroupHoldEnabled(){
 function effectiveNeedsTeamUI(){
   return needsTeamUI();
 }
+/* 1グループの日では、端末に残った2グループ用の保有登録を消す（次の2グループ日に持ち出さない） */
+function discardStaleGroupHoldForSingleDay(){
+  if(needsTeamUI())return;
+  if(typeof TCB_GroupHold==='undefined'||!TCB_GroupHold||typeof TCB_GroupHold.discardIfAny!=='function')return;
+  if(!TCB_GroupHold.discardIfAny())return;
+  tcbToast('1グループの日のため、以前のグループ保有登録を解除しました。','info');
+}
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
 function applyGroupHoldLabelsIfHidden(){
@@ -6650,6 +6657,7 @@ function setPat(p){
   }
   updDesc();
   updateMemUnpublishedWrap();
+  discardStaleGroupHoldForSingleDay();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
 }
 function updDesc(){
@@ -6707,6 +6715,7 @@ function applyRenshuSplit(on){
   updateMemUnpublishedWrap();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
   if(window.TCB_PreSummary)TCB_PreSummary.update();
+  discardStaleGroupHoldForSingleDay();
   if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
     buildTGrid();
   }
@@ -6736,6 +6745,7 @@ function applyRyohoSameVenue(on){
   updateMemUnpublishedWrap();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
   if(window.TCB_PreSummary)TCB_PreSummary.update();
+  discardStaleGroupHoldForSingleDay();
   if(document.getElementById('p2')&&document.getElementById('p2').className.indexOf('on')>=0&&effectiveNeedsTeamUI()){
     buildTGrid();
   }
