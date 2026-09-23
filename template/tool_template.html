@@ -2082,12 +2082,10 @@ function currentPatFlag(){
 function isGroupHoldEnabled(){
   return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
 }
-/* STEP2の班分けUI・割振りが2グループになるか
-   （活動の2分け / グループ保有 / 保有基準が2分け） */
+/* きょうの活動が2グループのときだけ班分けUI・グループ保有を出す。
+   端末に残った保有登録や、基準日が2分けでも、きょうが1グループなら出さない。 */
 function effectiveNeedsTeamUI(){
-  if(needsTeamUI()||isGroupHoldEnabled())return true;
-  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap))return true;
-  return false;
+  return needsTeamUI();
 }
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
@@ -4227,16 +4225,14 @@ function buildAssignmentContext(opts){
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
   var holdingsMode=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object');
-  /* 保有基準が2分けなら、きょうが両方練習（場所同一）でもグループ内割振りを強制 */
-  var forceTeamFromHoldings=holdingsMode&&snapIsTwoSplit(seedBaseSnap);
-  /* 両方練習かつ場所分離なし：通常は全員1グループ。グループ保有ONまたは保有2分け基準なら班内 */
-  if(pat==='renshu'&&!renshuSplit&&!isGroupHoldEnabled()&&!forceTeamFromHoldings){
+  /* きょうが2グループでない日は全員1グループ（保有登録・基準日の2分けでは分けない） */
+  if(!needsTeamUI()){
     var members=MB.filter(function(m){return !ex[m.name];});
     if(!members.length){if(!silent)alert('対象メンバーが0名です。');return null;}
     var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
     return {ex:ex,la:la,lb:lb,mode:'single',mA:null,mB:null,tA:null,tB:null,tools:tools,members:members,allTools:null};
   }
-  /* 片方試合／両方試合／両方練習・場所分離／グループ保有／保有2分け基準 */
+  /* 片方試合／両方試合（会場別）／両方練習で場所が分かれる日 */
   applyGroupHoldLabelsIfHidden();
   la=tnA||la; lb=tnB||lb;
   var mA=MB.filter(function(m){return !ex[m.name]&&tmMap[m.name]==='A';});
@@ -6668,11 +6664,7 @@ function updDesc(){
       var msgs={
         'kata':   '試合道具は試合組、それ以外は練習組へ',
         'ryoho':  '会場別の2グループで分担',
-        'renshu': ((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap))
-          ?la+'／'+lb+'の保有道具を各グループ内で分担'
-          :(pat==='renshu'&&isGroupHoldEnabled())
-            ?la+'／'+lb+'の保有道具を各グループ内で分担（控え使用）'
-            :'全員で分担'
+        'renshu': '全員で分担'
       };
       el.textContent=msgs[pat];
     }
@@ -9940,7 +9932,7 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
 
-  /* グループ保有（任意：有効時は活動パターンに関係なく班内割振り） */
+  /* グループ保有（任意：きょうが2グループの日だけ STEP2 に出す） */
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.init==='function'){
     TCB_GroupHold.init({
       needsTeamUI:needsTeamUI,

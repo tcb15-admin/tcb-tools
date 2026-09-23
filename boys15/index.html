@@ -19,13 +19,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.50">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1165,14 +1165,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.49">
-<link rel="stylesheet" href="gear.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.49">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.49">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.50">
+<link rel="stylesheet" href="gear.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.50">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.50">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1738,14 +1738,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.49"></script>
-<script src="tcb-sync-api.js?v=1.27.49"></script>
-<script src="tcb-feedback.js?v=1.27.49"></script>
-<script src="tcb-swap-list.js?v=1.27.49"></script>
-<script src="tcb-assign-board.js?v=1.27.49"></script>
-<script src="tcb-handoff-plan.js?v=1.27.49"></script>
-<script src="tcb-team-rules.js?v=1.27.49"></script>
-<script src="tcb-tool-images.js?v=1.27.49"></script>
+<script src="tcb-device.js?v=1.27.50"></script>
+<script src="tcb-sync-api.js?v=1.27.50"></script>
+<script src="tcb-feedback.js?v=1.27.50"></script>
+<script src="tcb-swap-list.js?v=1.27.50"></script>
+<script src="tcb-assign-board.js?v=1.27.50"></script>
+<script src="tcb-handoff-plan.js?v=1.27.50"></script>
+<script src="tcb-team-rules.js?v=1.27.50"></script>
+<script src="tcb-tool-images.js?v=1.27.50"></script>
 <script>
 
 
@@ -1985,12 +1985,10 @@ function currentPatFlag(){
 function isGroupHoldEnabled(){
   return !!(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.isEnabled==='function'&&TCB_GroupHold.isEnabled());
 }
-/* STEP2の班分けUI・割振りが2グループになるか
-   （活動の2分け / グループ保有 / 保有基準が2分け） */
+/* きょうの活動が2グループのときだけ班分けUI・グループ保有を出す。
+   端末に残った保有登録や、基準日が2分けでも、きょうが1グループなら出さない。 */
 function effectiveNeedsTeamUI(){
-  if(needsTeamUI()||isGroupHoldEnabled())return true;
-  if((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap))return true;
-  return false;
+  return needsTeamUI();
 }
 /* STEP1のグループ名欄は「次回活動にグループがあるとき」だけ表示する。
    グループ保有のみ有効（次回は同一場所練習など）の場合は、保有登録時の名前を自動で使う */
@@ -4130,10 +4128,8 @@ function buildAssignmentContext(opts){
   var ex=exSet();
   var la=tnA||'試合組', lb=tnB||'練習組';
   var holdingsMode=!!((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&typeof seedBaseSnap.map==='object');
-  /* 保有基準が2分けなら、きょうが両方練習（場所同一）でもグループ内割振りを強制 */
-  var forceTeamFromHoldings=holdingsMode&&snapIsTwoSplit(seedBaseSnap);
-  /* 両方練習かつ場所分離なし：通常は全員1グループ。グループ保有ONまたは保有2分け基準なら班内 */
-  if(pat==='renshu'&&!renshuSplit&&!isGroupHoldEnabled()&&!forceTeamFromHoldings){
+  /* きょうが2グループでない日は全員1グループ（保有登録・基準日の2分けでは分けない） */
+  if(!needsTeamUI()){
     var members=MB.filter(function(m){return !ex[m.name];});
     if(!members.length){if(!silent)alert('対象メンバーが0名です。');return null;}
     var tools=TL.filter(function(t){return !skipS[t.name];}).map(function(t){return Object.assign({},t,{ls:lscore(t)});});
@@ -6571,11 +6567,7 @@ function updDesc(){
       var msgs={
         'kata':   '試合道具は試合組、それ以外は練習組へ',
         'ryoho':  '会場別の2グループで分担',
-        'renshu': ((seedFromPrev||carryAdjustMode)&&seedBaseSnap&&snapIsTwoSplit(seedBaseSnap))
-          ?la+'／'+lb+'の保有道具を各グループ内で分担'
-          :(pat==='renshu'&&isGroupHoldEnabled())
-            ?la+'／'+lb+'の保有道具を各グループ内で分担（控え使用）'
-            :'全員で分担'
+        'renshu': '全員で分担'
       };
       el.textContent=msgs[pat];
     }
@@ -9649,7 +9641,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.49';
+  if(vEl)vEl.textContent='v1.27.50';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9843,7 +9835,7 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
 
-  /* グループ保有（任意：有効時は活動パターンに関係なく班内割振り） */
+  /* グループ保有（任意：きょうが2グループの日だけ STEP2 に出す） */
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.init==='function'){
     TCB_GroupHold.init({
       needsTeamUI:needsTeamUI,
@@ -10252,17 +10244,17 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.49"></script>
-<script src="html2canvas.min.js?v=1.27.49"></script>
-<script src="html2pdf.min.js?v=1.27.49"></script>
-<script src="tcb-print-pdf.js?v=1.27.49"></script>
-<script src="tcb-assign-pdf-check.js?v=1.27.49"></script>
-<script src="tcb-swap-mgr.js?v=1.27.49"></script>
-<script src="tcb-push-mgr.js?v=1.27.49"></script>
-<script src="tcb-login.js?v=1.27.49"></script>
-<script src="tcb-pwa-install.js?v=1.27.49"></script>
-<script src="tcb-group-hold.js?v=1.27.49"></script>
-<script src="tcb-presummary.js?v=1.27.49"></script>
-<script src="tcb-p1-flow.js?v=1.27.49"></script>
+<script src="jspdf.umd.min.js?v=1.27.50"></script>
+<script src="html2canvas.min.js?v=1.27.50"></script>
+<script src="html2pdf.min.js?v=1.27.50"></script>
+<script src="tcb-print-pdf.js?v=1.27.50"></script>
+<script src="tcb-assign-pdf-check.js?v=1.27.50"></script>
+<script src="tcb-swap-mgr.js?v=1.27.50"></script>
+<script src="tcb-push-mgr.js?v=1.27.50"></script>
+<script src="tcb-login.js?v=1.27.50"></script>
+<script src="tcb-pwa-install.js?v=1.27.50"></script>
+<script src="tcb-group-hold.js?v=1.27.50"></script>
+<script src="tcb-presummary.js?v=1.27.50"></script>
+<script src="tcb-p1-flow.js?v=1.27.50"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /* グループ保有（任意）モジュール
-   必要なときだけ STEP2 から登録。有効時は活動パターンに関係なく割振りを班内のみにする。
+   きょうの活動が2グループのときだけ STEP2 に出す。有効時はその日の班内だけで割り振る。
    ctx は tool_template の init から注入する。 */
 (function (global) {
   'use strict';
@@ -104,10 +104,13 @@
     var card = document.getElementById('tcb-ghold-card');
     var status = document.getElementById('tcb-ghold-status');
     var btnClear = document.getElementById('btn-tcb-ghold-clear');
-    /* 確定保有を基準に割振るとき（seed）は不要なので非表示 */
+    /* きょうが2グループの日だけ。保有基準モード中、または1グループの日は出さない */
     var seedOn = !!(ctx && typeof ctx.isHoldingsSeedActive === 'function' && ctx.isHoldingsSeedActive());
-    if (card) card.className = 'card tcb-ghold-card' + (seedOn ? '' : ' on');
-    if (seedOn) return;
+    var twoSplit = false;
+    try { twoSplit = !!(ctx && ctx.needsTeamUI && ctx.needsTeamUI()); } catch (e) { twoSplit = false; }
+    var showCard = twoSplit && !seedOn;
+    if (card) card.className = 'card tcb-ghold-card' + (showCard ? ' on' : '');
+    if (!showCard) return;
     var labels = displayLabels();
     if (status) {
       if (enabled) {
