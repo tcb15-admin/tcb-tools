@@ -113,7 +113,8 @@
     return g === 'A' || g === 'B' ? g : null;
   }
 
-  /** 半々。奇数の余り1本は「その道具の前回保有側」。ルール優先で目標本数に合わせる */
+  /** 半々。奇数の余り1本は「その道具の前回保有側」。ルール優先で目標本数に合わせる。
+   *  sticky は「いまの保有者が属する班」（memberTeam）。入れ替え案では試合フラグ番号より保有維持を優先。 */
   function assignHalfSplit(tools, out, opts) {
     var list = tools.slice().sort(sortByCircled);
     var n = list.length;
