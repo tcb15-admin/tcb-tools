@@ -1,0 +1,31 @@
+/* 次回グループ分け（STEP2・任意・先読み用） */
+.tcb-next-team-card{display:none;margin-top:10px;}
+.tcb-next-team-card.on{display:block;}
+.tcb-next-team-lead{
+  margin:0 0 10px;
+  font-size:12px;
+  line-height:1.55;
+  color:var(--txt2);
+}
+.tcb-next-team-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:0 0 10px;
+}
+.tcb-next-team-actions .nb,
+.tcb-next-team-actions .rbtn{
+  min-height:36px;
+  padding:6px 12px;
+  font-size:12px;
+}
+.tcb-next-team-status{
+  margin:0 0 8px;
+  font-size:12px;
+  color:var(--txt2);
+}
+.tcb-next-team-status.on{
+  color:#1b5e20;
+  font-weight:600;
+}
+.tcb-next-team-card .tcrow{margin-bottom:8px;}

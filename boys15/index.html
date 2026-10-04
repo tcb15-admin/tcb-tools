@@ -19,13 +19,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="15期ポータル">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-feedback.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-presummary.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.54">
+<link rel="stylesheet" href="tcb-swap-mgr.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-push-mgr.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-pwa-install.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-group-hold.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-next-team.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-feedback.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-presummary.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-p1-flow.css?v=1.27.55">
 <style>
 :root{
   /* 墨紙シェル連動：UIクロムは墨＋紙。当番A/Bの識別色（ta/tb）のみ従来どおり残す。 */
@@ -1165,14 +1166,14 @@ html{color-scheme:light;}
   body{background:#fff;color:#111;}
 }
 </style>
-<link rel="stylesheet" href="tcb-shell.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-login.css?v=1.27.54">
-<link rel="stylesheet" href="gear.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.54">
-<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.54">
+<link rel="stylesheet" href="tcb-shell.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-login.css?v=1.27.55">
+<link rel="stylesheet" href="gear.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-gear-ui.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-swap-list.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-handoff-plan.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-assign-board.css?v=1.27.55">
+<link rel="stylesheet" href="tcb-tool-images.css?v=1.27.55">
 </head>
 <body class="gear-body">
 <!-- アイコン用SVGスプライト（LINEは簡易SVG。将来LINE公式ブランドアイコンに差し替え可） -->
@@ -1505,7 +1506,7 @@ html{color-scheme:light;}
       <div class="mgrid" id="tgrid"></div>
     </div>
     <div class="tcb-seed-mode-banner" id="p2-seed-mode-banner" role="status">
-      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：各グループの道具をグループ内で配ります。変更はSTEP1の「割り振り方」から。
+      <strong>いまの保有で割振り</strong><span id="p2-seed-mode-banner-base"></span>：保有を維持し、班またぎが必要な道具だけ動かします。変更はSTEP1の「割り振り方」から。
       <div class="tcb-seedalloc-box">
         <div class="ct tcb-seedalloc-title">配り方を選択</div>
         <div class="tgg tcb-seedalloc-tgg" role="group" aria-label="配り方">
@@ -1529,6 +1530,27 @@ html{color-scheme:light;}
             <button type="button" class="rbtn" id="btn-tcb-ghold-edit">持っているグループを登録／確認</button>
             <button type="button" class="nb nbs" id="btn-tcb-ghold-clear" style="display:none;">保有登録をやめる</button>
           </div>
+        </div>
+      </details>
+    </div>
+    <div class="card tcb-next-team-card" id="tcb-next-team-card">
+      <details class="tcb-fold" id="tcb-next-team-details">
+        <summary>
+          <div class="ct">次回のグループ分け（任意）<button type="button" class="tcb-tip" data-tip="次回の班が分かっているときだけ入力。今の保有の割振りで、持ち帰り担当を次回も同じ班の人へ寄せます。" aria-label="説明"></button></div>
+          <span class="tcb-fold-arrow">&#9660;</span>
+        </summary>
+        <div class="tcb-fold-body">
+          <p class="tcb-next-team-lead">入力すると、今の保有の割振りで「次回前の入れ替え」が少なくなるよう持ち帰り先を先読みします。不要なら使わないでください。</p>
+          <p class="tcb-next-team-status" id="tcb-next-team-status">未使用。</p>
+          <div class="tcb-next-team-actions">
+            <button type="button" class="rbtn" id="btn-tcb-next-team-copy">きょうの班からコピー</button>
+            <button type="button" class="nb nbs" id="btn-tcb-next-team-clear">クリア</button>
+          </div>
+          <div class="tcrow">
+            <div class="tcb A" id="tcb-next-cntA">-</div>
+            <div class="tcb B" id="tcb-next-cntB">-</div>
+          </div>
+          <div class="mgrid" id="tcb-next-tgrid"></div>
         </div>
       </details>
     </div>
@@ -1738,14 +1760,14 @@ html{color-scheme:light;}
   </div>
 </div>
 
-<script src="tcb-device.js?v=1.27.54"></script>
-<script src="tcb-sync-api.js?v=1.27.54"></script>
-<script src="tcb-feedback.js?v=1.27.54"></script>
-<script src="tcb-swap-list.js?v=1.27.54"></script>
-<script src="tcb-assign-board.js?v=1.27.54"></script>
-<script src="tcb-handoff-plan.js?v=1.27.54"></script>
-<script src="tcb-team-rules.js?v=1.27.54"></script>
-<script src="tcb-tool-images.js?v=1.27.54"></script>
+<script src="tcb-device.js?v=1.27.55"></script>
+<script src="tcb-sync-api.js?v=1.27.55"></script>
+<script src="tcb-feedback.js?v=1.27.55"></script>
+<script src="tcb-swap-list.js?v=1.27.55"></script>
+<script src="tcb-assign-board.js?v=1.27.55"></script>
+<script src="tcb-handoff-plan.js?v=1.27.55"></script>
+<script src="tcb-team-rules.js?v=1.27.55"></script>
+<script src="tcb-tool-images.js?v=1.27.55"></script>
 <script>
 
 
@@ -2045,8 +2067,15 @@ function refreshTeamUiForGroupHold(){
   if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
     TCB_GroupHold.updateStatusUI();
   }
+  refreshNextTeamUI();
   if(window.TCB_P1Flow)TCB_P1Flow.update();
   if(window.TCB_PreSummary)TCB_PreSummary.update();
+}
+function refreshNextTeamUI(){
+  if(typeof TCB_NextTeam!=='undefined'&&TCB_NextTeam){
+    if(typeof TCB_NextTeam.update==='function')TCB_NextTeam.update();
+    else if(typeof TCB_NextTeam.updateStatusUI==='function')TCB_NextTeam.updateStatusUI();
+  }
 }
 function showsMemUnpublishedOption(){
   return pat==='kata';
@@ -4133,13 +4162,64 @@ function resolveAllocationTeamForTool(t, snap, prevMap, ruleMap){
   if(ruleMap&&(ruleMap[t.name]==='A'||ruleMap[t.name]==='B'))return ruleMap[t.name];
   return 'A';
 }
+/* 保有ベース：いまの保有者の班を起点に、ルール上必須の班またぎだけ直す。
+   ・片方試合：試合道具→試合組、それ以外→練習組（必須）
+   ・両方試合／場所分離：半々・各班1点・内外野別班など（sticky＝保有者のいまの班）
+   ・固定担当は固定者のきょうの班 */
 function buildHoldingsBasedToolLists(snap){
   var prevMap=(snap&&snap.map&&typeof snap.map==='object')?snap.map:{};
   var active=TL.filter(function(t){return !skipS[t.name];});
-  var ruleMap=computeRuleTeamMap(active)||{};
+  var ex=exSet();
+  var teamMap={};
+  var matchT=kataMatchTeamId();
+  var pracT=kataPracticeTeamId();
+  /* 1) 保有者のいまの班を起点 */
+  active.forEach(function(t){
+    if(!t||!t.name)return;
+    var holderTeam=fixedHolderTeamNow(t);
+    if(holderTeam){teamMap[t.name]=holderTeam;return;}
+    var p=prevMap[t.name];
+    if(p&&!ex[p]&&(tmMap[p]==='A'||tmMap[p]==='B')){
+      teamMap[t.name]=tmMap[p];
+      return;
+    }
+    if(p&&typeof handoffIsGroupDest==='function'&&handoffIsGroupDest(p)){
+      var mk=(snap&&snap.tmMap)||{};
+      if(mk[p]==='A'||mk[p]==='B'){teamMap[t.name]=mk[p];return;}
+    }
+    if(snap&&Array.isArray(snap.tools)){
+      for(var i=0;i<snap.tools.length;i++){
+        var st=snap.tools[i];
+        if(st&&st.name===t.name&&(st.team==='A'||st.team==='B')){
+          teamMap[t.name]=st.team;
+          return;
+        }
+      }
+    }
+    if(p&&snap&&snap.tmMap&&(snap.tmMap[p]==='A'||snap.tmMap[p]==='B')){
+      teamMap[t.name]=snap.tmMap[p];
+      return;
+    }
+    teamMap[t.name]='A';
+  });
+  /* 2) 必須の班またぎだけルールで上書き */
+  if(pat==='kata'){
+    active.forEach(function(t){
+      if(!t||!t.name)return;
+      if(fixedHolderTeamNow(t))return;
+      teamMap[t.name]=toolIsMatchTool(t)?matchT:pracT;
+    });
+  }else{
+    var ruleMap=computeRuleTeamMap(active)||{};
+    active.forEach(function(t){
+      if(!t||!t.name)return;
+      if(fixedHolderTeamNow(t))return;
+      if(ruleMap[t.name]==='A'||ruleMap[t.name]==='B')teamMap[t.name]=ruleMap[t.name];
+    });
+  }
   var tA=[], tB=[];
   active.forEach(function(t){
-    var g=resolveAllocationTeamForTool(t, snap, prevMap, ruleMap);
+    var g=teamMap[t.name];
     if(g!=='A'&&g!=='B')g='A';
     var copy=Object.assign({},t,{ls:lscore(t),team:g});
     if(g==='A')tA.push(copy); else tB.push(copy);
@@ -5966,7 +6046,28 @@ function assignMinChangersScore(name, st, state, prevMap, prevPerson, opts){
   var toolName=opts&&opts.toolName?opts.toolName:'';
   if(handoffComputeBaseSnap&&isMemberRemoteByName(name))score+=60000;
   if(prevMap&&!personAlreadyChangedFromPrev(state,name,prevMap)&&!(opts&&opts.zeroPriority&&opts.zeroPriority[name]))score-=20000;
+  /* 次回班先読み：同じ班に残る人を優先（preferBoost は小さいほど良い → 符号反転して加算） */
+  if(nextTeamLookaheadActive()&&typeof TCB_NextTeam!=='undefined'&&TCB_NextTeam&&typeof TCB_NextTeam.preferBoost==='function'){
+    score-=TCB_NextTeam.preferBoost(name, opts&&opts.toolTeam);
+  }
   return score;
+}
+function nextTeamLookaheadActive(){
+  if(!(seedFromPrev||carryAdjustMode)||!seedBaseSnap)return false;
+  return !!(typeof TCB_NextTeam!=='undefined'&&TCB_NextTeam&&typeof TCB_NextTeam.isReady==='function'&&TCB_NextTeam.isReady());
+}
+function nextAssignSortKey(name, toolTeam){
+  if(!nextTeamLookaheadActive())return 1;
+  if(typeof TCB_NextTeam==='undefined'||!TCB_NextTeam||typeof TCB_NextTeam.preferBoost!=='function')return 1;
+  var b=TCB_NextTeam.preferBoost(name, toolTeam);
+  if(b<0)return 0;
+  if(b>0)return 2;
+  return 1;
+}
+function assignOptsForTool(t, base){
+  var o=Object.assign({},base||{},{toolName:t&&t.name, toolTeam:t&&t.team});
+  if(nextTeamLookaheadActive())o.nextLookahead=1;
+  return o;
 }
 function assignPrioBoost(name, st, opts){
   if(!opts||!opts.zeroPriority||!opts.zeroPriority[name])return 0;
@@ -6002,7 +6103,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
     var hasZero=keys.some(function(k){return (state[k].cnt|0)===0;});
     addStart=hasZero?0:keys.length;
   }
-  var scoreOpts=opts?Object.assign({},opts,{toolName:t.name}):{toolName:t.name};
+  var scoreOpts=opts?Object.assign({},opts,{toolName:t.name,toolTeam:t.team}):{toolName:t.name,toolTeam:t.team};
   function notePoolAssign(name){
     if(minChangers&&opts&&opts.poolAssigned&&name)opts.poolAssigned[name]=(opts.poolAssigned[name]||0)+1;
   }
@@ -6022,6 +6123,8 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
               var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,scoreOpts);
               if(sa!==sb)return sb-sa;
             }else{
+              var nk=nextAssignSortKey(a[0],t.team)-nextAssignSortKey(b[0],t.team);
+              if(nk!==0)return nk;
               var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
               if(zb!==0)return zb;
               /* 持ち回り：同条件なら前回担当を後回し */
@@ -6070,6 +6173,9 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
         var sa=assignMinChangersScore(a[0],a[1],state,prevMap,prevPerson,scoreOpts);
         var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,scoreOpts);
         if(sa!==sb)return sb-sa;
+      }else{
+        var nk0=nextAssignSortKey(a[0],t.team)-nextAssignSortKey(b[0],t.team);
+        if(nk0!==0)return nk0;
       }
       var p=prio(a[1], medianPast)-prio(b[1], medianPast);
       if(p!==0)return p;
@@ -6082,6 +6188,8 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
           var sb=assignMinChangersScore(b[0],b[1],state,prevMap,prevPerson,scoreOpts);
           if(sa!==sb)return sb-sa;
         }else{
+          var nk1=nextAssignSortKey(a[0],t.team)-nextAssignSortKey(b[0],t.team);
+          if(nk1!==0)return nk1;
           var zb=assignPrioBoost(a[0],a[1],opts)-assignPrioBoost(b[0],b[1],opts);
           if(zb!==0)return zb;
           if(a[1].cnt!==b[1].cnt)return a[1].cnt-b[1].cnt;
@@ -6182,7 +6290,7 @@ function doAssign(toolList,state,prevAssignMap,runSeed){
   defer=sortToolsForDefer(defer);
   defer.forEach(function(t){
     if(tryApplyFixedToolToState(t,state))return;
-    assignOneToolToState(t, state, prevMap, carryMap, seed);
+    assignOneToolToState(t, state, prevMap, carryMap, seed, assignOptsForTool(t));
   });
   return state;
 }
@@ -6287,7 +6395,7 @@ function assignPoolFair(poolToolObjs, fullState, prevAssignMap, runSeed, zeroPri
   var opts={rotateFair:true};
   if(zeroPriority)opts.zeroPriority=zeroPriority;
   defer.forEach(function(t){
-    assignOneToolToState(t, fullState, prevMap, carryMap, seed, opts);
+    assignOneToolToState(t, fullState, prevMap, carryMap, seed, assignOptsForTool(t, opts));
   });
 }
 /* 持ち帰り調整：変更人数を最小化（余剰道具は既に変更が必要な人へ集中）＋欠席復帰者優先 */
@@ -6300,7 +6408,7 @@ function assignPoolCarryAdjust(poolToolObjs, fullState, prevAssignMap, runSeed, 
   var opts={zeroPriority:zeroPriority||null, minChangers:true, poolAssigned:poolAssigned};
   var defer=sortToolsForDefer(poolToolObjs);
   defer.forEach(function(t){
-    assignOneToolToState(t, fullState, prevMap, carryMap, seed, opts);
+    assignOneToolToState(t, fullState, prevMap, carryMap, seed, assignOptsForTool(t, opts));
   });
 }
 function runRebalanceFair(){
@@ -6723,6 +6831,7 @@ function goStep(n){
     if(typeof TCB_GroupHold!=='undefined'&&TCB_GroupHold&&typeof TCB_GroupHold.updateStatusUI==='function'){
       TCB_GroupHold.updateStatusUI();
     }
+    refreshNextTeamUI();
   }
   if(n===3&&R){
     var p3rb=document.getElementById('p3-rebalance-bar');
@@ -9691,7 +9800,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(adateBoot)adateBoot.value=localIsoDateFromDate();
   /* バージョン表示 */
   var vEl=document.getElementById('tool-version');
-  if(vEl)vEl.textContent='v1.27.54';
+  if(vEl)vEl.textContent='v1.27.55';
   /* 操作マニュアル（config MANUAL_URL が設定されている世代のみ表示） */
   var manualUrl=String('https://tcb15-admin.github.io/tcb-tools/boys15/docs/TCB-MAN-001_道具割り振りツール_操作マニュアル_v1.5.pdf'||'').trim();
   var manualEl=document.getElementById('hdr-manual-link');
@@ -9938,6 +10047,22 @@ document.addEventListener('DOMContentLoaded',function(){
           if(g==='A'||g==='B')out[tn]=g;
         });
         return out;
+      }
+    });
+  }
+
+  /* 次回グループ分け（任意：今の保有の持ち帰り先先読み） */
+  if(typeof TCB_NextTeam!=='undefined'&&TCB_NextTeam&&typeof TCB_NextTeam.init==='function'){
+    TCB_NextTeam.init({
+      needsTeamUI:needsTeamUI,
+      getTeamLabelA:function(){return tnA||'試合組';},
+      getTeamLabelB:function(){return tnB||'練習組';},
+      getTodayTmMap:function(){return tmMap;},
+      listMembers:function(){return MB.filter(function(m){return m&&!memberMasterExcluded(m);});},
+      exSet:exSet,
+      tcHtml:tcHtml,
+      onChange:function(){
+        if(window.TCB_PreSummary)TCB_PreSummary.update();
       }
     });
   }
@@ -10297,17 +10422,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
 </script>
 <!-- PDF生成ライブラリ: bundle版は html2canvas / jspdf をグローバル公開しないため個別に読み込む（順序厳守: jspdf → html2canvas → html2pdf） -->
-<script src="jspdf.umd.min.js?v=1.27.54"></script>
-<script src="html2canvas.min.js?v=1.27.54"></script>
-<script src="html2pdf.min.js?v=1.27.54"></script>
-<script src="tcb-print-pdf.js?v=1.27.54"></script>
-<script src="tcb-assign-pdf-check.js?v=1.27.54"></script>
-<script src="tcb-swap-mgr.js?v=1.27.54"></script>
-<script src="tcb-push-mgr.js?v=1.27.54"></script>
-<script src="tcb-login.js?v=1.27.54"></script>
-<script src="tcb-pwa-install.js?v=1.27.54"></script>
-<script src="tcb-group-hold.js?v=1.27.54"></script>
-<script src="tcb-presummary.js?v=1.27.54"></script>
-<script src="tcb-p1-flow.js?v=1.27.54"></script>
+<script src="jspdf.umd.min.js?v=1.27.55"></script>
+<script src="html2canvas.min.js?v=1.27.55"></script>
+<script src="html2pdf.min.js?v=1.27.55"></script>
+<script src="tcb-print-pdf.js?v=1.27.55"></script>
+<script src="tcb-assign-pdf-check.js?v=1.27.55"></script>
+<script src="tcb-swap-mgr.js?v=1.27.55"></script>
+<script src="tcb-push-mgr.js?v=1.27.55"></script>
+<script src="tcb-login.js?v=1.27.55"></script>
+<script src="tcb-pwa-install.js?v=1.27.55"></script>
+<script src="tcb-group-hold.js?v=1.27.55"></script>
+<script src="tcb-next-team.js?v=1.27.55"></script>
+<script src="tcb-presummary.js?v=1.27.55"></script>
+<script src="tcb-p1-flow.js?v=1.27.55"></script>
 </body>
 </html>

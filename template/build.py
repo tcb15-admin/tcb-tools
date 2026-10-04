@@ -523,6 +523,7 @@ def build(target):
         'tcb-push-mgr.js', 'tcb-push-mgr.css',
         'tcb-pwa-install.js', 'tcb-pwa-install.css',
         'tcb-group-hold.js', 'tcb-group-hold.css',
+        'tcb-next-team.js', 'tcb-next-team.css',
         'tcb-feedback.js', 'tcb-feedback.css',
         'tcb-device.js',
         'tcb-presummary.js', 'tcb-presummary.css',
