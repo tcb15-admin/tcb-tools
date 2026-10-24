@@ -1,4 +1,12 @@
 {
+  "_meta": {
+    "source": "cloudflare-d1",
+    "cohort": "15",
+    "cloudVersion": 215,
+    "syncedAt": "2026-10-24T05:54:54.269Z",
+    "apiBase": "https://tcb-tools-sync.kazoo-matsu.workers.dev",
+    "note": "ビルド用スナップショット。運用の正本は D1。pull-master.mjs で更新。"
+  },
   "MB": [
     {
       "name": "1：遠藤",
@@ -7,7 +15,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 1
     },
     {
       "name": "2：伊郷",
@@ -16,7 +27,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "6：大脇",
@@ -25,7 +39,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "7：八重",
@@ -34,7 +51,10 @@
       "rest": 0,
       "coach": 1,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "8：本山",
@@ -43,16 +63,22 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "9：石川",
-      "v": "S",
+      "v": "M",
       "fix": null,
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 1,
+      "remote": 0
     },
     {
       "name": "10：伊藤（天）",
@@ -61,25 +87,34 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "11：植松",
-      "v": "S",
-      "fix": null,
-      "rest": 0,
-      "coach": 0,
-      "ac14": 0,
-      "sibling": 0
-    },
-    {
-      "name": "13：鮫島",
       "v": "M",
       "fix": null,
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
+    },
+    {
+      "name": "13：鮫島",
+      "v": "L",
+      "fix": null,
+      "rest": 0,
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 1
     },
     {
       "name": "14：増田",
@@ -88,7 +123,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "15：神野",
@@ -97,7 +135,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "16：清水",
@@ -106,7 +147,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "17：柴田",
@@ -115,7 +159,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "18：秋田",
@@ -124,7 +171,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "19：松原",
@@ -133,7 +183,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "21：伊藤（櫂）",
@@ -142,7 +195,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "22：林",
@@ -151,7 +207,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 1,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "23：半田",
@@ -160,7 +219,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "24：長坂",
@@ -169,7 +231,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "25：岡村",
@@ -178,7 +243,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "26：松永",
@@ -187,34 +255,46 @@
       "rest": 1,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "27：高橋（龍）",
-      "v": "M",
+      "v": "L",
       "fix": "キャッチャー道具⑤",
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "29：藤川",
       "v": "M",
       "fix": null,
-      "rest": 1,
+      "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 1,
+      "remote": 0
     },
     {
       "name": "31：丸井",
-      "v": "S",
+      "v": "M",
       "fix": "キャッチャー道具④",
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 1
     },
     {
       "name": "32：見並",
@@ -223,43 +303,58 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "33：伊藤（魁）",
-      "v": "M",
+      "v": "L",
       "fix": null,
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "35：鵜飼",
       "v": "M",
-      "fix": "キャッチャー道具①",
+      "fix": null,
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "38：二村",
-      "v": "M",
-      "fix": null,
-      "rest": 0,
-      "coach": 1,
-      "ac14": 0,
-      "sibling": 0
-    },
-    {
-      "name": "43：三浦",
-      "v": "M",
+      "v": "L",
       "fix": null,
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 1,
+      "remote": 0
+    },
+    {
+      "name": "43：三浦",
+      "v": "L",
+      "fix": null,
+      "rest": 0,
+      "coach": 0,
+      "ac14": 0,
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "44：ディグ",
@@ -268,7 +363,10 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "48：柴",
@@ -277,7 +375,10 @@
       "rest": 0,
       "coach": 1,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "51：西本",
@@ -286,7 +387,10 @@
       "rest": 0,
       "coach": 1,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "55：濱田",
@@ -295,16 +399,22 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 1
     },
     {
       "name": "77：伊奈",
-      "v": "M",
+      "v": "L",
       "fix": null,
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     },
     {
       "name": "78：榎本",
@@ -313,16 +423,22 @@
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 1
     },
     {
       "name": "86：池田",
-      "v": "M",
+      "v": "L",
       "fix": null,
       "rest": 0,
       "coach": 0,
       "ac14": 0,
-      "sibling": 0
+      "sibling": 0,
+      "noMulti": 0,
+      "quit": 0,
+      "remote": 0
     }
   ],
   "TL": [
@@ -331,16 +447,20 @@
       "name": "キャッチャー道具①",
       "sz": "M",
       "wt": "Medium",
-      "note": "35：鵜飼",
-      "fixed": 1
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 22,
       "name": "キャッチャー道具③",
       "sz": "M",
       "wt": "Medium",
-      "note": null,
-      "fixed": 0
+      "note": "2：伊郷",
+      "fixed": 1,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 23,
@@ -348,7 +468,9 @@
       "sz": "M",
       "wt": "Medium",
       "note": "31：丸井",
-      "fixed": 1
+      "fixed": 1,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 24,
@@ -356,7 +478,9 @@
       "sz": "M",
       "wt": "Medium",
       "note": "27：高橋（龍）",
-      "fixed": 1
+      "fixed": 1,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 35,
@@ -365,165 +489,288 @@
       "wt": "Light",
       "note": null,
       "fixed": 0,
-      "broken": 0
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 8,
       "name": "タープ①",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
       "note": null,
-      "fixed": 0
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 9,
       "name": "タープ②",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 10,
       "name": "タープ③",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
       "note": null,
-      "broken": 1
+      "broken": 1,
+      "fixed": 0,
+      "matchTool": 1
     },
     {
       "id": 11,
       "name": "タープ④",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 12,
       "name": "タープ⑤",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 13,
       "name": "タープ⑥",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 14,
       "name": "タープ⑦",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 15,
       "name": "タープ⑧",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 16,
       "name": "タープ⑨",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
-      "id": 17,
+      "id": 39,
       "name": "タープ⑩",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 18,
       "name": "タープ⑪",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 19,
       "name": "タープ⑫",
-      "sz": "LL",
+      "sz": "L",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 1,
+      "matchTool": 1
     },
     {
-      "id": 7,
-      "name": "トレーニング道具",
+      "id": 44,
+      "name": "トレーニングマット①",
       "sz": "M",
       "wt": "Light",
       "note": null,
-      "fixed": 0
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
-      "id": 36,
-      "name": "縄跳びセット",
+      "id": 45,
+      "name": "トレーニングマット②",
       "sz": "M",
-      "wt": "Medium",
+      "wt": "Light",
       "note": null,
-      "fixed": 0
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
+    },
+    {
+      "id": 46,
+      "name": "トレーニングマット③",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
+    },
+    {
+      "id": 47,
+      "name": "トレーニングマット④",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
+    },
+    {
+      "id": 48,
+      "name": "トレーニングマット⑤",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
+    },
+    {
+      "id": 7,
+      "name": "トレーニング道具①",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
+    },
+    {
+      "id": 41,
+      "name": "トレーニング道具②",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 27,
       "name": "ベース一式",
       "sz": "L",
       "wt": "Very heavy",
-      "note": "noMul"
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 33,
-      "name": "外野用ノックボール",
+      "name": "外野用ノックボール①",
       "sz": "M",
-      "wt": "Medium",
-      "note": null
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
+    },
+    {
+      "id": 42,
+      "name": "外野用ノックボール②",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 29,
       "name": "雑カゴ①",
       "sz": "M",
       "wt": "Very light",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 30,
       "name": "雑カゴ②",
       "sz": "M",
       "wt": "Very light",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 34,
       "name": "試合用バットケース",
       "sz": "S",
       "wt": "Very light",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 25,
       "name": "審判道具①",
       "sz": "M",
       "wt": "Light",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 26,
       "name": "審判道具②",
       "sz": "M",
       "wt": "Light",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 28,
       "name": "長尺＆短尺バット",
       "sz": "L",
-      "wt": "Heavy",
-      "note": null
+      "wt": "Very heavy",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 31,
@@ -531,213 +778,384 @@
       "sz": "M",
       "wt": "Light",
       "note": null,
-      "fixed": 0
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 37,
       "name": "投手用ボール②",
       "sz": "M",
-      "wt": "Medium",
+      "wt": "Light",
       "note": null,
       "fixed": 0,
-      "broken": 0
+      "broken": 0,
+      "matchTool": 1
     },
     {
       "id": 32,
-      "name": "内野用ノックボール",
+      "name": "内野用ノックボール①",
       "sz": "M",
       "wt": "Light",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
+    },
+    {
+      "id": 43,
+      "name": "内野用ノックボール②",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 1
+    },
+    {
+      "id": 38,
+      "name": "縄跳びセット①",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
+    },
+    {
+      "id": 40,
+      "name": "縄跳びセット②",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 1,
       "name": "練習用ボール①",
       "sz": "M",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 2,
       "name": "練習用ボール②",
       "sz": "M",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 3,
       "name": "練習用ボール③",
       "sz": "M",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 4,
       "name": "練習用ボール④",
       "sz": "M",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 5,
       "name": "練習用ボール⑤",
       "sz": "M",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     },
     {
       "id": 6,
       "name": "練習用ボール⑥",
       "sz": "M",
       "wt": "Heavy",
-      "note": null
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0
     }
   ],
   "DESCS": {
     "練習用ボール①": {
       "text": "練習球コンテナ満杯",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ②": {
       "text": "チーム所有タープ（緑）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ③": {
       "text": "チーム所有タープ（黒）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ④": {
       "text": "チーム所有タープ（紺）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ⑤": {
       "text": "チーム所有タープ（黒）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ⑥": {
       "text": "チーム所有タープCAPTAINSTAG（青）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ⑦": {
       "text": "チーム所有タープ",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ⑧": {
       "text": "チーム所有タープ",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "キャッチャー道具①": {
       "text": "大和川大会出場記念（マスク・ヘルメット・プロテクター・レガース）",
-      "img": ""
+      "img": "https://tcb15-admin.github.io/tcb-tools/boys15/images/6978281ede25bdc5b434d8ec_59c18bee.jpg?v=2299ada403c6",
+      "imgs": [
+        "https://tcb15-admin.github.io/tcb-tools/boys15/images/6978281ede25bdc5b434d8ec_59c18bee.jpg?v=2299ada403c6",
+        "https://tcb15-admin.github.io/tcb-tools/boys15/images/6978281ede25bdc5b434d8ec_bf17b1c2.jpg?v=16582db89afd"
+      ]
     },
     "キャッチャー道具③": {
       "text": "黒メッシュバッグ（マスク・ヘルメット・プロテクター・レガース）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "キャッチャー道具④": {
       "text": "新品（マスク・ヘルメット・プロテクター・レガース）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "キャッチャー道具⑤": {
       "text": "ZETT PROSTATUS（マスク・ヘルメット・プロテクター・レガース）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "ベース一式": {
-      "text": "ホームベース×2、ベース×3、ブロック×6、ハンマー×3、ベース抜き×1、メジャー×1",
-      "img": ""
+      "text": "ボール40球×1袋",
+      "img": "",
+      "imgs": []
     },
     "審判道具①": {
       "text": "球審用グッズ（マスク・プロテクター・レガース・ボールバッグ）※球数カウンターあり",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "審判道具②": {
-      "text": "球審用グッズ（マスク・プロテクター・レガース・ボールバッグ）※球数カウンターあり",
-      "img": ""
+      "text": "長尺バット×8本、短尺バット×6本",
+      "img": "",
+      "imgs": []
     },
     "雑カゴ①": {
       "text": "メッシュコンテナ×1つ、買い物カゴ×2つ",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "雑カゴ②": {
-      "text": "メッシュコンテナ×1つ、買い物カゴ×3つ",
-      "img": ""
+      "text": "試合用折りたたみバットケース",
+      "img": "",
+      "imgs": []
     },
     "試合用バットケース": {
-      "text": "試合用折りたたみバットケース",
-      "img": ""
+      "text": "球審用グッズ（マスク・プロテクター・レガース・ボールバッグ）※球数カウンターあり",
+      "img": "",
+      "imgs": []
     },
     "練習用ボール②": {
       "text": "練習球コンテナ満杯",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "練習用ボール③": {
       "text": "練習球コンテナ満杯",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "練習用ボール④": {
       "text": "練習球コンテナ満杯",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "練習用ボール⑤": {
-      "text": "練習球コンテナ満杯",
-      "img": ""
+      "text": "",
+      "img": "",
+      "imgs": []
     },
     "練習用ボール⑥": {
-      "text": "練習球コンテナ満杯",
-      "img": ""
+      "text": "",
+      "img": "",
+      "imgs": []
     },
     "タープ⑨": {
       "text": "チーム所有タープ（黒）",
-      "img": ""
-    },
-    "タープ⑩": {
-      "text": "チーム所有タープ（ベージュ）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "タープ⑪": {
-      "text": "チーム所有タープ（ベージュ）",
-      "img": ""
+      "text": "チーム所有タープ（黒/ワインレッド）",
+      "img": "",
+      "imgs": []
     },
     "タープ⑫": {
-      "text": "チーム所有タープ（黒/ワインレッド）",
-      "img": ""
+      "text": "チーム所有タープ",
+      "img": "",
+      "imgs": []
     },
     "長尺＆短尺バット": {
-      "text": "長尺バット×8本、短尺バット×6本",
-      "img": ""
-    },
-    "内野用ノックボール": {
-      "text": "ボール40球×1袋",
-      "img": ""
-    },
-    "外野用ノックボール": {
-      "text": "ボール40球×1袋",
-      "img": ""
+      "text": "ボール12球、ロジン、ホームベース×1、メジャー×1",
+      "img": "",
+      "imgs": []
     },
     "ストレッチポール①": {
       "text": "アルミパイプ",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
     "投手用ボール①": {
-      "text": "ボール12球、ロジン、ホームベース×1、メジャー×1",
-      "img": ""
+      "text": "ボール×12球、ロジン、ホームベース×1",
+      "img": "",
+      "imgs": []
     },
     "投手用ボール②": {
-      "text": "ボール×12球、ロジン、ホームベース×1",
-      "img": ""
+      "text": "ボール40球×1袋",
+      "img": "",
+      "imgs": []
     },
     "タープ①": {
       "text": "チーム所有タープ（緑）",
-      "img": ""
+      "img": "",
+      "imgs": []
     },
-    "トレーニング道具": {
-      "text": "脳を騙すバット×7本（長×4、短×3）、穴あきボール20個×6袋＋13個、テニスボール×40個、カラーボール50個×6袋＋26個、保護メガネ2つ×1袋",
-      "img": ""
+    "タープ⑩": {
+      "text": "チーム所有タープ",
+      "img": "https://tcb15-admin.github.io/tcb-tools/boys15/images/53f8182b3a801f12cd464ba2.jpg?v=eeec028c52a7",
+      "imgs": [
+        "https://tcb15-admin.github.io/tcb-tools/boys15/images/53f8182b3a801f12cd464ba2.jpg?v=eeec028c52a7"
+      ]
     },
-    "縄跳びセット": {
-      "text": "縄跳びセット",
-      "img": ""
+    "縄跳びセット①": {
+      "text": "練習球コンテナ満杯",
+      "img": "",
+      "imgs": []
+    },
+    "縄跳びセット②": {
+      "text": "練習球コンテナ満杯",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニング道具①": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニング道具②": {
+      "text": "ホームベース×2、ベース×3、ブロック×6、ハンマー×3、ベース抜き×1、メジャー×1",
+      "img": "",
+      "imgs": []
+    },
+    "外野用ノックボール①": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "外野用ノックボール②": {
+      "text": "メッシュコンテナ×1つ、買い物カゴ×3つ",
+      "img": "",
+      "imgs": []
+    },
+    "内野用ノックボール①": {
+      "text": "縄跳び20本（4種×5本）、トレーニングチューブ10本（2種×５本）、メッシュコンテナ×1箱",
+      "img": "",
+      "imgs": []
+    },
+    "内野用ノックボール②": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニングマット①": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニングマット②": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニングマット③": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニングマット④": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニングマット⑤": {
+      "text": "脳を騙すバット×7本（長×5、短×2）、穴あきボール20個×6袋＋13個、テニスボール×40個、カラーボール50個×6袋＋26個、保護メガネ2つ×1袋",
+      "img": "",
+      "imgs": []
     }
   },
-  "PAST": {},
+  "PAST": {
+    "1：遠藤": 1331,
+    "2：伊郷": 1347,
+    "6：大脇": 1102,
+    "8：本山": 1218,
+    "9：石川": 223,
+    "11：植松": 1436,
+    "13：鮫島": 1418,
+    "14：増田": 1050,
+    "15：神野": 1510,
+    "16：清水": 1585,
+    "17：柴田": 1598,
+    "18：秋田": 1321,
+    "21：伊藤（櫂）": 1366,
+    "22：林": 120,
+    "23：半田": 1369,
+    "24：長坂": 1277,
+    "25：岡村": 1308,
+    "27：高橋（龍）": 1317,
+    "31：丸井": 1101,
+    "32：見並": 1540,
+    "33：伊藤（魁）": 1393,
+    "35：鵜飼": 1050,
+    "43：三浦": 1228,
+    "44：ディグ": 1794,
+    "78：榎本": 1383,
+    "86：池田": 1475,
+    "10：伊藤（天）": 1387,
+    "19：松原": 1468,
+    "77：伊奈": 273,
+    "55：濱田": 200
+  },
   "DEF_TM": null
 }

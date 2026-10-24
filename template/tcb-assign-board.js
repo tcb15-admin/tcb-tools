@@ -133,9 +133,14 @@
     if (member.remote) badges += '<span class="tcb-ab-badge tcb-ab-badge-remote">遠方</span>';
     if (member.excluded) badges += '<span class="tcb-ab-badge tcb-ab-badge-ex">除外</span>';
     if (!isGroup && tools.length >= 2) badges += '<span class="tcb-ab-badge tcb-ab-badge-multi">複数</span>';
+    var vacant = !isGroup && !tools.length;
+    if (vacant) {
+      cardCls += ' tcb-ab-card-vacant';
+      badges += '<span class="tcb-ab-badge tcb-ab-badge-vacant">空き</span>';
+    }
     var toolsHtml = tools.length
       ? tools.map(function (t) { return renderTile(opts, t, eFn); }).join('')
-      : '<span class="tcb-ab-empty">（なし）</span>';
+      : '<span class="tcb-ab-empty">（なし）再割当できます</span>';
     return '<div class="' + cardCls + '" data-ab-person="' + eFn(name) + '" role="button" tabindex="0">'
       + '<div class="tcb-ab-name">' + eFn(member.label || name) + badges + '</div>'
       + '<div class="tcb-ab-tools">' + toolsHtml + '</div>'
