@@ -6,7 +6,7 @@
 .pvsw-picker-title{font-weight:700;font-size:16px;color:var(--navy);margin-bottom:6px;}
 .pvsw-picker-desc{font-size:13.5px;color:var(--txt2);line-height:1.55;margin-bottom:14px;}
 .pvsw-picker-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
-.pvsw-picker-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:12px 6px;background:var(--surface-2);border:1px solid var(--bdr);border-radius:12px;font-size:14px;font-weight:600;color:var(--txt);cursor:pointer;min-height:48px;font-family:inherit;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pvsw-picker-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:12px 6px;background:var(--surface-2);border:1px solid var(--bdr);border-radius:12px;font-size:14px;font-weight:600;color:var(--txt);cursor:pointer;min-height:48px;font-family:inherit;text-align:center;white-space:normal;overflow:visible;word-break:break-word;line-height:1.25;}
 .pvsw-picker-btn:hover{border-color:var(--navy);}
 @media (max-width:380px){
   .pvsw-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr));}

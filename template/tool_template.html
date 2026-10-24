@@ -126,59 +126,41 @@ html[data-cohort="15"] header{
 .tng-dot{font-size:13px;line-height:1;}
 .tng-dot-a{color:var(--ta);}
 .tng-dot-b{color:var(--tb);}
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;}
-/* メンバー系グリッド（対象外/お茶当番/振り分け）：氏名を1行に収め、カード高さを揃える */
-#agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}
-#agrid .mc,#ogrid .mc,#tgrid .tc2{flex-wrap:nowrap;gap:4px;}
-#agrid .cn,#ogrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;}
-#tgrid .tc2{flex-direction:row;align-items:center;flex-wrap:nowrap;gap:4px;}
-#tgrid .cn{white-space:nowrap;overflow:hidden;word-break:normal;min-width:0;flex:1;font-size:13px;line-height:1.25;}
-#tgrid .tbdg{max-width:none;font-size:10px;min-width:26px;height:24px;padding:0 4px;}
-/* 名前が長くバッジと同じ行に収まらないセル：バッジを1行目、名前を全幅2行目に（フォント極小化を防ぐ） */
-#agrid .mc.tcb-namewrap,#ogrid .mc.tcb-namewrap,#tgrid .tc2.tcb-namewrap{flex-wrap:wrap;gap:4px 6px;}
-#agrid .tcb-namewrap > .tbdg,#ogrid .tcb-namewrap > .tbdg,#tgrid .tcb-namewrap > .tbdg{order:1;flex-shrink:0;}
-#agrid .tcb-namewrap > .cv,#ogrid .tcb-namewrap > .cv,#tgrid .tcb-namewrap > .cv,
-#agrid .tcb-namewrap > .rest-badge,#ogrid .tcb-namewrap > .rest-badge,#tgrid .tcb-namewrap > .rest-badge,
-#agrid .tcb-namewrap > .quit-badge,#ogrid .tcb-namewrap > .quit-badge,#tgrid .tcb-namewrap > .quit-badge,
-#agrid .tcb-namewrap > .coach-badge,#ogrid .tcb-namewrap > .coach-badge,#tgrid .tcb-namewrap > .coach-badge,
-#agrid .tcb-namewrap > .master-excl-badge,#ogrid .tcb-namewrap > .master-excl-badge,#tgrid .tcb-namewrap > .master-excl-badge{order:2;margin-left:auto;flex-shrink:0;}
-#agrid .tcb-namewrap > .cn,#ogrid .tcb-namewrap > .cn,#tgrid .tcb-namewrap > .cn{order:3;flex:0 0 100%;width:100%;max-width:100%;}
-/* スマホ幅は氏名を大きく・2列固定で視認性を確保 */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px;}
+/* メンバー系：バッジは上段、氏名はカード全幅で折り返す（チェックや遠方で見切れない） */
+#agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid,#tcb-next-tgrid.mgrid,#handoff-tgrid.mgrid,#skipgrid.mgrid{
+  grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+}
+#agrid .mc,#ogrid .mc,#tgrid .tc2,#tcb-next-tgrid .tc2,#handoff-tgrid .tc2,#skipgrid .mc{
+  flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:4px 6px;
+}
+#agrid .cn,#ogrid .cn,#tgrid .cn,#tcb-next-tgrid .cn,#handoff-tgrid .cn,#skipgrid .cn{
+  order:3;flex:1 0 100%;width:100%;max-width:100%;min-width:0;
+  white-space:normal;overflow:visible;text-overflow:unset;word-break:break-word;
+  font-size:13px;font-weight:800;line-height:1.3;
+}
+#tgrid .tbdg,#tcb-next-tgrid .tbdg,#handoff-tgrid .tbdg{
+  order:1;max-width:none;overflow:visible;text-overflow:unset;
+  font-size:10px;min-width:0;height:auto;min-height:22px;padding:2px 6px;
+}
+#agrid .cv,#ogrid .cv,#tgrid .cv,#tcb-next-tgrid .cv,#handoff-tgrid .cv,
+#agrid .rest-badge,#ogrid .rest-badge,#tgrid .rest-badge,#tcb-next-tgrid .rest-badge,#handoff-tgrid .rest-badge,
+#agrid .quit-badge,#ogrid .quit-badge,#tgrid .quit-badge,#tcb-next-tgrid .quit-badge,#handoff-tgrid .quit-badge,
+#agrid .coach-badge,#ogrid .coach-badge,#tgrid .coach-badge,#tcb-next-tgrid .coach-badge,#handoff-tgrid .coach-badge,
+#agrid .master-excl-badge,#ogrid .master-excl-badge,#tgrid .master-excl-badge,#tcb-next-tgrid .master-excl-badge,#handoff-tgrid .master-excl-badge{
+  order:2;flex-shrink:0;
+}
 @media (max-width:520px){
-  #agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid{
+  #agrid.mgrid,#ogrid.mgrid,#tgrid.mgrid,#tcb-next-tgrid.mgrid,#handoff-tgrid.mgrid,#skipgrid.mgrid{
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:8px;
   }
-  #agrid .mc,#ogrid .mc,#tgrid .tc2{
-    padding:10px 8px;
-    min-height:auto;
-    align-items:center;
+  #agrid .mc,#ogrid .mc,#tgrid .tc2,#tcb-next-tgrid .tc2,#handoff-tgrid .tc2,#skipgrid .mc{
+    padding:10px 8px;min-height:auto;
   }
-  #agrid .mc,#ogrid .mc,#tgrid .tc2{flex-wrap:wrap;gap:4px 6px;}
-  #tgrid .tbdg{order:1;font-size:10px;min-width:28px;height:24px;padding:0 4px;flex-shrink:0;}
-  #tgrid .cv,#agrid .cv,#ogrid .cv,#agrid .rest-badge,#ogrid .rest-badge,#agrid .quit-badge,#ogrid .quit-badge,#agrid .coach-badge,#ogrid .coach-badge,#agrid .master-excl-badge,#ogrid .master-excl-badge{order:2;margin-left:auto;flex-shrink:0;}
-  #agrid .cn,#ogrid .cn,#tgrid .cn{
-    order:3;
-    flex:0 0 100%;
-    width:100%;
-    max-width:100%;
-    font-weight:800;
-    line-height:1.2;
-    overflow:visible;
-    white-space:nowrap;
-    text-overflow:clip;
+  #agrid .cn,#ogrid .cn,#tgrid .cn,#tcb-next-tgrid .cn,#handoff-tgrid .cn,#skipgrid .cn{
+    font-size:14px;
   }
-  #tgrid .tc2{
-    padding:8px 8px;
-  }
-  #skipgrid.mgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-  #skipgrid .mc{padding:10px 8px;min-height:48px;align-items:center;}
-  #skipgrid .cn{font-weight:800;line-height:1.15;}
-  #agrid .cv,#ogrid .cv,#tgrid .cv{font-size:10px;padding:2px 5px;}
-  #agrid .rest-badge,#ogrid .rest-badge,#tgrid .rest-badge,
-  #agrid .quit-badge,#ogrid .quit-badge,#tgrid .quit-badge,
-  #agrid .coach-badge,#ogrid .coach-badge,#tgrid .coach-badge,
-  #agrid .master-excl-badge,#ogrid .master-excl-badge,#tgrid .master-excl-badge{font-size:9px;}
 }
 .mc{display:flex;align-items:center;gap:4px;padding:9px 10px;border-radius:12px;cursor:pointer;border:1px solid var(--bdr);background:#fff;user-select:none;min-height:var(--tap);flex-wrap:wrap;}
 .mc:active{opacity:.7;}
@@ -293,7 +275,7 @@ tr.p3-multi-row{background:#fff8e1;}
 .shd2{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:9px;margin:12px 0 8px;font-weight:900;font-size:14px;}
 .shd2.A{background:var(--ta-bg);color:var(--ta);border-left:4px solid var(--ta);}
 .shd2.B{background:var(--tb-bg);color:var(--tb);border-left:4px solid var(--tb);}
-#skipgrid .cn{white-space:nowrap;overflow:hidden;font-size:13px;font-weight:700;flex:1;min-width:0;line-height:1.2;}
+#skipgrid .cn{white-space:normal;overflow:visible;text-overflow:unset;word-break:break-word;font-size:13px;font-weight:800;flex:1 0 100%;width:100%;min-width:0;line-height:1.3;}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
 .sc{border-radius:9px;padding:10px;border:2px solid var(--bdr);}
 .sc.ht{border-color:var(--blue2);background:#f0f7ff;}
@@ -379,7 +361,7 @@ tr.p3-multi-row{background:#fff8e1;}
 .tcb-tgh-cancel{margin-left:8px;padding:4px 10px;border-radius:8px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:11px;cursor:pointer;font-family:inherit;}
 #tgrid .tc2.tcb-tgh-cell{flex-wrap:wrap;gap:4px 6px;}
 .tcb-tgh-hold{order:9;flex:0 0 100%;display:flex;flex-wrap:wrap;gap:4px;}
-.tcb-tgh-chip{padding:3px 8px;border-radius:999px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:11px;line-height:1.3;cursor:pointer;font-family:inherit;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tcb-tgh-chip{padding:3px 8px;border-radius:999px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:11px;line-height:1.3;cursor:pointer;font-family:inherit;max-width:100%;overflow:visible;text-overflow:unset;white-space:normal;word-break:break-word;}
 .tcb-tgh-chip.on{background:var(--ink-heading);border-color:var(--ink-heading);color:#fff;font-weight:700;}
 .tcb-tgh-rest{grid-column:1/-1;font-size:12px;line-height:1.6;color:var(--txt2);padding:8px 10px;border-radius:8px;background:var(--surface-2);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;}
 .tcb-tgh-rest-hd{font-weight:700;color:var(--ink-heading);}
@@ -2599,64 +2581,16 @@ function toolPrefixAndCircled(name){
   return {prefix:s, num:0, hasCirc:false};
 }
 var _step2FitT=0;
-function fitGridCellText(cn,box,opts){
+function fitGridCellText(cn,box){
   if(!cn||!box)return;
-  opts=opts||{};
-  var gap=opts.gap!=null?opts.gap:4;
-  var boxStyle=window.getComputedStyle(box);
-  var padX=parseFloat(boxStyle.paddingLeft)+parseFloat(boxStyle.paddingRight);
-  var mob=window.matchMedia('(max-width:520px)').matches;
-  var fullRow=opts.fullWidth||(mob&&cn.offsetWidth>=box.clientWidth-padX-6);
-  var fixed=0;
-  if(!fullRow){
-    box.querySelectorAll(':scope > .cv,:scope > .rest-badge,:scope > .quit-badge,:scope > .coach-badge,:scope > .master-excl-badge,:scope > .tbdg').forEach(function(el){
-      if(el!==cn)fixed+=el.offsetWidth+gap;
-    });
-  }
-  var maxW=box.clientWidth-padX-(fullRow?0:fixed);
-  if(maxW<=0){
-    /* バッジ（班・サイズ・「1道具まで」等）だけでセル幅を使い切る場合：
-       名前の幅が0になり消えてしまうため、バッジ1行目・名前2行目に組み替えて測り直す */
-    if(box.clientWidth>0&&!fullRow&&!opts._retry){
-      box.classList.add('tcb-namewrap');
-      var oz={};for(var kz in opts){oz[kz]=opts[kz];}
-      oz.fullWidth=true;oz._retry=true;
-      fitGridCellText(cn,box,oz);
-    }
-    return;
-  }
-  var maxFs=opts.maxFs!=null?opts.maxFs:(mob?14:14);
-  /* 視認性の下限。これ以上は縮めず、収まらない名前は行を分けて表示する */
-  var minFs=opts.minFs!=null?opts.minFs:11;
-  var fs=maxFs;
-  if(!opts._retry)box.classList.remove('tcb-namewrap');
-  cn.style.textOverflow='clip';
-  cn.style.overflow='hidden';
-  cn.style.whiteSpace='nowrap';
-  cn.style.lineHeight='';
-  cn.style.wordBreak='';
-  cn.style.fontSize=fs+'px';
-  while(fs>minFs&&cn.scrollWidth>maxW){
-    fs--;
-    cn.style.fontSize=fs+'px';
-  }
-  if(cn.scrollWidth>maxW){
-    if(!fullRow&&fixed>0&&!opts._retry){
-      /* バッジと同じ行に収まらない名前は、バッジ1行目・名前2行目に組み替えて測り直す */
-      box.classList.add('tcb-namewrap');
-      var o2={};for(var k in opts){o2[k]=opts[k];}
-      o2.fullWidth=true;o2._retry=true;
-      fitGridCellText(cn,box,o2);
-      return;
-    }
-    /* 全幅でも1行に入らない名前は、読みやすいサイズのまま折り返す */
-    var wrapFs=opts.wrapFs!=null?opts.wrapFs:Math.max(minFs,12);
-    cn.style.fontSize=wrapFs+'px';
-    cn.style.whiteSpace='normal';
-    cn.style.overflow='visible';
-    cn.style.lineHeight='1.15';
-    cn.style.wordBreak='break-all';
-  }
+  /* バッジが増えても氏名を1行に押し込めない。折り返しはCSSが担当 */
+  box.classList.add('tcb-namewrap');
+  cn.style.fontSize='';
+  cn.style.textOverflow='unset';
+  cn.style.overflow='visible';
+  cn.style.whiteSpace='normal';
+  cn.style.lineHeight='1.3';
+  cn.style.wordBreak='break-word';
 }
 function fitMemberGridFonts(id){
   var g=document.getElementById(id);
@@ -2682,6 +2616,7 @@ function fitStep2Grids(){
   fitMemberGridFonts('agrid');
   fitMemberGridFonts('ogrid');
   fitMemberGridFonts('tgrid');
+  fitMemberGridFonts('tcb-next-tgrid');
   fitMemberGridFonts('handoff-tgrid');
   fitSkipGridFonts();
 }

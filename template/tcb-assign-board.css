@@ -189,9 +189,10 @@
   max-width:100%;
 }
 .tcb-ab-tile-base{
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  overflow:visible;
+  text-overflow:unset;
+  white-space:normal;
+  word-break:break-word;
   min-width:0;
 }
 .tcb-ab-tile-serial{
