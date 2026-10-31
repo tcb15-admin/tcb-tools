@@ -34,9 +34,10 @@
     if (n === '外野用ノックボール' || n === '外野ノックボール') return 'knockOut';
     if (n === '試合用バットケース') return 'batCase';
     if (/^練習用ボール/.test(n)) return 'practiceBall';
-    if (n === 'ベース一式') return 'base';
+    if (n === 'ベース一式' || toolPrefixAndCircled(n).prefix === 'ベース一式') return 'base';
     if (/^審判道具/.test(n)) return 'umpire';
-    if (n === '長尺＆短尺バット' || n === '長尺バット' || n === '短尺バット') return 'longShortBat';
+    var batBase = toolPrefixAndCircled(n).prefix || n;
+    if (batBase === '長尺＆短尺バット' || batBase === '長尺バット' || batBase === '短尺バット') return 'longShortBat';
     if (/^トレーニング道具/.test(n)) return 'training';
     if (/^縄跳び/.test(n)) return 'jumpRope';
     if (/^キャッチャー道具/.test(n)) return 'catcher';
@@ -100,9 +101,20 @@
     });
   }
 
+  function lookupPrevPerson(map, toolName) {
+    if (!map || !toolName) return null;
+    if (map[toolName]) return map[toolName];
+    var p = toolPrefixAndCircled(toolName);
+    if (p.hasCirc && p.num === 1 && p.prefix && map[p.prefix]) return map[p.prefix];
+    if (!p.hasCirc) {
+      var n1 = toolName + String.fromCharCode(0x2460);
+      if (map[n1]) return map[n1];
+    }
+    return null;
+  }
   function prevTeamOf(toolName, opts) {
     var map = opts.prevMap || {};
-    var person = map[toolName];
+    var person = lookupPrevPerson(map, toolName);
     if (!person) return null;
     /* 前回所持者がいま属する班を優先（人が班移動しても同じ道具を持ち続けられる） */
     var cur = opts.memberTeam;
@@ -420,7 +432,10 @@
     }
 
     if (by.batCase) assignStickyOr(by.batCase, out, opts, fb);
-    if (by.longShortBat) assignStickyOr(by.longShortBat, out, opts, fb);
+    if (by.longShortBat) {
+      if (by.longShortBat.length >= 2) assignOneEach(by.longShortBat, out, opts);
+      else assignStickyOr(by.longShortBat, out, opts, fb);
+    }
     if (by.base) assignStickyOr(by.base, out, opts, fb);
     if (by.training) assignStickyOr(by.training, out, opts, fb);
     if (by.jumpRope) assignStickyOr(by.jumpRope, out, opts, fb);

@@ -675,6 +675,7 @@ body.tcb-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
 .master-tl-name-ta:focus{outline:none;border-color:var(--blue2);}
 .master-tl-ctl-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
 .master-tl-match-lbl{font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;}
+.master-tl-split-lbl{font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;}
 .msel{padding:8px 6px;border:2px solid var(--bdr);border-radius:7px;font-size:13px;min-height:var(--tap);}
 .mdel{background:var(--red-l);color:var(--red);border:none;border-radius:6px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;min-height:var(--tap);}
 /* マスタ削除確認モーダル（iOS PWA でも確実に表示） */
@@ -1706,6 +1707,7 @@ html{color-scheme:light;}
         <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">編集中は追加した位置のままです。<strong>保存したあと</strong>に、丸数字（①…）より前の同じ名前ごとにまとめ、①→②→③…の順に並びます。丸数字が無い行は同じグループ内では後ろです。</div>
         <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
         <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">片方試合では、<strong>試合道具</strong>にチェックした道具だけが試合組へ、チェックしない道具は練習組へ割り当てます。両方試合・練習場所分離では、従来どおり道具名の割振りルールです。</div>
+        <div class="master-tl-split-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;"><strong>道具分割</strong>：2グループのときなど、1点を①と②の2行に分けます。チェックを外すと1行に戻します（②の行は削除されます）。タープなど既に番号付きの系列には使いません。</div>
         <div id="m-tools"></div>
       </div>
     </div>
@@ -2635,6 +2637,7 @@ function applyMasterObj(obj){
     if('fixed' in t)t.fixed=normFlag01(t.fixed);
     if('broken' in t)t.broken=normFlag01(t.broken);
     t.matchTool=normFlag01(t.matchTool);
+    t.split=normFlag01(t.split);
     if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
   });
   syncMemberFixFromToolFixed();
@@ -2670,6 +2673,132 @@ function toolPrefixAndCircled(name){
     }
   }
   return {prefix:s, num:0, hasCirc:false};
+}
+function circledNumChar(n){
+  var k=n|0;
+  if(k<1||k>20)return '';
+  return String.fromCharCode(0x245F+k);
+}
+function cloneToolDescEntry(src){
+  if(!src||typeof src!=='object')return null;
+  try{return JSON.parse(JSON.stringify(src));}catch(e){
+    return {text:src.text||'',img:src.img||'',imgs:Array.isArray(src.imgs)?src.imgs.slice():[]};
+  }
+}
+function nextMasterToolId(){
+  return (TL||[]).reduce(function(a,t){return Math.max(a,t.id||0);},0)+1;
+}
+function listToolsByPrefix(prefix){
+  var pfx=String(prefix||'');
+  var out=[];
+  (TL||[]).forEach(function(t,i){
+    if(!t||!String(t.name||'').trim())return;
+    if(toolPrefixAndCircled(t.name).prefix===pfx)out.push({t:t,i:i});
+  });
+  return out;
+}
+function isToolSplitPairRow(t){
+  return !!(t&&normFlag01(t.split)===1);
+}
+function toolShowsSplitCheckbox(t){
+  var name=String((t&&t.name)||'').trim();
+  if(!name)return false;
+  var p=toolPrefixAndCircled(name);
+  if(isToolSplitPairRow(t))return true;
+  if(!p.hasCirc)return true;
+  return false;
+}
+/* 分割後の①は分割前の名前の保有を引き継ぐ。②は新規点として扱わない */
+function lookupPrevPerson(prevMap, toolName){
+  if(!prevMap||!toolName)return null;
+  if(prevMap[toolName])return prevMap[toolName];
+  var p=toolPrefixAndCircled(toolName);
+  if(p.hasCirc&&p.num===1&&p.prefix&&prevMap[p.prefix])return prevMap[p.prefix];
+  if(!p.hasCirc){
+    var n1=toolName+circledNumChar(1);
+    if(prevMap[n1])return prevMap[n1];
+  }
+  return null;
+}
+function moveDescKey(oldName, newName){
+  if(!oldName||!newName||oldName===newName)return;
+  if(DESCS[oldName]){
+    if(!DESCS[newName])DESCS[newName]=DESCS[oldName];
+    delete DESCS[oldName];
+  }
+}
+function applyToolSplitAt(idx){
+  var t=TL[idx];
+  if(!t)return '道具が見つかりません。';
+  var oldName=String(t.name||'').trim();
+  if(!oldName)return '先に道具名を入力してください。';
+  var p=toolPrefixAndCircled(oldName);
+  if(p.hasCirc)return 'すでに番号が付いている道具は分割できません。';
+  var sibs=listToolsByPrefix(oldName);
+  if(sibs.length>1)return '同じ名前の道具が既にあるため分割できません。';
+  var name1=oldName+circledNumChar(1);
+  var name2=oldName+circledNumChar(2);
+  var exists=TL.some(function(x){return x&&(x.name===name1||x.name===name2);});
+  if(exists)return '「'+name1+'」または「'+name2+'」が既にあるため分割できません。';
+  var desc=cloneToolDescEntry(DESCS[oldName]);
+  t.name=name1;
+  t.split=1;
+  moveDescKey(oldName,name1);
+  if(desc&&!DESCS[name2])DESCS[name2]=cloneToolDescEntry(desc);
+  else if(desc&&!DESCS[name1])DESCS[name1]=cloneToolDescEntry(desc);
+  migrateToolNameRefs(oldName,name1);
+  var clone={
+    id:nextMasterToolId(),
+    name:name2,
+    sz:t.sz||'M',
+    wt:t.wt||'Medium',
+    note:null,
+    fixed:0,
+    broken:normFlag01(t.broken),
+    matchTool:normFlag01(t.matchTool),
+    split:1
+  };
+  TL.splice(idx+1,0,clone);
+  return '';
+}
+function applyToolMergeAt(idx){
+  var t=TL[idx];
+  if(!t)return '道具が見つかりません。';
+  var p=toolPrefixAndCircled(t.name);
+  var base=p.prefix||String(t.name||'').trim();
+  if(!base)return '道具名が空です。';
+  var i1=-1,i2=-1;
+  TL.forEach(function(x,i){
+    if(!x)return;
+    var q=toolPrefixAndCircled(x.name);
+    if(q.prefix!==base)return;
+    if(q.num===1)i1=i;
+    if(q.num===2)i2=i;
+  });
+  var keepIdx=i1>=0?i1:idx;
+  var keep=TL[keepIdx];
+  if(!keep)return 'まとめ先の道具が見つかりません。';
+  var oldKeep=String(keep.name||'');
+  var drop=i2>=0?TL[i2]:null;
+  keep.name=base;
+  keep.split=0;
+  moveDescKey(oldKeep,base);
+  migrateToolNameRefs(oldKeep,base);
+  if(drop&&drop!==keep){
+    var gone=String(drop.name||'');
+    if(gone&&PAST){
+      var a=Number(PAST[base]||0), b=Number(PAST[gone]||0);
+      if(a||b)PAST[base]=a+b;
+      delete PAST[gone];
+    }
+    if(gone){
+      delete DESCS[gone];
+      if(typeof skipS!=='undefined'&&skipS&&Object.prototype.hasOwnProperty.call(skipS,gone))delete skipS[gone];
+    }
+    var di=TL.indexOf(drop);
+    if(di>=0)TL.splice(di,1);
+  }
+  return '';
 }
 var _step2FitT=0;
 function fitGridCellText(cn,box){
@@ -2784,6 +2913,10 @@ function migrateToolNameRefs(oldName,newName){
   if(s&&Object.prototype.hasOwnProperty.call(s,oldName)&&!Object.prototype.hasOwnProperty.call(s,newName)){
     s[newName]=s[oldName];
     delete s[oldName];
+  }
+  if(typeof PAST!=='undefined'&&PAST&&PAST[oldName]!=null&&PAST[newName]==null){
+    PAST[newName]=PAST[oldName];
+    delete PAST[oldName];
   }
 }
 function syncMasterEditsFromDom(){
@@ -4107,7 +4240,8 @@ function lscore(t){
 /* 持ち帰り負荷が高い道具：他道具と同一担当にしない（マスタの noMul と同等扱い） */
 function toolSoloExclusiveByName(name){
   var n=String(name||'');
-  return n==='ベース一式'||n==='長尺バット'||n==='短尺バット'||n==='長尺＆短尺バット';
+  var base=toolPrefixAndCircled(n).prefix||n;
+  return base==='ベース一式'||base==='長尺バット'||base==='短尺バット'||base==='長尺＆短尺バット';
 }
 function toolSoloExclusiveByRow(t){
   if(!t)return false;
@@ -4293,7 +4427,7 @@ function resolveHoldingsTeamForTool(t, snap, prevMap){
   if(pat==='kata'&&toolIsMatchTool(t)&&!(isHandoffTeamCompute()&&toolHandoffFlexFamily(t&&t.name))){
     return kataMatchTeamId();
   }
-  var p=prevMap&&t?prevMap[t.name]:null;
+  var p=lookupPrevPerson(prevMap, t&&t.name);
   if(p&&typeof handoffIsGroupDest==='function'&&handoffIsGroupDest(p)){
     var mk=(snap&&snap.tmMap)||{};
     if(mk[p]==='A'||mk[p]==='B')return mk[p];
@@ -4347,7 +4481,7 @@ function buildHoldingsBasedToolLists(snap){
     if(!t||!t.name)return;
     var holderTeam=fixedHolderTeamNow(t);
     if(holderTeam){teamMap[t.name]=holderTeam;return;}
-    var p=prevMap[t.name];
+    var p=lookupPrevPerson(prevMap, t.name);
     if(p&&!ex[p]&&(tmMap[p]==='A'||tmMap[p]==='B')){
       teamMap[t.name]=tmMap[p];
       return;
@@ -4529,7 +4663,7 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
       }
       var mem=(tm==='A')?nA:nB;
       if(!mem)return;
-      var p=prevMap[t.name];
+      var p=lookupPrevPerson(prevMap, t.name);
       if(t.fixed&&t.note){
         if(mem[t.note]&&assignToBase(t.name,t.note,t))return;
         poolSet[t.name]=1;return;
@@ -4550,7 +4684,7 @@ function buildPrevSeedBaseAndPool(snap, ctx, ex){
   var mem=memberNameSet(ctx.members);
   var baseMap={}, poolSet={};
   ctx.tools.forEach(function(t){
-    var p=prevMap[t.name];
+    var p=lookupPrevPerson(prevMap, t.name);
     if(t.fixed&&t.note){
       if(mem[t.note]&&assignToBase(t.name,t.note,t))return;
       poolSet[t.name]=1;return;
@@ -6270,7 +6404,7 @@ function assignOneToolToState(t, state, prevMap, carryMap, runSeed, opts){
   var tls=t.ls!=null?t.ls:lscore(t);
   var soloFillOnly=soloFillOnlyForUnassigned(t, state);
   var attachPasses=bundleAttachPassesForTool(t, state);
-  var prevPerson=(prevMap&&prevMap[t.name])?prevMap[t.name]:null;
+  var prevPerson=lookupPrevPerson(prevMap, t.name);
   var placed=false;
   var minChangers=!!(opts&&opts.minChangers);
   var maxAdd=minChangers?(keys.length+1):(keys.length+8);
@@ -9350,6 +9484,16 @@ function buildMasterTools(){
     var mc=document.createElement('input'); mc.type='checkbox'; mc.className='master-tl-match-cb';
     mc.checked=!!(t.matchTool==1||t.matchTool==='1');
     ml.appendChild(mc); ml.appendChild(document.createTextNode('試合道具'));
+    /* 道具分割：1点 → ①② */
+    var spl=null, spc=null;
+    if(toolShowsSplitCheckbox(t)){
+      spl=document.createElement('label');
+      spl.className='master-tl-split-lbl';
+      spl.title='ONで①と②の2行に分けます。OFFで1行に戻します';
+      spc=document.createElement('input'); spc.type='checkbox'; spc.className='master-tl-split-cb';
+      spc.checked=isToolSplitPairRow(t);
+      spl.appendChild(spc); spl.appendChild(document.createTextNode('道具分割'));
+    }
     /* 固定担当（コンパクトに1行へ）*/
     var fs=document.createElement('select'); fs.className='msel'; fs.style.minWidth='72px';
     var o0=document.createElement('option'); o0.value=''; o0.textContent='固定:なし'; fs.appendChild(o0);
@@ -9362,7 +9506,7 @@ function buildMasterTools(){
     /* 削除 */
     var db=document.createElement('button'); db.type='button'; db.className='mdel'; db.textContent='削除';
     /* イベント */
-    (function(idx,n2,s2,w2,b2,m2,f2){
+    (function(idx,n2,s2,w2,b2,m2,f2,sp2){
       n2.addEventListener('change',function(){
         var oldName=TL[idx].name;
         var newName=String(n2.value||'').replace(/\r?\n/g,'').trim();
@@ -9392,6 +9536,42 @@ function buildMasterTools(){
         if(f2.value){TL[idx].fixed=1;TL[idx].note=f2.value;}
         else{TL[idx].fixed=0;TL[idx].note=null;}
       });
+      if(sp2){
+        sp2.addEventListener('change',function(){
+          if(sp2.checked){
+            var err=applyToolSplitAt(idx);
+            if(err){
+              if(typeof tcbToast==='function')tcbToast(err,'warn');
+              else alert(err);
+              sp2.checked=false;
+              return;
+            }
+            buildMasterTools();buildMasterDescs();
+            var base=toolPrefixAndCircled(String((TL[idx]&&TL[idx].name)||'')).prefix;
+            if(base)focusMasterToolByName(base+circledNumChar(1));
+            return;
+          }
+          var cur=TL[idx];
+          var base=toolPrefixAndCircled(String((cur&&cur.name)||'')).prefix||String((cur&&cur.name)||'');
+          tcbMasterConfirm({
+            title:'道具を1つにまとめる',
+            message:'「'+(base||'この道具')+'①／②」を1点の「'+(base||'この道具')+'」にまとめます。\n②の行は削除されます。よろしいですか？',
+            okLabel:'まとめる'
+          }).then(function(ok){
+            if(!ok){buildMasterTools();return;}
+            var err=applyToolMergeAt(idx);
+            if(err){
+              if(typeof tcbToast==='function')tcbToast(err,'warn');
+              else alert(err);
+              buildMasterTools();buildMasterDescs();
+              return;
+            }
+            pruneDescsOrphans();
+            buildMasterTools();buildMasterDescs();
+            if(base)focusMasterToolByName(base);
+          });
+        });
+      }
       db.addEventListener('click',function(){
         var nm=String((TL[idx]&&TL[idx].name)||n2.value||'').trim()||'この道具';
         tcbMasterConfirm({
@@ -9406,8 +9586,10 @@ function buildMasterTools(){
           buildMasterTools();buildMasterDescs();
         });
       });
-    })(i,ni,ss,ws,bc,mc,fs);
-    ctlRow.appendChild(ss); ctlRow.appendChild(ws); ctlRow.appendChild(bl); ctlRow.appendChild(ml); ctlRow.appendChild(fs); ctlRow.appendChild(db);
+    })(i,ni,ss,ws,bc,mc,fs,spc);
+    ctlRow.appendChild(ss); ctlRow.appendChild(ws); ctlRow.appendChild(bl); ctlRow.appendChild(ml);
+    if(spl)ctlRow.appendChild(spl);
+    ctlRow.appendChild(fs); ctlRow.appendChild(db);
     row.appendChild(nameWrap); row.appendChild(ctlRow);
     el.appendChild(row);
   });
@@ -10530,7 +10712,7 @@ document.addEventListener('DOMContentLoaded',function(){
     setMasterTab('tools',{noScroll:true});
     var maxId=TL.reduce(function(a,t){return Math.max(a,t.id||0);},0);
     /* 名称は空のまま末尾に追加（「新道具」だと五十音整列で迷子になる） */
-    TL.push({id:maxId+1,name:'',sz:'M',wt:'Medium',note:null,fixed:0,broken:0,matchTool:0});
+    TL.push({id:maxId+1,name:'',sz:'M',wt:'Medium',note:null,fixed:0,broken:0,matchTool:0,split:0});
     buildMasterTools(); buildMasterDescs();
     focusMasterToolDraft();
   });
@@ -10558,6 +10740,7 @@ document.addEventListener('DOMContentLoaded',function(){
         if('fixed' in t)t.fixed=normFlag01(t.fixed);
         if('broken' in t)t.broken=normFlag01(t.broken);
         t.matchTool=normFlag01(t.matchTool);
+        t.split=normFlag01(t.split);
         if(t.id!=null&&!isNaN(Number(t.id)))t.id=parseInt(String(t.id),10);
       });
       TL=data; sortMasterTools(); buildMasterTools(); buildMasterDescs();
