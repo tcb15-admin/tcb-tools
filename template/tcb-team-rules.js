@@ -32,7 +32,7 @@
     if (/^投手用ボール/.test(n)) return 'pitcherBall';
     if (n === '内野用ノックボール' || n === '内野ノックボール') return 'knockIn';
     if (n === '外野用ノックボール' || n === '外野ノックボール') return 'knockOut';
-    if (n === '試合用バットケース') return 'batCase';
+    if (n === '試合用バットケース' || toolPrefixAndCircled(n).prefix === '試合用バットケース') return 'batCase';
     if (/^練習用ボール/.test(n)) return 'practiceBall';
     if (n === 'ベース一式' || toolPrefixAndCircled(n).prefix === 'ベース一式') return 'base';
     if (/^審判道具/.test(n)) return 'umpire';
@@ -431,17 +431,26 @@
       }
     }
 
-    if (by.batCase) assignStickyOr(by.batCase, out, opts, fb);
+    if (by.batCase) {
+      if (by.batCase.length >= 2) assignOneEach(by.batCase, out, opts);
+      else assignStickyOr(by.batCase, out, opts, fb);
+    }
     if (by.longShortBat) {
       if (by.longShortBat.length >= 2) assignOneEach(by.longShortBat, out, opts);
       else assignStickyOr(by.longShortBat, out, opts, fb);
     }
     if (by.base) assignStickyOr(by.base, out, opts, fb);
     if (by.training) assignStickyOr(by.training, out, opts, fb);
-    if (by.jumpRope) assignStickyOr(by.jumpRope, out, opts, fb);
+    if (by.jumpRope) {
+      if (by.jumpRope.length >= 2) assignOneEach(by.jumpRope, out, opts);
+      else assignStickyOr(by.jumpRope, out, opts, fb);
+    }
     if (by.practiceBall) assignHalfSplit(by.practiceBall, out, opts);
     if (by.catcher) assignCatcher(by.catcher, out, opts);
-    if (by.stretchPole) assignStickyOr(by.stretchPole, out, opts, fb);
+    if (by.stretchPole) {
+      if (by.stretchPole.length >= 2) assignOneEach(by.stretchPole, out, opts);
+      else assignStickyOr(by.stretchPole, out, opts, fb);
+    }
     if (by.other) assignBalancedByHeadcount(by.other, out, opts);
 
     (tools || []).forEach(function (t) {

@@ -1707,7 +1707,7 @@ html{color-scheme:light;}
         <div class="master-tl-sort-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">編集中は追加した位置のままです。<strong>保存したあと</strong>に、丸数字（①…）より前の同じ名前ごとにまとめ、①→②→③…の順に並びます。丸数字が無い行は同じグループ内では後ろです。</div>
         <div class="master-tl-len-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">長さ（道具名の右のプルダウン）：S＝ショート、M＝ミディアム、L＝ロング、LL＝スーパーロング（旧データの SL は自動で LL に直ります）。</div>
         <div class="master-tl-rule-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">片方試合では、<strong>試合道具</strong>にチェックした道具だけが試合組へ、チェックしない道具は練習組へ割り当てます。両方試合・練習場所分離では、従来どおり道具名の割振りルールです。</div>
-        <div class="master-tl-split-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;"><strong>道具分割</strong>：2グループのときなど、1点を①と②の2行に分けます。チェックを外すと1行に戻します（②の行は削除されます）。タープなど既に番号付きの系列には使いません。</div>
+        <div class="master-tl-split-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px;"><strong>道具分割</strong>：2グループのときなど、1点を①と②の2行に分けます。チェックを外すと1行に戻します（②の行は削除されます）。<strong>縄跳びセット・試合用バットケース・ストレッチポール・投手用ボール・長尺＆短尺バット</strong>は、すでに①②でもチェックでまとめ／再分割できます。タープなど本数の多い系列には使いません。</div>
         <div id="m-tools"></div>
       </div>
     </div>
@@ -2700,13 +2700,55 @@ function listToolsByPrefix(prefix){
 function isToolSplitPairRow(t){
   return !!(t&&normFlag01(t.split)===1);
 }
+var TOOL_SPLIT_FAMILY_PREFIX={
+  '長尺＆短尺バット':1,
+  '長尺バット':1,
+  '短尺バット':1,
+  '縄跳びセット':1,
+  '試合用バットケース':1,
+  'ストレッチポール':1,
+  '投手用ボール':1
+};
+function toolSplitFamilyPrefix(name){
+  var p=toolPrefixAndCircled(name);
+  return p.prefix||String(name||'').trim();
+}
+function isAllowlistedSplitFamily(prefix){
+  return !!TOOL_SPLIT_FAMILY_PREFIX[String(prefix||'')];
+}
+function toolFamilySplitEligible(prefix){
+  var sibs=listToolsByPrefix(prefix);
+  if(sibs.length>2)return false;
+  for(var i=0;i<sibs.length;i++){
+    var q=toolPrefixAndCircled(sibs[i].t.name);
+    if(q.hasCirc&&(q.num<1||q.num>2))return false;
+  }
+  return true;
+}
+function toolFamilyHasOneAndTwo(prefix){
+  var has1=false, has2=false, extra=false;
+  listToolsByPrefix(prefix).forEach(function(x){
+    var q=toolPrefixAndCircled(x.t.name);
+    if(q.num===1)has1=true;
+    else if(q.num===2)has2=true;
+    else extra=true;
+  });
+  return has1&&has2&&!extra;
+}
 function toolShowsSplitCheckbox(t){
   var name=String((t&&t.name)||'').trim();
   if(!name)return false;
-  var p=toolPrefixAndCircled(name);
   if(isToolSplitPairRow(t))return true;
+  var p=toolPrefixAndCircled(name);
+  var prefix=p.prefix||name;
   if(!p.hasCirc)return true;
-  return false;
+  return isAllowlistedSplitFamily(prefix)&&toolFamilySplitEligible(prefix);
+}
+function toolSplitCheckboxChecked(t){
+  if(isToolSplitPairRow(t))return true;
+  var prefix=toolSplitFamilyPrefix((t&&t.name)||'');
+  if(!prefix||!isAllowlistedSplitFamily(prefix))return false;
+  return toolFamilyHasOneAndTwo(prefix);
 }
 /* 分割後の①は分割前の名前の保有を引き継ぐ。②は新規点として扱わない */
 function lookupPrevPerson(prevMap, toolName){
@@ -2733,7 +2775,33 @@ function applyToolSplitAt(idx){
   var oldName=String(t.name||'').trim();
   if(!oldName)return '先に道具名を入力してください。';
   var p=toolPrefixAndCircled(oldName);
-  if(p.hasCirc)return 'すでに番号が付いている道具は分割できません。';
+  if(p.hasCirc){
+    if(p.num!==1)return '①の行から分割してください。';
+    var prefix=p.prefix;
+    if(!isAllowlistedSplitFamily(prefix)&&!isToolSplitPairRow(t)){
+      return 'この道具は分割対象外です。';
+    }
+    var sibsN=listToolsByPrefix(prefix);
+    if(sibsN.some(function(x){return toolPrefixAndCircled(x.t.name).num===2;})){
+      return 'すでに②があります。';
+    }
+    var name2b=prefix+circledNumChar(2);
+    t.split=1;
+    var desc1=cloneToolDescEntry(DESCS[oldName]);
+    if(desc1&&!DESCS[name2b])DESCS[name2b]=cloneToolDescEntry(desc1);
+    TL.splice(idx+1,0,{
+      id:nextMasterToolId(),
+      name:name2b,
+      sz:t.sz||'M',
+      wt:t.wt||'Medium',
+      note:null,
+      fixed:0,
+      broken:normFlag01(t.broken),
+      matchTool:normFlag01(t.matchTool),
+      split:1
+    });
+    return '';
+  }
   var sibs=listToolsByPrefix(oldName);
   if(sibs.length>1)return '同じ名前の道具が既にあるため分割できません。';
   var name1=oldName+circledNumChar(1);
@@ -4272,7 +4340,8 @@ function toolBundleAnchorByRow(t){
 /* 担当0の人がいるとき、雑カゴ・試合用バットケースは単独割当可（同乗しない） */
 function toolSoloFillForUnassignedByName(name){
   var n=String(name||'');
-  return /^雑カゴ/.test(n)||n==='試合用バットケース';
+  var base=toolPrefixAndCircled(n).prefix||n;
+  return /^雑カゴ/.test(n)||base==='試合用バットケース';
 }
 function stateHasMemberWithCnt(state, cnt){
   var keys=Object.keys(state);
@@ -9491,7 +9560,7 @@ function buildMasterTools(){
       spl.className='master-tl-split-lbl';
       spl.title='ONで①と②の2行に分けます。OFFで1行に戻します';
       spc=document.createElement('input'); spc.type='checkbox'; spc.className='master-tl-split-cb';
-      spc.checked=isToolSplitPairRow(t);
+      spc.checked=toolSplitCheckboxChecked(t);
       spl.appendChild(spc); spl.appendChild(document.createTextNode('道具分割'));
     }
     /* 固定担当（コンパクトに1行へ）*/
