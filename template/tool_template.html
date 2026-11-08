@@ -3066,19 +3066,30 @@ function syncMasterEditsFromDom(){
       }
     }
   }
+  syncMasterDescEditsFromDom();
+}
+/* 説明カードは道具名で紐づける（追加・削除・保存時ソートで順番が変わってもズレない） */
+function syncMasterDescEditsFromDom(){
   var del=document.getElementById('m-descs');
-  if(del){
-    var cards=del.querySelectorAll('.master-desc-card');
-    var ci=0;
-    TL.forEach(function(t){
-      if(!String((t&&t.name)||'').trim())return;
-      if(ci>=cards.length)return;
-      var card=cards[ci++];
-      var tw=card.querySelector('.master-desc-text');
-      if(!DESCS[t.name])DESCS[t.name]={text:'',img:''};
-      if(tw)DESCS[t.name].text=tw.value;
-      /* img は写真アップロード側が DESCS を直接更新（URL手入力は廃止） */
-    });
+  if(!del)return;
+  var alive={};
+  (TL||[]).forEach(function(t){
+    var n=String((t&&t.name)||'').trim();
+    if(n)alive[n]=1;
+  });
+  var cards=del.querySelectorAll('.master-desc-card');
+  for(var i=0;i<cards.length;i++){
+    var card=cards[i];
+    var tn=String(card.getAttribute('data-tool-name')||'').trim();
+    if(!tn){
+      var head=card.querySelector('.master-desc-card-head');
+      tn=head?String(head.textContent||'').trim():'';
+    }
+    if(!tn||!alive[tn])continue;
+    var tw=card.querySelector('.master-desc-text');
+    if(!DESCS[tn]||typeof DESCS[tn]!=='object')DESCS[tn]={text:'',img:'',imgs:[]};
+    if(tw)DESCS[tn].text=tw.value;
+    /* img / imgs は写真アップロード側が DESCS を直接更新 */
   }
 }
 function confirmLeaveMasterIfDirty(kind){
@@ -3221,7 +3232,10 @@ function loadMaster(){
 }
 function refreshMasterToolsDom(){
   var p=document.getElementById('p-master');
-  if(p&&String(p.className||'').indexOf('on')>=0)buildMasterTools();
+  if(p&&String(p.className||'').indexOf('on')>=0){
+    buildMasterTools();
+    buildMasterDescs();
+  }
 }
 function saveMaster(){
   syncMasterEditsFromDom();
@@ -3236,6 +3250,7 @@ function saveMaster(){
   var data={MB:MB,TL:TL,DESCS:DESCS,PAST:PAST,DEF_TM:defTmData};
   /* localStorageにも保存 */
   try{ _ls.set(LS_KEY,JSON.stringify(data)); }catch(e){}
+  /* ソート後は道具一覧と説明カードを同じ順で作り直し、次回同期のズレを防ぐ */
   refreshMasterToolsDom();
   if(syncEnabled()){
     SYNC_CLIENT.saveMaster(data,MASTER_VERSION)
@@ -7226,6 +7241,8 @@ function setMasterTab(tab, opts){
   opts=opts||{};
   var allowed={mbr:1,tools:1,descs:1,misc:1};
   if(!allowed[tab])tab='mbr';
+  /* タブ切替前に説明文を道具名キーへ確定（道具の追加・削除後の表示ズレ防止） */
+  if(tab==='descs'||tab==='tools')syncMasterDescEditsFromDom();
   document.querySelectorAll('.tcb-master-tab').forEach(function(btn){
     var on=btn.getAttribute('data-master-tab')===tab;
     btn.classList.toggle('is-on',on);
@@ -7237,6 +7254,7 @@ function setMasterTab(tab, opts){
     if(on)panel.removeAttribute('hidden');
     else panel.setAttribute('hidden','');
   });
+  if(tab==='descs')buildMasterDescs();
   try{_ls.set('{{LS_PREFIX}}MasterTab',tab);}catch(e){}
   if(!opts.noScroll){
     try{window.scrollTo(0,0);}catch(e){}
@@ -9578,6 +9596,7 @@ function buildMasterTools(){
     /* イベント */
     (function(idx,n2,s2,w2,b2,m2,f2,sp2){
       n2.addEventListener('change',function(){
+        syncMasterDescEditsFromDom();
         var oldName=TL[idx].name;
         var newName=String(n2.value||'').replace(/\r?\n/g,'').trim();
         if(newName!==n2.value)n2.value=newName;
@@ -9589,7 +9608,7 @@ function buildMasterTools(){
             }
             delete DESCS[oldName];
           } else if(newName&&!DESCS[newName]){
-            DESCS[newName]={text:'',img:''};
+            DESCS[newName]={text:'',img:'',imgs:[]};
           }
           if(oldName&&newName)migrateToolNameRefs(oldName,newName);
         }
@@ -9649,6 +9668,7 @@ function buildMasterTools(){
           message:'「'+nm+'」を道具一覧から削除します。\n説明・写真も消えます。よろしいですか？'
         }).then(function(ok){
           if(!ok)return;
+          syncMasterDescEditsFromDom();
           var gone=TL[idx]&&TL[idx].name;
           TL.splice(idx,1);
           if(gone!=null&&gone!=='')delete DESCS[gone];
@@ -9666,6 +9686,8 @@ function buildMasterTools(){
 }
 
 function buildMasterDescs(){
+  /* 作り直す前に、画面上の説明文を道具名キーへ退避 */
+  syncMasterDescEditsFromDom();
   var el=document.getElementById('m-descs'); el.innerHTML='';
   el.className='master-desc-list';
   var hint=document.createElement('div');
@@ -9680,6 +9702,7 @@ function buildMasterDescs(){
     var d=DESCS[t.name]||{text:'',img:''};
     var row=document.createElement('div');
     row.className='master-desc-card';
+    row.setAttribute('data-tool-name',t.name);
     var head=document.createElement('div');
     head.className='master-desc-card-head';
     head.textContent=t.name; row.appendChild(head);
