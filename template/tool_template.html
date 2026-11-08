@@ -409,7 +409,9 @@ tr.p3-carry-changed-row{background:#fff3e0!important;}
 .tcb-share-intro{width:100%;min-height:72px;padding:10px 12px;border:1px solid #e5e5ea;border-radius:10px;font-size:13px;line-height:1.65;color:#1c1c22;font-family:inherit;resize:vertical;background:#fff;}
 .tcb-share-intro:disabled{background:#f2f2f5;color:#636366;opacity:.9;}
 .tcb-share-intro:focus{outline:none;border-color:#1565c0;box-shadow:0 0 0 2px rgba(21,101,192,.15);}
-.tcb-share-intro-reset{margin-top:6px;padding:0;border:none;background:transparent;color:#1565c0;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;}
+.tcb-share-intro-actions{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:6px;align-items:center;}
+.tcb-share-intro-reset,.tcb-share-intro-save{padding:0;border:none;background:transparent;color:#1565c0;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;}
+.tcb-share-intro-hint{margin:6px 0 0;font-size:11px;line-height:1.45;color:#636366;font-weight:400;}
 .tcb-share-extra{margin:0;padding:10px 12px;background:#f2f2f5;border:1px solid #e5e5ea;border-radius:10px;font-size:12px;line-height:1.65;color:#48484f;white-space:pre-wrap;word-break:break-word;font-family:inherit;}
 .tcb-share-extra:empty{display:none;}
 .tcb-share-opts{display:flex;flex-direction:column;gap:8px;}
@@ -1354,7 +1356,11 @@ html{color-scheme:light;}
         <div class="tcb-share-preview-wrap">
           <div class="tcb-share-intro-label" id="share-line-intro-label">定型文（編集可）</div>
           <textarea class="tcb-share-intro" id="share-line-intro" rows="5"></textarea>
-          <button type="button" class="tcb-share-intro-reset" id="share-line-intro-reset">定型文を初期に戻す</button>
+          <div class="tcb-share-intro-actions">
+            <button type="button" class="tcb-share-intro-reset" id="share-line-intro-reset">定型に戻す</button>
+            <button type="button" class="tcb-share-intro-save" id="share-line-intro-save">この内容を定型登録</button>
+          </div>
+          <p class="tcb-share-intro-hint">定型登録はこの端末（ブラウザ）に保存され、次回からの出発点になります。システム既定に戻すときは既定文を貼って再度「定型登録」してください。</p>
           <div class="tcb-share-intro-label" style="margin-top:10px;">自動追記プレビュー</div>
           <pre class="tcb-share-extra" id="share-line-extra"></pre>
         </div>
@@ -1935,6 +1941,8 @@ var LS_KEY='{{LS_PREFIX}}Master', LS_PREV='{{LS_PREFIX}}PrevResult', LS_DEF_TM='
 var allocationProvisionalAt='';
 var _assignBoardKeepNames=null;
 var LS_CARRYOUT_CONFIRMED='{{LS_PREFIX}}CarryoutConfirmed';
+/* LINE展開の定型文（通常送付）。この端末の localStorage に保存 */
+var LS_SHARE_LINE_INTRO='{{LS_PREFIX}}ShareLineIntro';
 /* 前回基準モードで引き継げない道具の配り方：'fair'=グループ内で公平（既定）／'min'=変更人数を最小化 */
 var LS_SEED_ALLOC='{{LS_PREFIX}}SeedAllocMethod';
 function loadSeedAllocMethod(){
@@ -8627,12 +8635,30 @@ function shareUsesRevisedLineMessage(){
   return typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.hasRevisedNotice==='function'&&TCB_SwapMgr.hasRevisedNotice();
 }
 var shareLineIntroDirty=false;
+function loadRegisteredShareLineIntro(){
+  try{
+    var v=_ls.get(LS_SHARE_LINE_INTRO);
+    if(v==null)return '';
+    v=String(v).trim();
+    return v;
+  }catch(e){return '';}
+}
+function saveRegisteredShareLineIntro(text){
+  var t=String(text==null?'':text).trim();
+  if(!t)throw new Error('empty');
+  _ls.set(LS_SHARE_LINE_INTRO,t);
+}
+function systemShareLineIntroText(){
+  return SHARE_PDF_MESSAGE;
+}
 function defaultShareLineIntroText(includeUrl){
   if(shareUsesRevisedLineMessage()&&typeof TCB_SwapMgr.buildRevisedLineMessage==='function'){
     var url=includeUrl?String(_parentViewUrl||'').trim():'';
     return TCB_SwapMgr.buildRevisedLineMessage(url);
   }
-  return SHARE_PDF_MESSAGE;
+  var registered=loadRegisteredShareLineIntro();
+  if(registered)return registered;
+  return systemShareLineIntroText();
 }
 function getShareLineIntroText(){
   var ta=document.getElementById('share-line-intro');
@@ -8648,6 +8674,26 @@ function resetShareLineIntro(){
   var showUrl=urlInput&&urlInput.checked&&syncEnabled();
   if(ta)ta.value=defaultShareLineIntroText(!!showUrl);
   refreshSharePanel();
+}
+function saveShareLineIntroAsTemplate(){
+  var ta=document.getElementById('share-line-intro');
+  var text=ta?String(ta.value||'').trim():'';
+  if(!text){
+    tcbToast('定型文が空です。内容を入力してから登録してください。','warn');
+    return;
+  }
+  if(shareUsesRevisedLineMessage()){
+    tcbToast('修正版の案内は自動生成です。通常送付の定型として登録するには、修正版でない展開で登録してください。','warn');
+    return;
+  }
+  try{
+    saveRegisteredShareLineIntro(text);
+    shareLineIntroDirty=false;
+    tcbToast('この端末に定型文を登録しました。次回からの出発点になります。','success');
+    refreshSharePanel();
+  }catch(e){
+    tcbToast('定型登録に失敗しました。ブラウザの保存領域を確認してください。','warn');
+  }
 }
 function buildShareLineExtraText(opts){
   opts=opts||{};
@@ -8817,7 +8863,7 @@ function preferAssignPdfBlobSave(){
   if(window.TCB_Device&&TCB_Device.preferPdfBlobSave)return !!TCB_Device.preferPdfBlobSave();
   return true;
 }
-/** PDF Blob の保存（Android=ダウンロード、iOS=共有シート経由でファイル名を維持） */
+/** PDF Blob の保存（デスクトップ=保存先選択ダイアログ優先、Android=ダウンロード、iOS=共有シート） */
 function deliverAssignPdfBlob(blob,opts){
   opts=opts||{};
   if(!(blob instanceof Blob)||!blob.size){
@@ -8832,6 +8878,9 @@ function deliverAssignPdfBlob(blob,opts){
       return navigator.share(payload);
     }
   }
+  if(window.TCB_Device&&typeof TCB_Device.saveBlobPreferPicker==='function'){
+    return TCB_Device.saveBlobPreferPicker(blob,{fileName:fileName,mimeType:'application/pdf'});
+  }
   var url=URL.createObjectURL(blob);
   try{
     var a=document.createElement('a');
@@ -8844,7 +8893,7 @@ function deliverAssignPdfBlob(blob,opts){
   }finally{
     setTimeout(function(){URL.revokeObjectURL(url);},4000);
   }
-  return Promise.resolve();
+  return Promise.resolve({method:'download'});
 }
 /** この端末が「ファイル付き共有（共有シート）」に対応しているか（主にスマホで true） */
 function assignShareFilesSupported(){
@@ -9347,6 +9396,15 @@ function execAssignPdfBlobSave(out){
       fileName:out.fileName||getAssignPdfFileName(),
       baseName:out.baseName||getAssignPdfBaseName(),
       useShareFirst:isIosLikeBrowser()
+    }).then(function(result){
+      var method=result&&result.method;
+      if(method==='picker'){
+        setSharePanelStatus('PDFを保存しました。保存先に iCloud Drive や Google ドライブを選べます。');
+      }else if(method==='download'){
+        setSharePanelStatus((window.TCB_Device&&TCB_Device.pdfSavedDownloadHint)
+          ? TCB_Device.pdfSavedDownloadHint()
+          : 'PDFをダウンロードしました。必要ならダウンロードフォルダから iCloud／Googleドライブへ移動してください。');
+      }
     });
   }).catch(function(err){
     if(_assignPdfCache.html===out.html)_assignPdfCache.pending=null;
@@ -10443,6 +10501,8 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   var shareLineIntroReset=document.getElementById('share-line-intro-reset');
   if(shareLineIntroReset)shareLineIntroReset.addEventListener('click',function(){resetShareLineIntro();});
+  var shareLineIntroSave=document.getElementById('share-line-intro-save');
+  if(shareLineIntroSave)shareLineIntroSave.addEventListener('click',function(){saveShareLineIntroAsTemplate();});
 
   /* 交代報告（MGR）モジュール初期化：内部関数をフックとして注入 */
   if(typeof TCB_SwapMgr!=='undefined'&&TCB_SwapMgr&&typeof TCB_SwapMgr.init==='function'){

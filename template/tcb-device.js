@@ -131,16 +131,83 @@
     return '本文をコピー';
   }
 
+  function canSaveFilePicker() {
+    try {
+      return typeof window.showSaveFilePicker === 'function';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * PDF 等をユーザーが選んだ場所へ保存（iCloud Drive / Google ドライブ等）。
+   * Chromium 系で showSaveFilePicker が使えるときのみ。未対応・失敗時は通常のダウンロード。
+   * @returns {Promise<{method:'picker'|'download'}>}
+   */
+  function saveBlobPreferPicker(blob, opts) {
+    opts = opts || {};
+    var fileName = String(opts.fileName || 'file.pdf');
+    var mimeType = String(opts.mimeType || blob.type || 'application/octet-stream');
+
+    function downloadFallback() {
+      var url = URL.createObjectURL(blob);
+      try {
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } finally {
+        setTimeout(function () {
+          URL.revokeObjectURL(url);
+        }, 4000);
+      }
+      return Promise.resolve({ method: 'download' });
+    }
+
+    if (!canSaveFilePicker() || !(blob instanceof Blob) || !blob.size) {
+      return downloadFallback();
+    }
+
+    return window
+      .showSaveFilePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: 'PDF',
+            accept: { 'application/pdf': ['.pdf'] }
+          }
+        ]
+      })
+      .then(function (handle) {
+        return handle.createWritable().then(function (writable) {
+          return writable.write(blob).then(function () {
+            return writable.close();
+          });
+        });
+      })
+      .then(function () {
+        return { method: 'picker' };
+      })
+      .catch(function (err) {
+        if (err && err.name === 'AbortError') throw err;
+        /* 権限拒否・非対応などはダウンロードへ */
+        return downloadFallback();
+      });
+  }
+
   function pdfOptionLabel() {
     var s = lineShareStrategy();
     if (s === 'desktop-copy') {
       if (isMacDesktop()) {
-        return 'PDF（この端末にダウンロード。Mac版LINEへは自動添付されないため、必要なら手動添付）';
+        return 'PDF（「PDFを保存」で保存先を選択可。iCloud／Googleドライブ等へ直接保存できる場合があります。Mac版LINEへは手動添付）';
       }
       if (isWindowsDesktop()) {
-        return 'PDF（この端末にダウンロード。Windows版LINEへは自動添付されないため、必要なら手動添付）';
+        return 'PDF（「PDFを保存」で保存先を選択可。Googleドライブ等へ直接保存できる場合があります。Windows版LINEへは手動添付）';
       }
-      return 'PDF（この端末にダウンロード。デスクトップ版LINEへは手動添付）';
+      return 'PDF（この端末に保存。デスクトップ版LINEへは手動添付）';
     }
     if (s === 'android-share') {
       return 'PDF添付（共有シートでLINEを選ぶと添付できます。端末に残す場合は「ファイルを保存」）';
@@ -152,10 +219,10 @@
     var s = lineShareStrategy();
     if (s === 'desktop-copy') {
       if (isMacDesktop()) {
-        return 'MacではブラウザからLINEへ直接送れません。「本文をコピー」でメッセージをコピーし、LINEのトークに貼り付けてください。PDFはダウンロードしてLINEに手動添付してください（共有シートにLINEが出ないため使いません）。';
+        return 'MacではブラウザからLINEへ直接送れません。「本文をコピー」でメッセージをコピーし、LINEのトークに貼り付けてください。PDFは「PDFを保存」で保存先（iCloud Drive や Google ドライブなど）を選べます。対応ブラウザでない場合はダウンロードフォルダへ保存されます。';
       }
       if (isWindowsDesktop()) {
-        return 'WindowsではブラウザからLINEへ直接送れないことがあります。「本文をコピー」でメッセージをコピーし、LINEのトークに貼り付けてください。PDFはダウンロードして手動添付してください。';
+        return 'WindowsではブラウザからLINEへ直接送れないことがあります。「本文をコピー」でメッセージをコピーし、LINEのトークに貼り付けてください。PDFは「PDFを保存」で保存先を選べます（未対応ブラウザはダウンロード）。';
       }
       return 'この端末では「本文をコピー」でメッセージを取得します。PDFはダウンロードしてLINEに手動添付してください。';
     }
@@ -170,9 +237,9 @@
     var s = lineShareStrategy();
     if (s === 'desktop-copy') {
       if (opts.pdfSaved) {
-        return '本文をコピーし、PDFはダウンロードしました。LINEのトークに本文を貼り付け、必要ならPDFを別途添付してください。';
+        return '本文をコピーし、PDFを保存しました。LINEのトークに本文を貼り付け、必要ならPDFを別途添付してください。';
       }
-      return '本文をコピーしました。LINEのトークに貼り付けて送信してください。PDFが必要なときは送る内容でPDFにチェックするか「PDFを保存」を使ってください（PDFはダウンロードされます）。';
+      return '本文をコピーしました。LINEのトークに貼り付けて送信してください。PDFが必要なときは送る内容でPDFにチェックするか「PDFを保存」を使ってください（保存先を選べる場合があります）。';
     }
     if (opts.pdfSaved) {
       return '本文をコピーしました。続く共有シートでPDFをLINEに添付してください。';
@@ -180,7 +247,17 @@
     return '本文をコピーしました。LINEに貼り付けて送信してください。';
   }
 
-  /** 「PDFを保存」は端末を問わず Blob ダウンロード（Mac の print() ダイアログを避ける） */
+  function pdfSavedDownloadHint() {
+    if (isMacDesktop()) {
+      return 'PDFをダウンロードしました。Finderの「ダウンロード」から iCloud Drive や Google ドライブへ移動できます。Chrome／Edge では次回から保存ダイアログで直接選べることがあります。';
+    }
+    if (isWindowsDesktop()) {
+      return 'PDFをダウンロードしました。必要ならダウンロードフォルダから Google ドライブ等へ移動してください。Chrome／Edge では保存ダイアログで直接選べることがあります。';
+    }
+    return 'PDFをダウンロードしました。';
+  }
+
+  /** 「PDFを保存」は端末を問わず Blob 保存（Mac の print() ダイアログを避ける） */
   function preferPdfBlobSave() {
     return true;
   }
@@ -212,6 +289,9 @@
     pdfOptionLabel: pdfOptionLabel,
     sharePanelHint: sharePanelHint,
     pasteStatusMessage: pasteStatusMessage,
+    pdfSavedDownloadHint: pdfSavedDownloadHint,
+    canSaveFilePicker: canSaveFilePicker,
+    saveBlobPreferPicker: saveBlobPreferPicker,
     preferPdfBlobSave: preferPdfBlobSave,
     pwaGuideKind: pwaGuideKind
   };
