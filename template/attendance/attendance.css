@@ -53,7 +53,7 @@ body.att-body{
   font:inherit;font-size:16px;font-weight:700;cursor:pointer;
 }
 .att-btn-primary{background:var(--att-navy);color:#fff;}
-.att-btn-line{background:#06c755;color:#fff;}
+.att-btn-line{background:#05a847;color:#fff;}
 .att-btn-ghost{background:var(--att-surface);color:var(--att-heading);}
 .att-btn:disabled{opacity:.55;cursor:not-allowed;}
 .att-btn-busy{position:relative;}
@@ -283,6 +283,10 @@ body.att-body{
   .att-guide-warn{background:#3a3210;color:#ffd60a;}
   .att-guide-err{background:#3a1e1e;color:#ff9ea2;}
   .att-counts span{background:#2c2c2e;color:var(--att-txt);}
+  .att-counts .ok{background:#14301c;color:#30d158;}
+  .att-counts .ng{background:#3a1e1e;color:#ff9ea2;}
+  .att-counts .maybe{background:#3a3210;color:#ffd60a;}
+  .att-counts .none{background:#2c2c2e;color:var(--att-txt2);}
   .att-flow-btn{background:var(--att-card);}
   .att-flow-btn.is-active{background:#222428;}
   .att-flow-num{background:#2c2c2e;color:var(--att-txt2);}

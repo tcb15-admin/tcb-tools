@@ -19,15 +19,21 @@
 .tcb-fb-error{background:#b3261e;}
 
 /* 同期状態インジケーター（ヘッダー内） */
+/* ヘッダは紙面（白／ダーク面）なので、淡色面＋濃色文字で両モードとも読めるようにする */
 .tcb-fb-sync{
-  font-size:9.5px;line-height:1;padding:3px 8px;border-radius:999px;white-space:nowrap;
-  background:rgba(255,255,255,.14);color:rgba(255,255,255,.85);
+  font-size:10px;font-weight:700;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap;
+  background:#ececee;color:#3f3f46;border:1px solid #d4d4d8;
 }
-.tcb-fb-sync-ok{background:rgba(46,125,50,.55);color:#dff5e2;}
-.tcb-fb-sync-busy{background:rgba(255,255,255,.22);color:#fff;}
-.tcb-fb-sync-off{background:rgba(138,90,0,.6);color:#ffe9c2;}
-.tcb-fb-sync-err{background:rgba(179,38,30,.6);color:#ffd9d6;}
+.tcb-fb-sync-ok{background:#e7f5ea;color:#14532d;border-color:#86c79a;}
+.tcb-fb-sync-busy{background:#ececee;color:#27272a;border-color:#a1a1aa;}
+.tcb-fb-sync-off{background:#fff4e0;color:#7a4a00;border-color:#e0b84e;}
+.tcb-fb-sync-err{background:#fde8e7;color:#8f1d16;border-color:#e8a19c;}
 
 @media (prefers-color-scheme: dark){
   .tcb-fb-toast{box-shadow:0 6px 24px rgba(0,0,0,.55);}
+  .tcb-fb-sync{background:#27272a;color:#e4e4e7;border-color:#52525b;}
+  .tcb-fb-sync-ok{background:rgba(48,209,88,.16);color:#a7f3c0;border-color:rgba(48,209,88,.5);}
+  .tcb-fb-sync-busy{background:#27272a;color:#f4f4f5;border-color:#71717a;}
+  .tcb-fb-sync-off{background:rgba(255,193,7,.14);color:#f5e6b8;border-color:rgba(255,193,7,.5);}
+  .tcb-fb-sync-err{background:rgba(255,90,95,.16);color:#ffd7d9;border-color:rgba(255,90,95,.5);}
 }

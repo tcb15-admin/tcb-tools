@@ -50,7 +50,7 @@ body.tea-body{
 }
 .tea-btn-primary{background:var(--tea-navy);color:#fff;}
 .tea-btn-line{
-  background:#06c755;color:#fff;
+  background:#05a847;color:#fff;
   border:2px solid #048c44;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
 }
@@ -313,6 +313,9 @@ body.tea-body{
   .tea-flow-btn.is-active{background:#222428;}
   .tea-gchip{background:#2c2c2e;}
   .tea-gunassigned{background:var(--tea-card);}
+  .tea-flow-btn.is-active .tea-flow-num{color:#0b1224;}
+  .tea-btn-danger{background:#3a1d1f;color:#ff9ea2;}
+  .tea-gchip-x:hover{background:#3a1d1f;color:#ff9ea2;}
 }
 
 @media print{

@@ -45,7 +45,7 @@ body.gear-body{
   display:flex;align-items:center;justify-content:center;gap:6px;
   height:42px;min-height:42px;padding:0 10px 0 18px;text-align:center;
   border:none;border-radius:0;box-shadow:none;
-  background:var(--gear-surface);color:var(--gear-txt2);
+  background:var(--gear-surface);color:var(--tcb-ink-soft,#3f3f46);
   font:inherit;font-size:12px;font-weight:700;
   cursor:pointer;appearance:none;-webkit-appearance:none;
   clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);

@@ -48,11 +48,14 @@ a.hbtn:focus-visible,
   background:var(--tcb-paper,var(--surface-2,#ececee));
   color:var(--tcb-ink,var(--ink-heading,#141416));
 }
+.tgg .tb2.on,
 .tb2.on{
-  background:var(--tcb-surface,var(--card,#fff));
-  color:var(--tcb-ink,var(--ink-heading,#141416));
+  background:var(--tcb-ink,var(--ink-heading,#141416));
+  color:var(--tcb-surface,var(--card,#fff));
+  -webkit-text-fill-color:var(--tcb-surface,var(--card,#fff));
   box-shadow:none;
-  border:1px solid var(--tcb-line,var(--bdr,#d4d4d8));
+  border:none;
+  font-weight:800;
 }
 .date-inp,.tninp,.asel,.dfbtn,.tcb-ghold-sel{
   background:var(--tcb-surface,var(--card,#fff));
@@ -109,10 +112,13 @@ a.hbtn:focus-visible,
   }
   html{color-scheme:dark;}
   body{background-color:var(--tcb-paper,#0c0c0e);}
+  .tgg{background:#26262b;}
+  .tgg .tb2.on,
   .tb2.on{
-    background:var(--tcb-surface,#18181b);
-    color:var(--tcb-ink,#f4f4f5);
-    border-color:var(--tcb-line,#3f3f46);
+    background:var(--tcb-ink,#f4f4f5);
+    color:#0c0c0e;
+    -webkit-text-fill-color:#0c0c0e;
+    border:none;
   }
   .tabbtn.on{background:var(--tcb-ink,#f4f4f5);color:var(--tcb-paper,#0c0c0e);}
   .bdg{background:var(--tcb-ink,#f4f4f5);color:var(--tcb-paper,#0c0c0e);}
@@ -151,7 +157,39 @@ a.hbtn:focus-visible,
     background:var(--tcb-surface,#18181b);
     color:var(--tcb-ink,#f4f4f5);
   }
+
+  /* ---- 白文字ボタンの地色：ダークで白系になる変数（--navy/--blue/--ui-accent-fill）や
+         明るい水色（--act）のままだと文字と同化するため、濃い地色に固定 ---- */
+  :root{--act:#0f766e;--act2:#0d9488;}
+  .tcb-tab-print{background:#3f5bd0;color:#fff;}
+  .tcb-tip:hover,.tcb-tip.on,.tcb-tip:focus-visible{background:#3f5bd0;border-color:#3f5bd0;color:#fff;}
+  .p3-rebalance-btn,.tcb-master-pw-btn{background:#3f5bd0;color:#fff;}
+  .tcb-share-primary{background:#05a847;color:#fff;}
+
+  /* ---- 展開パネル（ダーク面）内の灰色文字・リンク ---- */
+  .tcb-share-opt-note,.tcb-share-intro-label,.tcb-share-status,.tcb-share-ghost,
+  .tcb-share-preview-hd,.tcb-share-line-hint,.tcb-share-intro-hint{color:#c4c4cc;}
+  .tcb-share-opt:has(input:disabled){color:#8e8e97;}
+  .tcb-share-intro-reset,.tcb-share-intro-save{color:#9fb4e8;}
+  .tcb-share-intro:disabled{background:#26262b;color:#a1a1aa;}
+
+  .mdel{color:#ff9ea2;}
+
+  /* ---- 班バッジ：ダークの --ta/--tb は淡色なので文字を濃色に ---- */
+  .tbdg.A,.tbdg.B{color:#0c0c0e;}
+
+  /* ---- ステップ番号（未選択）を少し明るく ---- */
+  .gear-body .si{color:#d4d4d8;}
 }
+
+/* ---- LINE送信ボタン：白文字が読める濃さの緑に ---- */
+.p3-line-share-btn{background:#05a847;}
+
+/* ---- 小バッジ（サイズ・休部・退部）：白文字が読める濃さに ---- */
+.rest-badge,.quit-badge{background:#607d8b;}
+.cv.vS{background:#607d8b;}
+.cv.vM{background:#00796b;}
+.cv.vLL{background:#c62828;}
 
 @media print{
   .tcb-flow-hint,.steps,header .tcb-hdr-actions,#pw-screen{display:none !important;}

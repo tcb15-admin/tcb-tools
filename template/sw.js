@@ -4,7 +4,7 @@
    - API（別オリジン）には一切触れない */
 'use strict';
 
-var CACHE_NAME = 'tcb-shell-v7';
+var CACHE_NAME = 'tcb-shell-v8';
 
 self.addEventListener('install', function () {
   self.skipWaiting();
@@ -40,8 +40,13 @@ self.addEventListener('fetch', function (event) {
   /* HTML・JS・CSS はネットワーク優先（更新を最速で届け、HTMLとJSの版ずれを防ぐ）。
      オフライン時のみキャッシュから返す（同一キャッシュ世代なので組み合わせは整合する） */
   if (isNav || isVersionedAsset(url)) {
+    /* HTML はブラウザの HTTP キャッシュ（Pages は max-age=600）を使わず必ず再検証する。
+       navigate モードの Request には init を付けられないため URL で取り直す */
+    var netReq = isNav
+      ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin', redirect: 'manual' })
+      : fetch(req);
     event.respondWith(
-      fetch(req).then(function (res) {
+      netReq.then(function (res) {
         if (res && res.ok) {
           var copy = res.clone();
           caches.open(CACHE_NAME).then(function (c) { c.put(req, copy); }).catch(function () {});

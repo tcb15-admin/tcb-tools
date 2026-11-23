@@ -43,7 +43,7 @@ body.cp-body{
 .cp-btn-primary{background:var(--cp-navy);color:#fff;}
 .cp-btn-ok{background:var(--tcb-ok,#15803d);color:#fff;}
 .cp-btn-warn{background:#fff7ed;color:var(--cp-warn);border:1px solid #fdba74;}
-.cp-btn-line{background:#06c755;color:#fff;}
+.cp-btn-line{background:#05a847;color:#fff;}
 .cp-btn-ghost{background:var(--cp-surface);color:var(--cp-heading);}
 .cp-btn:disabled{opacity:.55;cursor:not-allowed;}
 .cp-btn-svg{width:18px;height:18px;display:inline-block;vertical-align:-3px;}
@@ -77,7 +77,7 @@ body.cp-body{
 }
 .cp-role-btn{
   border:1px solid var(--cp-bdr);border-radius:999px;padding:8px 14px;
-  background:var(--cp-card);font:inherit;font-size:13px;font-weight:700;cursor:pointer;
+  background:var(--cp-card);color:var(--cp-txt);font:inherit;font-size:13px;font-weight:700;cursor:pointer;
 }
 .cp-role-btn.is-active{background:var(--cp-navy);color:#fff;border-color:var(--cp-navy);}
 

@@ -2,8 +2,8 @@
   "_meta": {
     "source": "cloudflare-d1",
     "cohort": "15",
-    "cloudVersion": 215,
-    "syncedAt": "2026-10-24T05:54:54.269Z",
+    "cloudVersion": 256,
+    "syncedAt": "2026-11-23T08:18:34.357Z",
     "apiBase": "https://tcb-tools-sync.kazoo-matsu.workers.dev",
     "note": "ビルド用スナップショット。運用の正本は D1。pull-master.mjs で更新。"
   },
@@ -450,7 +450,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 22,
@@ -460,7 +461,8 @@
       "note": "2：伊郷",
       "fixed": 1,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 23,
@@ -470,7 +472,8 @@
       "note": "31：丸井",
       "fixed": 1,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 24,
@@ -480,17 +483,19 @@
       "note": "27：高橋（龍）",
       "fixed": 1,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 35,
-      "name": "ストレッチポール①",
+      "name": "ストレッチポール",
       "sz": "LL",
       "wt": "Light",
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 8,
@@ -500,7 +505,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 9,
@@ -510,7 +516,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 10,
@@ -520,7 +527,8 @@
       "note": null,
       "broken": 1,
       "fixed": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 11,
@@ -530,7 +538,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 12,
@@ -540,7 +549,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 13,
@@ -550,7 +560,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 14,
@@ -560,7 +571,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 15,
@@ -570,7 +582,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 16,
@@ -580,7 +593,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 39,
@@ -590,7 +604,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 18,
@@ -600,7 +615,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 19,
@@ -610,7 +626,8 @@
       "note": null,
       "fixed": 0,
       "broken": 1,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 44,
@@ -620,7 +637,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 45,
@@ -630,7 +648,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 46,
@@ -640,7 +659,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 47,
@@ -650,7 +670,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 48,
@@ -660,27 +681,30 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
+    },
+    {
+      "id": 49,
+      "name": "トレーニングマット⑥",
+      "sz": "M",
+      "wt": "Light",
+      "note": null,
+      "fixed": 0,
+      "broken": 0,
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 7,
-      "name": "トレーニング道具①",
+      "name": "トレーニング道具",
       "sz": "M",
       "wt": "Light",
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
-    },
-    {
-      "id": 41,
-      "name": "トレーニング道具②",
-      "sz": "M",
-      "wt": "Light",
-      "note": null,
-      "fixed": 0,
-      "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 27,
@@ -690,27 +714,19 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 33,
-      "name": "外野用ノックボール①",
+      "name": "外野用ノックボール",
       "sz": "M",
       "wt": "Light",
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
-    },
-    {
-      "id": 42,
-      "name": "外野用ノックボール②",
-      "sz": "M",
-      "wt": "Light",
-      "note": null,
-      "fixed": 0,
-      "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 29,
@@ -720,7 +736,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 30,
@@ -730,7 +747,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 34,
@@ -740,7 +758,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 25,
@@ -750,7 +769,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 26,
@@ -760,7 +780,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 28,
@@ -770,7 +791,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 31,
@@ -780,7 +802,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 37,
@@ -790,47 +813,30 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 32,
-      "name": "内野用ノックボール①",
+      "name": "内野用ノックボール",
       "sz": "M",
       "wt": "Light",
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 1
-    },
-    {
-      "id": 43,
-      "name": "内野用ノックボール②",
-      "sz": "M",
-      "wt": "Light",
-      "note": null,
-      "fixed": 0,
-      "broken": 0,
-      "matchTool": 1
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 38,
-      "name": "縄跳びセット①",
+      "name": "縄跳びセット",
       "sz": "M",
       "wt": "Light",
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
-    },
-    {
-      "id": 40,
-      "name": "縄跳びセット②",
-      "sz": "M",
-      "wt": "Light",
-      "note": null,
-      "fixed": 0,
-      "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 1,
@@ -840,7 +846,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 2,
@@ -850,7 +857,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 1,
+      "split": 0
     },
     {
       "id": 3,
@@ -860,7 +868,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 4,
@@ -870,7 +879,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 5,
@@ -880,7 +890,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     },
     {
       "id": 6,
@@ -890,7 +901,8 @@
       "note": null,
       "fixed": 0,
       "broken": 0,
-      "matchTool": 0
+      "matchTool": 0,
+      "split": 0
     }
   ],
   "DESCS": {
@@ -958,7 +970,7 @@
       "imgs": []
     },
     "ベース一式": {
-      "text": "ボール40球×1袋",
+      "text": "ホームベース×2、ベース×3、ブロック×6、ハンマー×3、ベース抜き×1、メジャー×1",
       "img": "",
       "imgs": []
     },
@@ -968,22 +980,22 @@
       "imgs": []
     },
     "審判道具②": {
-      "text": "長尺バット×8本、短尺バット×6本",
+      "text": "球審用グッズ（マスク・プロテクター・レガース・ボールバッグ）※球数カウンターあり",
       "img": "",
       "imgs": []
     },
     "雑カゴ①": {
-      "text": "メッシュコンテナ×1つ、買い物カゴ×2つ",
+      "text": "メッシュコンテナ×1つ、買い物カゴ×3つ",
       "img": "",
       "imgs": []
     },
     "雑カゴ②": {
-      "text": "試合用折りたたみバットケース",
+      "text": "メッシュコンテナ×1つ、買い物カゴ×2つ",
       "img": "",
       "imgs": []
     },
     "試合用バットケース": {
-      "text": "球審用グッズ（マスク・プロテクター・レガース・ボールバッグ）※球数カウンターあり",
+      "text": "試合用折りたたみバットケース",
       "img": "",
       "imgs": []
     },
@@ -1003,12 +1015,12 @@
       "imgs": []
     },
     "練習用ボール⑤": {
-      "text": "",
+      "text": "練習球コンテナ満杯",
       "img": "",
       "imgs": []
     },
     "練習用ボール⑥": {
-      "text": "",
+      "text": "練習球コンテナ満杯",
       "img": "",
       "imgs": []
     },
@@ -1027,23 +1039,13 @@
       "img": "",
       "imgs": []
     },
-    "長尺＆短尺バット": {
+    "投手用ボール①": {
       "text": "ボール12球、ロジン、ホームベース×1、メジャー×1",
       "img": "",
       "imgs": []
     },
-    "ストレッチポール①": {
-      "text": "アルミパイプ",
-      "img": "",
-      "imgs": []
-    },
-    "投手用ボール①": {
-      "text": "ボール×12球、ロジン、ホームベース×1",
-      "img": "",
-      "imgs": []
-    },
     "投手用ボール②": {
-      "text": "ボール40球×1袋",
+      "text": "ボール×12球、ロジン、ホームベース×1",
       "img": "",
       "imgs": []
     },
@@ -1058,46 +1060,6 @@
       "imgs": [
         "https://tcb15-admin.github.io/tcb-tools/boys15/images/53f8182b3a801f12cd464ba2.jpg?v=eeec028c52a7"
       ]
-    },
-    "縄跳びセット①": {
-      "text": "練習球コンテナ満杯",
-      "img": "",
-      "imgs": []
-    },
-    "縄跳びセット②": {
-      "text": "練習球コンテナ満杯",
-      "img": "",
-      "imgs": []
-    },
-    "トレーニング道具①": {
-      "text": "",
-      "img": "",
-      "imgs": []
-    },
-    "トレーニング道具②": {
-      "text": "ホームベース×2、ベース×3、ブロック×6、ハンマー×3、ベース抜き×1、メジャー×1",
-      "img": "",
-      "imgs": []
-    },
-    "外野用ノックボール①": {
-      "text": "",
-      "img": "",
-      "imgs": []
-    },
-    "外野用ノックボール②": {
-      "text": "メッシュコンテナ×1つ、買い物カゴ×3つ",
-      "img": "",
-      "imgs": []
-    },
-    "内野用ノックボール①": {
-      "text": "縄跳び20本（4種×5本）、トレーニングチューブ10本（2種×５本）、メッシュコンテナ×1箱",
-      "img": "",
-      "imgs": []
-    },
-    "内野用ノックボール②": {
-      "text": "",
-      "img": "",
-      "imgs": []
     },
     "トレーニングマット①": {
       "text": "",
@@ -1120,42 +1082,77 @@
       "imgs": []
     },
     "トレーニングマット⑤": {
+      "text": "",
+      "img": "",
+      "imgs": []
+    },
+    "外野用ノックボール": {
+      "text": "ボール40球×1袋",
+      "img": "",
+      "imgs": []
+    },
+    "内野用ノックボール": {
+      "text": "ボール40球×1袋",
+      "img": "",
+      "imgs": []
+    },
+    "長尺＆短尺バット": {
+      "text": "長尺バット×8本、短尺バット×6本",
+      "img": "",
+      "imgs": []
+    },
+    "ストレッチポール": {
+      "text": "アルミパイプ",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニング道具": {
       "text": "脳を騙すバット×7本（長×5、短×2）、穴あきボール20個×6袋＋13個、テニスボール×40個、カラーボール50個×6袋＋26個、保護メガネ2つ×1袋",
+      "img": "",
+      "imgs": []
+    },
+    "縄跳びセット": {
+      "text": "縄跳び20本（4種×5本）、トレーニングチューブ10本（2種×5本）、メッシュコンテナ×1箱",
+      "img": "",
+      "imgs": []
+    },
+    "トレーニングマット⑥": {
+      "text": "",
       "img": "",
       "imgs": []
     }
   },
   "PAST": {
-    "1：遠藤": 1331,
-    "2：伊郷": 1347,
-    "6：大脇": 1102,
-    "8：本山": 1218,
+    "1：遠藤": 1736,
+    "2：伊郷": 1709,
+    "6：大脇": 1438,
+    "8：本山": 1648,
     "9：石川": 223,
-    "11：植松": 1436,
-    "13：鮫島": 1418,
-    "14：増田": 1050,
-    "15：神野": 1510,
-    "16：清水": 1585,
-    "17：柴田": 1598,
-    "18：秋田": 1321,
-    "21：伊藤（櫂）": 1366,
-    "22：林": 120,
-    "23：半田": 1369,
-    "24：長坂": 1277,
-    "25：岡村": 1308,
-    "27：高橋（龍）": 1317,
-    "31：丸井": 1101,
-    "32：見並": 1540,
-    "33：伊藤（魁）": 1393,
-    "35：鵜飼": 1050,
-    "43：三浦": 1228,
-    "44：ディグ": 1794,
-    "78：榎本": 1383,
-    "86：池田": 1475,
-    "10：伊藤（天）": 1387,
-    "19：松原": 1468,
-    "77：伊奈": 273,
-    "55：濱田": 200
+    "11：植松": 2189,
+    "13：鮫島": 1880,
+    "14：増田": 1469,
+    "15：神野": 2235,
+    "16：清水": 2313,
+    "17：柴田": 2357,
+    "18：秋田": 1794,
+    "21：伊藤（櫂）": 1794,
+    "22：林": 360,
+    "23：半田": 1705,
+    "24：長坂": 1571,
+    "25：岡村": 1797,
+    "27：高橋（龍）": 1669,
+    "31：丸井": 1494,
+    "32：見並": 2310,
+    "33：伊藤（魁）": 1764,
+    "35：鵜飼": 1512,
+    "43：三浦": 1711,
+    "44：ディグ": 2661,
+    "78：榎本": 1757,
+    "86：池田": 2286,
+    "10：伊藤（天）": 1803,
+    "19：松原": 2115,
+    "77：伊奈": 756,
+    "55：濱田": 515
   },
   "DEF_TM": null
 }

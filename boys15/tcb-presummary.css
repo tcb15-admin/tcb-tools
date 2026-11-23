@@ -25,3 +25,9 @@
 .tcb-fold-state.on{background:rgba(80,140,220,.16);color:#6f9ce0;}
 .tcb-fold-state.warn{background:rgba(216,120,60,.16);color:#d8873c;}
 .tcb-fold-body{margin-top:10px;}
+
+/* ライトの白面ではオレンジ／水色文字が薄いので濃くする（ダークは上の淡色のまま） */
+@media (prefers-color-scheme:light){
+  .tcb-presum-pill.warn,.tcb-fold-state.warn{color:#9a4a0e;}
+  .tcb-presum-pill.hold,.tcb-fold-state.on{color:#1f4f99;}
+}

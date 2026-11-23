@@ -27,3 +27,10 @@
 html.tcb-ui-simple .p1-flow-panel{background:var(--surface-2);border-color:var(--bdr);}
 html.tcb-ui-simple .p1-flow-opt{background:var(--card);border-color:var(--bdr);}
 html.tcb-ui-simple .p1-flow-opt-rec{background:rgba(159,180,232,.12);border-color:var(--ui-accent-bd);}
+
+@media (prefers-color-scheme:dark){
+  .p1-flow-desc-warn,
+  .p1-flow-panel-warn{background:rgba(255,193,7,.12);border-color:rgba(255,193,7,.45);color:#f5e6b8;}
+  .p1-flow-opt-rec strong::after{background:#3f5bd0;color:#fff;}
+  .p1-flow-link{color:#9fb4e8;}
+}

@@ -31,8 +31,12 @@
     --tcb-line:#3f3f46;
     --tcb-line-strong:#52525b;
     --tcb-focus:#2dd4bf;
+    --tcb-bad:#ff8a8a;
   }
 }
+
+/* 文字色未指定のボタンがダークで黒文字（buttontext）のまま背景と同化しないよう、本文色を継承 */
+button{color:inherit;}
 
 /* ---- 共通ヘッダ ---- */
 .tcb-shell-hdr{
@@ -166,9 +170,12 @@ select.tcb-val-tbd{
   background:transparent;color:var(--tcb-ink-soft,#3f3f46);border-radius:10px;
   min-height:var(--tcb-tap,46px);letter-spacing:-.1px;font-family:inherit;
 }
+/* 選択中は墨ベタ反転（未選択の紙面と明確に区別。スマホ屋外・ダークでも同化させない） */
+.tgg .tb2.on,
 .tb2.on{
-  background:var(--tcb-surface,#fff);color:var(--tcb-ink,#141416);
-  box-shadow:0 1px 3px rgba(18,32,80,.12);
+  background:var(--tcb-ink,#141416);color:var(--tcb-surface,#fff);
+  -webkit-text-fill-color:var(--tcb-surface,#fff);
+  box-shadow:none;border:none;font-weight:800;
 }
 .tb2:disabled,
 .tb2[aria-disabled="true"]{
@@ -178,10 +185,12 @@ select.tcb-val-tbd{
   outline:2px solid var(--tcb-focus,#0f766e);outline-offset:2px;
 }
 @media (prefers-color-scheme:dark){
-  .tgg{background:var(--tcb-paper,#0c0c0e);}
+  .tgg{background:#26262b;}
   .tb2{color:var(--tcb-ink-soft,#d4d4d8);}
+  .tgg .tb2.on,
   .tb2.on{
-    background:var(--tcb-surface,#18181b);color:var(--tcb-ink,#f4f4f5);
-    box-shadow:none;border:1px solid var(--tcb-line,#3f3f46);
+    background:var(--tcb-ink,#f4f4f5);color:#0c0c0e;
+    -webkit-text-fill-color:#0c0c0e;
+    box-shadow:none;border:none;
   }
 }

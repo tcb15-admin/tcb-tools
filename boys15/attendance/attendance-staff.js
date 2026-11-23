@@ -333,6 +333,12 @@
     if($('att-br-preview'))$('att-br-preview').value=text;
   }
 
+  var DAY_KIND_LABELS={practice:'練習',game:'試合',other:'その他',undecided:'未定'};
+  function dayKindLabel(kind){
+    var k=String(kind||'');
+    return Object.prototype.hasOwnProperty.call(DAY_KIND_LABELS,k)?DAY_KIND_LABELS[k]:k;
+  }
+
   function renderBriefingPanel(){
     var c=state.detail&&state.detail.campaign;
     var daySel=$('att-br-day');
@@ -340,7 +346,7 @@
     var days=(c&&c.days)||[];
     daySel.innerHTML=days.map(function(d){
       return '<option value="'+esc(d.activityDate)+'">'+esc(d.activityDate)
-        +(d.kind?'（'+esc(d.kind)+'）':'')+'</option>';
+        +(d.kind?'（'+esc(dayKindLabel(d.kind))+'）':'')+'</option>';
     }).join('');
     if(days.length){
       fillBriefingFromDay(days[0], {resetPack:!$('att-br-wear')||!$('att-br-wear').value, force:true});
